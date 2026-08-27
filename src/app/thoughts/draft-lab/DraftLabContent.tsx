@@ -180,6 +180,11 @@ export default function DraftLabContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-27-multi-sport",
+            date: "Aug 27, 2026",
+            title: "One engine, three sports: NBA and WNBA join",
+          },
+          {
             id: "update-2026-08-26-live-fire",
             date: "Aug 26, 2026",
             title: "A day of live-fire mocks: tiers, rankings, and two id bugs",
@@ -348,6 +353,38 @@ export default function DraftLabContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-27-multi-sport"
+        date="August 27, 2026"
+        title="One engine, three sports: NBA and WNBA join"
+      >
+        <p>
+          The v2.0.0 question was whether the engine was actually general or
+          just football-shaped. Answer: general, once every football constant
+          became a lookup. A sport profile now carries the feed coordinates,
+          positions, lineup slots, scoring, tier gaps, and caps; the engine
+          swaps profiles in place, so all 21 NFL tests pass byte-identical
+          while the same marginal-lineup math drafts NBA and WNBA teams. The
+          satisfying part: FLEX and OP generalized into G/F/UTIL eligibility
+          with zero new engine code — a superflex slot and a UTIL slot are the
+          same idea wearing different jerseys.
+        </p>
+        <p>
+          The feeds cooperated after one hunt: NBA lives at game code
+          <code> fba</code>, season 2027, with the same stat-block anatomy as
+          football; WNBA exists at <code>wfba</code> but 404s behind a
+          different league-defaults id than either other sport — the kind of
+          fact you only learn by probing, which is why every coordinate in the
+          profile was live-verified before being written down. One bug came
+          out of verification too: the injury-blend rule guessed each
+          sport&apos;s final scoring period and promptly flagged all 290 NBA
+          players as season-ending injuries; the final period is now derived
+          from the data itself. Basketball draft-room scraping ships built but
+          untested against a live room — same position NFL was in three weeks
+          ago, and the same self-diagnosing panel will close the gap on first
+          contact.
+        </p>
+      </Update>
       <Update
         id="update-2026-08-26-live-fire"
         date="August 26, 2026"

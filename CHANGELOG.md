@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-27 - version 5.13.3
+
+- **The Draft Lab write-up records going multi-sport.** New dated update: v2.0.0 turned every football constant into a sport-profile lookup, so the same marginal-lineup engine now drafts NBA and WNBA (FLEX/OP generalized into G/F/UTIL eligibility with no new engine code). Includes the feed hunt (WNBA hides behind a different league-defaults id) and the verification catch — a guessed final-period id that flagged all 290 NBA players as season-ending injuries before the period was derived from the data itself.
+
 ## 2026-08-26 - version 5.13.2
 
 - **The Draft Lab write-up learns keeper optimization and states its blind spot.** Added to the update: the keeper-pair sweep (55 combinations from real league history, simulated against opponents keeping their own best values), the stale-projection trap it exposed — a confident "swap your keeper" verdict built on a WR21 season still priced as top-2 — and the standing limitation that injuries, camp news, and role changes don't exist in the model's world unless the projections carry them.
