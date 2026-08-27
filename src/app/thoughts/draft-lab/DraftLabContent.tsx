@@ -180,6 +180,11 @@ export default function DraftLabContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-27-sos",
+            date: "Aug 27, 2026",
+            title: "Strength of schedule: drafting with December in mind",
+          },
+          {
             id: "update-2026-08-27-season",
             date: "Aug 27, 2026",
             title: "The draft ends, the model keeps going: season and playoff projection",
@@ -358,6 +363,46 @@ export default function DraftLabContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-27-sos"
+        date="August 27, 2026"
+        title="Strength of schedule: drafting with December in mind"
+      >
+        <p>
+          Two players project the same points, but one runs his fantasy-playoff
+          gauntlet through three bottom-five defenses and the other through
+          three top-five ones. That difference is invisible on every draft
+          board I&apos;ve used, so v2.10.0 puts it on mine: sortable SOS and
+          Playoff SOS columns on the player pool, shown as percentages around
+          neutral — +8% means an eight-percent-easier-than-average slate of
+          opposing defenses for that position. Recommendations flag the
+          extremes in plain language (&quot;brutal playoff schedule
+          (−12%)&quot;), and the season tab now scales each player&apos;s week
+          by the actual opponent, on top of the existing bye handling.
+        </p>
+        <p>
+          The data hunt was the interesting half. This season&apos;s weekly
+          opponents are public — ESPN&apos;s pro-schedules feed carries every
+          team&apos;s game per scoring period, verified live against the real
+          calendar. Defensive strength is not: the positional-ratings endpoint
+          behind ESPN&apos;s own Opp Rank column returns an empty object to
+          anonymous callers, but serves fine through a league URL with the
+          browser&apos;s cookies — the same authenticated pattern the live
+          draft sync already uses, so the extension fetches it through my
+          league and caches it. Pre-season the current year&apos;s ratings are
+          empty by definition, so last season&apos;s finals are the draft-time
+          basis, stated plainly rather than laundered into false precision.
+        </p>
+        <p>
+          The math is deliberately humble. A pure module turns points-allowed-
+          vs-position into multipliers around 1.0, clamped to ±15% aggregate
+          and ±20% per week — defenses change year over year, and an unclamped
+          last-season number would let one outlier defense swing a projection
+          more than any real matchup should. Missing data degrades to a dash
+          and a neutral factor, never a throw: SOS is a tiebreaker with its
+          uncertainty priced in, not a reason to pass on the better player.
+        </p>
+      </Update>
       <Update
         id="update-2026-08-27-season"
         date="August 27, 2026"
