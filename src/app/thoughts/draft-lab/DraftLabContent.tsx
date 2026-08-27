@@ -402,6 +402,31 @@ export default function DraftLabContent() {
           team now averages second or third in starter points instead of
           bottom-third.
         </p>
+        <p>
+          The same harness then answered a question no draft tool I know of
+          touches: which two players should I actually keep? Feeding in last
+          year&apos;s real draft history (keeper cost = round drafted,
+          undrafted = last round) and my end-of-season roster, it simulated
+          every viable keeper pair — 55 combinations, 30 drafts each, against
+          opponents keeping their own best values. The first run confidently
+          told me to swap a keeper for a receiver my bundled projections still
+          priced as a top-2 WR — he&apos;d actually finished WR21. Re-priced
+          at 75% current projection / 25% last-year finish, the answer
+          inverted: my existing pair was second of 55, within noise of first.
+          The lesson is the oldest one in modelling — the optimizer is only as
+          good as its prices, and a confident ranking off one projection
+          source is a bug that looks like a feature.
+        </p>
+        <p>
+          Worth saying plainly: none of this accounts for injuries, camp
+          news, depth-chart changes, or anything else that isn&apos;t already
+          baked into the projections it runs on. The keeper sweep briefly
+          ranked a QB coming off IR as the best keep in the league, because no
+          number in the system knows what a knee looks like. The projections
+          are the model&apos;s entire world — which is exactly why swapping
+          them (ESPN fetch, CSV, blends) is a first-class operation in the
+          extension instead of an afterthought.
+        </p>
       </Update>
       <WhatsNext
         nowShipped={[
