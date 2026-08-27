@@ -428,6 +428,24 @@ export default function DraftLabContent() {
           them (ESPN fetch, CSV, blends) is a first-class operation in the
           extension instead of an afterthought.
         </p>
+        <p>
+          The blend then shipped INTO the extension rather than living in
+          offline scripts: one fetch now pulls current projections and last
+          season&apos;s actuals, scores both under the league&apos;s rules
+          (validated to the decimal against the league&apos;s own season
+          totals on four of six spot checks), and prices every player at
+          75/25 — except players who missed their season&apos;s final three
+          games, who stay on pure projection so an injury-shortened year
+          can&apos;t drag a healthy player&apos;s value. The last calibration
+          layer came from the league itself: profiling all eleven opponents
+          from the real 2025 draft recap (the QB hoarders, the
+          zero-QB-until-round-15 gambler, the team that takes a D/ST in round
+          seven), assigning each a drafting personality, and re-running the
+          simulations against that specific room — with the actual keeper
+          landscape, the engine won all sixty. Not a promise, since real
+          humans out-weird any tendency parameter, but the policy the panel
+          recommends live is literally the one that produced that record.
+        </p>
       </Update>
       <WhatsNext
         nowShipped={[
