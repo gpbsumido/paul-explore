@@ -2,6 +2,7 @@
 
 ## 2026-08-27 - version 5.13.3
 
+- **And keeps going after the draft: the season chapter.** Second dated update the same day: the Season tab plays the drafted roster through ESPN's real schedule — weekly lineups with byes and streamed waiver pickups, probabilistic matchup odds (the deterministic version projected the user undefeated, now pinned by a test that forbids it), a record decomposition into schedule strength vs bye timing, saved draft snapshots, and an 800-run Monte Carlo through the league's actual playoff bracket.
 - **The Draft Lab write-up records going multi-sport.** New dated update: v2.0.0 turned every football constant into a sport-profile lookup, so the same marginal-lineup engine now drafts NBA and WNBA (FLEX/OP generalized into G/F/UTIL eligibility with no new engine code). Includes the feed hunt (WNBA hides behind a different league-defaults id) and the verification catch — a guessed final-period id that flagged all 290 NBA players as season-ending injuries before the period was derived from the data itself.
 
 ## 2026-08-26 - version 5.13.2

@@ -180,6 +180,11 @@ export default function DraftLabContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-27-season",
+            date: "Aug 27, 2026",
+            title: "The draft ends, the model keeps going: season and playoff projection",
+          },
+          {
             id: "update-2026-08-27-multi-sport",
             date: "Aug 27, 2026",
             title: "One engine, three sports: NBA and WNBA join",
@@ -353,6 +358,40 @@ export default function DraftLabContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-27-season"
+        date="August 27, 2026"
+        title="The draft ends, the model keeps going: season and playoff projection"
+      >
+        <p>
+          The newest tab takes the drafted roster and plays the actual season:
+          ESPN&apos;s real schedule and matchups, actual scores once a week is
+          played, projections until then — each team&apos;s lineup rebuilt per
+          week so bye weeks sit players (with a replacement-level waiver
+          pickup streamed into unfillable slots, because nobody starts a
+          zero at D/ST). Expanding a week shows the full head-to-head: both
+          lineups slot by slot, an edge per position, both teams&apos; byes.
+          Draft results snapshot to storage with their values frozen, so two
+          strategies can be drafted, saved, and compared as whole seasons.
+        </p>
+        <p>
+          The first version had a bug the user caught instantly: it projected
+          their team undefeated. Deterministic comparison — higher projection
+          wins, full stop — makes the best roster 14-0 by construction, and a
+          second path to fake perfection hid underneath it (rosters that
+          failed to resolve projected zero and lost every week). Projections
+          are now probabilities: a logistic on the margin, calibrated to real
+          weekly variance, so a genuine contender projects 9-5, not perfect.
+          There&apos;s a test asserting exactly that — a dominant roster must
+          never project undefeated. From there the questions got sharper, so
+          the answers did too: a decomposition panel splits a projected record
+          into schedule strength (who you face, who you face twice) and week
+          profile (what your bye dips cost in wins, and against whom), and a
+          Monte Carlo plays 800 seasons through the league&apos;s real playoff
+          bracket at the real playoff weeks — where the points-for tiebreak
+          finally pays the high-scoring third seed back.
+        </p>
+      </Update>
       <Update
         id="update-2026-08-27-multi-sport"
         date="August 27, 2026"
