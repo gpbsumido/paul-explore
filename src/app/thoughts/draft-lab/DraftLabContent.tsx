@@ -412,7 +412,8 @@ export default function DraftLabContent() {
           told me to swap a keeper for a receiver my bundled projections still
           priced as a top-2 WR — he&apos;d actually finished WR21. Re-priced
           at 75% current projection / 25% last-year finish, the answer
-          inverted: my existing pair was second of 55, within noise of first.
+          inverted — and with live ESPN projections in the blend, my existing
+          pair ranked first outright, top-3 in every simulated draft.
           The lesson is the oldest one in modelling — the optimizer is only as
           good as its prices, and a confident ranking off one projection
           source is a bug that looks like a feature.
