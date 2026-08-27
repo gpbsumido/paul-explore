@@ -391,6 +391,23 @@ export default function DraftLabContent() {
           bracket at the real playoff weeks — where the points-for tiebreak
           finally pays the high-scoring third seed back.
         </p>
+        <p>
+          The tab grew three roster sources — the board&apos;s simulated
+          draft, ESPN&apos;s current rosters for after the real draft, and a
+          fully coherent retrospective: last season&apos;s schedule with last
+          season&apos;s rosters and last season&apos;s byes, because mixing
+          this year&apos;s bye calendar into last year&apos;s matchups is the
+          kind of quiet incoherence that poisons conclusions. The
+          retrospective mode earns its keep as a validation set: every
+          matchup has a real outcome, so a Model Check card reports how often
+          the projection&apos;s favorite actually won, the Brier score
+          against coin-flipping, and the average weekly points error — with
+          the caveat printed on it that today&apos;s values applied to last
+          year&apos;s lineups are partly circular. Rounding out the realism:
+          absent managers can be marked as ESPN autopick (strict ADP,
+          deterministic), which the survival model exploits — a known
+          autopicker is information, not noise.
+        </p>
       </Update>
       <Update
         id="update-2026-08-27-multi-sport"
