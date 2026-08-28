@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-28 - version 5.14.0
+
+- **The research explorer learns trauma.** Eighth topic category, Vascular trauma, with six curated topics: REBOA for noncompressible hemorrhage, TEVAR timing in blunt thoracic aortic injury, popliteal artery injury in knee dislocation, temporary intravascular shunts, blunt cerebrovascular injury screening, and pediatric vascular trauma. Pure data addition — each topic carries its own auditable PubMed query, so evidence scoring, recent papers, and the demographic-gap filters all work on trauma out of the box. A test now pins the category and insists every one of its queries actually measures trauma literature rather than the elective cousin of the same operation.
+
+## 2026-08-26 - version 5.13.2
+
+- **The Draft Lab write-up learns keeper optimization and states its blind spot.** Added to the update: the keeper-pair sweep (55 combinations from real league history, simulated against opponents keeping their own best values), the stale-projection trap it exposed — a confident "swap your keeper" verdict built on a WR21 season still priced as top-2 — and the standing limitation that injuries, camp news, and role changes don't exist in the model's world unless the projections carry them.
+
 ## 2026-08-26 - version 5.13.1
 
 - **The Draft Lab write-up gets its first dated update.** A day of live-fire practice drafts added tiers (auto plus persistent per-player overrides), My-Rankings blending, a tier-supply grid, and an auto-keeper LM mode — and surfaced two id-shaped bugs worth recording: ESPN's Players rows masquerading as pick history (QUEUE ingested as a team name), and keeper assignments breaking across projection-source switches because every source uses a different player-id scheme. Plus the honest limit: an extension cannot stop ESPN's autopick from sniping a keeper; only the native Keepers tab locks players. Later the same day: the grades feature exposed the AI drafting bench depth over starters, so the whole engine moved to marginal-lineup scoring, with personal position caps and tier-cliff urgency feeding recommendations. The write-up now carries six real screenshots, a senior-level architecture walkthrough (pure engine, storage as message bus, thin render surfaces, the scoring pipeline and survival math), and a proper pitch for why you'd want it on draft night.
