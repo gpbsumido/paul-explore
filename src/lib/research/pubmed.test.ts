@@ -18,6 +18,18 @@ describe("curated data", () => {
     });
   });
 
+  it("curates a vascular trauma category whose topics are trauma-scoped", () => {
+    // Typed as string so this compiles while the category doesn't exist yet.
+    const traumaCategory: string = "Vascular trauma";
+    expect(TOPIC_CATEGORIES).toContain(traumaCategory);
+    const traumaTopics = TOPICS.filter((t) => t.category === traumaCategory);
+    expect(traumaTopics.length).toBeGreaterThanOrEqual(4);
+    traumaTopics.forEach((t) => {
+      // Every query has to measure trauma literature, not the elective cousin.
+      expect(t.query).toMatch(/trauma|injur|hemorrhage/i);
+    });
+  });
+
   it("keeps every demographic facet in one of the four lenses", () => {
     const groups = new Set(DEMOGRAPHICS.map((d) => d.group));
     expect([...groups].sort()).toEqual(
