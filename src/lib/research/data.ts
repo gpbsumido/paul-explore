@@ -15,6 +15,7 @@ export const TOPIC_CATEGORIES = [
   "Carotid & stroke",
   "Venous disease",
   "Dialysis access",
+  "Vascular trauma",
   "Training & workforce",
   "Disparities & populations",
 ] as const;
@@ -202,6 +203,60 @@ export const TOPICS: ResearchTopic[] = [
       "Fistula-first was written for younger patients; for the frail elderly the right first access is genuinely open.",
     query:
       '("arteriovenous shunt, surgical"[mh] OR vascular access[tiab]) AND (hemodialysis[tiab] OR dialysis[tiab]) AND ("frailty"[mh] OR frail[tiab] OR octogenarian[tiab])',
+  },
+  {
+    id: "reboa-hemorrhage-control",
+    name: "REBOA for noncompressible hemorrhage",
+    category: "Vascular trauma",
+    description:
+      "Aortic occlusion at the bedside promised to buy time in exsanguinating trauma; UK-REBOA muddied the water and patient selection is the live question.",
+    query:
+      "(REBOA[tiab] OR resuscitative endovascular balloon occlusion[tiab]) AND (trauma[tiab] OR hemorrhage[tiab] OR \"wounds and injuries\"[mh])",
+  },
+  {
+    id: "btai-tevar-timing",
+    name: "TEVAR timing in blunt thoracic aortic injury",
+    category: "Vascular trauma",
+    description:
+      "Grade II and III injuries get repaired on wildly different clocks depending on the center; delayed repair keeps looking safe and keeps being ignored.",
+    query:
+      "(blunt thoracic aortic injury[tiab] OR blunt aortic injury[tiab] OR traumatic aortic injury[tiab]) AND (TEVAR[tiab] OR thoracic endovascular[tiab] OR endovascular repair[tiab])",
+  },
+  {
+    id: "popliteal-injury-knee-dislocation",
+    name: "Popliteal artery injury in knee dislocation",
+    category: "Vascular trauma",
+    description:
+      "The limb is usually lost in the diagnostic delay, not the OR; whether ABI-first screening or CTA-for-all catches the injury in time is still unsettled.",
+    query:
+      '("popliteal artery"[mh] OR popliteal artery[tiab]) AND (knee dislocation[tiab] OR "knee dislocation"[mh]) AND (injury[tiab] OR trauma[tiab] OR vascular[tiab])',
+  },
+  {
+    id: "temporary-vascular-shunts",
+    name: "Temporary intravascular shunts in extremity trauma",
+    category: "Vascular trauma",
+    description:
+      "A military damage-control move migrating into civilian trauma centers, with thin comparative data on dwell time, systemic anticoagulation, and limb outcomes.",
+    query:
+      "(temporary intravascular shunt[tiab] OR temporary vascular shunt[tiab] OR vascular shunting[tiab]) AND (trauma[tiab] OR injury[tiab] OR extremity[tiab] OR damage control[tiab])",
+  },
+  {
+    id: "bcvi-screening",
+    name: "Blunt cerebrovascular injury screening",
+    category: "Vascular trauma",
+    description:
+      "Expanded CTA screening criteria find more carotid and vertebral dissections; whether finding them prevents strokes or just finds lesions is open.",
+    query:
+      "(blunt cerebrovascular injury[tiab] OR BCVI[tiab]) AND (screening[tiab] OR computed tomography angiography[tiab] OR CTA[tiab])",
+  },
+  {
+    id: "pediatric-vascular-trauma",
+    name: "Pediatric vascular trauma management",
+    category: "Vascular trauma",
+    description:
+      "Small vessels, growth to protect, and guidelines extrapolated from adults; almost none of the literature is centered on children.",
+    query:
+      '("vascular system injuries"[mh] OR vascular trauma[tiab] OR vascular injury[tiab]) AND ("child"[mh] OR pediatric[tiab] OR paediatric[tiab])',
   },
   {
     id: "trainee-burnout",
