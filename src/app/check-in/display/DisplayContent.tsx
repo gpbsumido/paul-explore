@@ -30,7 +30,6 @@ function formatRemaining(seconds: number): string {
  */
 export default function DisplayContent() {
   const siteId = useSearchParams().get("site");
-  const [remaining, setRemaining] = useState<number | null>(null);
 
   const query = useQuery({
     queryKey: ["check-in-code", siteId],
@@ -52,24 +51,7 @@ export default function DisplayContent() {
     staleTime: 0,
   });
 
-  const secondsFromServer = query.data?.secondsRemaining ?? null;
-
-  // Restart the countdown whenever a fresh code lands.
-  useEffect(() => {
-    if (secondsFromServer === null) return;
-    setRemaining(secondsFromServer);
-  }, [secondsFromServer, query.dataUpdatedAt]);
-
-  // Tick down, and refetch the moment this code is due to be replaced.
-  useEffect(() => {
-    if (remaining === null) return;
-    if (remaining <= 0) {
-      void query.refetch();
-      return;
-    }
-    const timer = setTimeout(() => setRemaining((r) => (r === null ? null : r - 1)), 1000);
-    return () => clearTimeout(timer);
-  }, [remaining, query]);
+  const { refetch } = query;
 
   if (!siteId) {
     return (
@@ -110,11 +92,44 @@ export default function DisplayContent() {
         {query.data.code}
       </p>
       <p className="text-sm text-muted" aria-live="off">
-        New code in {formatRemaining(remaining ?? query.data.secondsRemaining)}
+        {/* Keyed on the fetch, so a fresh code remounts this with its own
+            starting number instead of the parent writing state to reset it. */}
+        <Countdown
+          key={query.dataUpdatedAt}
+          seconds={query.data.secondsRemaining}
+          onExpire={refetch}
+        />
       </p>
       <p className="max-w-sm text-xs text-muted">
         Volunteers: open the check-in link and type these six digits.
       </p>
     </div>
   );
+}
+
+/**
+ * Counts one code down and asks for the next when it runs out.
+ *
+ * Its own component so the countdown restarts by remounting rather than by an
+ * effect writing state, which is both simpler and what the lint rules want.
+ */
+function Countdown({
+  seconds,
+  onExpire,
+}: {
+  seconds: number;
+  onExpire: () => void;
+}) {
+  const [left, setLeft] = useState(seconds);
+
+  useEffect(() => {
+    if (left <= 0) {
+      onExpire();
+      return;
+    }
+    const timer = setTimeout(() => setLeft((n) => n - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [left, onExpire]);
+
+  return <>New code in {formatRemaining(left)}</>;
 }
