@@ -35,7 +35,6 @@ export const catalogSchema = z.object({
 });
 
 export type CatalogSet = z.infer<typeof catalogSetSchema>;
-export type CatalogSerie = z.infer<typeof catalogSerieSchema>;
 export type Catalog = z.infer<typeof catalogSchema>;
 
 /**
