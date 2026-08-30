@@ -30,16 +30,43 @@ const tcgdex = new TCGdex("en");
 // Set list doesn't change often — rebuild at most once a day
 export const revalidate = 86400;
 
+/**
+ * How long the upstream fan-out gets before this page gives up on it.
+ *
+ * Next allows a page 60 seconds to render during `next build` and fails the
+ * whole export after three attempts at it. This page lists every series and
+ * then fetches each one, so its cost is a multiple of however slow TCGdex
+ * happens to be that minute -- which is exactly how the build started failing
+ * intermittently. Twenty seconds leaves room for the render itself and turns a
+ * slow upstream into an empty page instead of a broken deploy.
+ */
+const UPSTREAM_BUDGET_MS = 20_000;
+
+/** Rejects if `work` has not settled inside `ms`, clearing its timer either way. */
+export function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const expiry = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("upstream budget exceeded")), ms);
+  });
+  return Promise.race([work, expiry]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
+
 export default async function SetsPage() {
   let validSeries: Awaited<ReturnType<typeof tcgdex.serie.get>>[] = [];
   try {
-    const resumes = await tcgdex.serie.list();
-    const series = resumes
-      ? await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)))
-      : [];
-    validSeries = series.filter(Boolean);
+    validSeries = await withTimeout(
+      (async () => {
+        const resumes = await tcgdex.serie.list();
+        const series = resumes
+          ? await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)))
+          : [];
+        return series.filter(Boolean);
+      })(),
+      UPSTREAM_BUDGET_MS,
+    );
   } catch {
-    // TCGdex unreachable at build time — ISR will repopulate on first request
+    // Unreachable or just too slow — from the build's point of view those are
+    // the same thing. ISR repopulates this on a later request.
   }
 
   // Everything below reads through this list at build time, so every nested

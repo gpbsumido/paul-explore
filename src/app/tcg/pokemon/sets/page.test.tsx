@@ -20,7 +20,7 @@ vi.mock("@/components/PageHeader", () => ({
   default: () => <div data-testid="page-header" />,
 }));
 
-import SetsPage from "./page";
+import SetsPage, { withTimeout } from "./page";
 
 const complete = {
   id: "sv",
@@ -63,5 +63,49 @@ describe("sets list with incomplete upstream data", () => {
     serieList.mockRejectedValue(new Error("upstream down"));
     await renderPage();
     expect(screen.getByTestId("page-header")).toBeInTheDocument();
+  });
+});
+
+describe("the build-time budget", () => {
+  it("gives up on a fan-out that outlives its budget", async () => {
+    vi.useFakeTimers();
+    try {
+      const hanging = new Promise(() => {});
+      const raced = withTimeout(hanging, 20_000);
+      const settled = raced.then(
+        () => "resolved",
+        () => "gave up",
+      );
+      await vi.advanceTimersByTimeAsync(20_001);
+      await expect(settled).resolves.toBe("gave up");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not delay work that finishes in time", async () => {
+    vi.useFakeTimers();
+    try {
+      await expect(withTimeout(Promise.resolve("done"), 20_000)).resolves.toBe(
+        "done",
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("renders the page rather than throwing when the fan-out is too slow", async () => {
+    vi.useFakeTimers();
+    try {
+      serieList.mockReturnValue(new Promise(() => {}));
+      const pending = SetsPage();
+      await vi.advanceTimersByTimeAsync(20_001);
+      // An empty list is the right degradation: ISR fills it in later, and a
+      // build that finishes beats a page that is momentarily bare.
+      render(await pending);
+      expect(screen.getByTestId("page-header")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
