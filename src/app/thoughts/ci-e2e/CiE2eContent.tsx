@@ -430,13 +430,32 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
           reachable from where I work.
         </p>
         <p>
-          So the build stopped calling the API.{" "}
-          <code>generateStaticParams</code> returns nothing, the route keeps its
-          day-long <code>revalidate</code>, and the first request for a set
-          renders and caches it. The cost is one cold render per set per day.
-          The gain is that nobody outside this repo holds a veto over whether it
-          builds. The field guards stayed — they still matter when a request
-          renders an incomplete set — but they are no longer load-bearing.
+          So the build stopped calling the API for that route:{" "}
+          <code>generateStaticParams</code> returns nothing, the page keeps its
+          day-long <code>revalidate</code>, and the first request renders and
+          caches it. One cold render per set per day, in exchange for ten fewer
+          build-time fetches.
+        </p>
+        <p>
+          And the failure moved one route over, which is the part that actually
+          taught me something. The sets <em>list</em> page renders at build
+          under its own <code>revalidate</code>, and it already caught a failing
+          fetch — the case it was written for. What it did not survive was a
+          fetch that <em>succeeded</em> and came back with a series not yet
+          filled in, because the render then read <code>serie.sets.length</code>{" "}
+          and <code>set.cardCount.official</code> blind. The same field as the
+          detail page.
+        </p>
+        <p>
+          Which means my first instinct had been right and my second reading of
+          it wrong. The cause was never one bad set; it is that this API
+          publishes records before every nested field exists, and any page that
+          renders at build time and reads through them can end the export.
+          Removing the pre-render was worth doing and did not fix anything on
+          its own — it just moved the failure somewhere I could see it. Treating
+          every nested field as optional is the fix that generalises, and
+          &ldquo;a page that cannot render is a broken page&rdquo; understates
+          it: at build time, a page that cannot render is a broken deploy.
         </p>
       </Update>
 
