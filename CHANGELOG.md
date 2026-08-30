@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-30 - version 5.14.3
+
+- **The TCG sets page was timing out the build, not crashing it.** `/tcg/pokemon/sets` lists every series and then fetches each one, so its build cost is a multiple of however slow TCGdex is that minute. Next allows a page 60 seconds to render during `next build` and fails the export after three attempts, which is what had been killing the nightly and PR CI — `Export encountered an error`, then `webServer was not able to start`, with the job dead before a spec ran. The fan-out now has a twenty-second budget; past that the page renders empty and ISR fills it in later, since from the build's point of view "unreachable" and "too slow" are the same thing and the page only handled the first.
+- **Two earlier diagnoses, kept because they were still worth fixing.** 5.14.1 guarded the nested fields a half-published set arrives without, and this release stops `generateStaticParams` pre-rendering ten sets and guards the same fields on the list page. Both are real defects with tests that fail without them — a request rendering an incomplete set genuinely crashed — but neither was what CI was hitting. The line that settled it was in Vercel's build log rather than GitHub's, which is the part worth remembering.
+- **The CI E2E write-up records all three passes**, including which log said what and why an intermittent failure that a re-run clears is the most expensive kind. The deployment write-up gains the migration-rename incident: renaming was checked against production, where it had never run, and broke staging, where it had.
+
 ## 2026-08-30 - version 5.14.2
 
 - **Strength of schedule joins the write-up.** Third dated update: v2.10.0 adds sortable SOS and Playoff SOS columns to the draft board, matchup-scaled weekly projections in the Season tab, and playoff-slate flags on recommendations. The update records the data hunt — weekly pro opponents are public, but the positional ratings behind ESPN's Opp Rank are auth-gated and had to be fetched through the league like the draft sync — and the deliberate humility of the math: last season's finals as the pre-season basis, factors clamped to ±15%/±20%, missing data degrading to a dash instead of a throw.

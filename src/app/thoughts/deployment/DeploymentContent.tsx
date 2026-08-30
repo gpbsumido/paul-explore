@@ -544,6 +544,52 @@ export default function DeploymentContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-08-30-migration-rename"
+        date="August 30, 2026"
+        title="&ldquo;It has not been released&rdquo; is the wrong question"
+      >
+        <p>
+          A fresh version of the rule above, failed in a way I had not
+          considered. Two migrations had ended up with the same sequence number
+          — <C>025_check_in</C> and <C>025_draft_adjustments</C>, from branches
+          cut the same afternoon. Knex keys its migrations table on the
+          filename, so both had run; the number just no longer meant anything.
+        </p>
+        <p>
+          Renaming one is only safe before it has run anywhere, because knex
+          checks that every migration it has recorded still exists on disk. So I
+          checked production, found it had never been deployed there, decided
+          the rename was free, and shipped it.
+        </p>
+        <p>
+          The next staging deploy refused to start:{" "}
+          <C>
+            The migration directory is corrupt, the following files are missing:
+            025_check_in.ts
+          </C>
+          . Staging tracks <C>develop</C>. It had been running that migration
+          for a day. Recovery was a hand-written{" "}
+          <C>
+            UPDATE knex_migrations SET name = &apos;027_check_in.ts&apos; WHERE
+            name = &apos;025_check_in.ts&apos;
+          </C>{" "}
+          — a <C>DELETE</C> would have been worse, since knex would then treat
+          it as pending and re-run <C>createTable</C> against tables that
+          already exist.
+        </p>
+        <p>
+          The rule on this page says confirm what is live before writing to it,
+          and I did confirm — the wrong environment. &ldquo;Has this been
+          released?&rdquo; quietly means production, and production was the one
+          place this had <em>not</em> run. The question that would have caught
+          it is <strong>has any environment run this</strong>, which includes
+          the one nobody thinks of as real. That correction now lives in a
+          comment next to the guard test rather than in a commit message, so it
+          is in front of whoever hits the error next.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A written record of the concrete setup rather than a general description of deployment, which is what makes it useful when something breaks at an awkward time.",
