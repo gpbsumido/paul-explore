@@ -1000,7 +1000,7 @@ describe("ResearchContent custom topics", () => {
     const user = userEvent.setup();
     await addTopic(user, "mesenteric ischemia thrombolysis");
     const card = await screen.findByRole("button", {
-      name: /mesenteric ischemia thrombolysis/,
+      name: /^mesenteric ischemia thrombolysis/,
     });
     expect(card).toBeInTheDocument();
     expect(await screen.findByText("Emerging")).toBeInTheDocument();
@@ -1011,7 +1011,7 @@ describe("ResearchContent custom topics", () => {
     const user = userEvent.setup();
     await addTopic(user, "popliteal entrapment");
     await user.click(
-      await screen.findByRole("button", { name: /popliteal entrapment/ }),
+      await screen.findByRole("button", { name: /^popliteal entrapment/ }),
     );
     await screen.findByRole("link", { name: /Topic paper/ });
     const last = seen.publicationUrls.at(-1) ?? "";
@@ -1032,13 +1032,13 @@ describe("ResearchContent custom topics", () => {
   it("forgets a removed topic", async () => {
     const user = userEvent.setup();
     await addTopic(user, "carotid web");
-    await screen.findByRole("button", { name: /carotid web/ });
+    await screen.findByRole("button", { name: /^carotid web/ });
     await user.click(
       screen.getByRole("button", { name: "Remove carotid web" }),
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole("button", { name: /carotid web/ }),
+        screen.queryByRole("button", { name: /^carotid web/ }),
       ).not.toBeInTheDocument(),
     );
   });
