@@ -3,6 +3,7 @@
 ## 2026-08-30 - version 5.14.3
 
 - **The TCG set pages stopped being able to fail the build.** 5.14.1 guarded the nested fields a half-published set arrives without, which was a real crash but evidently not the only one: the export then failed on `B2`, on a branch that already carried that fix. Pre-rendering meant fetching ten sets during `next build`, so any one of them not coming back cleanly ended the export and took Playwright's webServer with it — the nightly on `me02`, then PR CI on `B2`. Guarding fields chases that one set at a time. `generateStaticParams` now returns nothing, so the build makes no upstream calls at all and the class of failure is gone. With the existing day-long `revalidate`, the cost is one cold render per set per day; the gain is that a third party can no longer veto a build. The field guards stay, since they still matter when a request renders an incomplete set.
+- **Two write-ups record what the day taught.** The CI E2E notes gain the half the test-boundary rule never covered: mocking TCGdex at the edge of the suite does nothing for a build that fetches it, and a failure that a re-run clears is the most expensive kind because it reads as flake. The deployment notes gain a fresh way of failing its own rule — renaming a migration was checked against production, where it had never run, and broke staging, where it had; "has this been released" quietly means production, and the question that catches it is "has any environment run this".
 
 ## 2026-08-30 - version 5.14.2
 

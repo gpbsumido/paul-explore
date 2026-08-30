@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -389,13 +389,66 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
           the test actually exercises.
         </p>
       </section>
+      <Update
+        id="update-2026-08-30-build-veto"
+        date="August 30, 2026"
+        title="The same API took out the build, where mocking cannot reach"
+      >
+        <p>
+          The section above draws the line at the test boundary: our routes are
+          ours, TCGdex is not, so mock at the edge. That holds for tests and
+          says nothing about the build, which is where this bit me.
+        </p>
+        <p>
+          The nightly went red two nights running with no test failure in it at
+          all:{" "}
+          <code>
+            Export encountered an error on /tcg/pokemon/sets/[setId]/page:
+            /tcg/pokemon/sets/me02
+          </code>
+          . The set pages pre-rendered the ten most recent sets, which means
+          fetching each one during <code>next build</code>. One set that did not
+          come back cleanly ended the export, <code>next build</code> exited 1,
+          Playwright&apos;s webServer never started, and the job died before a
+          single spec ran. Every mock in the suite was irrelevant, because none
+          of this happened inside a test.
+        </p>
+        <p>
+          Two things made it survive as long as it did. It was intermittent —
+          the same code catches its own failure and pre-renders nothing when the
+          API is unreachable, so the build only breaks when the API <em>does</em>{" "}
+          answer with a set it cannot then render. And a re-run cleared it,
+          which is the most expensive property a failure can have: it reads as
+          flake, and flake gets dismissed.
+        </p>
+        <p>
+          The first fix guarded the fields the failing set was missing. It was a
+          real crash with real tests, and it was still the wrong shape — the
+          export failed again a day later on a different set, on a branch that
+          already carried it. Guarding fields chases one set at a time, and I
+          could not see which field it would be next, because the API is not
+          reachable from where I work.
+        </p>
+        <p>
+          So the build stopped calling the API.{" "}
+          <code>generateStaticParams</code> returns nothing, the route keeps its
+          day-long <code>revalidate</code>, and the first request for a set
+          renders and caches it. The cost is one cold render per set per day.
+          The gain is that nobody outside this repo holds a veto over whether it
+          builds. The field guards stayed — they still matter when a request
+          renders an incomplete set — but they are no longer load-bearing.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Real backends in end-to-end runs rather than mocking everything, because a suite that mocks the integration cannot test the integration.",
           "A general pattern for the flake rather than a retry, since retries turn a signal into noise.",
+          "No build-time calls to a third-party API, so an upstream wobble can fail a page render but never the build.",
         ]}
         couldImprove={[
           "Flake is handled by pattern but not measured — nothing tracks which specs fail intermittently, so the worst offenders are found by memory.",
+          "A build failure still surfaces as \"webServer was not able to start\", which names the symptom and buries the cause several hundred lines up.",
           "The full suite runs on pre-release only, which means a break can land on develop and stay hidden until a release.",
         ]}
         upcoming={[
