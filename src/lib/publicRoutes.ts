@@ -31,6 +31,7 @@ export function isIndexableRoute(route: string): boolean {
 /** Every indexable page, newest content first is not meaningful here — sorted. */
 export const PUBLIC_ROUTES: readonly string[] = [
   "/",
+  "/check-in",
   "/craft",
   "/design-system",
   "/discover",
@@ -138,6 +139,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/v4-redesign",
   "/thoughts/v5-redesign",
   "/thoughts/vitals",
+  "/thoughts/volunteer-check-in",
   "/thoughts/work-portfolio",
   "/thoughts/world",
   "/privacy",

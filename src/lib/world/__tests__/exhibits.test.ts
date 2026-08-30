@@ -40,6 +40,10 @@ describe("world exhibits", () => {
       // would send someone out of the world to a page whose whole job is
       // sending them back into it.
       "discover",
+      // Only means anything at a real location: without a site link and a
+      // display in front of you there is nothing to do on the page, so an
+      // exhibit would walk someone to a sign-in wall and an empty list.
+      "check-in",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));
