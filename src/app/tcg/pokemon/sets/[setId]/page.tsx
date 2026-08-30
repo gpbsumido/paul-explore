@@ -56,6 +56,12 @@ export default async function SetDetailPage({
 
   const releaseYear = set.releaseDate?.split("-")[0];
 
+  // A set that has only just been announced turns up in the list with parts of
+  // its record still missing. Reading through those blind failed the whole
+  // production build, so every one of them is optional here.
+  const serieName = set.serie?.name;
+  const officialCount = set.cardCount?.official;
+
   return (
     <div className="min-h-dvh bg-background font-sans">
       <PageHeader
@@ -83,17 +89,23 @@ export default async function SetDetailPage({
               {set.name}
             </h1>
             <div className="flex items-center gap-4 text-xs text-muted">
-              <span className="uppercase tracking-wider">{set.serie.name}</span>
+              {serieName && (
+                <span className="uppercase tracking-wider">{serieName}</span>
+              )}
               {releaseYear && (
                 <>
                   <span className="text-border">·</span>
                   <span>{releaseYear}</span>
                 </>
               )}
-              <span className="text-border">·</span>
-              <span className="font-semibold text-foreground">
-                {set.cardCount.official} cards
-              </span>
+              {officialCount !== undefined && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="font-semibold text-foreground">
+                    {officialCount} cards
+                  </span>
+                </>
+              )}
               {set.symbol && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -106,8 +118,8 @@ export default async function SetDetailPage({
             </div>
           </div>
           <div className="flex gap-2 ml-auto">
-            <LegalBadge label="Standard" legal={set.legal.standard} />
-            <LegalBadge label="Expanded" legal={set.legal.expanded} />
+            <LegalBadge label="Standard" legal={set.legal?.standard} />
+            <LegalBadge label="Expanded" legal={set.legal?.expanded} />
           </div>
         </div>
       </div>
@@ -119,7 +131,14 @@ export default async function SetDetailPage({
   );
 }
 
-function LegalBadge({ label, legal }: { label: string; legal: boolean }) {
+function LegalBadge({
+  label,
+  legal,
+}: {
+  label: string;
+  /** Undefined for a set whose legality upstream has not decided yet. */
+  legal?: boolean;
+}) {
   return (
     <span
       className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide border ${
