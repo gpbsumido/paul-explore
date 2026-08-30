@@ -180,6 +180,21 @@ export default function DraftLabContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-27-sos",
+            date: "Aug 27, 2026",
+            title: "Strength of schedule: drafting with December in mind",
+          },
+          {
+            id: "update-2026-08-27-season",
+            date: "Aug 27, 2026",
+            title: "The draft ends, the model keeps going: season and playoff projection",
+          },
+          {
+            id: "update-2026-08-27-multi-sport",
+            date: "Aug 27, 2026",
+            title: "One engine, three sports: NBA and WNBA join",
+          },
+          {
             id: "update-2026-08-26-live-fire",
             date: "Aug 26, 2026",
             title: "A day of live-fire mocks: tiers, rankings, and two id bugs",
@@ -348,6 +363,129 @@ export default function DraftLabContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-27-sos"
+        date="August 27, 2026"
+        title="Strength of schedule: drafting with December in mind"
+      >
+        <p>
+          Two players project the same points, but one runs his fantasy-playoff
+          gauntlet through three bottom-five defenses and the other through
+          three top-five ones. That difference is invisible on every draft
+          board I&apos;ve used, so v2.10.0 puts it on mine: sortable SOS and
+          Playoff SOS columns on the player pool, shown as percentages around
+          neutral — +8% means an eight-percent-easier-than-average slate of
+          opposing defenses for that position. Recommendations flag the
+          extremes in plain language (&quot;brutal playoff schedule
+          (−12%)&quot;), and the season tab now scales each player&apos;s week
+          by the actual opponent, on top of the existing bye handling.
+        </p>
+        <p>
+          The data hunt was the interesting half. This season&apos;s weekly
+          opponents are public — ESPN&apos;s pro-schedules feed carries every
+          team&apos;s game per scoring period, verified live against the real
+          calendar. Defensive strength is not: the positional-ratings endpoint
+          behind ESPN&apos;s own Opp Rank column returns an empty object to
+          anonymous callers, but serves fine through a league URL with the
+          browser&apos;s cookies — the same authenticated pattern the live
+          draft sync already uses, so the extension fetches it through my
+          league and caches it. Pre-season the current year&apos;s ratings are
+          empty by definition, so last season&apos;s finals are the draft-time
+          basis, stated plainly rather than laundered into false precision.
+        </p>
+        <p>
+          The math is deliberately humble. A pure module turns points-allowed-
+          vs-position into multipliers around 1.0, clamped to ±15% aggregate
+          and ±20% per week — defenses change year over year, and an unclamped
+          last-season number would let one outlier defense swing a projection
+          more than any real matchup should. Missing data degrades to a dash
+          and a neutral factor, never a throw: SOS is a tiebreaker with its
+          uncertainty priced in, not a reason to pass on the better player.
+        </p>
+      </Update>
+      <Update
+        id="update-2026-08-27-season"
+        date="August 27, 2026"
+        title="The draft ends, the model keeps going: season and playoff projection"
+      >
+        <p>
+          The newest tab takes the drafted roster and plays the actual season:
+          ESPN&apos;s real schedule and matchups, actual scores once a week is
+          played, projections until then — each team&apos;s lineup rebuilt per
+          week so bye weeks sit players (with a replacement-level waiver
+          pickup streamed into unfillable slots, because nobody starts a
+          zero at D/ST). Expanding a week shows the full head-to-head: both
+          lineups slot by slot, an edge per position, both teams&apos; byes.
+          Draft results snapshot to storage with their values frozen, so two
+          strategies can be drafted, saved, and compared as whole seasons.
+        </p>
+        <p>
+          The first version had a bug the user caught instantly: it projected
+          their team undefeated. Deterministic comparison — higher projection
+          wins, full stop — makes the best roster 14-0 by construction, and a
+          second path to fake perfection hid underneath it (rosters that
+          failed to resolve projected zero and lost every week). Projections
+          are now probabilities: a logistic on the margin, calibrated to real
+          weekly variance, so a genuine contender projects 9-5, not perfect.
+          There&apos;s a test asserting exactly that — a dominant roster must
+          never project undefeated. From there the questions got sharper, so
+          the answers did too: a decomposition panel splits a projected record
+          into schedule strength (who you face, who you face twice) and week
+          profile (what your bye dips cost in wins, and against whom), and a
+          Monte Carlo plays 800 seasons through the league&apos;s real playoff
+          bracket at the real playoff weeks — where the points-for tiebreak
+          finally pays the high-scoring third seed back.
+        </p>
+        <p>
+          The tab grew three roster sources — the board&apos;s simulated
+          draft, ESPN&apos;s current rosters for after the real draft, and a
+          fully coherent retrospective: last season&apos;s schedule with last
+          season&apos;s rosters and last season&apos;s byes, because mixing
+          this year&apos;s bye calendar into last year&apos;s matchups is the
+          kind of quiet incoherence that poisons conclusions. The
+          retrospective mode earns its keep as a validation set: every
+          matchup has a real outcome, so a Model Check card reports how often
+          the projection&apos;s favorite actually won, the Brier score
+          against coin-flipping, and the average weekly points error — with
+          the caveat printed on it that today&apos;s values applied to last
+          year&apos;s lineups are partly circular. Rounding out the realism:
+          absent managers can be marked as ESPN autopick (strict ADP,
+          deterministic), which the survival model exploits — a known
+          autopicker is information, not noise.
+        </p>
+      </Update>
+      <Update
+        id="update-2026-08-27-multi-sport"
+        date="August 27, 2026"
+        title="One engine, three sports: NBA and WNBA join"
+      >
+        <p>
+          The v2.0.0 question was whether the engine was actually general or
+          just football-shaped. Answer: general, once every football constant
+          became a lookup. A sport profile now carries the feed coordinates,
+          positions, lineup slots, scoring, tier gaps, and caps; the engine
+          swaps profiles in place, so all 21 NFL tests pass byte-identical
+          while the same marginal-lineup math drafts NBA and WNBA teams. The
+          satisfying part: FLEX and OP generalized into G/F/UTIL eligibility
+          with zero new engine code — a superflex slot and a UTIL slot are the
+          same idea wearing different jerseys.
+        </p>
+        <p>
+          The feeds cooperated after one hunt: NBA lives at game code
+          <code> fba</code>, season 2027, with the same stat-block anatomy as
+          football; WNBA exists at <code>wfba</code> but 404s behind a
+          different league-defaults id than either other sport — the kind of
+          fact you only learn by probing, which is why every coordinate in the
+          profile was live-verified before being written down. One bug came
+          out of verification too: the injury-blend rule guessed each
+          sport&apos;s final scoring period and promptly flagged all 290 NBA
+          players as season-ending injuries; the final period is now derived
+          from the data itself. Basketball draft-room scraping ships built but
+          untested against a live room — same position NFL was in three weeks
+          ago, and the same self-diagnosing panel will close the gap on first
+          contact.
+        </p>
+      </Update>
       <Update
         id="update-2026-08-26-live-fire"
         date="August 26, 2026"
