@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -587,17 +587,58 @@ export default function ResearchExplorerContent() {
           </Bullet>
         </ul>
       </Section>
+      <Update
+        id="update-2026-08-29-my-topics"
+        date="August 29, 2026"
+        title="Your own topics, without handing PubMed a raw query"
+      >
+        <p>
+          The curated list answers &ldquo;which of these is unclaimed&rdquo;.
+          The obvious next question is &ldquo;what about mine&rdquo;, and the
+          tool had no answer. It does now: type a plain-language phrase and it
+          gets everything a curated topic gets &mdash; a live evidence badge,
+          recent papers from both databases, and the demographic filters.
+        </p>
+        <p>
+          The interesting constraint is that this had to happen without ever
+          letting a typed string reach PubMed as search syntax. That invariant
+          already existed for discovered MeSH descriptors, and the shape it
+          takes here is the same: each word is checked against a narrow pattern
+          &mdash; letters, digits, inner hyphens, one to eight of them &mdash;
+          and then <em>compiled</em> into <code>word[tiab]</code> clauses
+          server-side rather than escaped and forwarded. Anything carrying
+          quotes, brackets or a field tag is rejected outright, by the same rule
+          in the browser and in the API, so the form can say no immediately
+          without the two disagreeing later.
+        </p>
+        <p>
+          Every custom search is still scoped to vascular surgery. A bare word
+          like <code>thrombolysis</code> would otherwise measure all of
+          medicine, and the number it produced would look exactly as
+          authoritative as the curated ones while meaning something else
+          entirely.
+        </p>
+        <p>
+          Topics live in localStorage next to the custom journals, which keeps
+          them personal to the browser and avoids inventing an account system
+          for a page that has never needed one &mdash; at the cost, honestly
+          stated, of them not following you to your phone.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Curated topics carrying their own PubMed queries in PubMed syntax, so every number on the page traces back to a search anyone can paste in and check.",
           "Evidence thresholds calibrated against the real spread of counts rather than guessed — the first version put twenty of twenty-five topics in one bucket and promised a badge that could never appear.",
           "An upstream failure returns an error instead of rendering every topic as having no research, because on this page a zero is the finding and a lie in that direction is the most damaging one available.",
           "Discussion prompts built from indexed study design and structured abstracts, so they argue with a specific paper rather than fitting any paper.",
+          "Topics of your own, compiled from plain words into title/abstract clauses server-side, so nothing typed into the page ever reaches PubMed as query syntax.",
         ]}
         couldImprove={[
           "No study-design tagging on the counts, so twelve papers cannot be told apart from twelve case reports without opening them.",
           "Nothing is persisted, so a scan cannot be compared with the same scan a month later — which is the obvious way to spot a field actually moving.",
           "The innovation signals are a hand-written list and will miss any technique they do not name.",
+          "Custom topics live in localStorage, so they are personal to one browser and do not follow you to another device.",
         ]}
         upcoming={[
           "The node graph: papers as nodes linked to their topics and populations, so the gaps between clusters are visible at a glance rather than one query at a time.",
