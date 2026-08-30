@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-29 - version 5.15.0
+
+- **The research explorer takes your own topics.** A My Topics section on the topics tab: type a plain-language phrase ("mesenteric ischemia thrombolysis") and it gets everything the curated topics get — a live PubMed evidence badge, recent papers from both databases, and the demographic-gap filters — saved in localStorage beside the custom journals. The phrase never reaches PubMed as raw syntax: each word is shape-checked and compiled to title/abstract clauses server-side, the same reject-don't-escape treatment MeSH terms and journal abbreviations already get, and every custom search stays scoped to vascular surgery. A MeSH-picked variant is next.
+
 ## 2026-08-28 - version 5.14.0
 
 - **The research explorer learns trauma.** Eighth topic category, Vascular trauma, with six curated topics: REBOA for noncompressible hemorrhage, TEVAR timing in blunt thoracic aortic injury, popliteal artery injury in knee dislocation, temporary intravascular shunts, blunt cerebrovascular injury screening, and pediatric vascular trauma. Pure data addition — each topic carries its own auditable PubMed query, so evidence scoring, recent papers, and the demographic-gap filters all work on trauma out of the box. A test now pins the category and insists every one of its queries actually measures trauma literature rather than the elective cousin of the same operation.
