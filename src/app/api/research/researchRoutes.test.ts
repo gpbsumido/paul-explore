@@ -593,7 +593,10 @@ describe("custom phrase topics", () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.publications[0].title).toBe("Thrombolysis outcomes.");
+    // Ordering is by date across the merged sources, so assert presence.
+    expect(
+      body.publications.map((p: { title: string }) => p.title),
+    ).toContain("Thrombolysis outcomes.");
     expect(
       terms.every((t) => t.includes("mesenteric[tiab] AND ischemia[tiab]")),
     ).toBe(true);
