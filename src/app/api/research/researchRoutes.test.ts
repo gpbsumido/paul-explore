@@ -594,9 +594,9 @@ describe("custom phrase topics", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     // Ordering is by date across the merged sources, so assert presence.
-    expect(
-      body.publications.map((p: { title: string }) => p.title),
-    ).toContain("Thrombolysis outcomes.");
+    expect(body.publications.map((p: { title: string }) => p.title)).toContain(
+      "Thrombolysis outcomes.",
+    );
     expect(
       terms.every((t) => t.includes("mesenteric[tiab] AND ischemia[tiab]")),
     ).toBe(true);
@@ -619,5 +619,39 @@ describe("custom phrase topics", () => {
     expect(
       terms.every((t) => t.includes("popliteal[tiab] AND aneurysm[tiab]")),
     ).toBe(true);
+  });
+});
+
+describe("custom MeSH topics", () => {
+  it("scores a single MeSH descriptor in the standard topics shape", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        const term = new URL(request.url).searchParams.get("term") ?? "";
+        terms.push(term);
+        return HttpResponse.json(esearchJson(term.includes("[dp]") ? 5 : 14));
+      }),
+    );
+    const res = await topicsGET(
+      new NextRequest("http://localhost/api/research/topics?mesh=Sarcopenia"),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.topics).toEqual([
+      { id: "custom", total: 14, recent: 5, status: "sparse" },
+    ]);
+    terms.forEach((t) => {
+      expect(t).toContain('"Sarcopenia"[mh]');
+      expect(t).toContain("vascular");
+    });
+  });
+
+  it("400s a mesh term that isn't descriptor-shaped", async () => {
+    const res = await topicsGET(
+      new NextRequest(
+        'http://localhost/api/research/topics?mesh=x"[mh] OR 1=1',
+      ),
+    );
+    expect(res.status).toBe(400);
   });
 });

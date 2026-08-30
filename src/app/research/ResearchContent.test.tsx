@@ -1043,3 +1043,76 @@ describe("ResearchContent custom topics", () => {
     );
   });
 });
+
+describe("ResearchContent MeSH custom topics", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    server.use(
+      http.get("/api/research/topics", ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        if (params.get("phrase") === null && params.get("mesh") === null) {
+          return HttpResponse.json(topicsPayload());
+        }
+        return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
+          topics: [{ id: "custom", total: 14, recent: 5, status: "sparse" }],
+        });
+      }),
+      http.get("/api/research/discover", () =>
+        HttpResponse.json({
+          topics: [
+            {
+              id: "mesh-sarcopenia",
+              name: "Sarcopenia",
+              papers: 6,
+              total: 14,
+              recent: 5,
+              status: "sparse",
+            },
+          ],
+        }),
+      ),
+    );
+  });
+
+  it("adds a MeSH topic from the form and scores it", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("radio", { name: "MeSH term" }));
+    await user.type(screen.getByLabelText("MeSH descriptor"), "Thrombectomy");
+    await user.click(screen.getByRole("button", { name: "Add topic" }));
+    expect(
+      await screen.findByRole("button", { name: /^Thrombectomy/ }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText(/14 papers · 5 recent/)).toBeInTheDocument();
+  });
+
+  it("saves a discovered topic into My topics", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Discovered" }));
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Save Sarcopenia to my topics",
+      }),
+    );
+    await user.click(screen.getByRole("tab", { name: "Topics" }));
+    expect(
+      await screen.findByRole("button", { name: /^Sarcopenia/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("queries publications by mesh for a MeSH topic", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("radio", { name: "MeSH term" }));
+    await user.type(screen.getByLabelText("MeSH descriptor"), "Endarterectomy");
+    await user.click(screen.getByRole("button", { name: "Add topic" }));
+    await user.click(
+      await screen.findByRole("button", { name: /^Endarterectomy/ }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    const last = seen.publicationUrls.at(-1) ?? "";
+    expect(new URL(last).searchParams.get("mesh")).toBe("Endarterectomy");
+  });
+});
