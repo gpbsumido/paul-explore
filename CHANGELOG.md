@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-30 - version 5.14.3
+
+- **The TCG set pages stopped being able to fail the build.** 5.14.1 guarded the nested fields a half-published set arrives without, which was a real crash but evidently not the only one: the export then failed on `B2`, on a branch that already carried that fix. Pre-rendering meant fetching ten sets during `next build`, so any one of them not coming back cleanly ended the export and took Playwright's webServer with it — the nightly on `me02`, then PR CI on `B2`. Guarding fields chases that one set at a time. `generateStaticParams` now returns nothing, so the build makes no upstream calls at all and the class of failure is gone. With the existing day-long `revalidate`, the cost is one cold render per set per day; the gain is that a third party can no longer veto a build. The field guards stay, since they still matter when a request renders an incomplete set.
+
 ## 2026-08-30 - version 5.14.2
 
 - **Strength of schedule joins the write-up.** Third dated update: v2.10.0 adds sortable SOS and Playoff SOS columns to the draft board, matchup-scaled weekly projections in the Season tab, and playoff-slate flags on recommendations. The update records the data hunt — weekly pro opponents are public, but the positional ratings behind ESPN's Opp Rank are auth-gated and had to be fetched through the league like the draft sync — and the deliberate humility of the math: last season's finals as the pre-season basis, factors clamped to ±15%/±20%, missing data degrading to a dash instead of a throw.
