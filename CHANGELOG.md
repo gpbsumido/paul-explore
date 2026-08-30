@@ -7,6 +7,10 @@
   - The display refetches exactly when its code expires, from the `secondsRemaining` the server reports, and hides the digits with an explanation if a refresh fails — a dead code left on screen makes volunteers blame themselves. That branch has a test.
   - New write-up at `/thoughts/volunteer-check-in` covering the derivation, the four cheats that are handled, and the relay hole that stays open.
 
+## 2026-08-30 - version 5.14.1
+
+- **A half-published TCG set stopped failing the nightly build.** `/tcg/pokemon/sets/[setId]` guarded a missing set with `notFound()` and then read `set.serie.name`, `set.cardCount.official` and `set.legal.*` without guards. A newly announced set arrives in the list before all of that is filled in, so once it entered the ten most recent (which is what gets pre-rendered) the export threw, `next build` exited 1, Playwright's webServer never came up, and the whole nightly E2E job failed with it — green on the 28th, red on the 29th and 30th, on `me02`. Every nested read is optional now: the series and card count are omitted when absent rather than printed broken, and legality renders as not-legal until upstream decides. Six tests render the page against each incomplete shape, including a set carrying nothing but an id and a name.
+
 ## 2026-08-28 - version 5.14.0
 
 - **The research explorer learns trauma.** Eighth topic category, Vascular trauma, with six curated topics: REBOA for noncompressible hemorrhage, TEVAR timing in blunt thoracic aortic injury, popliteal artery injury in knee dislocation, temporary intravascular shunts, blunt cerebrovascular injury screening, and pediatric vascular trauma. Pure data addition — each topic carries its own auditable PubMed query, so evidence scoring, recent papers, and the demographic-gap filters all work on trauma out of the box. A test now pins the category and insists every one of its queries actually measures trauma literature rather than the elective cousin of the same operation.
