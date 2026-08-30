@@ -42,6 +42,11 @@ export default async function SetsPage() {
     // TCGdex unreachable at build time — ISR will repopulate on first request
   }
 
+  // Everything below reads through this list at build time, so every nested
+  // field is treated as optional. A series announced but not yet filled in
+  // arrives without `sets`, and a set within it without `cardCount`; reading
+  // either blind ends the export and takes the whole build with it.
+
   return (
     <div className="min-h-dvh bg-background font-sans">
       <PageHeader
@@ -82,12 +87,12 @@ export default async function SetsPage() {
                 </h2>
               )}
               <span className="text-xs text-muted">
-                {serie!.sets.length} sets
+                {(serie!.sets ?? []).length} sets
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {serie!.sets.map((set) => (
+              {(serie!.sets ?? []).map((set) => (
                 <Link
                   key={set.id}
                   href={`/tcg/pokemon/sets/${set.id}`}
@@ -113,7 +118,7 @@ export default async function SetsPage() {
                       </span>
                     )}
                     <span className="text-[11px] font-semibold text-muted shrink-0 ml-auto">
-                      {set.cardCount.official}
+                      {set.cardCount?.official ?? "—"}
                     </span>
                   </div>
                 </Link>
