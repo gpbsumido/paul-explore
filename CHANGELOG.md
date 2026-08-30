@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-30 - version 5.16.0
+
+- **My Topics learns MeSH.** The add-topic form gains a Phrase / MeSH toggle, so a custom topic can use NLM's controlled vocabulary instead of free-word matching — and every card on the Discovered tab gets a one-click Save to My Topics, which is the path for anyone who doesn't know MeSH names, since Discovered already surfaces real descriptors from recent literature. Nearly all pipe reuse: publications and demographics already spoke `?mesh=`; the topics route learned to score a single descriptor the same way it scores a phrase, behind the same descriptor-shape validation that keeps raw syntax out of PubMed.
+
 ## 2026-08-29 - version 5.15.0
 
 - **The research explorer takes your own topics.** A My Topics section on the topics tab: type a plain-language phrase ("mesenteric ischemia thrombolysis") and it gets everything the curated topics get — a live PubMed evidence badge, recent papers from both databases, and the demographic-gap filters — saved in localStorage beside the custom journals. The phrase never reaches PubMed as raw syntax: each word is shape-checked and compiled to title/abstract clauses server-side, the same reject-don't-escape treatment MeSH terms and journal abbreviations already get, and every custom search stays scoped to vascular surgery. A MeSH-picked variant is next.
