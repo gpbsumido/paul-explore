@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-30 - version 5.15.0
+
+- **The TCG lists read from our own catalog now, not from TCGdex live.** `/tcg/pokemon/sets` and `/tcg/pocket` render from portfolio_api's mirrored series/sets catalog (portfolio_api#190). Both pages previously fetched TCGdex at render time — the sets page listing every series and then fetching each one — which timed out `next build` and, at request time, produced an empty list that ISR cached for a day. That is what made the lists look like nobody had updated them: not stale data, a degraded render that got cached. Pocket was worse, showing "Pocket sets are unavailable right now" live in production, because `force-dynamic` meant it hit that API on literally every request.
+- **An empty list and a failed read no longer look identical.** The sets page says "couldn't load the set list" when the read fails and "the catalog hasn't been built yet" when there is genuinely nothing stored, because conflating those is precisely how an outage spent a day passing for stale data. A set whose card count upstream has not published yet renders as a dash rather than a zero — an unknown count and a set with no cards are different facts.
+- **Nothing in `next build` calls a third party for these pages any more.** The catalog read is `no-store`, which takes both routes out of static generation entirely; freshness is handled upstream by the endpoint's own hour of s-maxage. One build-time third-party call remains, on `/tcg/pokemon`: a single paginated card request that already degrades to a client-side fetch, with no fan-out behind it.
+
 ## 2026-08-30 - version 5.14.3
 
 - **The TCG sets page was timing out the build, not crashing it.** `/tcg/pokemon/sets` lists every series and then fetches each one, so its build cost is a multiple of however slow TCGdex is that minute. Next allows a page 60 seconds to render during `next build` and fails the export after three attempts, which is what had been killing the nightly and PR CI — `Export encountered an error`, then `webServer was not able to start`, with the job dead before a spec ran. The fan-out now has a twenty-second budget; past that the page renders empty and ISR fills it in later, since from the build's point of view "unreachable" and "too slow" are the same thing and the page only handled the first.

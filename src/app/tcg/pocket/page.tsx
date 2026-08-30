@@ -1,4 +1,4 @@
-import TCGdex from "@tcgdex/sdk";
+import { fetchCatalog, type CatalogSet } from "@/lib/tcg-catalog";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -29,19 +29,11 @@ export const metadata: Metadata = {
   },
 };
 
-const tcgdex = new TCGdex("en");
-
 // Gating reads the per-visitor cookie, so this route renders dynamically rather
 // than as a cached static page — the on/off decision is made fresh per visitor.
 export const dynamic = "force-dynamic";
 
-type SetResume = {
-  id: string;
-  name: string;
-  logo?: string;
-  symbol?: string;
-  cardCount: { official: number; total: number };
-};
+type SetResume = CatalogSet;
 
 function expansionKey(id: string): string {
   if (id.startsWith("P-")) return id;
@@ -67,21 +59,20 @@ export default async function PocketPage() {
     return <PocketNotRolledOut />;
   }
 
-  // force-dynamic means this fetch runs on every request, so a tcgdex outage
-  // would otherwise throw and render nothing — no main landmark, a broken page.
-  // Degrade to an accessible unavailable state instead.
-  let serie: Awaited<ReturnType<typeof tcgdex.serie.get>> | null = null;
-  try {
-    serie = await tcgdex.serie.get("tcgp");
-  } catch {
-    serie = null;
-  }
-  if (!serie) {
+  // Reads our own mirrored catalog rather than TCGdex directly. This page is
+  // force-dynamic, so it used to hit that API on literally every request — and
+  // when it was slow or down the whole page collapsed to the unavailable state,
+  // which is what it was doing in production.
+  const catalog = await fetchCatalog();
+  const serie = catalog?.series.find((s) => s.id === "tcgp") ?? null;
+  if (!serie || serie.sets.length === 0) {
     return <PocketUnavailable />;
   }
 
-  const sets = serie.sets as unknown as SetResume[];
-  const totalOfficial = sets.reduce((n, s) => n + s.cardCount.official, 0);
+  const sets = serie.sets;
+  // A set whose count upstream has not published yet contributes nothing to the
+  // total rather than crashing the sum.
+  const totalOfficial = sets.reduce((n, s) => n + (s.cardCountOfficial ?? 0), 0);
   const groups = groupSets(sets);
 
   return (
@@ -172,10 +163,10 @@ export default async function PocketPage() {
                       )}
                       <div className="ml-auto flex flex-col items-end gap-1 shrink-0">
                         <span className="text-sm font-black text-foreground">
-                          {primary.cardCount.official}
+                          {primary.cardCountOfficial ?? "—"}
                           <span className="text-muted font-normal text-xs">
                             {" "}
-                            / {primary.cardCount.total}
+                            / {primary.cardCountTotal ?? "—"}
                           </span>
                         </span>
                         <span className="text-[10px] text-muted uppercase tracking-widest">
@@ -227,7 +218,7 @@ export default async function PocketPage() {
                           </span>
                         )}
                         <span className="text-xs font-semibold text-muted ml-auto shrink-0">
-                          {set.cardCount.official} cards
+                          {set.cardCountOfficial ?? 0} cards
                         </span>
                       </div>
                     </Link>
