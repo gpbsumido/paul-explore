@@ -183,7 +183,9 @@ describe("ResearchContent discovered topics", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("tab", { name: "Discovered" }));
-    await user.click(await screen.findByRole("button", { name: /Sarcopenia/ }));
+    await user.click(
+      await screen.findByRole("button", { name: /^Sarcopenia/ }),
+    );
     expect(
       await screen.findByRole("link", { name: /Topic paper/ }),
     ).toBeInTheDocument();
@@ -1081,10 +1083,8 @@ describe("ResearchContent MeSH custom topics", () => {
     await user.click(await screen.findByRole("radio", { name: "MeSH term" }));
     await user.type(screen.getByLabelText("MeSH descriptor"), "Thrombectomy");
     await user.click(screen.getByRole("button", { name: "Add topic" }));
-    expect(
-      await screen.findByRole("button", { name: /^Thrombectomy/ }),
-    ).toBeInTheDocument();
-    expect(await screen.findByText(/14 papers · 5 recent/)).toBeInTheDocument();
+    const card = await screen.findByRole("button", { name: /^Thrombectomy/ });
+    await within(card).findByText(/14 papers · 5 recent/);
   });
 
   it("saves a discovered topic into My topics", async () => {

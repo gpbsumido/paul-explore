@@ -27,6 +27,11 @@ const JOURNAL_ABBREV = /^[A-Za-z0-9][A-Za-z0-9 .\-()]{1,60}$/;
  */
 const PHRASE_WORD = /^[A-Za-z0-9][A-Za-z0-9'-]{1,39}$/;
 
+/** Whether a string is descriptor-shaped, for the add-topic form's MeSH mode. */
+export function isMeshDescriptor(term: string): boolean {
+  return MESH_DESCRIPTOR.test(term);
+}
+
 /**
  * Splits a custom topic phrase into validated words, or null when it is not
  * one to eight plain words. Shared with the add-topic form so the UI can

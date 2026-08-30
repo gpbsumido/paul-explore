@@ -46,22 +46,27 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const fromYear = new Date().getFullYear() - RECENT_WINDOW_YEARS;
 
-  // A custom phrase topic is scored on its own rather than joining the full
-  // scan: it is personal to one reader, so it gets its own cacheable URL
-  // instead of invalidating the shared all-topics entry.
+  // A custom topic -- a typed-in phrase or a MeSH descriptor -- is scored on
+  // its own rather than joining the full scan: it is personal to one reader,
+  // so it gets its own cacheable URL instead of invalidating the shared
+  // all-topics entry.
   const phrase = request.nextUrl.searchParams.get("phrase");
-  if (phrase !== null) {
-    const term = buildSearchTerm({ phrase });
+  const mesh = request.nextUrl.searchParams.get("mesh");
+  if (phrase !== null || mesh !== null) {
+    const term = buildSearchTerm({
+      phrase: phrase ?? undefined,
+      meshTerm: mesh ?? undefined,
+    });
     if (!term) {
-      return NextResponse.json({ error: "Invalid phrase" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid topic" }, { status: 400 });
     }
     const scoped = `${term}${scope}`;
-    const phraseCounts = await countAll([phrase], () => [
+    const customCounts = await countAll([scoped], () => [
       scoped,
       recentTerm(scoped, fromYear),
     ]);
-    if (isFailure(phraseCounts)) return phraseCounts.error;
-    const [total, recent] = phraseCounts[0];
+    if (isFailure(customCounts)) return customCounts.error;
+    const [total, recent] = customCounts[0];
     return NextResponse.json(
       {
         topics: [
