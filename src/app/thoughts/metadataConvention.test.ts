@@ -27,12 +27,19 @@ describe("write-up metadata", () => {
     expect(handRolled).toEqual([]);
   });
 
-  it("sets a revalidate window on every page", () => {
+  it("sets a revalidate window on every page (or opts out dynamically)", () => {
+    // A session-gated write-up (draft-lab renders owner-only content) can't be
+    // statically cached, so `force-dynamic` is the valid alternative to a
+    // revalidate window — the point is an explicit rendering directive, not a
+    // specific one. Mirrors the dynamicRendering guard.
     const missing = pages
-      .filter(
-        (p) =>
-          !readFileSync(p.file, "utf-8").includes("export const revalidate"),
-      )
+      .filter((p) => {
+        const src = readFileSync(p.file, "utf-8");
+        return (
+          !src.includes("export const revalidate") &&
+          !/export\s+const\s+dynamic\s*=\s*["']force-dynamic["']/.test(src)
+        );
+      })
       .map((p) => p.slug);
     expect(missing).toEqual([]);
   });

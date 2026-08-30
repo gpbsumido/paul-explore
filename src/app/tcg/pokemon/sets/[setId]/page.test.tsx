@@ -40,7 +40,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import SetDetailPage from "./page";
+import SetDetailPage, { generateStaticParams } from "./page";
 
 const complete = {
   id: "me02",
@@ -101,5 +101,16 @@ describe("set detail page with incomplete upstream data", () => {
     setGet.mockRejectedValue(new Error("upstream 404"));
     await renderPage().catch(() => undefined);
     expect(notFound).toHaveBeenCalled();
+  });
+});
+
+describe("build-time independence", () => {
+  it("pre-renders nothing, so a third party cannot fail the build", async () => {
+    // Pre-rendering meant fetching each set during `next build`, and one set
+    // that did not come back cleanly ended the export. Guarding fields chases
+    // that one set at a time; not calling the API during the build removes the
+    // whole class.
+    await expect(generateStaticParams()).resolves.toEqual([]);
+    expect(setGet).not.toHaveBeenCalled();
   });
 });

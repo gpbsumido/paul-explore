@@ -1,8 +1,18 @@
 # Changelog
 
-## 2026-08-30 - version 5.15.0
+## 2026-08-30 - version 5.16.0
 
 - **The research explorer takes your own topics.** A My Topics section on the topics tab: type a plain-language phrase ("mesenteric ischemia thrombolysis") and it gets everything the curated topics get — a live PubMed evidence badge, recent papers from both databases, and the demographic-gap filters — saved in localStorage beside the custom journals. The phrase never reaches PubMed as raw syntax: each word is shape-checked and compiled to title/abstract clauses server-side, the same reject-don't-escape treatment MeSH terms and journal abbreviations already get, and every custom search stays scoped to vascular surgery. A MeSH-picked variant is next.
+
+## 2026-08-30 - version 5.15.0
+
+- **Draft Lab write-up splits public vs owner-only, securely.** The public page now covers just the free/pro tiers (the extension, live companion, scraping saga, tiers, keeper handling, survival-odds recommendations, the stack and tests). Everything Elite — the marginal-value recommendation engine and its simulation-tuned weight, keeper optimization, the sourced-injury adjustment layer, strength of schedule, the season/playoff model, multi-sport, and the Sleeper dual-board ADP-arbitrage edge — lives in an owner-gated section rendered server-side ONLY when the session email is the owner's, so it never ships to anyone else's payload. A client toggle lets the owner switch between the public and full views. The page reads the session, so it's now force-dynamic; the metadata convention accepts that as the valid alternative to a revalidate window (mirroring the dynamicRendering guard).
+
+## 2026-08-30 - version 5.14.3
+
+- **The TCG sets page was timing out the build, not crashing it.** `/tcg/pokemon/sets` lists every series and then fetches each one, so its build cost is a multiple of however slow TCGdex is that minute. Next allows a page 60 seconds to render during `next build` and fails the export after three attempts, which is what had been killing the nightly and PR CI — `Export encountered an error`, then `webServer was not able to start`, with the job dead before a spec ran. The fan-out now has a twenty-second budget; past that the page renders empty and ISR fills it in later, since from the build's point of view "unreachable" and "too slow" are the same thing and the page only handled the first.
+- **Two earlier diagnoses, kept because they were still worth fixing.** 5.14.1 guarded the nested fields a half-published set arrives without, and this release stops `generateStaticParams` pre-rendering ten sets and guards the same fields on the list page. Both are real defects with tests that fail without them — a request rendering an incomplete set genuinely crashed — but neither was what CI was hitting. The line that settled it was in Vercel's build log rather than GitHub's, which is the part worth remembering.
+- **The CI E2E write-up records all three passes**, including which log said what and why an intermittent failure that a re-run clears is the most expensive kind. The deployment write-up gains the migration-rename incident: renaming was checked against production, where it had never run, and broke staging, where it had.
 
 ## 2026-08-30 - version 5.14.2
 
