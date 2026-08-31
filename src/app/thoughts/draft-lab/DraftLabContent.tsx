@@ -51,6 +51,11 @@ function EliteSections() {
       <UpdateTimeline
         entries={[
           {
+            id: "elite-tiers-fallers",
+            date: "Aug 30, 2026",
+            title: "Finer tiers, and flagging the players who slid",
+          },
+          {
             id: "elite-sleeper",
             date: "Aug 30, 2026",
             title: "Better projections, and a room that drafts worse than you",
@@ -96,6 +101,50 @@ function EliteSections() {
           <i>worse advice</i> dressed up as the real thing.
         </p>
       </section>
+
+      <Update
+        id="elite-tiers-fallers"
+        date="August 30, 2026"
+        title="Finer tiers, and flagging the players who slid"
+      >
+        <p>
+          Tiers were assigned by a single rule: walk each position top-down and
+          start a new tier wherever the projected-points drop from one player to
+          the next clears a per-position threshold. That works where the
+          position has real cliffs — running back and tight end break cleanly —
+          but it falls apart on the smooth ones. Superflex quarterback and the
+          receiver pool are near-continuous: no single drop clears the bar, so
+          twenty-one QBs collapsed into one &quot;Tier 2&quot; and fifty
+          receivers into one &quot;Tier 3.&quot; A tier that holds a third of
+          the pool tells you nothing at the board.
+        </p>
+        <p>
+          The fix keeps the cliff logic and adds a size cap per position. Any
+          tier that comes out larger than the cap gets subdivided into roughly
+          equal bands, but each new boundary is snapped to the largest
+          points-drop within a window around the even split — so the bands stay
+          the same size while still landing on whatever local cliff is nearest.
+          I tried the obvious thing first, recursively cutting at the single
+          largest gap, and it degenerated: on a perfectly smooth run it peels one
+          player off at a time and produces a string of singletons. Even bands
+          snapped to cliffs was the version that read well on both a smooth pool
+          and a cliffy one. Only Elite gets the finer split; the coarse absolute
+          threshold is what lower tiers see.
+        </p>
+        <p>
+          The second piece answers a question I kept asking out loud on draft
+          night: who&apos;s fallen? Every available player has a consensus ADP,
+          and the live draft has an overall pick number, so the slip is just{" "}
+          <code>currentPick − ADP</code>. When a player is three or more picks
+          late they get a badge — <code>▼N pk</code>, or <code>▼N rd</code> once
+          they&apos;re two full rounds past where they should have gone — on the
+          pool table, on the recommendation rows, and on the live companion
+          overlay that paints ESPN&apos;s own draft screen. It&apos;s the cue to
+          take the value that fell to me instead of the name I had queued, and
+          it&apos;s gated to Elite alongside the model recommendations it rides
+          next to.
+        </p>
+      </Update>
 
       <Update
         id="elite-engine"
