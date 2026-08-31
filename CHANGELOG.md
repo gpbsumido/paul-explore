@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.5
+
+- **The page every failed route renders had three accessibility violations of its own.** Found by the pre-release axe scan on a card detail page while TCGdex was unreachable: no document title (serious), no main landmark, and every word on the page sitting outside any region. `RouteError` is now a `<main>` rather than a `<div>`, which settles the last two, and it fills in a document title when the failed page never produced one — only when it is genuinely empty, so a title that rendered higher up is left alone. This is what someone sees at the moment they are least able to guess where they are, and it was the least accessible page in the app.
+
+## 2026-08-31 - version 5.19.4
+
+- **Two more dated updates on the Draft Lab write-up.** The first covers finer tiers — the old rule cut a new tier wherever the projected-points drop between adjacent players crossed a threshold, which left some positions in one enormous tier, so a per-position size cap now sits on top of the cliff logic — plus flagging the players who slid past their ADP, and a cleanup pass that changes nothing you can see today while removing a bug that was waiting to happen.
+- **The second is a negative result, kept as one.** An attempt to auto-learn each drafter's tendencies from the live room, measured against the thing it would actually change: the survival probabilities behind "72% he's still here next turn". It could not beat ADP and roster need, which already explain most of who survives, so it did not ship. A feature that failed its own test is worth more written down than quietly deleted.
+- **A third, owner-only update covers the manual projection adjustment.** The Tiers tab now takes a flat per-player point tweak that feeds tiers and recommendations while leaving the base projection visible — the cell reads `337 → 342`, never a silent overwrite.
+
+## 2026-08-31 - version 5.19.3
+
+- **Draft Lab write-up gains draft-night hardening and a playbook reconciliation.** Public update: the companion now backfills every pick from ESPN's league API (the virtualized Board tab only kept on-screen rounds in the DOM, so late picks were missed), matching by name harvested off the rosters so it works for any pool; and pre-configured keepers now only count when ESPN confirms the league actually set them. Owner-only update: the Strategy playbook's generic 1-QB rules ("QBs are a trap", "must draft 2 WR by round 6") were contradicting the superflex value model in Sleeper dual-board mode, so the QB advice is now superflex-aware and the positional-need lines defer to the recommendations instead of overriding them.
+
+## 2026-08-31 - version 5.19.2
+
+- **Two write-up updates rebuilt in the operator format.** The CI E2E and deployment notes had their August 30 updates written as a flat run of paragraphs, which reads as summary rather than as what happened. They now follow the shape the operator-dashboard notes use — named `h3` beats whose headings make a claim, with the real artifact pasted in: the export error and the three 60-second build attempts that turned out to be the actual cause, and knex's "the migration directory is corrupt" alongside the `UPDATE knex_migrations` that recovered it. A described error is a claim; a pasted one is evidence, and it is what makes the page findable by whoever hits the same thing.
+
 ## 2026-08-31 - version 5.19.1
 
 - **The TCG e2e specs stopped depending on TCGdex being reachable.** The pre-release suite failed on `/tcg/pokemon`, waiting fifteen seconds for card tiles that never arrived — TCGdex points North America at a dead node and the CI runners are in North America. The file already mocked the cards API for its search test "so this test doesn't depend on TCGdex being reachable in CI"; the `beforeEach` did not, so every test in it still waited on real tiles. The unfiltered first page is now served from a fixture, and the search test's own handler falls back to that fixture instead of continuing to the network.

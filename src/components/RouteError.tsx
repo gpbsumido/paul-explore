@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Button from "@/components/ui/Button";
 
 interface RouteErrorProps {
@@ -41,8 +42,21 @@ function ErrorIcon() {
  * the failing subtree, without reloading the whole page.
  */
 export default function RouteError({ reset }: RouteErrorProps) {
+  // A page that throws never produces its metadata, so the document can be
+  // left with no title at all — axe rates that serious, and a tab reading
+  // "localhost" tells someone with twenty tabs open nothing about which one
+  // broke. Only filled in when it is actually empty, so a title that did
+  // render higher up is left alone.
+  useEffect(() => {
+    if (!document.title.trim()) {
+      document.title = "Something went wrong";
+    }
+  }, []);
+
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+    // <main>, not a <div>: this replaces the page, so without it the document
+    // has no main landmark and every word on it sits outside any region.
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center">
       <ErrorIcon />
       <div>
         <h1 className="text-lg font-semibold text-foreground">
@@ -56,6 +70,6 @@ export default function RouteError({ reset }: RouteErrorProps) {
       <Button variant="outline" size="sm" onClick={reset}>
         Try again
       </Button>
-    </div>
+    </main>
   );
 }
