@@ -225,9 +225,9 @@ export const queryKeys = {
       selected: string[],
     ) => ["research", "facet-availability", scope, selected] as const,
 
-    /** Evidence scan for one hand-added phrase topic. */
-    customTopic: (phrase: string) =>
-      ["research", "custom-topic", phrase] as const,
+    /** Evidence scan for one hand-added topic, phrase or MeSH. */
+    customTopic: (kind: "phrase" | "mesh", term: string) =>
+      ["research", "custom-topic", kind, term] as const,
 
     /** Recent papers with discussion material, for one topic. */
     journalClub: (topicId: string, innovativeOnly: boolean) =>

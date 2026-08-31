@@ -13,6 +13,9 @@ const ROUTES = [
   // most new colour on the site.
   "/",
   "/learn",
+  // Public volunteer entry point. The organizer surfaces sit behind a session
+  // and are covered by the authenticated suite instead.
+  "/check-in",
   "/learn/binary-search",
   "/work-portfolio",
   "/tcg/pocket",
