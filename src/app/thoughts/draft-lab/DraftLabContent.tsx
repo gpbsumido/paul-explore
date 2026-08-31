@@ -144,6 +144,18 @@ function EliteSections() {
           it&apos;s gated to Elite alongside the model recommendations it rides
           next to.
         </p>
+        <p>
+          A cleanup pass followed, the kind that pays for itself later. The
+          tier-size caps had been hardcoded with football positions in the shared
+          engine, which meant the finer split silently did nothing for the
+          basketball profiles — so the caps moved into the per-sport config next
+          to the gap thresholds they belong with, and now every sport gets the
+          same treatment. The faller badge had been copy-pasted between the board
+          and the ESPN overlay; two copies of the same arithmetic drift apart the
+          first time only one gets fixed, so it&apos;s one shared function now.
+          Neither changes what you see today; both stop a bug I&apos;d otherwise
+          ship in a month.
+        </p>
       </Update>
 
       <Update
@@ -429,6 +441,11 @@ export default function DraftLabContent({
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-30-adaptive-tendencies",
+            date: "Aug 30, 2026",
+            title: "I tried to auto-learn the room, and the simulator said don't",
+          },
+          {
             id: "update-2026-08-26-live-fire",
             date: "Aug 26, 2026",
             title: "A day of live-fire mocks: tiers, rankings, and two id bugs",
@@ -579,6 +596,52 @@ export default function DraftLabContent({
           player early — the reservation only exists in the extension. The
           reliable lock is ESPN&apos;s native Keepers tab; the overlay now says
           so, loudly, when a keeper gets taken before their slot.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-30-adaptive-tendencies"
+        date="August 30, 2026"
+        title="I tried to auto-learn the room, and the simulator said don't"
+      >
+        <p>
+          Every survival number — &quot;72% he&apos;s still here next turn&quot;
+          — rests on a guess about how each opponent drafts, and right now that
+          guess is a label you pick once at setup: Balanced, Zero-RB, reaches for
+          QBs. Companion mode watches the whole room draft for real, so the
+          obvious idea is to stop trusting the label and start trusting the
+          picks: infer each team&apos;s lean from what they&apos;ve actually
+          taken, and feed that back into the odds. I built it — position lean
+          versus the room, how tightly their picks tracked ADP, blended with the
+          label by how many picks I&apos;d seen.
+        </p>
+        <p>
+          Then I made it prove itself before it shipped, and it couldn&apos;t.
+          The test measures the thing the feature actually changes — the survival
+          numbers — not whether my auto-pick finished higher. Across 3,000
+          simulated drafts I scored each prediction three ways on the identical
+          board: the static label, my inferred profile, and an oracle that gets
+          told each opponent&apos;s true setting. Lower Brier score is
+          better-calibrated:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`3,000 drafts · 922,656 predictions
+static (fixed label)   Brier 0.1928   ← the bar
+adaptive (inferred)    Brier 0.1941   +0.65%  worse
+oracle (true settings) Brier 0.1895   -1.72%  better`}
+        </pre>
+        <p>
+          Two things in that table killed the feature. My inference lands{" "}
+          <i>worse</i> than doing nothing — a lean read off a handful of early
+          picks is mostly noise, and the noise costs more than the signal is
+          worth. And the oracle, with perfect knowledge, only buys 1.7%: even
+          knowing every opponent&apos;s true style barely moves the odds, because
+          ADP and roster need already explain most of who survives. A tiny
+          ceiling with a noisy estimator underneath is a bad trade, so it&apos;s
+          shelved — the extension keeps the static label. I&apos;d rather ship the
+          negative result than a feature that quietly makes the numbers you trust
+          a little worse. The prototype and its benchmark live in the repo as the
+          record of why.
         </p>
       </Update>
 
