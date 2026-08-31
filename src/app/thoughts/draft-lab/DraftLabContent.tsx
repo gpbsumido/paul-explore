@@ -61,6 +61,11 @@ function EliteSections() {
             title: "Finer tiers, and flagging the players who slid",
           },
           {
+            id: "elite-playbook",
+            date: "Aug 30, 2026",
+            title: "When the playbook argued with the model, the playbook was wrong",
+          },
+          {
             id: "elite-sleeper",
             date: "Aug 30, 2026",
             title: "Better projections, and a room that drafts worse than you",
@@ -280,6 +285,34 @@ function EliteSections() {
       </Update>
 
       <Update
+        id="elite-playbook"
+        date="August 30, 2026"
+        title="When the playbook argued with the model, the playbook was wrong"
+      >
+        <p>
+          Draft night surfaced a contradiction the tiers had quietly created.
+          The Strategy playbook was written from ~2,500 generic sims and carried
+          hard rules — &quot;QBs going early is the biggest trap, don&apos;t
+          reach&quot;, &quot;never leave round 6 without two WRs.&quot; But this
+          is a superflex OP league, and in Sleeper dual-board mode the
+          recommendation engine correctly values QBs as premium and knows the
+          ESPN-anchored room under-drafts them — so it was recommending exactly
+          the QBs the playbook told me to avoid. The overlay was telling me two
+          opposite things at once.
+        </p>
+        <p>
+          The model wins that argument; it&apos;s league-specific and the
+          playbook was generic, so the playbook is what changed. The QB advice
+          is now superflex-aware — in an OP league it reads &quot;the top QB rec
+          is the value, not a reach&quot; instead of the 1-QB trap warning — and
+          the positional-need lines (thin at WR) were rewritten to defer to the
+          recommendations rather than override them: flag the standing need, but
+          never tell me to pass a higher-value pick the model is surfacing. The
+          rule I&apos;m keeping: when a heuristic and the model disagree, the UI
+          should never show both as commands. Reconcile, or the advice is noise.
+        </p>
+      </Update>
+      <Update
         id="elite-sleeper"
         date="August 30, 2026"
         title="Better projections, and a room that drafts worse than you"
@@ -487,6 +520,11 @@ export default function DraftLabContent({
             title: "I tried to auto-learn the room, and the simulator said don't",
           },
           {
+            id: "update-2026-08-30-draft-night",
+            date: "Aug 30, 2026",
+            title: "Draft-night hardening: full pick sync and confirmed keepers",
+          },
+          {
             id: "update-2026-08-26-live-fire",
             date: "Aug 26, 2026",
             title: "A day of live-fire mocks: tiers, rankings, and two id bugs",
@@ -602,6 +640,39 @@ export default function DraftLabContent({
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-30-draft-night"
+        date="August 30, 2026"
+        title="Draft-night hardening: full pick sync and confirmed keepers"
+      >
+        <p>
+          The first real draft found the two places the companion could lie. It
+          only ever read the ESPN <b>Board</b> tab, which is a virtualized grid —
+          it only keeps the rounds near your scroll position in the DOM — so
+          late-round picks that had scrolled off were never synced, and the
+          overlay flashed &quot;12 picks missing&quot; that flipping tabs
+          couldn&apos;t fix. It now also polls ESPN&apos;s league draft API,
+          which returns every pick regardless of what&apos;s on screen. The
+          catch: the API gives numeric player ids, so it harvests id→name off
+          the team rosters and feeds each pick through the same name-match path
+          the scraper uses — which means it backfills into any pool, not just an
+          ESPN one. The DOM scraping stays as the fallback; the API is the
+          authoritative fill.
+        </p>
+        <p>
+          The subtler lie was keepers. You pre-configure keepers — yours, and
+          your best guess for every other team from last year&apos;s recap — and
+          the overlay had been reserving all of them and counting them toward
+          rosters whether or not the league actually set them. Now a configured
+          keeper only counts when ESPN confirms it: the sync rebuilds the keeper
+          reservations from the ones ESPN flags as genuinely kept, so a keeper
+          the room didn&apos;t set stops reserving a player, stops filling a
+          position in the recommendations, and returns to the pool. It falls
+          back to trusting the config only when ESPN exposes no keeper flags at
+          all, so a real keeper whose late slot the draft hasn&apos;t reached is
+          never wrongly dropped.
+        </p>
+      </Update>
       <Update
         id="update-2026-08-26-live-fire"
         date="August 26, 2026"
