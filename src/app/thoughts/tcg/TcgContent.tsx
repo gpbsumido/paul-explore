@@ -847,19 +847,145 @@ onScrollRef.current = () => {
           made it worth building carefully.
         </p>
       </Update>
+      <Update
+        id="update-2026-08-30-catalog"
+        date="August 30, 2026"
+        title="A day of fixing the wrong thing, and the API that was never down"
+      >
+        <p>
+          These pages read from our own database now instead of calling TCGdex
+          while they render. Getting there took three wrong diagnoses, and the
+          wrong ones are the useful part.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The lists looked stale. They were an outage that got cached.
+        </h3>
+        <p className="text-muted">
+          The set list had been showing nothing for a day and read as data
+          nobody had refreshed. It was not. The page fetched TCGdex at render
+          time, caught the failure, rendered an empty list — and ISR then cached
+          that empty list for twenty-four hours. An outage and a quiet Tuesday
+          produce identical HTML, which is the whole problem: the page had one
+          way of saying &ldquo;nothing&rdquo; and two very different reasons for
+          saying it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Meanwhile the build was dying before a single test ran
+        </h3>
+        <p className="text-muted">
+          The nightly went red two nights running with no test failure in it:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`[WebServer] Export encountered an error on /tcg/pokemon/sets/[setId]/page: /tcg/pokemon/sets/me02, exiting the build.
+Error: Process from config.webServer was not able to start. Exit code: 1`}
+        </pre>
+        <p className="mt-3 text-muted">
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">next build</code> exited 1, so Playwright never got a
+          server and the job died before running anything. Every mock in the
+          suite was irrelevant, because none of it happened inside a test.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I fixed it twice, and both fixes were real and beside the point
+        </h3>
+        <p className="text-muted">
+          First I guarded the nested fields a newly announced set arrives
+          without — <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">set.cardCount.official</code> and friends.
+          Genuine crashes, genuine tests. Then it failed again on a different
+          set, on a branch that already had that fix, so I removed the
+          build-time pre-render instead. The failure moved one route over, to
+          the sets list. That felt like progress and was still not the answer.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The line that settled it was in a console I had not opened
+        </h3>
+        <p className="text-muted">
+          GitHub&apos;s log only ever showed &ldquo;Export encountered an
+          error&rdquo;. Vercel&apos;s said what actually happened:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Failed to build /tcg/pokemon/sets/page (attempt 1 of 3) because it took more than 60 seconds. Retrying...
+Failed to build /tcg/pokemon/sets/page after 3 attempts.`}
+        </pre>
+        <p className="mt-3 text-muted">
+          A timeout, not a crash. That page lists every series and then fetches
+          each one, so its build cost is a multiple of however slow TCGdex is
+          that minute. It explains the property that made it so slippery: it was
+          intermittent, and a re-run usually cleared it, because the failure
+          tracked upstream latency rather than anything in the diff. It reads as
+          flake, and flake gets dismissed. I had two plausible mechanisms with
+          evidence and passing tests for each, and none of that made either one
+          the cause.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          So the pages stopped asking a stranger a question at render time
+        </h3>
+        <p className="text-muted">
+          A cron in portfolio_api mirrors the series and sets into Postgres, and
+          these pages read <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/api/tcg/catalog</code>. The fan-out
+          happens once, on a schedule, where being slow costs nothing. The
+          ingest assembles the whole catalog before writing any of it and
+          commits in one transaction, upserts instead of deleting, and refuses
+          an empty series list outright — every one of those rules exists to
+          stop it producing the empty page that started this. And the pages now
+          distinguish &ldquo;could not load&rdquo; from &ldquo;nothing ingested
+          yet&rdquo;, which is the distinction whose absence hid the outage for
+          a day.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then the first real run failed, and TCGdex was not down
+        </h3>
+        <p className="text-muted">
+          The cron&apos;s first production run said{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">fetch failed</code>, and their status page said
+          everything was fine. Both were true:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`dig +short A api.tcgdex.net                     # 142.44.242.175  (refuses, instantly)
+curl --resolve api.tcgdex.net:443:217.182.193.43 \
+     https://api.tcgdex.net/v2/en/series          # 200, valid cert, real data`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The API is healthy on the same box that serves their docs and assets,
+          holding a certificate whose only name is{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">api.tcgdex.net</code>. The public A record points
+          somewhere else, at a host that refuses connections. Anyone resolving
+          DNS normally gets sent to the dead one, which is why it was down for
+          us and up for them. I had told Paul the API was down; the honest
+          version is that I stopped at &ldquo;unreachable&rdquo; instead of
+          asking why, and the difference matters, because &ldquo;down&rdquo;
+          means wait and this means tell them.
+        </p>
+        <p className="mt-3 text-muted">
+          The catalog is empty until that record is fixed. Which is the
+          argument for the whole change, made better than I could have made it:
+          the pages now fail in a way that says what is wrong, and a third party
+          can no longer break the build at all.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "A BFF proxy in front of the card API, so the browser never talks to the upstream directly and caching lives in one place.",
           "Virtualised lists plus memoised card content — the two halves of the same problem, and doing one without the other leaves most of the win unclaimed.",
           "The Pocket page gated on a real feature flag, which gave the flags console its first genuine consumer.",
+          "Series and sets read from our own mirrored catalog rather than from TCGdex at render time, so a slow or unreachable upstream can no longer empty a page or fail a build.",
+          "Pages that tell an empty catalog apart from a failed read, because collapsing those into one blank list is what hid an outage for a day.",
         ]}
         couldImprove={[
           "Search is server-driven per keystroke behind a debounce. It works, and a client-side index over the loaded set would make the common case instant.",
           "Card images are not preloaded around the viewport, so fast scrolling outruns them.",
           "There is no offline or stale view — a card you looked at a second ago is refetched from scratch on return.",
+          "Only series and sets are mirrored. Card detail still goes straight to TCGdex, so it inherits whatever that API is doing that minute.",
+          "Nothing watches the ingest. A cron that quietly stops leaves the catalog silently ageing, which is the failure mode you buy when you take ownership of someone else's data.",
         ]}
         upcoming={[
           "Preload images just outside the viewport, which is the cheapest remaining perceived-performance win now the lists are virtualised.",
+          "A freshness line on the pages, using the updatedAt the catalog already returns, so the data says how old it is rather than implying it is live.",
         ]}
       />
     </ThoughtLayout>
