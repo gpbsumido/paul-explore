@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-30 - version 5.18.1
+
+- **Draft Lab write-up gains draft-night hardening and a playbook reconciliation.** Public update: the companion now backfills every pick from ESPN's league API (the virtualized Board tab only kept on-screen rounds in the DOM, so late picks were missed), matching by name harvested off the rosters so it works for any pool; and pre-configured keepers now only count when ESPN confirms the league actually set them. Owner-only update: the Strategy playbook's generic 1-QB rules ("QBs are a trap", "must draft 2 WR by round 6") were contradicting the superflex value model in Sleeper dual-board mode, so the QB advice is now superflex-aware and the positional-need lines defer to the recommendations instead of overriding them.
+
 ## 2026-08-30 - version 5.18.0
 
 - **Volunteer arrival check-in.** New feature answering a real ask: confirm someone actually turned up, without hardware. A display at the entrance (`/check-in/display`) shows a six-digit code that rotates every two minutes; the volunteer opens `/check-in?site=<id>` on their phone, types it, and the arrival is recorded against their Auth0 account rather than a name they typed. Organizers get `/check-in/sites` — create a site, open its display, copy the link for the poster, and see who has arrived today. The code is derived from an HMAC over the site salt and the time window rather than stored (portfolio_api#186), so nothing on this side ever holds a working code.
