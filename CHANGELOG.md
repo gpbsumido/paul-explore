@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.8
+
+- **Draft Lab write-up gains a Setting-it-up section.** Public: how a friend installs the Firefox add-on (Load Temporary Add-on from about:debugging), points it at their ESPN league so team names load, and the unsigned-add-on caveat plus the Developer-Edition path for a permanent install.
+
 ## 2026-08-31 - version 5.19.7
 
 - **Draft Lab write-up gains the pick-review feature (all tiers).** Every finished draft grades each of your picks by how much it improved your startable lineup versus what was still on the board at that moment, and names the best alternative you passed. The note covers the load-bearing bug — the alternatives hover first reused the board's current-pool popup, so a first-round pick suggested leftover quarterbacks instead of the ones actually available then — and the pick-by-pick reconstruction (excluding keepers, which were never draftable) that fixed it.
