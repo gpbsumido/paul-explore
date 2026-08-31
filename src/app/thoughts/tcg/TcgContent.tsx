@@ -962,10 +962,105 @@ curl --resolve api.tcgdex.net:443:217.182.193.43 \
           means wait and this means tell them.
         </p>
         <p className="mt-3 text-muted">
-          The catalog is empty until that record is fixed. Which is the
-          argument for the whole change, made better than I could have made it:
-          the pages now fail in a way that says what is wrong, and a third party
-          can no longer break the build at all.
+          Which is the argument for the whole change, made better than I could
+          have made it: the pages now fail in a way that says what is wrong, and
+          a third party can no longer break the build at all.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-31-routing-around"
+        date="August 31, 2026"
+        title="Routing around it, and the bug I shipped doing so"
+      >
+        <p>
+          The catalog is populated — 21 series, 218 sets. Getting there meant
+          deciding to route around someone else&apos;s infrastructure, which is
+          not a decision I wanted to make on a hunch.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It was already reported, and already answered
+        </h3>
+        <p className="text-muted">
+          Someone had filed it two days earlier:{" "}
+          <em>
+            GeoDNS still serves dead North America node 142.44.242.175
+          </em>
+          . A maintainer closed it the same day:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`na is experiencing outages, we cant just drop a node like that`}
+        </pre>
+        <p className="mt-3 text-muted">
+          That reframed it. A deliberate decision is not an outage to wait out,
+          and it also meant filing my own report would have been noise. It did
+          correct my diagnosis though: I had called it a wrong DNS record, and
+          it is GeoDNS — North America gets the dead node while other regions
+          get healthy ones, which is exactly why their status page reads green
+          and everything we deploy on fails.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A fallback that only fires after the front door has failed
+        </h3>
+        <p className="text-muted">
+          After the published address fails its retries, the ingest now tries
+          nodes that do answer, using <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">node:https</code> with a
+          fixed <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">lookup</code>. The URL still drives SNI and
+          certificate validation, so this is curl&apos;s{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">--resolve</code> rather than a way of skipping the
+          checks. It engages only after the normal path fails, so the day their
+          DNS is fixed we go straight back to it, and the addresses live in an
+          environment variable because they will move.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          And it did not work, in the one place I chose not to test
+        </h3>
+        <p className="text-muted">
+          The first production run:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`fallback node failed too   ip: 51.68.233.163   error: Invalid IP address: undefined
+fallback node failed too   ip: 217.182.193.43  error: Invalid IP address: undefined`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Node calls a custom <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">lookup</code> two different ways.
+          With <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">all: true</code> it wants an array of{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">{"{address, family}"}</code>; otherwise it wants{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">(err, address, family)</code>. Since Node 20{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">autoSelectFamily</code> is on and the socket asks for{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">all</code>, so answering only the second way puts{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">undefined</code> into the connection. Both nodes were
+          healthy the entire time.
+        </p>
+        <p className="mt-3 text-muted">
+          I had written in that pull request that the fallback was not unit
+          tested, because mocking a socket would only assert that my mock
+          works. True, and the wrong conclusion — the bug landed in the only
+          novel code with no coverage. The call shapes are pure logic and now
+          have tests, and the whole path was runnable against a real node all
+          along, which is how I confirmed the fix rather than assuming it.
+        </p>
+        <p className="mt-3 text-muted">
+          Worse, three existing tests had been passing <em>because</em> the
+          fallback was broken: every attempt died instantly, so tests that made
+          the primary fail never noticed they would otherwise reach the real
+          internet. Fixing the bug turned them into network calls. A test that
+          reaches the internet to prove a failure is not testing the failure.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then it worked, slowly
+        </h3>
+        <p className="text-muted">
+          The first successful run took two and a half minutes, because every
+          one of its twenty-two requests re-ran three attempts and two backoffs
+          against an address it had watched fail seconds earlier. The run now
+          remembers the node that answered — per run, never persisted, so every
+          run re-checks the published address and the day their GeoDNS is fixed
+          we notice and stop routing around it.
         </p>
       </Update>
       <WhatsNext
@@ -975,6 +1070,7 @@ curl --resolve api.tcgdex.net:443:217.182.193.43 \
           "The Pocket page gated on a real feature flag, which gave the flags console its first genuine consumer.",
           "Series and sets read from our own mirrored catalog rather than from TCGdex at render time, so a slow or unreachable upstream can no longer empty a page or fail a build.",
           "Pages that tell an empty catalog apart from a failed read, because collapsing those into one blank list is what hid an outage for a day.",
+          "A fallback that reaches TCGdex when their GeoDNS points North America at a dead node — after the published address has failed, logged every run, and forgotten at the end of it.",
         ]}
         couldImprove={[
           "Search is server-driven per keystroke behind a debounce. It works, and a client-side index over the loaded set would make the common case instant.",
@@ -982,6 +1078,7 @@ curl --resolve api.tcgdex.net:443:217.182.193.43 \
           "There is no offline or stale view — a card you looked at a second ago is refetched from scratch on return.",
           "Only series and sets are mirrored. Card detail still goes straight to TCGdex, so it inherits whatever that API is doing that minute.",
           "Nothing watches the ingest. A cron that quietly stops leaves the catalog silently ageing, which is the failure mode you buy when you take ownership of someone else's data.",
+          "The fallback pins addresses I do not control. They will move, and the only thing that will tell me is the ingest failing.",
         ]}
         upcoming={[
           "Preload images just outside the viewport, which is the cheapest remaining perceived-performance win now the lists are virtualised.",

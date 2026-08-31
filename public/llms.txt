@@ -32,6 +32,7 @@ Tailwind. Tested with Vitest and Playwright, test-first.
 - [Work Portfolio](https://paulsumido.com/work-portfolio): anonymised reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system): shared primitives, tokens, and a props playground
 - [Research Explorer](https://paulsumido.com/research): vascular surgery topics scored against PubMed and Europe PMC
+- [Volunteer Check-in](https://paulsumido.com/check-in/sites): rotating on-site codes that record who actually arrived
 - [Feature Flags](https://paulsumido.com/flags): describe a user, watch every flag decide what they see
 - [Fleet Operator](https://paulsumido.com/operator): unattended-retail dashboard over a Postgres-backed API
 - [Learn](https://paulsumido.com/learn): interactive algorithm and frontend-pattern deep-dives

@@ -48,6 +48,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/design-system-showcase",
   },
   {
+    id: "check-in",
+    title: "Volunteer Check-in",
+    description:
+      "Proof that someone actually turned up: a display at the entrance shows a code that rotates every two minutes, volunteers type it on their phone, and the arrival is recorded against their account rather than a name they typed.",
+    href: "/check-in/sites",
+    color: "#2d8f66",
+    thoughtsHref: "/thoughts/volunteer-check-in",
+  },
+  {
     id: "research",
     title: "Research Explorer",
     description:
@@ -180,6 +189,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Two point clouds instead of an object per particle, and why the connection-distance slider is really the performance dial",
     color: "#53becb",
+  },
+  {
+    title: "Volunteer Check-in",
+    href: "/thoughts/volunteer-check-in",
+    preview:
+      "A code that rotates every two minutes as proof of arrival: why the NFC half died on iOS, deriving codes instead of storing them, and stating the hole that stays open",
+    color: "#3aaea1",
   },
   {
     title: "Research Explorer",

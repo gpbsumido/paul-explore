@@ -1,11 +1,31 @@
 # Changelog
 
-## 2026-08-30 - version 5.15.0
+## 2026-08-31 - version 5.19.0
 
 - **The TCG lists read from our own catalog now, not from TCGdex live.** `/tcg/pokemon/sets` and `/tcg/pocket` render from portfolio_api's mirrored series/sets catalog (portfolio_api#190). Both pages previously fetched TCGdex at render time — the sets page listing every series and then fetching each one — which timed out `next build` and, at request time, produced an empty list that ISR cached for a day. That is what made the lists look like nobody had updated them: not stale data, a degraded render that got cached. Pocket was worse, showing "Pocket sets are unavailable right now" live in production, because `force-dynamic` meant it hit that API on literally every request.
 - **An empty list and a failed read no longer look identical.** The sets page says "couldn't load the set list" when the read fails and "the catalog hasn't been built yet" when there is genuinely nothing stored, because conflating those is precisely how an outage spent a day passing for stale data. A set whose card count upstream has not published yet renders as a dash rather than a zero — an unknown count and a set with no cards are different facts.
 - **The Pokémon TCG write-up records the whole thing**, in the operator-dashboard update format: named beats with the actual log lines pasted in — the export error, the 60-second build timeout that turned out to be the real cause, and the `dig`/`curl` pair showing TCGdex's own DNS pointing at a host that refuses connections while their status page reads green. The wrong diagnoses stay in, because two of them were real defects that were nonetheless beside the point.
+- **The write-up carries the resolution too.** A second dated update covers what happened after the diagnosis: the upstream report that already existed and the maintainer's "we cant just drop a node like that", the fallback built on `node:https` with a fixed `lookup`, the `Invalid IP address: undefined` bug I shipped in it — in the one piece of novel code I had explicitly declined to test — and the three existing tests that had been green only because that bug made them fail instantly instead of reaching the network.
 - **Nothing in `next build` calls a third party for these pages any more.** The catalog read is `no-store`, which takes both routes out of static generation entirely; freshness is handled upstream by the endpoint's own hour of s-maxage. One build-time third-party call remains, on `/tcg/pokemon`: a single paginated card request that already degrades to a client-side fetch, with no fan-out behind it.
+
+## 2026-08-30 - version 5.18.0
+
+- **Volunteer arrival check-in.** New feature answering a real ask: confirm someone actually turned up, without hardware. A display at the entrance (`/check-in/display`) shows a six-digit code that rotates every two minutes; the volunteer opens `/check-in?site=<id>` on their phone, types it, and the arrival is recorded against their Auth0 account rather than a name they typed. Organizers get `/check-in/sites` — create a site, open its display, copy the link for the poster, and see who has arrived today. The code is derived from an HMAC over the site salt and the time window rather than stored (portfolio_api#186), so nothing on this side ever holds a working code.
+- The NFC half of the original idea is not here on purpose: Web NFC ships in Chrome on Android and is unsupported by Safari on iOS, so a tap would have worked for some volunteers and silently failed for every iPhone. Typed codes work identically on both.
+- The display refetches exactly when its code expires, from the `secondsRemaining` the server reports, and hides the digits with an explanation if a refresh fails — a dead code left on screen makes volunteers blame themselves. That branch has a test.
+- New write-up at `/thoughts/volunteer-check-in` covering the derivation, the four cheats that are handled, and the relay hole that stays open.
+
+## 2026-08-30 - version 5.17.0
+
+- **My Topics learns MeSH.** The add-topic form gains a Phrase / MeSH toggle, so a custom topic can use NLM's controlled vocabulary instead of free-word matching — and every card on the Discovered tab gets a one-click Save to My Topics, which is the path for anyone who doesn't know MeSH names, since Discovered already surfaces real descriptors from recent literature. Nearly all pipe reuse: publications and demographics already spoke `?mesh=`; the topics route learned to score a single descriptor the same way it scores a phrase, behind the same descriptor-shape validation that keeps raw syntax out of PubMed.
+
+## 2026-08-30 - version 5.16.0
+
+- **The research explorer takes your own topics.** A My Topics section on the topics tab: type a plain-language phrase ("mesenteric ischemia thrombolysis") and it gets everything the curated topics get — a live PubMed evidence badge, recent papers from both databases, and the demographic-gap filters — saved in localStorage beside the custom journals. The phrase never reaches PubMed as raw syntax: each word is shape-checked and compiled to title/abstract clauses server-side, the same reject-don't-escape treatment MeSH terms and journal abbreviations already get, and every custom search stays scoped to vascular surgery. A MeSH-picked variant is next.
+
+## 2026-08-30 - version 5.15.0
+
+- **Draft Lab write-up splits public vs owner-only, securely.** The public page now covers just the free/pro tiers (the extension, live companion, scraping saga, tiers, keeper handling, survival-odds recommendations, the stack and tests). Everything Elite — the marginal-value recommendation engine and its simulation-tuned weight, keeper optimization, the sourced-injury adjustment layer, strength of schedule, the season/playoff model, multi-sport, and the Sleeper dual-board ADP-arbitrage edge — lives in an owner-gated section rendered server-side ONLY when the session email is the owner's, so it never ships to anyone else's payload. A client toggle lets the owner switch between the public and full views. The page reads the session, so it's now force-dynamic; the metadata convention accepts that as the valid alternative to a revalidate window (mirroring the dynamicRendering guard).
 
 ## 2026-08-30 - version 5.14.3
 

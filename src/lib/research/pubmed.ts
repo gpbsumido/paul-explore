@@ -20,6 +20,30 @@ const MESH_DESCRIPTOR = /^[A-Za-z0-9][A-Za-z0-9 ,'()\-.]{1,80}$/;
 const JOURNAL_ABBREV = /^[A-Za-z0-9][A-Za-z0-9 .\-()]{1,60}$/;
 
 /**
+ * One word of a custom topic phrase: letters and digits, inner hyphens or
+ * apostrophes, two characters up. No quotes, brackets, or field tags, so a
+ * typed-in topic can never smuggle search syntax -- rejected outright rather
+ * than escaped, like everything else that originates outside the curated file.
+ */
+const PHRASE_WORD = /^[A-Za-z0-9][A-Za-z0-9'-]{1,39}$/;
+
+/** Whether a string is descriptor-shaped, for the add-topic form's MeSH mode. */
+export function isMeshDescriptor(term: string): boolean {
+  return MESH_DESCRIPTOR.test(term);
+}
+
+/**
+ * Splits a custom topic phrase into validated words, or null when it is not
+ * one to eight plain words. Shared with the add-topic form so the UI can
+ * reject a phrase with the same rule the API enforces.
+ */
+export function phraseWords(phrase: string): string[] | null {
+  const words = phrase.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0 || words.length > 8) return null;
+  return words.every((w) => PHRASE_WORD.test(w)) ? words : null;
+}
+
+/**
  * Pure PubMed logic: term building, payload parsing, and evidence
  * classification. No fetching here, so both the BFF routes and the client
  * (for response schemas) can import it safely.
@@ -75,12 +99,14 @@ export function buildSearchTerm({
   journalId,
   journalName,
   meshTerm,
+  phrase,
   demoIds,
 }: {
   topicId?: string;
   journalId?: string;
   journalName?: string;
   meshTerm?: string;
+  phrase?: string;
   demoIds?: string[];
 }): string | null {
   const parts: string[] = [];
@@ -88,6 +114,15 @@ export function buildSearchTerm({
   if (meshTerm !== undefined) {
     if (!MESH_DESCRIPTOR.test(meshTerm)) return null;
     parts.push(`("${meshTerm}"[mh] AND (${ALL_VASCULAR_QUERY}))`);
+  }
+
+  if (phrase !== undefined) {
+    const words = phraseWords(phrase);
+    if (!words) return null;
+    const clauses = words.map((w) => `${w}[tiab]`).join(" AND ");
+    // Scoped to the field like a discovered MeSH topic: a bare word would
+    // otherwise search all of PubMed, which is not what this tool is for.
+    parts.push(`((${clauses}) AND (${ALL_VASCULAR_QUERY}))`);
   }
 
   if (topicId) {
@@ -118,7 +153,9 @@ export function buildSearchTerm({
   // A population on its own would search all of PubMed for "female"[mh], which
   // is millions of papers and nothing to do with this tool. When nothing else
   // narrows the search, the field itself does.
-  const narrowed = Boolean(topicId || journalId || journalName || meshTerm);
+  const narrowed = Boolean(
+    topicId || journalId || journalName || meshTerm || phrase,
+  );
   if (!narrowed) return `(${ALL_VASCULAR_QUERY}) AND ${parts.join(" AND ")}`;
 
   return parts.join(" AND ");
