@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.5
+
+- **The page every failed route renders had three accessibility violations of its own.** Found by the pre-release axe scan on a card detail page while TCGdex was unreachable: no document title (serious), no main landmark, and every word on the page sitting outside any region. `RouteError` is now a `<main>` rather than a `<div>`, which settles the last two, and it fills in a document title when the failed page never produced one — only when it is genuinely empty, so a title that rendered higher up is left alone. This is what someone sees at the moment they are least able to guess where they are, and it was the least accessible page in the app.
+
 ## 2026-08-31 - version 5.19.4
 
 - **Two more dated updates on the Draft Lab write-up.** The first covers finer tiers — the old rule cut a new tier wherever the projected-points drop between adjacent players crossed a threshold, which left some positions in one enormous tier, so a per-position size cap now sits on top of the cliff logic — plus flagging the players who slid past their ADP, and a cleanup pass that changes nothing you can see today while removing a bug that was waiting to happen.
