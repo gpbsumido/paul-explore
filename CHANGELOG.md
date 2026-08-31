@@ -1,9 +1,21 @@
 # Changelog
 
-## 2026-08-31 - version 5.19.6
+## 2026-08-31 - version 5.19.9
 
 - **The README documents volunteer check-in, as two flows rather than a feature blurb.** An organizer walkthrough (create a site, put its display at the entrance, copy the link for the poster, read today's arrivals) and a volunteer one (open the posted link, sign in, type the six digits), plus what a check-in actually proves — that someone with that volunteer's login had that site's code within two minutes, which is right for honest attendance and the wrong tool for catching a determined cheat.
 - **Next steps state plainly that tap-to-check-in needs native apps on both platforms.** Web NFC ships in Chrome on Android and Safari on iOS does not support it, so a web tap would work for some volunteers and silently fail for every iPhone — and those people would look exactly like the ones who did not turn up. iOS exposes NFC to native apps only, through Core NFC, so covering everyone means an iOS app and an Android app against this same API. GPS is on the list too, as something deliberately not being done.
+
+## 2026-08-31 - version 5.19.8
+
+- **Draft Lab write-up gains a Setting-it-up section.** Public: how a friend installs the Firefox add-on (Load Temporary Add-on from about:debugging), points it at their ESPN league so team names load, and the unsigned-add-on caveat plus the Developer-Edition path for a permanent install.
+
+## 2026-08-31 - version 5.19.7
+
+- **Draft Lab write-up gains the pick-review feature (all tiers).** Every finished draft grades each of your picks by how much it improved your startable lineup versus what was still on the board at that moment, and names the best alternative you passed. The note covers the load-bearing bug — the alternatives hover first reused the board's current-pool popup, so a first-round pick suggested leftover quarterbacks instead of the ones actually available then — and the pick-by-pick reconstruction (excluding keepers, which were never draftable) that fixed it.
+
+## 2026-08-31 - version 5.19.6
+
+- **Draft Lab write-up gains a portability update.** Public: two file round-trips that keep the browser-only storage from being a trap — a settings CSV (team names, keepers, tendencies, caps) for every tier, and result files (a finished draft as JSON, each pick tagged yours-or-simulated) for the free and pro tiers. Written after learning the hard way that a reload wipes an unbacked-up league setup.
 
 ## 2026-08-31 - version 5.19.5
 
