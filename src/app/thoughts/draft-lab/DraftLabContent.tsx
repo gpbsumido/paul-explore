@@ -562,6 +562,37 @@ export default function DraftLabContent({
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">Setting it up</h2>
+        <p className="text-muted">
+          It&apos;s a Firefox extension — it uses Firefox&apos;s extension APIs,
+          so it won&apos;t load in Chrome. Once you have the zip:
+        </p>
+        <ol className="mt-3 list-decimal space-y-1 pl-5 text-muted">
+          <li>Unzip it into a folder.</li>
+          <li>
+            Open <code>about:debugging#/runtime/this-firefox</code> in Firefox.
+          </li>
+          <li>Click <b>Load Temporary Add-on…</b> and pick the <code>manifest.json</code> inside the folder.</li>
+          <li>The Draft Lab icon appears in the toolbar — click it to open the board.</li>
+        </ol>
+        <p className="text-muted mt-3">
+          In Setup, enter your <b>League ID</b> (the <code>leagueId=…</code> in
+          your ESPN league URL) or just open your league&apos;s ESPN page once so
+          it&apos;s picked up — then your real team names load automatically. Set
+          keepers, per-team tendencies, and confirm the roster/scoring match your
+          league. Practice against the AI, or run Companion mode inside your live
+          ESPN draft room.
+        </p>
+        <p className="text-muted mt-3">
+          One caveat of an unsigned add-on: a <b>temporary</b> install unloads when
+          Firefox restarts — reload it the same way. For a permanent install, use
+          Firefox Developer Edition, set <code>xpinstall.signatures.required</code>
+          to <code>false</code> in <code>about:config</code>, then install the zip
+          from <code>about:addons → Install Add-on From File</code>.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">How it works, end to end</h2>
         <p className="text-muted">
           Three layers, deliberately separated. At the bottom is a pure draft
