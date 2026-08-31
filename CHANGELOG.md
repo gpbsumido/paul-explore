@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.4
+
+- **Two more dated updates on the Draft Lab write-up.** The first covers finer tiers — the old rule cut a new tier wherever the projected-points drop between adjacent players crossed a threshold, which left some positions in one enormous tier, so a per-position size cap now sits on top of the cliff logic — plus flagging the players who slid past their ADP, and a cleanup pass that changes nothing you can see today while removing a bug that was waiting to happen.
+- **The second is a negative result, kept as one.** An attempt to auto-learn each drafter's tendencies from the live room, measured against the thing it would actually change: the survival probabilities behind "72% he's still here next turn". It could not beat ADP and roster need, which already explain most of who survives, so it did not ship. A feature that failed its own test is worth more written down than quietly deleted.
+- **A third, owner-only update covers the manual projection adjustment.** The Tiers tab now takes a flat per-player point tweak that feeds tiers and recommendations while leaving the base projection visible — the cell reads `337 → 342`, never a silent overwrite.
+
 ## 2026-08-31 - version 5.19.3
 
 - **Draft Lab write-up gains draft-night hardening and a playbook reconciliation.** Public update: the companion now backfills every pick from ESPN's league API (the virtualized Board tab only kept on-screen rounds in the DOM, so late picks were missed), matching by name harvested off the rosters so it works for any pool; and pre-configured keepers now only count when ESPN confirms the league actually set them. Owner-only update: the Strategy playbook's generic 1-QB rules ("QBs are a trap", "must draft 2 WR by round 6") were contradicting the superflex value model in Sleeper dual-board mode, so the QB advice is now superflex-aware and the positional-need lines defer to the recommendations instead of overriding them.

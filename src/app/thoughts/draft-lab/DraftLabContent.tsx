@@ -51,6 +51,16 @@ function EliteSections() {
       <UpdateTimeline
         entries={[
           {
+            id: "elite-proj-adjust",
+            date: "Aug 31, 2026",
+            title: "A manual thumb on the scale, without lying about the number",
+          },
+          {
+            id: "elite-tiers-fallers",
+            date: "Aug 30, 2026",
+            title: "Finer tiers, and flagging the players who slid",
+          },
+          {
             id: "elite-playbook",
             date: "Aug 30, 2026",
             title: "When the playbook argued with the model, the playbook was wrong",
@@ -101,6 +111,98 @@ function EliteSections() {
           <i>worse advice</i> dressed up as the real thing.
         </p>
       </section>
+
+      <Update
+        id="elite-proj-adjust"
+        date="August 31, 2026"
+        title="A manual thumb on the scale, without lying about the number"
+      >
+        <p>
+          The projection is a starting point, not gospel — some nights I just
+          know a number is wrong: a beat writer&apos;s note the feed hasn&apos;t
+          priced, a coach I trust to feed one back. So the Tiers tab now takes a
+          manual per-player adjustment: a flat <code>+5</code> or{" "}
+          <code>−3</code> on a player&apos;s projected points, typed right next
+          to them.
+        </p>
+        <p>
+          The design rule was the same honesty line the whole product runs on:
+          don&apos;t overwrite the projection, and don&apos;t hide that a thumb
+          is on the scale. The base number stays exactly as the model computed
+          it and stays visible; the adjustment shows as its own value in colour;
+          the effective total the tweak produces is what actually feeds the
+          engine. So the cell reads <code>337 → 342</code>, not a silent 342 I&apos;d
+          later mistake for a real projection. It stacks on top of the
+          sourced-injury multipliers rather than fighting them — that layer is
+          researched and approved; this one is my own call, kept separate on
+          purpose.
+        </p>
+        <p>
+          It isn&apos;t cosmetic. The adjustment lands in the one place every
+          downstream number reads from — the scored pool — so a bumped player
+          re-sorts, can jump a tier, and shifts every recommendation and survival
+          figure that leans on it, the instant I type it. It persists across
+          practice drafts like the tier overrides do, and it&apos;s Elite: the
+          same gate as the model recommendations it steers, removed from the DOM
+          entirely for lower tiers.
+        </p>
+      </Update>
+
+      <Update
+        id="elite-tiers-fallers"
+        date="August 30, 2026"
+        title="Finer tiers, and flagging the players who slid"
+      >
+        <p>
+          Tiers were assigned by a single rule: walk each position top-down and
+          start a new tier wherever the projected-points drop from one player to
+          the next clears a per-position threshold. That works where the
+          position has real cliffs — running back and tight end break cleanly —
+          but it falls apart on the smooth ones. Superflex quarterback and the
+          receiver pool are near-continuous: no single drop clears the bar, so
+          twenty-one QBs collapsed into one &quot;Tier 2&quot; and fifty
+          receivers into one &quot;Tier 3.&quot; A tier that holds a third of
+          the pool tells you nothing at the board.
+        </p>
+        <p>
+          The fix keeps the cliff logic and adds a size cap per position. Any
+          tier that comes out larger than the cap gets subdivided into roughly
+          equal bands, but each new boundary is snapped to the largest
+          points-drop within a window around the even split — so the bands stay
+          the same size while still landing on whatever local cliff is nearest.
+          I tried the obvious thing first, recursively cutting at the single
+          largest gap, and it degenerated: on a perfectly smooth run it peels one
+          player off at a time and produces a string of singletons. Even bands
+          snapped to cliffs was the version that read well on both a smooth pool
+          and a cliffy one. Only Elite gets the finer split; the coarse absolute
+          threshold is what lower tiers see.
+        </p>
+        <p>
+          The second piece answers a question I kept asking out loud on draft
+          night: who&apos;s fallen? Every available player has a consensus ADP,
+          and the live draft has an overall pick number, so the slip is just{" "}
+          <code>currentPick − ADP</code>. When a player is three or more picks
+          late they get a badge — <code>▼N pk</code>, or <code>▼N rd</code> once
+          they&apos;re two full rounds past where they should have gone — on the
+          pool table, on the recommendation rows, and on the live companion
+          overlay that paints ESPN&apos;s own draft screen. It&apos;s the cue to
+          take the value that fell to me instead of the name I had queued, and
+          it&apos;s gated to Elite alongside the model recommendations it rides
+          next to.
+        </p>
+        <p>
+          A cleanup pass followed, the kind that pays for itself later. The
+          tier-size caps had been hardcoded with football positions in the shared
+          engine, which meant the finer split silently did nothing for the
+          basketball profiles — so the caps moved into the per-sport config next
+          to the gap thresholds they belong with, and now every sport gets the
+          same treatment. The faller badge had been copy-pasted between the board
+          and the ESPN overlay; two copies of the same arithmetic drift apart the
+          first time only one gets fixed, so it&apos;s one shared function now.
+          Neither changes what you see today; both stop a bug I&apos;d otherwise
+          ship in a month.
+        </p>
+      </Update>
 
       <Update
         id="elite-engine"
@@ -413,6 +515,11 @@ export default function DraftLabContent({
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-30-adaptive-tendencies",
+            date: "Aug 30, 2026",
+            title: "I tried to auto-learn the room, and the simulator said don't",
+          },
+          {
             id: "update-2026-08-30-draft-night",
             date: "Aug 30, 2026",
             title: "Draft-night hardening: full pick sync and confirmed keepers",
@@ -601,6 +708,52 @@ export default function DraftLabContent({
           player early — the reservation only exists in the extension. The
           reliable lock is ESPN&apos;s native Keepers tab; the overlay now says
           so, loudly, when a keeper gets taken before their slot.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-30-adaptive-tendencies"
+        date="August 30, 2026"
+        title="I tried to auto-learn the room, and the simulator said don't"
+      >
+        <p>
+          Every survival number — &quot;72% he&apos;s still here next turn&quot;
+          — rests on a guess about how each opponent drafts, and right now that
+          guess is a label you pick once at setup: Balanced, Zero-RB, reaches for
+          QBs. Companion mode watches the whole room draft for real, so the
+          obvious idea is to stop trusting the label and start trusting the
+          picks: infer each team&apos;s lean from what they&apos;ve actually
+          taken, and feed that back into the odds. I built it — position lean
+          versus the room, how tightly their picks tracked ADP, blended with the
+          label by how many picks I&apos;d seen.
+        </p>
+        <p>
+          Then I made it prove itself before it shipped, and it couldn&apos;t.
+          The test measures the thing the feature actually changes — the survival
+          numbers — not whether my auto-pick finished higher. Across 3,000
+          simulated drafts I scored each prediction three ways on the identical
+          board: the static label, my inferred profile, and an oracle that gets
+          told each opponent&apos;s true setting. Lower Brier score is
+          better-calibrated:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`3,000 drafts · 922,656 predictions
+static (fixed label)   Brier 0.1928   ← the bar
+adaptive (inferred)    Brier 0.1941   +0.65%  worse
+oracle (true settings) Brier 0.1895   -1.72%  better`}
+        </pre>
+        <p>
+          Two things in that table killed the feature. My inference lands{" "}
+          <i>worse</i> than doing nothing — a lean read off a handful of early
+          picks is mostly noise, and the noise costs more than the signal is
+          worth. And the oracle, with perfect knowledge, only buys 1.7%: even
+          knowing every opponent&apos;s true style barely moves the odds, because
+          ADP and roster need already explain most of who survives. A tiny
+          ceiling with a noisy estimator underneath is a bad trade, so it&apos;s
+          shelved — the extension keeps the static label. I&apos;d rather ship the
+          negative result than a feature that quietly makes the numbers you trust
+          a little worse. The prototype and its benchmark live in the repo as the
+          record of why.
         </p>
       </Update>
 
