@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.4
+
+- **Two more dated updates on the Draft Lab write-up.** The first covers finer tiers — the old rule cut a new tier wherever the projected-points drop between adjacent players crossed a threshold, which left some positions in one enormous tier, so a per-position size cap now sits on top of the cliff logic — plus flagging the players who slid past their ADP, and a cleanup pass that changes nothing you can see today while removing a bug that was waiting to happen.
+- **The second is a negative result, kept as one.** An attempt to auto-learn each drafter's tendencies from the live room, measured against the thing it would actually change: the survival probabilities behind "72% he's still here next turn". It could not beat ADP and roster need, which already explain most of who survives, so it did not ship. A feature that failed its own test is worth more written down than quietly deleted.
+
 ## 2026-08-31 - version 5.19.1
 
 - **The TCG e2e specs stopped depending on TCGdex being reachable.** The pre-release suite failed on `/tcg/pokemon`, waiting fifteen seconds for card tiles that never arrived — TCGdex points North America at a dead node and the CI runners are in North America. The file already mocked the cards API for its search test "so this test doesn't depend on TCGdex being reachable in CI"; the `beforeEach` did not, so every test in it still waited on real tiles. The unfiltered first page is now served from a fixture, and the search test's own handler falls back to that fixture instead of continuing to the network.
