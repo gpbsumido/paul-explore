@@ -2,32 +2,33 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 /**
- * The sets list renders during `next build` because of its `revalidate`, so an
- * unguarded read here does not produce a broken page — it ends the export and
- * fails the whole build. It already caught a failing *fetch*; what it did not
- * survive was a fetch that succeeds and returns a series with parts missing.
+ * This page renders from portfolio_api's mirrored catalog now. What it must
+ * never do again is render "no sets" for two different reasons: a read that
+ * failed and a catalog nobody has built yet used to look identical, which is
+ * how an outage spent a day passing for data nobody had updated.
  */
-const serieList = vi.hoisted(() => vi.fn());
-const serieGet = vi.hoisted(() => vi.fn());
-
-vi.mock("@tcgdex/sdk", () => ({
-  default: class {
-    serie = { list: serieList, get: serieGet };
-  },
-}));
+const fetchCatalog = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/tcg-catalog", () => ({ fetchCatalog }));
 
 vi.mock("@/components/PageHeader", () => ({
   default: () => <div data-testid="page-header" />,
 }));
 
-import SetsPage, { withTimeout } from "./page";
+import SetsPage from "./page";
 
-const complete = {
-  id: "sv",
-  name: "Scarlet & Violet",
+const serie = {
+  id: "tcgp",
+  name: "Pokémon TCG Pocket",
   logo: null,
   sets: [
-    { id: "sv1", name: "Base", logo: null, cardCount: { official: 198 } },
+    {
+      id: "A1",
+      name: "Genetic Apex",
+      logo: null,
+      symbol: null,
+      cardCountOfficial: 226,
+      cardCountTotal: 286,
+    },
   ],
 };
 
@@ -37,75 +38,40 @@ async function renderPage() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  serieList.mockResolvedValue([{ id: "sv" }]);
-  serieGet.mockResolvedValue(complete);
+  fetchCatalog.mockResolvedValue({ series: [serie], updatedAt: "2026-08-30T05:00:00.000Z" });
 });
 
-describe("sets list with incomplete upstream data", () => {
-  it("renders a series that has no sets array yet", async () => {
-    serieGet.mockResolvedValue({ ...complete, sets: undefined });
+describe("sets page", () => {
+  it("lists the series and their sets from the catalog", async () => {
     await renderPage();
-    expect(screen.getByText("Scarlet & Violet")).toBeInTheDocument();
-    expect(screen.getByText(/0 sets/)).toBeInTheDocument();
+    expect(screen.getByText("Pokémon TCG Pocket")).toBeInTheDocument();
+    expect(screen.getByText("Genetic Apex")).toBeInTheDocument();
+    expect(screen.getByText("1 sets")).toBeInTheDocument();
   });
 
-  it("renders a set that has no card count yet", async () => {
-    serieGet.mockResolvedValue({
-      ...complete,
-      sets: [{ id: "sv1", name: "Base", logo: null, cardCount: undefined }],
+  it("says the read failed rather than showing an empty list", async () => {
+    fetchCatalog.mockResolvedValue(null);
+    await renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.?t load/i);
+  });
+
+  it("says the catalog has not been built rather than that it failed", async () => {
+    fetchCatalog.mockResolvedValue({ series: [], updatedAt: null });
+    await renderPage();
+    expect(screen.getByText(/hasn.?t been built yet/i)).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows a dash for a set whose card count is not published yet", async () => {
+    fetchCatalog.mockResolvedValue({
+      series: [
+        { ...serie, sets: [{ ...serie.sets[0], cardCountOfficial: null }] },
+      ],
+      updatedAt: null,
     });
     await renderPage();
-    // A dash rather than a crash: the set is real, the count is not known yet.
-    expect(screen.getByText("Base")).toBeInTheDocument();
-  });
-
-  it("still renders when the upstream fetch fails outright", async () => {
-    serieList.mockRejectedValue(new Error("upstream down"));
-    await renderPage();
-    expect(screen.getByTestId("page-header")).toBeInTheDocument();
-  });
-});
-
-describe("the build-time budget", () => {
-  it("gives up on a fan-out that outlives its budget", async () => {
-    vi.useFakeTimers();
-    try {
-      const hanging = new Promise(() => {});
-      const raced = withTimeout(hanging, 20_000);
-      const settled = raced.then(
-        () => "resolved",
-        () => "gave up",
-      );
-      await vi.advanceTimersByTimeAsync(20_001);
-      await expect(settled).resolves.toBe("gave up");
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("does not delay work that finishes in time", async () => {
-    vi.useFakeTimers();
-    try {
-      await expect(withTimeout(Promise.resolve("done"), 20_000)).resolves.toBe(
-        "done",
-      );
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("renders the page rather than throwing when the fan-out is too slow", async () => {
-    vi.useFakeTimers();
-    try {
-      serieList.mockReturnValue(new Promise(() => {}));
-      const pending = SetsPage();
-      await vi.advanceTimersByTimeAsync(20_001);
-      // An empty list is the right degradation: ISR fills it in later, and a
-      // build that finishes beats a page that is momentarily bare.
-      render(await pending);
-      expect(screen.getByTestId("page-header")).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
+    // A dash, not a zero: an unknown count and a set with no cards are
+    // different facts.
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 });

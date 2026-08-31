@@ -1,4 +1,4 @@
-import TCGdex from "@tcgdex/sdk";
+import { fetchCatalog } from "@/lib/tcg-catalog";
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
@@ -25,54 +25,22 @@ export const metadata: Metadata = {
   },
 };
 
-const tcgdex = new TCGdex("en");
+// The set list renders from portfolio_api's mirrored catalog rather than from
+// TCGdex directly. Rendering used to list every series and then fetch each one,
+// and the cost of that fan-out is a multiple of however slow that API is: it
+// timed out `next build`, and at request time produced an empty list that ISR
+// then cached for a day, which reads as data nobody updated rather than as an
+// outage. The mirror does the fan-out on a schedule instead.
 
-// Set list doesn't change often — rebuild at most once a day
-export const revalidate = 86400;
-
-/**
- * How long the upstream fan-out gets before this page gives up on it.
- *
- * Next allows a page 60 seconds to render during `next build` and fails the
- * whole export after three attempts at it. This page lists every series and
- * then fetches each one, so its cost is a multiple of however slow TCGdex
- * happens to be that minute -- which is exactly how the build started failing
- * intermittently. Twenty seconds leaves room for the render itself and turns a
- * slow upstream into an empty page instead of a broken deploy.
- */
-const UPSTREAM_BUDGET_MS = 20_000;
-
-/** Rejects if `work` has not settled inside `ms`, clearing its timer either way. */
-export function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout>;
-  const expiry = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error("upstream budget exceeded")), ms);
-  });
-  return Promise.race([work, expiry]).finally(() => clearTimeout(timer)) as Promise<T>;
-}
+// Rendered per request, not at build. The catalog read is a `no-store` fetch,
+// which opts this route out of static generation -- and that is the property
+// worth having: nothing about `next build` should depend on a network call any
+// more, not even to our own API. The cost is absorbed upstream, where
+// /api/tcg/catalog serves an hour of s-maxage.
 
 export default async function SetsPage() {
-  let validSeries: Awaited<ReturnType<typeof tcgdex.serie.get>>[] = [];
-  try {
-    validSeries = await withTimeout(
-      (async () => {
-        const resumes = await tcgdex.serie.list();
-        const series = resumes
-          ? await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)))
-          : [];
-        return series.filter(Boolean);
-      })(),
-      UPSTREAM_BUDGET_MS,
-    );
-  } catch {
-    // Unreachable or just too slow — from the build's point of view those are
-    // the same thing. ISR repopulates this on a later request.
-  }
-
-  // Everything below reads through this list at build time, so every nested
-  // field is treated as optional. A series announced but not yet filled in
-  // arrives without `sets`, and a set within it without `cardCount`; reading
-  // either blind ends the export and takes the whole build with it.
+  const catalog = await fetchCatalog();
+  const series = catalog?.series ?? [];
 
   return (
     <div className="min-h-dvh bg-background font-sans">
@@ -97,29 +65,47 @@ export default async function SetsPage() {
           All Sets
         </h1>
 
-        {validSeries.map((serie) => (
-          <section key={serie!.id}>
+        {/* A failed read and a catalog nobody has built yet look identical if
+            you render both as "no sets", which is how an outage here spent a
+            day passing for stale data. They say different things now. */}
+        {catalog === null && (
+          <p role="alert" className="text-sm text-muted">
+            Couldn&apos;t load the set list just now. It&apos;s served from our
+            own copy of the catalog, so this is us rather than the card
+            database — try again shortly.
+          </p>
+        )}
+
+        {catalog !== null && series.length === 0 && (
+          <p className="text-sm text-muted">
+            The set catalog hasn&apos;t been built yet. It fills in the next
+            time the nightly import runs.
+          </p>
+        )}
+
+        {series.map((serie) => (
+          <section key={serie.id}>
             <div className="flex items-center gap-3 mb-4">
-              {serie!.logo ? (
+              {serie.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={`${serie!.logo}.webp`}
-                  alt={serie!.name}
+                  src={`${serie.logo}.webp`}
+                  alt={serie.name}
                   className="h-7 object-contain"
                   loading="lazy"
                 />
               ) : (
                 <h2 className="text-xs font-black uppercase tracking-[0.15em] text-muted">
-                  {serie!.name}
+                  {serie.name}
                 </h2>
               )}
               <span className="text-xs text-muted">
-                {(serie!.sets ?? []).length} sets
+                {serie.sets.length} sets
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {(serie!.sets ?? []).map((set) => (
+              {serie.sets.map((set) => (
                 <Link
                   key={set.id}
                   href={`/tcg/pokemon/sets/${set.id}`}
@@ -145,7 +131,7 @@ export default async function SetsPage() {
                       </span>
                     )}
                     <span className="text-[11px] font-semibold text-muted shrink-0 ml-auto">
-                      {set.cardCount?.official ?? "—"}
+                      {set.cardCountOfficial ?? "—"}
                     </span>
                   </div>
                 </Link>
