@@ -209,6 +209,34 @@ describe("buildSearchTerm for discovered MeSH topics", () => {
   });
 });
 
+describe("buildSearchTerm for a custom phrase topic", () => {
+  it("compiles plain words into tiab clauses scoped to vascular surgery", () => {
+    const term = buildSearchTerm({ phrase: "mesenteric ischemia thrombolysis" });
+    expect(term).toContain(
+      "mesenteric[tiab] AND ischemia[tiab] AND thrombolysis[tiab]",
+    );
+    expect(term).toContain("vascular");
+  });
+
+  it("refuses anything that isn't plain words, so no raw query reaches PubMed", () => {
+    expect(buildSearchTerm({ phrase: 'x"[mh] OR 1=1' })).toBeNull();
+    expect(buildSearchTerm({ phrase: "" })).toBeNull();
+    expect(buildSearchTerm({ phrase: "(clti) AND dialysis" })).toBeNull();
+    expect(
+      buildSearchTerm({ phrase: "one two three four five six seven eight nine" }),
+    ).toBeNull();
+  });
+
+  it("still ANDs demographic facets onto a phrase topic", () => {
+    const term = buildSearchTerm({
+      phrase: "popliteal aneurysm",
+      demoIds: [DEMOGRAPHICS[0].id],
+    });
+    expect(term).toContain("popliteal[tiab] AND aneurysm[tiab]");
+    expect(term).toContain(DEMOGRAPHICS[0].clause);
+  });
+});
+
 describe("buildSearchTerm for a population on its own", () => {
   it("scopes a demographic-only search to vascular surgery", () => {
     const term = buildSearchTerm({ demoIds: [DEMOGRAPHICS[0].id] });
