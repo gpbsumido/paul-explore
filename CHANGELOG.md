@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.6
+
+- **Draft Lab write-up gains a portability update.** Public: two file round-trips that keep the browser-only storage from being a trap — a settings CSV (team names, keepers, tendencies, caps) for every tier, and result files (a finished draft as JSON, each pick tagged yours-or-simulated) for the free and pro tiers. Written after learning the hard way that a reload wipes an unbacked-up league setup.
+
 ## 2026-08-31 - version 5.19.5
 
 - **The page every failed route renders had three accessibility violations of its own.** Found by the pre-release axe scan on a card detail page while TCGdex was unreachable: no document title (serious), no main landmark, and every word on the page sitting outside any region. `RouteError` is now a `<main>` rather than a `<div>`, which settles the last two, and it fills in a document title when the failed page never produced one — only when it is genuinely empty, so a title that rendered higher up is left alone. This is what someone sees at the moment they are least able to guess where they are, and it was the least accessible page in the app.
