@@ -399,68 +399,83 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
           ours, TCGdex is not, so mock at the edge. That holds for tests and
           says nothing about the build, which is where this went wrong.
         </p>
-        <p>
-          The nightly went red two nights running with no test failure in it:{" "}
-          <code>
-            Export encountered an error on /tcg/pokemon/sets/[setId]/page
-          </code>
-          , then <code>webServer was not able to start</code>. The build exited
-          1, so Playwright never got a server and the job died before a single
-          spec ran. Every mock in the suite was irrelevant.
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The job died before a single spec ran
+        </h3>
+        <p className="text-muted">
+          Two nights red, with no test failure in it:
         </p>
-        <p>
-          <strong>First diagnosis.</strong> The failing set was newly announced
-          and the page read <code>set.serie.name</code>,{" "}
-          <code>set.cardCount.official</code> and <code>set.legal.*</code>{" "}
-          without guards. I reproduced real crashes for exactly that shape,
-          fixed them, and shipped it — while writing in the PR that I could not
-          confirm this was the cause, because the API is unreachable from where
-          I work and my local build therefore never walked the failing path.
-          That caveat turned out to be the important sentence.
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`[WebServer] Export encountered an error on /tcg/pokemon/sets/[setId]/page: /tcg/pokemon/sets/me02, exiting the build.
+Error: Process from config.webServer was not able to start. Exit code: 1`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The build exited 1, so Playwright never got a server. Every mock in
+          the suite was irrelevant, because none of this happened inside a test.
         </p>
-        <p>
-          <strong>Second diagnosis.</strong> It failed again a day later on a
-          different set, on a branch that already carried the fix. So I removed
-          the build-time fetch instead: pre-rendering ten sets meant ten chances
-          for a third party to end the export, and the route has ISR anyway. The
-          failure moved one page over, to the sets list. That felt like
-          progress and was still not the answer.
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          First diagnosis: the fields a new set arrives without
+        </h3>
+        <p className="text-muted">
+          The failing set was newly announced, and the page read{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">set.serie.name</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">set.cardCount.official</code> and{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">set.legal.*</code> without guards. I reproduced real crashes for that
+          shape, fixed them, and shipped it — while writing in the pull request
+          that I could not confirm this was the cause, because the API is
+          unreachable from where I work and my local build never walked the
+          failing path. That caveat turned out to be the important sentence.
         </p>
-        <p>
-          <strong>What it actually was.</strong> Vercel&rsquo;s build log said
-          what GitHub&rsquo;s never did:
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Second diagnosis: stop the build calling out at all
+        </h3>
+        <p className="text-muted">
+          It failed again a day later on a different set, on a branch that
+          already carried the fix. So I removed the build-time fetch instead:
+          pre-rendering ten sets meant ten chances for a third party to end the
+          export. The failure moved one page over, to the sets list. That felt
+          like progress and was still not the answer.
         </p>
-        <p>
-          <code>
-            Failed to build /tcg/pokemon/sets/page (attempt 1 of 3) because it
-            took more than 60 seconds
-          </code>{" "}
-          &mdash; three times, then the export gave up.
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          What it actually was, in a log I had not opened
+        </h3>
+        <p className="text-muted">
+          Vercel&apos;s build log said what GitHub&apos;s never did:
         </p>
-        <p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Failed to build /tcg/pokemon/sets/page (attempt 1 of 3) because it took more than 60 seconds. Retrying...
+Failed to build /tcg/pokemon/sets/page (attempt 2 of 3) because it took more than 60 seconds. Retrying...
+Failed to build /tcg/pokemon/sets/page after 3 attempts.`}
+        </pre>
+        <p className="mt-3 text-muted">
           A timeout, not a crash. That page lists every series and then fetches
           each one, so its build cost is a multiple of however slow TCGdex is
-          that minute. Nothing was malformed and no field was missing; the
-          fan-out simply outran Next&rsquo;s 60-second budget for rendering one
-          page. It explains the property that made this so slippery, too: it was
-          intermittent and a re-run often cleared it, because the failure
-          tracked upstream latency rather than anything in the diff. It reads as
-          flake, and flake gets dismissed.
+          that minute. Nothing was malformed and no field was missing. It also
+          explains the property that made this so slippery: it was intermittent
+          and a re-run often cleared it, because the failure tracked upstream
+          latency rather than anything in the diff. It reads as flake, and flake
+          gets dismissed.
         </p>
-        <p>
-          The fix is a twenty-second budget on the fan-out. Past that the page
-          renders empty and ISR fills it in later, because from the
-          build&rsquo;s point of view &ldquo;unreachable&rdquo; and
-          &ldquo;too slow&rdquo; are the same thing — the page already handled
-          the first and not the second.
+        <p className="mt-3 text-muted">
+          The fix is a twenty-second budget on the fan-out, and eventually
+          mirroring the catalog into our own database so the pages stop asking
+          at render time at all. From the build&apos;s point of view
+          &ldquo;unreachable&rdquo; and &ldquo;too slow&rdquo; are the same
+          thing, and the page had only ever handled the first.
         </p>
-        <p>
-          What I take from it is less about this API than about which log I
-          believed. I had two plausible mechanisms, evidence for both, and tests
-          proving I had fixed something real each time. None of that made either
-          one the cause. The line that settled it existed the whole time, in a
-          different provider&rsquo;s console, and I did not go looking because
-          the failure I already had an explanation for looked explained.
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The lesson is about which log I believed
+        </h3>
+        <p className="text-muted">
+          I had two plausible mechanisms, evidence for both, and tests proving I
+          had fixed something real each time. None of that made either one the
+          cause. The line that settled it existed the whole time, in a different
+          provider&apos;s console, and I did not go looking because a failure I
+          already had an explanation for looked explained.
         </p>
       </Update>
 

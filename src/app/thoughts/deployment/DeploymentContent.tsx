@@ -550,43 +550,57 @@ export default function DeploymentContent() {
         title="&ldquo;It has not been released&rdquo; is the wrong question"
       >
         <p>
-          A fresh version of the rule above, failed in a way I had not
-          considered. Two migrations had ended up with the same sequence number
-          — <C>025_check_in</C> and <C>025_draft_adjustments</C>, from branches
+          A fresh way of failing the rule above, and I failed it while quoting
+          it. Two migrations had ended up sharing a sequence number —{" "}
+          <C>025_check_in</C> and <C>025_draft_adjustments</C>, from branches
           cut the same afternoon. Knex keys its migrations table on the
           filename, so both had run; the number just no longer meant anything.
         </p>
-        <p>
-          Renaming one is only safe before it has run anywhere, because knex
-          checks that every migration it has recorded still exists on disk. So I
-          checked production, found it had never been deployed there, decided
-          the rename was free, and shipped it.
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Renaming is free, but only before it has run anywhere
+        </h3>
+        <p className="text-muted">
+          Knex checks that every migration it has recorded still exists on disk.
+          So I checked production, found it had never been deployed there,
+          decided the rename was safe, and shipped it.
         </p>
-        <p>
-          The next staging deploy refused to start:{" "}
-          <C>
-            The migration directory is corrupt, the following files are missing:
-            025_check_in.ts
-          </C>
-          . Staging tracks <C>develop</C>. It had been running that migration
-          for a day. Recovery was a hand-written{" "}
-          <C>
-            UPDATE knex_migrations SET name = &apos;027_check_in.ts&apos; WHERE
-            name = &apos;025_check_in.ts&apos;
-          </C>{" "}
-          — a <C>DELETE</C> would have been worse, since knex would then treat
-          it as pending and re-run <C>createTable</C> against tables that
-          already exist.
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Staging had been running it for a day
+        </h3>
+        <p className="text-muted">
+          The next staging deploy refused to start:
         </p>
-        <p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Error: The migration directory is corrupt, the following files are missing: 025_check_in.ts
+    at validateMigrationList (.../knex/lib/migrations/migrate/Migrator.js:733:11)`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Staging tracks <C>develop</C>. Recovery was a hand-written statement
+          against that database:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`UPDATE knex_migrations SET name = '027_check_in.ts' WHERE name = '025_check_in.ts';`}
+        </pre>
+        <p className="mt-3 text-muted">
+          <C>UPDATE</C>, not <C>DELETE</C> — deleting the row makes knex treat
+          the migration as pending and re-run <C>createTable</C> against tables
+          that already exist, which is a second and messier failure.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I confirmed what was live. I confirmed the wrong environment.
+        </h3>
+        <p className="text-muted">
           The rule on this page says confirm what is live before writing to it,
-          and I did confirm — the wrong environment. &ldquo;Has this been
-          released?&rdquo; quietly means production, and production was the one
-          place this had <em>not</em> run. The question that would have caught
-          it is <strong>has any environment run this</strong>, which includes
-          the one nobody thinks of as real. That correction now lives in a
-          comment next to the guard test rather than in a commit message, so it
-          is in front of whoever hits the error next.
+          and I did confirm — production, which was the one place this had{" "}
+          <em>not</em> run. &ldquo;Has this been released?&rdquo; quietly means
+          production. The question that would have caught it is{" "}
+          <strong>has any environment run this</strong>, which includes the one
+          nobody thinks of as real. That correction now lives in a comment next
+          to the guard test rather than in a commit message, so it sits in front
+          of whoever hits the error next.
         </p>
       </Update>
 

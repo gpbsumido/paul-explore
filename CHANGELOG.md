@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-30 - version 5.16.1
+
+- **Two write-up updates rebuilt in the operator format.** The CI E2E and deployment notes had their August 30 updates written as a flat run of paragraphs, which reads as summary rather than as what happened. They now follow the shape the operator-dashboard notes use — named `h3` beats whose headings make a claim, with the real artifact pasted in: the export error and the three 60-second build attempts that turned out to be the actual cause, and knex's "the migration directory is corrupt" alongside the `UPDATE knex_migrations` that recovered it. A described error is a claim; a pasted one is evidence, and it is what makes the page findable by whoever hits the same thing.
+
 ## 2026-08-30 - version 5.16.0
 
 - **The research explorer takes your own topics.** A My Topics section on the topics tab: type a plain-language phrase ("mesenteric ischemia thrombolysis") and it gets everything the curated topics get — a live PubMed evidence badge, recent papers from both databases, and the demographic-gap filters — saved in localStorage beside the custom journals. The phrase never reaches PubMed as raw syntax: each word is shape-checked and compiled to title/abstract clauses server-side, the same reject-don't-escape treatment MeSH terms and journal abbreviations already get, and every custom search stays scoped to vascular surgery. A MeSH-picked variant is next.
