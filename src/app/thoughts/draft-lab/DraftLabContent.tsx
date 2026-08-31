@@ -515,6 +515,11 @@ export default function DraftLabContent({
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-31-pick-review",
+            date: "Aug 31, 2026",
+            title: "Grading each pick against the board as it actually was",
+          },
+          {
             id: "update-2026-08-31-portability",
             date: "Aug 31, 2026",
             title: "Take your setup with you: settings CSV and result files",
@@ -759,6 +764,41 @@ oracle (true settings) Brier 0.1895   -1.72%  better`}
           negative result than a feature that quietly makes the numbers you trust
           a little worse. The prototype and its benchmark live in the repo as the
           record of why.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-31-pick-review"
+        date="August 31, 2026"
+        title="Grading each pick against the board as it actually was"
+      >
+        <p>
+          When a draft finishes, every one of your picks now gets a grade — and
+          the grade isn&apos;t &quot;did this player score well,&quot; which you
+          can&apos;t know in August. It&apos;s &quot;of everyone still on the
+          board when you were on the clock, how close was this to the best move
+          for your lineup.&quot; A pick is measured by how much it added to the
+          startable lineup you could field at that moment, so a third quarterback
+          scores near zero even if he projects well, and the receiver who filled
+          a real hole grades out. The column next to each pick names the best
+          alternative you passed, and the hover lists the others at that
+          position. It&apos;s all tiers — the review reads a finished draft, it
+          doesn&apos;t need the live model.
+        </p>
+        <p>
+          The whole thing lives or dies on two words: <i>available then</i>. The
+          first cut got this subtly wrong — the alternatives hover reused the
+          board&apos;s &quot;other options at this position&quot; popup, which
+          answers who&apos;s left <i>now</i>. So a first-round pick&apos;s hover
+          suggested the dregs — the quarterbacks nobody wanted — when the players
+          who mattered, the ones actually on the board in round one, had all been
+          drafted by the time you looked. The fix reconstructs the pool pick by
+          pick: walk the draft in order, and at each of your selections the
+          available set is everyone not yet taken and not a keeper — keepers were
+          never draftable, so they can&apos;t be the answer either. Grade and
+          alternatives both read from that point-in-time board. A review that
+          judges you against players who weren&apos;t available is worse than no
+          review, because it sounds authoritative while being wrong.
         </p>
       </Update>
 
