@@ -32,6 +32,7 @@ import {
   journalClubResponseSchema,
   SOURCE_LABELS,
   phraseWords,
+  isMeshDescriptor,
   type EvidenceStatus,
   type TopicEvidence,
 } from "@/lib/research/pubmed";
@@ -220,6 +221,7 @@ export default function ResearchContent() {
           demoIds={demoIds}
           onToggleDemo={toggleDemo}
           sources={activeSources}
+          onSaveTopic={sourcePrefs.addMeshTopic}
         />
       )}
 
@@ -457,16 +459,25 @@ function MyTopics({
   sources: SourceId[];
 }) {
   const [draft, setDraft] = useState("");
+  const [kind, setKind] = useState<"phrase" | "mesh">("phrase");
   const [rejected, setRejected] = useState(false);
   const topics = prefs.prefs.customTopics;
 
   const addTopic = () => {
-    const phrase = draft.trim().replace(/\s+/g, " ");
-    if (!phraseWords(phrase)) {
-      setRejected(true);
-      return;
+    const term = draft.trim().replace(/\s+/g, " ");
+    if (kind === "mesh") {
+      if (!isMeshDescriptor(term)) {
+        setRejected(true);
+        return;
+      }
+      prefs.addMeshTopic(term);
+    } else {
+      if (!phraseWords(term)) {
+        setRejected(true);
+        return;
+      }
+      prefs.addTopic(term);
     }
-    prefs.addTopic(phrase);
     setDraft("");
     setRejected(false);
   };
@@ -483,18 +494,54 @@ function MyTopics({
           addTopic();
         }}
       >
+        <fieldset className="min-w-0">
+          <legend className="mb-1 block text-xs text-muted">Add as</legend>
+          <div className="flex gap-2">
+            {(
+              [
+                { id: "phrase", label: "Phrase" },
+                { id: "mesh", label: "MeSH term" },
+              ] as const
+            ).map((option) => (
+              <label
+                key={option.id}
+                className={`flex min-h-9 cursor-pointer items-center rounded-full border px-3 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground ${
+                  kind === option.id
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-surface text-muted hover:text-foreground"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="custom-topic-kind"
+                  className="sr-only"
+                  checked={kind === option.id}
+                  onChange={() => {
+                    setKind(option.id);
+                    setRejected(false);
+                  }}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="min-w-0 grow sm:grow-0">
           <label
             htmlFor="custom-topic-phrase"
             className="mb-1 block text-xs text-muted"
           >
-            Topic phrase
+            {kind === "mesh" ? "MeSH descriptor" : "Topic phrase"}
           </label>
           <input
             id="custom-topic-phrase"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="mesenteric ischemia thrombolysis"
+            placeholder={
+              kind === "mesh"
+                ? "Aortic Aneurysm, Abdominal"
+                : "mesenteric ischemia thrombolysis"
+            }
             className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground sm:w-80"
           />
         </div>
@@ -504,8 +551,9 @@ function MyTopics({
       </form>
       {rejected && (
         <p role="alert" className="mb-3 text-sm text-muted">
-          Plain words only: up to eight, without quotes, brackets, or search
-          syntax.
+          {kind === "mesh"
+            ? "That doesn't look like a MeSH descriptor. Words and NLM's own punctuation only."
+            : "Plain words only: up to eight, without quotes, brackets, or search syntax."}
         </p>
       )}
       {topics.length === 0 && !rejected && (
@@ -549,12 +597,12 @@ function CustomTopicCard({
   onToggleDemo: (id: string) => void;
   sources: SourceId[];
 }) {
+  const kind = topic.mesh !== undefined ? "mesh" : "phrase";
+  const term = topic.mesh ?? topic.phrase ?? "";
   const evidence = useQuery({
-    queryKey: queryKeys.research.customTopic(topic.phrase),
+    queryKey: queryKeys.research.customTopic(kind, term),
     queryFn: () =>
-      getJson(
-        `/api/research/topics?phrase=${encodeURIComponent(topic.phrase)}`,
-      ),
+      getJson(`/api/research/topics?${kind}=${encodeURIComponent(term)}`),
     select: (json) => topicsResponseSchema.parse(json).topics[0],
     staleTime: 60 * 60 * 1000,
   });
@@ -571,7 +619,7 @@ function CustomTopicCard({
           className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
         >
           <span className="min-w-0 font-medium text-foreground">
-            {topic.phrase}
+            {term}
           </span>
           <span className="flex shrink-0 items-center gap-2">
             {evidence.data ? (
@@ -591,7 +639,7 @@ function CustomTopicCard({
         <Button
           variant="ghost"
           size="sm"
-          aria-label={`Remove ${topic.phrase}`}
+          aria-label={`Remove ${term}`}
           onClick={onRemove}
         >
           Remove
@@ -603,10 +651,11 @@ function CustomTopicCard({
           <DemographicFilters
             selected={demoIds}
             onToggle={onToggleDemo}
-            scope={{ phrase: topic.phrase }}
+            scope={kind === "mesh" ? { meshTerm: term } : { phrase: term }}
           />
           <PublicationList
-            phrase={topic.phrase}
+            meshTerm={kind === "mesh" ? term : undefined}
+            phrase={kind === "phrase" ? term : undefined}
             demoIds={demoIds}
             sources={sources}
           />
@@ -830,10 +879,12 @@ function DiscoveredPanel({
   demoIds,
   onToggleDemo,
   sources,
+  onSaveTopic,
 }: {
   demoIds: string[];
   onToggleDemo: (id: string) => void;
   sources: SourceId[];
+  onSaveTopic: (mesh: string) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -883,28 +934,38 @@ function DiscoveredPanel({
               key={topic.id}
               className="overflow-hidden rounded-xl border border-border bg-surface/60"
             >
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                aria-controls={panelId}
-                onClick={() => setOpenId(isOpen ? null : topic.id)}
-                className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-              >
-                <span className="min-w-0">
-                  <span className="block font-medium text-foreground">
-                    {topic.name}
+              <div className="flex items-center gap-1 pr-2">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  onClick={() => setOpenId(isOpen ? null : topic.id)}
+                  className="flex min-w-0 flex-1 flex-col gap-2 px-4 py-3 text-left hover:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                >
+                  <span className="min-w-0">
+                    <span className="block font-medium text-foreground">
+                      {topic.name}
+                    </span>
+                    <span className="mt-0.5 block text-sm text-muted">
+                      Tagged on {topic.papers} of the recent papers sampled
+                    </span>
                   </span>
-                  <span className="mt-0.5 block text-sm text-muted">
-                    Tagged on {topic.papers} of the recent papers sampled
+                  <span className="flex shrink-0 items-center gap-2">
+                    <EvidenceBadge status={topic.status} />
+                    <span className="text-xs text-muted">
+                      {topic.total} papers · {topic.recent} recent
+                    </span>
                   </span>
-                </span>
-                <span className="flex shrink-0 items-center gap-2">
-                  <EvidenceBadge status={topic.status} />
-                  <span className="text-xs text-muted">
-                    {topic.total} papers · {topic.recent} recent
-                  </span>
-                </span>
-              </button>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Save ${topic.name} to my topics`}
+                  onClick={() => onSaveTopic(topic.name)}
+                >
+                  Save
+                </Button>
+              </div>
               {isOpen && (
                 <div id={panelId} className="border-t border-border px-4 py-4">
                   <DemographicFilters

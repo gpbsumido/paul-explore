@@ -626,6 +626,42 @@ export default function ResearchExplorerContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-08-30-mesh-topics"
+        date="August 30, 2026"
+        title="The same box, but speaking MeSH"
+      >
+        <p>
+          Free words match what authors happened to write in a title or
+          abstract. MeSH descriptors match what an indexer decided the paper is
+          about, which is a different and often better net &mdash; so My Topics
+          now takes either, behind a Phrase / MeSH toggle.
+        </p>
+        <p>
+          Almost none of this was new plumbing. Publications and demographics
+          already spoke <code>?mesh=</code> because the Discovered tab needed
+          it; the only real gap was teaching the scoring route to score a single
+          descriptor the way it scores a single phrase. The validation was
+          already there too, which is the argument for having built the
+          reject-don&rsquo;t-escape rule once rather than per feature.
+        </p>
+        <p>
+          The part worth keeping is the second way in. Knowing that
+          &ldquo;Sarcopenia&rdquo; is a real descriptor and &ldquo;muscle
+          wasting&rdquo; is not is not knowledge anyone should need, so every
+          card on the Discovered tab &mdash; which is already showing genuine
+          descriptors lifted from recent literature &mdash; grew a Save button
+          that drops it straight into My Topics. The feature that already knew
+          the vocabulary teaches it.
+        </p>
+        <p>
+          Worth noting the two nets really do disagree: added as a phrase,
+          &ldquo;sarcopenia&rdquo; and its MeSH twin return different counts.
+          That is the point rather than a bug, but it does mean the badge is
+          only comparable to itself.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Curated topics carrying their own PubMed queries in PubMed syntax, so every number on the page traces back to a search anyone can paste in and check.",
@@ -633,6 +669,7 @@ export default function ResearchExplorerContent() {
           "An upstream failure returns an error instead of rendering every topic as having no research, because on this page a zero is the finding and a lie in that direction is the most damaging one available.",
           "Discussion prompts built from indexed study design and structured abstracts, so they argue with a specific paper rather than fitting any paper.",
           "Topics of your own, compiled from plain words into title/abstract clauses server-side, so nothing typed into the page ever reaches PubMed as query syntax.",
+          "The same box takes a MeSH descriptor instead, and any discovered topic can be saved into it with one click rather than retyped.",
         ]}
         couldImprove={[
           "No study-design tagging on the counts, so twelve papers cannot be told apart from twelve case reports without opening them.",

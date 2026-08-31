@@ -6,10 +6,15 @@ import { SOURCES, type SourceId } from "@/lib/research/sources";
 
 const STORAGE_KEY = "research-source-prefs";
 
-/** A topic added by hand: a plain-word phrase the API compiles to a query. */
+/**
+ * A topic added by hand. Exactly one of the two fields is set: a plain-word
+ * phrase the API compiles to a query, or a MeSH descriptor that rides the
+ * same pipe the Discovered tab uses.
+ */
 export type CustomTopic = {
   id: string;
-  phrase: string;
+  phrase?: string;
+  mesh?: string;
 };
 
 export type SourcePrefs = {
@@ -137,6 +142,18 @@ export function useSourcePrefs() {
     [prefs, update],
   );
 
+  const addMeshTopic = useCallback(
+    (mesh: string) => {
+      const id = customTopicId(mesh);
+      if (prefs.customTopics.some((t) => t.id === id)) return;
+      update({
+        ...prefs,
+        customTopics: [...prefs.customTopics, { id, mesh }],
+      });
+    },
+    [prefs, update],
+  );
+
   const removeTopic = useCallback(
     (id: string) =>
       update({
@@ -163,6 +180,7 @@ export function useSourcePrefs() {
     addJournal,
     removeJournal,
     addTopic,
+    addMeshTopic,
     removeTopic,
   };
 }
