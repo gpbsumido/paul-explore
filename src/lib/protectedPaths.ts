@@ -10,7 +10,16 @@
  * rather than a bare 404. Being signed in is not enough to see it, though: the
  * page itself 404s anyone who is not on the admin allowlist.
  */
-const SESSION_PROTECTED_PREFIXES = ["/settings", "/calendar", "/to-do"] as const;
+const SESSION_PROTECTED_PREFIXES = [
+  "/settings",
+  "/calendar",
+  "/to-do",
+  // Organizer surfaces. `/check-in` itself stays public: a volunteer arriving
+  // from a poster link should see what the page is for and a sign-in button,
+  // not a redirect they cannot place.
+  "/check-in/sites",
+  "/check-in/display",
+] as const;
 
 /** True when a request path must be behind a login. */
 export function isSessionProtectedPath(pathname: string): boolean {
