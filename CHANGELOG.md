@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-30 - version 5.16.0
+
+- **The research explorer takes your own topics.** A My Topics section on the topics tab: type a plain-language phrase ("mesenteric ischemia thrombolysis") and it gets everything the curated topics get — a live PubMed evidence badge, recent papers from both databases, and the demographic-gap filters — saved in localStorage beside the custom journals. The phrase never reaches PubMed as raw syntax: each word is shape-checked and compiled to title/abstract clauses server-side, the same reject-don't-escape treatment MeSH terms and journal abbreviations already get, and every custom search stays scoped to vascular surgery. A MeSH-picked variant is next.
+
 ## 2026-08-30 - version 5.15.0
 
 - **Draft Lab write-up splits public vs owner-only, securely.** The public page now covers just the free/pro tiers (the extension, live companion, scraping saga, tiers, keeper handling, survival-odds recommendations, the stack and tests). Everything Elite — the marginal-value recommendation engine and its simulation-tuned weight, keeper optimization, the sourced-injury adjustment layer, strength of schedule, the season/playoff model, multi-sport, and the Sleeper dual-board ADP-arbitrage edge — lives in an owner-gated section rendered server-side ONLY when the session email is the owner's, so it never ships to anyone else's payload. A client toggle lets the owner switch between the public and full views. The page reads the session, so it's now force-dynamic; the metadata convention accepts that as the valid alternative to a revalidate window (mirroring the dynamicRendering guard).

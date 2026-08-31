@@ -203,6 +203,7 @@ export const queryKeys = {
       journalId?: string;
       journalName?: string;
       meshTerm?: string;
+      phrase?: string;
       demoIds: string[];
       sources: string[];
     }) => ["research", "publications", params] as const,
@@ -220,9 +221,13 @@ export const queryKeys = {
      * Keyed by scope and selection because the answer changes with both.
      */
     facetAvailability: (
-      scope: { topicId?: string; meshTerm?: string },
+      scope: { topicId?: string; meshTerm?: string; phrase?: string },
       selected: string[],
     ) => ["research", "facet-availability", scope, selected] as const,
+
+    /** Evidence scan for one hand-added phrase topic. */
+    customTopic: (phrase: string) =>
+      ["research", "custom-topic", phrase] as const,
 
     /** Recent papers with discussion material, for one topic. */
     journalClub: (topicId: string, innovativeOnly: boolean) =>

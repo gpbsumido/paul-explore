@@ -38,6 +38,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     journalId: params.get("journal") ?? undefined,
     journalName: params.get("journalName") ?? undefined,
     meshTerm: params.get("mesh") ?? undefined,
+    phrase: params.get("phrase") ?? undefined,
     demoIds,
   });
 

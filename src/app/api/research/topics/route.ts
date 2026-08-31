@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { TOPICS, DEMOGRAPHICS } from "@/lib/research/data";
-import { classifyEvidence, recentTerm } from "@/lib/research/pubmed";
+import {
+  buildSearchTerm,
+  classifyEvidence,
+  recentTerm,
+} from "@/lib/research/pubmed";
 import { countAll, isFailure } from "@/lib/research/eutils";
 
 /** Publications this recent count toward whether a field is still moving. */
@@ -41,6 +45,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const fromYear = new Date().getFullYear() - RECENT_WINDOW_YEARS;
+
+  // A custom phrase topic is scored on its own rather than joining the full
+  // scan: it is personal to one reader, so it gets its own cacheable URL
+  // instead of invalidating the shared all-topics entry.
+  const phrase = request.nextUrl.searchParams.get("phrase");
+  if (phrase !== null) {
+    const term = buildSearchTerm({ phrase });
+    if (!term) {
+      return NextResponse.json({ error: "Invalid phrase" }, { status: 400 });
+    }
+    const scoped = `${term}${scope}`;
+    const phraseCounts = await countAll([phrase], () => [
+      scoped,
+      recentTerm(scoped, fromYear),
+    ]);
+    if (isFailure(phraseCounts)) return phraseCounts.error;
+    const [total, recent] = phraseCounts[0];
+    return NextResponse.json(
+      {
+        topics: [
+          { id: "custom", total, recent, status: classifyEvidence({ total, recent }) },
+        ],
+        window: { fromYear, toYear: new Date().getFullYear() },
+      },
+      { headers: { "Cache-Control": CACHE_CONTROL } },
+    );
+  }
 
   const counts = await countAll(TOPICS, (topic) => {
     const term = `(${topic.query})${scope}`;
