@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.6
+
+- **The README documents volunteer check-in, as two flows rather than a feature blurb.** An organizer walkthrough (create a site, put its display at the entrance, copy the link for the poster, read today's arrivals) and a volunteer one (open the posted link, sign in, type the six digits), plus what a check-in actually proves — that someone with that volunteer's login had that site's code within two minutes, which is right for honest attendance and the wrong tool for catching a determined cheat.
+- **Next steps state plainly that tap-to-check-in needs native apps on both platforms.** Web NFC ships in Chrome on Android and Safari on iOS does not support it, so a web tap would work for some volunteers and silently fail for every iPhone — and those people would look exactly like the ones who did not turn up. iOS exposes NFC to native apps only, through Core NFC, so covering everyone means an iOS app and an Android app against this same API. GPS is on the list too, as something deliberately not being done.
+
 ## 2026-08-31 - version 5.19.5
 
 - **The page every failed route renders had three accessibility violations of its own.** Found by the pre-release axe scan on a card detail page while TCGdex was unreachable: no document title (serious), no main landmark, and every word on the page sitting outside any region. `RouteError` is now a `<main>` rather than a `<div>`, which settles the last two, and it fills in a document title when the failed page never produced one — only when it is genuinely empty, so a title that rendered higher up is left alone. This is what someone sees at the moment they are least able to guess where they are, and it was the least accessible page in the app.
