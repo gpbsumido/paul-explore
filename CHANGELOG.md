@@ -1,8 +1,16 @@
 # Changelog
 
-## 2026-08-30 - version 5.18.1
+## 2026-08-31 - version 5.19.3
 
 - **Draft Lab write-up gains draft-night hardening and a playbook reconciliation.** Public update: the companion now backfills every pick from ESPN's league API (the virtualized Board tab only kept on-screen rounds in the DOM, so late picks were missed), matching by name harvested off the rosters so it works for any pool; and pre-configured keepers now only count when ESPN confirms the league actually set them. Owner-only update: the Strategy playbook's generic 1-QB rules ("QBs are a trap", "must draft 2 WR by round 6") were contradicting the superflex value model in Sleeper dual-board mode, so the QB advice is now superflex-aware and the positional-need lines defer to the recommendations instead of overriding them.
+
+## 2026-08-31 - version 5.19.0
+
+- **The TCG lists read from our own catalog now, not from TCGdex live.** `/tcg/pokemon/sets` and `/tcg/pocket` render from portfolio_api's mirrored series/sets catalog (portfolio_api#190). Both pages previously fetched TCGdex at render time — the sets page listing every series and then fetching each one — which timed out `next build` and, at request time, produced an empty list that ISR cached for a day. That is what made the lists look like nobody had updated them: not stale data, a degraded render that got cached. Pocket was worse, showing "Pocket sets are unavailable right now" live in production, because `force-dynamic` meant it hit that API on literally every request.
+- **An empty list and a failed read no longer look identical.** The sets page says "couldn't load the set list" when the read fails and "the catalog hasn't been built yet" when there is genuinely nothing stored, because conflating those is precisely how an outage spent a day passing for stale data. A set whose card count upstream has not published yet renders as a dash rather than a zero — an unknown count and a set with no cards are different facts.
+- **The Pokémon TCG write-up records the whole thing**, in the operator-dashboard update format: named beats with the actual log lines pasted in — the export error, the 60-second build timeout that turned out to be the real cause, and the `dig`/`curl` pair showing TCGdex's own DNS pointing at a host that refuses connections while their status page reads green. The wrong diagnoses stay in, because two of them were real defects that were nonetheless beside the point.
+- **The write-up carries the resolution too.** A second dated update covers what happened after the diagnosis: the upstream report that already existed and the maintainer's "we cant just drop a node like that", the fallback built on `node:https` with a fixed `lookup`, the `Invalid IP address: undefined` bug I shipped in it — in the one piece of novel code I had explicitly declined to test — and the three existing tests that had been green only because that bug made them fail instantly instead of reaching the network.
+- **Nothing in `next build` calls a third party for these pages any more.** The catalog read is `no-store`, which takes both routes out of static generation entirely; freshness is handled upstream by the endpoint's own hour of s-maxage. One build-time third-party call remains, on `/tcg/pokemon`: a single paginated card request that already degrades to a client-side fetch, with no fan-out behind it.
 
 ## 2026-08-30 - version 5.18.0
 
