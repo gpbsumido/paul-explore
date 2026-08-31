@@ -19,7 +19,11 @@ import {
   RECOMMENDED_MODEL,
   type AskModelId,
 } from "@/lib/research/askModels";
-import { useSourcePrefs, customJournalId } from "./useSourcePrefs";
+import {
+  useSourcePrefs,
+  customJournalId,
+  type CustomTopic,
+} from "./useSourcePrefs";
 import {
   topicsResponseSchema,
   publicationsResponseSchema,
@@ -27,6 +31,7 @@ import {
   discoverResponseSchema,
   journalClubResponseSchema,
   SOURCE_LABELS,
+  phraseWords,
   type EvidenceStatus,
   type TopicEvidence,
 } from "@/lib/research/pubmed";
@@ -182,18 +187,28 @@ export default function ResearchContent() {
       </div>
 
       {tab === "topics" && (
-        <TopicsPanel
-          evidenceById={evidenceById}
-          window={window}
-          isLoading={topicsQuery.isLoading}
-          isError={topicsQuery.isError}
-          onRetry={() => topicsQuery.refetch()}
-          openTopicId={topicId}
-          onOpenTopic={openTopic}
-          demoIds={demoIds}
-          onToggleDemo={toggleDemo}
-          sources={activeSources}
-        />
+        <>
+          <MyTopics
+            prefs={sourcePrefs}
+            openTopicId={topicId}
+            onOpenTopic={openTopic}
+            demoIds={demoIds}
+            onToggleDemo={toggleDemo}
+            sources={activeSources}
+          />
+          <TopicsPanel
+            evidenceById={evidenceById}
+            window={window}
+            isLoading={topicsQuery.isLoading}
+            isError={topicsQuery.isError}
+            onRetry={() => topicsQuery.refetch()}
+            openTopicId={topicId}
+            onOpenTopic={openTopic}
+            demoIds={demoIds}
+            onToggleDemo={toggleDemo}
+            sources={activeSources}
+          />
+        </>
       )}
 
       {tab === "counts" && <CountsPanel />}
@@ -421,6 +436,187 @@ function TopicCard({
 }
 
 /**
+ * Topics the reader adds by hand: a plain-word phrase, checked with the same
+ * rule the API enforces, then scored and browsable like a curated topic. They
+ * live in localStorage with the other reading preferences, so they are
+ * personal to the browser rather than to an account this app doesn't have.
+ */
+function MyTopics({
+  prefs,
+  openTopicId,
+  onOpenTopic,
+  demoIds,
+  onToggleDemo,
+  sources,
+}: {
+  prefs: ReturnType<typeof useSourcePrefs>;
+  openTopicId: string | null;
+  onOpenTopic: (id: string) => void;
+  demoIds: string[];
+  onToggleDemo: (id: string) => void;
+  sources: SourceId[];
+}) {
+  const [draft, setDraft] = useState("");
+  const [rejected, setRejected] = useState(false);
+  const topics = prefs.prefs.customTopics;
+
+  const addTopic = () => {
+    const phrase = draft.trim().replace(/\s+/g, " ");
+    if (!phraseWords(phrase)) {
+      setRejected(true);
+      return;
+    }
+    prefs.addTopic(phrase);
+    setDraft("");
+    setRejected(false);
+  };
+
+  return (
+    <section className="mb-8">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+        My topics
+      </h2>
+      <form
+        className="mb-3 flex flex-wrap items-end gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          addTopic();
+        }}
+      >
+        <div className="min-w-0 grow sm:grow-0">
+          <label
+            htmlFor="custom-topic-phrase"
+            className="mb-1 block text-xs text-muted"
+          >
+            Topic phrase
+          </label>
+          <input
+            id="custom-topic-phrase"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="mesenteric ischemia thrombolysis"
+            className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground sm:w-80"
+          />
+        </div>
+        <Button type="submit" variant="outline" size="sm">
+          Add topic
+        </Button>
+      </form>
+      {rejected && (
+        <p role="alert" className="mb-3 text-sm text-muted">
+          Plain words only: up to eight, without quotes, brackets, or search
+          syntax.
+        </p>
+      )}
+      {topics.length === 0 && !rejected && (
+        <p className="text-sm text-muted">
+          Score a question of your own against the literature, the same way the
+          curated topics are. Searches stay scoped to vascular surgery.
+        </p>
+      )}
+      <ul className="space-y-3">
+        {topics.map((topic) => (
+          <CustomTopicCard
+            key={topic.id}
+            topic={topic}
+            isOpen={openTopicId === topic.id}
+            onOpen={() => onOpenTopic(topic.id)}
+            onRemove={() => prefs.removeTopic(topic.id)}
+            demoIds={demoIds}
+            onToggleDemo={onToggleDemo}
+            sources={sources}
+          />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function CustomTopicCard({
+  topic,
+  isOpen,
+  onOpen,
+  onRemove,
+  demoIds,
+  onToggleDemo,
+  sources,
+}: {
+  topic: CustomTopic;
+  isOpen: boolean;
+  onOpen: () => void;
+  onRemove: () => void;
+  demoIds: string[];
+  onToggleDemo: (id: string) => void;
+  sources: SourceId[];
+}) {
+  const evidence = useQuery({
+    queryKey: queryKeys.research.customTopic(topic.phrase),
+    queryFn: () =>
+      getJson(
+        `/api/research/topics?phrase=${encodeURIComponent(topic.phrase)}`,
+      ),
+    select: (json) => topicsResponseSchema.parse(json).topics[0],
+    staleTime: 60 * 60 * 1000,
+  });
+  const panelId = `topic-panel-${topic.id}`;
+
+  return (
+    <li className="overflow-hidden rounded-xl border border-border bg-surface/60">
+      <div className="flex items-center gap-1 pr-2">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
+        >
+          <span className="min-w-0 font-medium text-foreground">
+            {topic.phrase}
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            {evidence.data ? (
+              <>
+                <EvidenceBadge status={evidence.data.status} />
+                <span className="text-xs text-muted">
+                  {evidence.data.total} papers · {evidence.data.recent} recent
+                </span>
+              </>
+            ) : (
+              <span className="text-xs text-muted">
+                {evidence.isLoading ? "Scanning…" : "—"}
+              </span>
+            )}
+          </span>
+        </button>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={`Remove ${topic.phrase}`}
+          onClick={onRemove}
+        >
+          Remove
+        </Button>
+      </div>
+
+      {isOpen && (
+        <div id={panelId} className="border-t border-border px-4 py-4">
+          <DemographicFilters
+            selected={demoIds}
+            onToggle={onToggleDemo}
+            scope={{ phrase: topic.phrase }}
+          />
+          <PublicationList
+            phrase={topic.phrase}
+            demoIds={demoIds}
+            sources={sources}
+          />
+        </div>
+      )}
+    </li>
+  );
+}
+
+/**
  * Population filters for one topic.
  *
  * Once something is selected, the remaining facets are counted on top of it and
@@ -434,11 +630,12 @@ function DemographicFilters({
 }: {
   selected: string[];
   onToggle: (id: string) => void;
-  scope: { topicId?: string; meshTerm?: string };
+  scope: { topicId?: string; meshTerm?: string; phrase?: string };
 }) {
   const params = new URLSearchParams();
   if (scope.topicId) params.set("topic", scope.topicId);
   if (scope.meshTerm) params.set("mesh", scope.meshTerm);
+  if (scope.phrase) params.set("phrase", scope.phrase);
   if (selected.length > 0) params.set("demo", selected.join(","));
 
   const availability = useQuery({
@@ -501,6 +698,7 @@ function PublicationList({
   journalId,
   journalName,
   meshTerm,
+  phrase,
   demoIds = [],
   sources,
   pageSize = 20,
@@ -509,6 +707,7 @@ function PublicationList({
   journalId?: string;
   journalName?: string;
   meshTerm?: string;
+  phrase?: string;
   demoIds?: string[];
   sources: SourceId[];
   /** How many to show before offering the rest. The route returns 20. */
@@ -520,6 +719,7 @@ function PublicationList({
   if (journalId) params.set("journal", journalId);
   if (journalName) params.set("journalName", journalName);
   if (meshTerm) params.set("mesh", meshTerm);
+  if (phrase) params.set("phrase", phrase);
   if (demoIds.length > 0) params.set("demo", demoIds.join(","));
   params.set("sources", sources.join(","));
 
@@ -529,6 +729,7 @@ function PublicationList({
       journalId,
       journalName,
       meshTerm,
+      phrase,
       demoIds,
       sources,
     }),

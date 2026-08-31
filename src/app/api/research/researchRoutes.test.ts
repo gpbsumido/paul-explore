@@ -514,3 +514,110 @@ describe("GET /api/research/demographics with facets already chosen", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("custom phrase topics", () => {
+  it("scores a single phrase in the standard topics shape", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        const term = new URL(request.url).searchParams.get("term") ?? "";
+        terms.push(term);
+        return HttpResponse.json(esearchJson(term.includes("[dp]") ? 25 : 58));
+      }),
+    );
+    const res = await topicsGET(
+      new NextRequest(
+        "http://localhost/api/research/topics?phrase=mesenteric+ischemia+thrombolysis",
+      ),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.topics).toEqual([
+      { id: "custom", total: 58, recent: 25, status: "emerging" },
+    ]);
+    // The phrase becomes word-by-word title/abstract clauses, always scoped to
+    // the field, so a custom topic can never scan all of PubMed.
+    terms.forEach((t) => {
+      expect(t).toContain(
+        "mesenteric[tiab] AND ischemia[tiab] AND thrombolysis[tiab]",
+      );
+      expect(t).toContain("vascular");
+    });
+  });
+
+  it("400s a phrase carrying query syntax instead of forwarding it", async () => {
+    const topics = await topicsGET(
+      new NextRequest(
+        'http://localhost/api/research/topics?phrase=x"[mh] OR 1=1',
+      ),
+    );
+    expect(topics.status).toBe(400);
+    const publications = await publicationsGET(
+      new NextRequest(
+        "http://localhost/api/research/publications?phrase=(clti)+AND+dialysis",
+      ),
+    );
+    expect(publications.status).toBe(400);
+    const demographics = await demographicsGET(
+      new NextRequest(
+        "http://localhost/api/research/demographics?phrase=one+two+three+four+five+six+seven+eight+nine",
+      ),
+    );
+    expect(demographics.status).toBe(400);
+  });
+
+  it("serves publications for a phrase topic like any curated one", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(1, ["11"]));
+      }),
+      http.get(ESUMMARY, () =>
+        HttpResponse.json({
+          result: {
+            uids: ["11"],
+            "11": {
+              uid: "11",
+              title: "Thrombolysis outcomes.",
+              pubdate: "2026 Feb",
+            },
+          },
+        }),
+      ),
+    );
+    const res = await publicationsGET(
+      new NextRequest(
+        "http://localhost/api/research/publications?phrase=mesenteric+ischemia",
+      ),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // Ordering is by date across the merged sources, so assert presence.
+    expect(
+      body.publications.map((p: { title: string }) => p.title),
+    ).toContain("Thrombolysis outcomes.");
+    expect(
+      terms.every((t) => t.includes("mesenteric[tiab] AND ischemia[tiab]")),
+    ).toBe(true);
+  });
+
+  it("counts a phrase topic's populations too", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(1));
+      }),
+    );
+    const res = await demographicsGET(
+      new NextRequest(
+        "http://localhost/api/research/demographics?phrase=popliteal+aneurysm",
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(
+      terms.every((t) => t.includes("popliteal[tiab] AND aneurysm[tiab]")),
+    ).toBe(true);
+  });
+});

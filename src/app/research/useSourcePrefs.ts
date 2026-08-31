@@ -6,6 +6,12 @@ import { SOURCES, type SourceId } from "@/lib/research/sources";
 
 const STORAGE_KEY = "research-source-prefs";
 
+/** A topic added by hand: a plain-word phrase the API compiles to a query. */
+export type CustomTopic = {
+  id: string;
+  phrase: string;
+};
+
 export type SourcePrefs = {
   /** Databases turned off. PubMed can't be, since it carries the counts. */
   ignoredSources: SourceId[];
@@ -13,12 +19,15 @@ export type SourcePrefs = {
   ignoredJournals: string[];
   /** Journals added by hand, browsable alongside the curated ones. */
   customJournals: Journal[];
+  /** Topics added by hand, scored and browsable like the curated ones. */
+  customTopics: CustomTopic[];
 };
 
 const EMPTY: SourcePrefs = {
   ignoredSources: [],
   ignoredJournals: [],
   customJournals: [],
+  customTopics: [],
 };
 
 /**
@@ -116,6 +125,27 @@ export function useSourcePrefs() {
     [prefs, update],
   );
 
+  const addTopic = useCallback(
+    (phrase: string) => {
+      const id = customTopicId(phrase);
+      if (prefs.customTopics.some((t) => t.id === id)) return;
+      update({
+        ...prefs,
+        customTopics: [...prefs.customTopics, { id, phrase }],
+      });
+    },
+    [prefs, update],
+  );
+
+  const removeTopic = useCallback(
+    (id: string) =>
+      update({
+        ...prefs,
+        customTopics: prefs.customTopics.filter((t) => t.id !== id),
+      }),
+    [prefs, update],
+  );
+
   const activeSources = SOURCES.filter(
     (s) => !prefs.ignoredSources.includes(s.id),
   ).map((s) => s.id);
@@ -132,12 +162,21 @@ export function useSourcePrefs() {
     toggleJournal,
     addJournal,
     removeJournal,
+    addTopic,
+    removeTopic,
   };
 }
 
 /** Custom journals are identified by a slug of their name. */
 export const customJournalId = (name: string): string =>
   `custom-${name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}`;
+
+/** Custom topics likewise, so the same phrase never saves twice. */
+export const customTopicId = (phrase: string): string =>
+  `custom-topic-${phrase
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")}`;

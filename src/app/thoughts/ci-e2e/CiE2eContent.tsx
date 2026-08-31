@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -389,13 +389,90 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
           the test actually exercises.
         </p>
       </section>
+      <Update
+        id="update-2026-08-30-build-veto"
+        date="August 30, 2026"
+        title="Three diagnoses for one red build, and only the third was right"
+      >
+        <p>
+          The section above draws the line at the test boundary: our routes are
+          ours, TCGdex is not, so mock at the edge. That holds for tests and
+          says nothing about the build, which is where this went wrong.
+        </p>
+        <p>
+          The nightly went red two nights running with no test failure in it:{" "}
+          <code>
+            Export encountered an error on /tcg/pokemon/sets/[setId]/page
+          </code>
+          , then <code>webServer was not able to start</code>. The build exited
+          1, so Playwright never got a server and the job died before a single
+          spec ran. Every mock in the suite was irrelevant.
+        </p>
+        <p>
+          <strong>First diagnosis.</strong> The failing set was newly announced
+          and the page read <code>set.serie.name</code>,{" "}
+          <code>set.cardCount.official</code> and <code>set.legal.*</code>{" "}
+          without guards. I reproduced real crashes for exactly that shape,
+          fixed them, and shipped it — while writing in the PR that I could not
+          confirm this was the cause, because the API is unreachable from where
+          I work and my local build therefore never walked the failing path.
+          That caveat turned out to be the important sentence.
+        </p>
+        <p>
+          <strong>Second diagnosis.</strong> It failed again a day later on a
+          different set, on a branch that already carried the fix. So I removed
+          the build-time fetch instead: pre-rendering ten sets meant ten chances
+          for a third party to end the export, and the route has ISR anyway. The
+          failure moved one page over, to the sets list. That felt like
+          progress and was still not the answer.
+        </p>
+        <p>
+          <strong>What it actually was.</strong> Vercel&rsquo;s build log said
+          what GitHub&rsquo;s never did:
+        </p>
+        <p>
+          <code>
+            Failed to build /tcg/pokemon/sets/page (attempt 1 of 3) because it
+            took more than 60 seconds
+          </code>{" "}
+          &mdash; three times, then the export gave up.
+        </p>
+        <p>
+          A timeout, not a crash. That page lists every series and then fetches
+          each one, so its build cost is a multiple of however slow TCGdex is
+          that minute. Nothing was malformed and no field was missing; the
+          fan-out simply outran Next&rsquo;s 60-second budget for rendering one
+          page. It explains the property that made this so slippery, too: it was
+          intermittent and a re-run often cleared it, because the failure
+          tracked upstream latency rather than anything in the diff. It reads as
+          flake, and flake gets dismissed.
+        </p>
+        <p>
+          The fix is a twenty-second budget on the fan-out. Past that the page
+          renders empty and ISR fills it in later, because from the
+          build&rsquo;s point of view &ldquo;unreachable&rdquo; and
+          &ldquo;too slow&rdquo; are the same thing — the page already handled
+          the first and not the second.
+        </p>
+        <p>
+          What I take from it is less about this API than about which log I
+          believed. I had two plausible mechanisms, evidence for both, and tests
+          proving I had fixed something real each time. None of that made either
+          one the cause. The line that settled it existed the whole time, in a
+          different provider&rsquo;s console, and I did not go looking because
+          the failure I already had an explanation for looked explained.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Real backends in end-to-end runs rather than mocking everything, because a suite that mocks the integration cannot test the integration.",
           "A general pattern for the flake rather than a retry, since retries turn a signal into noise.",
+          "A bounded budget on build-time upstream work, so a slow third party degrades a page instead of failing the deploy.",
         ]}
         couldImprove={[
           "Flake is handled by pattern but not measured — nothing tracks which specs fail intermittently, so the worst offenders are found by memory.",
+          "A build failure still surfaces as \"webServer was not able to start\", which names the symptom and buries the cause several hundred lines up.",
           "The full suite runs on pre-release only, which means a break can land on develop and stay hidden until a release.",
         ]}
         upcoming={[

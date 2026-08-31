@@ -10,25 +10,25 @@ const tcgdex = new TCGdex("en");
 // Set data is stable once published — rebuild at most once a day
 export const revalidate = 86400;
 
-// How many sets to pre-render at build time. We take the most recent ones
-// since those are by far the most-visited pages right after a new release.
-const STATIC_PRERENDER_COUNT = 10;
-
 /**
- * Pre-renders the N most recent sets at build time so the first visitor
- * after a deploy hits a static page instead of a cold server render.
- * TCGdex returns sets oldest-first, so we slice from the tail.
+ * Nothing is pre-rendered here, deliberately.
+ *
+ * This used to return the ten most recent sets so the first visitor after a
+ * deploy hit a static page. The cost of that turned out to be a third party
+ * holding a veto over every build: pre-rendering a set means fetching it
+ * during `next build`, and any set that does not come back cleanly ends the
+ * export -- `Export encountered an error on /tcg/pokemon/sets/[setId]/page`,
+ * exit 1. That failed the nightly on `me02`, then failed PR CI on `B2`, on a
+ * branch that already carried a fix for the first symptom.
+ *
+ * Guarding individual fields chases symptoms one set at a time. The class of
+ * failure only goes away when the build stops calling the API at all, which is
+ * what returning nothing does. With `revalidate` above, the first request for
+ * a set renders and caches it for a day, so the loss is one cold render per
+ * set per day against a build that cannot be broken from outside.
  */
-export async function generateStaticParams() {
-  try {
-    const sets = await tcgdex.set.list();
-    if (!sets?.length) return [];
-    return sets.slice(-STATIC_PRERENDER_COUNT).map((s) => ({ setId: s.id }));
-  } catch {
-    // If the SDK is down at build time, skip static generation entirely —
-    // the pages still work, they just render on first request instead.
-    return [];
-  }
+export async function generateStaticParams(): Promise<{ setId: string }[]> {
+  return [];
 }
 
 export async function generateMetadata({

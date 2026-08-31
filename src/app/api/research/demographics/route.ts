@@ -23,6 +23,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
   const topicId = params.get("topic");
   const meshTerm = params.get("mesh");
+  const phrase = params.get("phrase");
 
   // Facets the reader has already chosen. Counting each remaining facet on top
   // of these is what lets the UI grey out the combinations that would return
@@ -37,6 +38,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const term = buildSearchTerm({ meshTerm });
     if (!term) {
       return NextResponse.json({ error: "Unknown topic" }, { status: 400 });
+    }
+    scope = term;
+  } else if (phrase !== null) {
+    const term = buildSearchTerm({ phrase });
+    if (!term) {
+      return NextResponse.json({ error: "Invalid phrase" }, { status: 400 });
     }
     scope = term;
   } else if (topicId) {
