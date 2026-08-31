@@ -4,6 +4,14 @@
 
 - **Draft Lab write-up gains a Setting-it-up section.** Public: how a friend installs the Firefox add-on (Load Temporary Add-on from about:debugging), points it at their ESPN league so team names load, and the unsigned-add-on caveat plus the Developer-Edition path for a permanent install.
 
+## 2026-08-31 - version 5.19.7
+
+- **Draft Lab write-up gains the pick-review feature (all tiers).** Every finished draft grades each of your picks by how much it improved your startable lineup versus what was still on the board at that moment, and names the best alternative you passed. The note covers the load-bearing bug — the alternatives hover first reused the board's current-pool popup, so a first-round pick suggested leftover quarterbacks instead of the ones actually available then — and the pick-by-pick reconstruction (excluding keepers, which were never draftable) that fixed it.
+
+## 2026-08-31 - version 5.19.6
+
+- **Draft Lab write-up gains a portability update.** Public: two file round-trips that keep the browser-only storage from being a trap — a settings CSV (team names, keepers, tendencies, caps) for every tier, and result files (a finished draft as JSON, each pick tagged yours-or-simulated) for the free and pro tiers. Written after learning the hard way that a reload wipes an unbacked-up league setup.
+
 ## 2026-08-31 - version 5.19.5
 
 - **The page every failed route renders had three accessibility violations of its own.** Found by the pre-release axe scan on a card detail page while TCGdex was unreachable: no document title (serious), no main landmark, and every word on the page sitting outside any region. `RouteError` is now a `<main>` rather than a `<div>`, which settles the last two, and it fills in a document title when the failed page never produced one — only when it is genuinely empty, so a title that rendered higher up is left alone. This is what someone sees at the moment they are least able to guess where they are, and it was the least accessible page in the app.
