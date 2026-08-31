@@ -51,6 +51,11 @@ function EliteSections() {
       <UpdateTimeline
         entries={[
           {
+            id: "elite-proj-adjust",
+            date: "Aug 31, 2026",
+            title: "A manual thumb on the scale, without lying about the number",
+          },
+          {
             id: "elite-tiers-fallers",
             date: "Aug 30, 2026",
             title: "Finer tiers, and flagging the players who slid",
@@ -101,6 +106,42 @@ function EliteSections() {
           <i>worse advice</i> dressed up as the real thing.
         </p>
       </section>
+
+      <Update
+        id="elite-proj-adjust"
+        date="August 31, 2026"
+        title="A manual thumb on the scale, without lying about the number"
+      >
+        <p>
+          The projection is a starting point, not gospel — some nights I just
+          know a number is wrong: a beat writer&apos;s note the feed hasn&apos;t
+          priced, a coach I trust to feed one back. So the Tiers tab now takes a
+          manual per-player adjustment: a flat <code>+5</code> or{" "}
+          <code>−3</code> on a player&apos;s projected points, typed right next
+          to them.
+        </p>
+        <p>
+          The design rule was the same honesty line the whole product runs on:
+          don&apos;t overwrite the projection, and don&apos;t hide that a thumb
+          is on the scale. The base number stays exactly as the model computed
+          it and stays visible; the adjustment shows as its own value in colour;
+          the effective total the tweak produces is what actually feeds the
+          engine. So the cell reads <code>337 → 342</code>, not a silent 342 I&apos;d
+          later mistake for a real projection. It stacks on top of the
+          sourced-injury multipliers rather than fighting them — that layer is
+          researched and approved; this one is my own call, kept separate on
+          purpose.
+        </p>
+        <p>
+          It isn&apos;t cosmetic. The adjustment lands in the one place every
+          downstream number reads from — the scored pool — so a bumped player
+          re-sorts, can jump a tier, and shifts every recommendation and survival
+          figure that leans on it, the instant I type it. It persists across
+          practice drafts like the tier overrides do, and it&apos;s Elite: the
+          same gate as the model recommendations it steers, removed from the DOM
+          entirely for lower tiers.
+        </p>
+      </Update>
 
       <Update
         id="elite-tiers-fallers"
