@@ -3,9 +3,13 @@
 ## 2026-08-30 - version 5.18.0
 
 - **Volunteer arrival check-in.** New feature answering a real ask: confirm someone actually turned up, without hardware. A display at the entrance (`/check-in/display`) shows a six-digit code that rotates every two minutes; the volunteer opens `/check-in?site=<id>` on their phone, types it, and the arrival is recorded against their Auth0 account rather than a name they typed. Organizers get `/check-in/sites` — create a site, open its display, copy the link for the poster, and see who has arrived today. The code is derived from an HMAC over the site salt and the time window rather than stored (portfolio_api#186), so nothing on this side ever holds a working code.
-  - The NFC half of the original idea is not here on purpose: Web NFC ships in Chrome on Android and is unsupported by Safari on iOS, so a tap would have worked for some volunteers and silently failed for every iPhone. Typed codes work identically on both.
-  - The display refetches exactly when its code expires, from the `secondsRemaining` the server reports, and hides the digits with an explanation if a refresh fails — a dead code left on screen makes volunteers blame themselves. That branch has a test.
-  - New write-up at `/thoughts/volunteer-check-in` covering the derivation, the four cheats that are handled, and the relay hole that stays open.
+- The NFC half of the original idea is not here on purpose: Web NFC ships in Chrome on Android and is unsupported by Safari on iOS, so a tap would have worked for some volunteers and silently failed for every iPhone. Typed codes work identically on both.
+- The display refetches exactly when its code expires, from the `secondsRemaining` the server reports, and hides the digits with an explanation if a refresh fails — a dead code left on screen makes volunteers blame themselves. That branch has a test.
+- New write-up at `/thoughts/volunteer-check-in` covering the derivation, the four cheats that are handled, and the relay hole that stays open.
+
+## 2026-08-30 - version 5.17.0
+
+- **My Topics learns MeSH.** The add-topic form gains a Phrase / MeSH toggle, so a custom topic can use NLM's controlled vocabulary instead of free-word matching — and every card on the Discovered tab gets a one-click Save to My Topics, which is the path for anyone who doesn't know MeSH names, since Discovered already surfaces real descriptors from recent literature. Nearly all pipe reuse: publications and demographics already spoke `?mesh=`; the topics route learned to score a single descriptor the same way it scores a phrase, behind the same descriptor-shape validation that keeps raw syntax out of PubMed.
 
 ## 2026-08-30 - version 5.16.0
 
