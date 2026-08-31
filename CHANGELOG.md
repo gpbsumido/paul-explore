@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.2
+
+- **Two write-up updates rebuilt in the operator format.** The CI E2E and deployment notes had their August 30 updates written as a flat run of paragraphs, which reads as summary rather than as what happened. They now follow the shape the operator-dashboard notes use — named `h3` beats whose headings make a claim, with the real artifact pasted in: the export error and the three 60-second build attempts that turned out to be the actual cause, and knex's "the migration directory is corrupt" alongside the `UPDATE knex_migrations` that recovered it. A described error is a claim; a pasted one is evidence, and it is what makes the page findable by whoever hits the same thing.
+
 ## 2026-08-31 - version 5.19.1
 
 - **The TCG e2e specs stopped depending on TCGdex being reachable.** The pre-release suite failed on `/tcg/pokemon`, waiting fifteen seconds for card tiles that never arrived — TCGdex points North America at a dead node and the CI runners are in North America. The file already mocked the cards API for its search test "so this test doesn't depend on TCGdex being reachable in CI"; the `beforeEach` did not, so every test in it still waited on real tiles. The unfiltered first page is now served from a fixture, and the search test's own handler falls back to that fixture instead of continuing to the network.
