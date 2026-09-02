@@ -4,8 +4,25 @@ import { useState } from "react";
 import { Button, Chip, Modal } from "@/components/ui";
 // Spotlight, TiltCard, and Ticker use hooks but the package ships without
 // "use client" banners, so they can only render from inside a client module.
-// Everything hook-free in the gallery stays in the server shell.
-import { Spotlight, Switch, Ticker, TiltCard } from "@paul-portfolio/react";
+// Everything hook-free in the gallery stays in the server shell. The AI-app
+// primitives below join them here for the same reason — every one holds state,
+// a portal, or an animation loop.
+import {
+  ChatComposer,
+  ChatMessage,
+  CodeBlock,
+  Combobox,
+  CommandPalette,
+  RichTextEditor,
+  Spotlight,
+  StreamingText,
+  Switch,
+  Ticker,
+  TiltCard,
+  ToastProvider,
+  useToast,
+  type Command,
+} from "@paul-portfolio/react";
 import { ACCENT_BAND } from "@/lib/accentBand";
 
 const ACCENT = ACCENT_BAND.verdigris;
@@ -105,5 +122,134 @@ export function TickerPreview() {
       <span className="px-3 text-sm text-foreground">Campaigns</span>
       <span className="px-3 text-sm text-foreground">Design system</span>
     </Ticker>
+  );
+}
+
+export function ChatComposerDemo() {
+  const [sent, setSent] = useState<string | null>(null);
+  return (
+    <div className="w-full space-y-3">
+      {sent && (
+        // role is ChatMessage's own prop, not an ARIA role — see the note in
+        // DesignSystemShowcaseContent's chat-message preview.
+        // eslint-disable-next-line jsx-a11y/aria-role
+        <ChatMessage role="user" name="You">
+          {sent}
+        </ChatMessage>
+      )}
+      <ChatComposer
+        label="Message the assistant"
+        onSubmit={setSent}
+        placeholder="Ask something…"
+      />
+    </div>
+  );
+}
+
+export function CodeBlockPreview() {
+  return (
+    <CodeBlock
+      language="tsx"
+      filename="greet.tsx"
+      code={`export function greet(name: string) {\n  return \`Hello, \${name}\`;\n}`}
+    />
+  );
+}
+
+export function ComboboxDemo() {
+  const [model, setModel] = useState("sonnet");
+  return (
+    <div className="w-full">
+      <Combobox
+        label="Model"
+        value={model}
+        onChange={setModel}
+        placeholder="Pick a model…"
+        options={[
+          { value: "opus", label: "Claude Opus" },
+          { value: "sonnet", label: "Claude Sonnet" },
+          { value: "haiku", label: "Claude Haiku" },
+        ]}
+      />
+    </div>
+  );
+}
+
+export function CommandPaletteDemo() {
+  const [open, setOpen] = useState(false);
+  const commands: Command[] = [
+    { id: "home", label: "Go to hub", group: "Navigate", onSelect: () => {} },
+    {
+      id: "ds",
+      label: "Open design system",
+      group: "Navigate",
+      onSelect: () => {},
+    },
+    {
+      id: "theme",
+      label: "Toggle theme",
+      group: "Actions",
+      hint: "⌘T",
+      onSelect: () => {},
+    },
+  ];
+  return (
+    <>
+      <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+        Open command menu
+      </Button>
+      <CommandPalette
+        open={open}
+        onClose={() => setOpen(false)}
+        commands={commands}
+      />
+    </>
+  );
+}
+
+export function RichTextEditorDemo() {
+  return (
+    <div className="w-full">
+      <RichTextEditor
+        label="Notes"
+        defaultValue="<p>Edit me — <strong>bold</strong>, lists, links.</p>"
+      />
+    </div>
+  );
+}
+
+export function StreamingTextPreview() {
+  return (
+    <StreamingText
+      className="text-sm text-foreground"
+      text="Streaming a reply the way a model sends it, a few characters at a time."
+    />
+  );
+}
+
+function ToastTrigger() {
+  const { toast } = useToast();
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={() =>
+        toast({
+          title: "Saved",
+          description: "Your changes are stored.",
+          variant: "success",
+        })
+      }
+    >
+      Show a toast
+    </Button>
+  );
+}
+
+export function ToastDemo() {
+  return (
+    <ToastProvider>
+      <ToastTrigger />
+    </ToastProvider>
   );
 }

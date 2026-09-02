@@ -27,6 +27,11 @@ export default function DesignSystemShowcaseThoughtsContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-02-ai-components",
+            date: "Sep 2, 2026",
+            title: "Ten AI-app primitives, and the test that made me add them",
+          },
+          {
             id: "update-2026-08-10-published",
             date: "Aug 10, 2026",
             title: "Following the published package rather than describing it",
@@ -194,9 +199,68 @@ export default function DesignSystemShowcaseThoughtsContent() {
           upgrade tells you what broke.
         </p>
       </Update>
+      <Update
+        id="update-2026-09-02-ai-components"
+        date="September 2, 2026"
+        title="Ten AI-app primitives, and the test that made me add them"
+      >
+        <p>
+          0.6.0 of the package landed ten AI-app components — a chat composer and
+          bubble, a streaming-text reveal, a typing indicator, a code block, a
+          combobox, a ⌘K command palette, a rich-text editor, a toast stack, and
+          a token-usage meter. The showcase was pinned to 0.5.1, so none of them
+          existed here yet.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I didn&rsquo;t decide to add them — the integrity test did
+        </h3>
+        <p className="text-muted">
+          The catalog asserts the documented set is <em>exactly</em> the
+          package&rsquo;s runtime exports. Bumping the dependency is all it took
+          to turn that green check into a list of everything I&rsquo;d left
+          undocumented:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`AssertionError: expected [ 'ChatComposer', 'ChatMessage', …(8) ]
+to deeply equal []`}
+        </pre>
+        <p className="mt-3 text-muted">
+          That is the whole reason the manifest is plain data anchored to the
+          package. The upgrade doesn&rsquo;t quietly succeed and leave a stale
+          gallery; it fails loudly and names the gap.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Toast isn&rsquo;t a component, it&rsquo;s a provider and a hook
+        </h3>
+        <p className="text-muted">
+          Nine of the ten map cleanly to one export. Toast ships its runtime
+          surface as <code className={code}>ToastProvider</code> plus a{" "}
+          <code className={code}>useToast</code> hook you call to raise one. A
+          hook isn&rsquo;t a renderable primitive, so it joins{" "}
+          <code className={code}>usePrefersReducedMotion</code> in the test&rsquo;s
+          non-component list, and the card documents the provider. The preview
+          wraps a button in <code className={code}>ToastProvider</code> and calls
+          the hook, so it demonstrates the real API rather than a mock.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The portal ones render closed, or axe would fail
+        </h3>
+        <p className="text-muted">
+          The command palette and toasts portal to the body as fixed overlays.
+          Rendered open in a gallery card they&rsquo;d cover the page — and the
+          per-primitive axe test that runs against the whole showcase would trip
+          on an overlay nothing asked for. So both sit behind a trigger button,
+          the same shape the Modal demo already used, and the page stays clean
+          for the keyboard and the scanner alike.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "The gallery renders the published package rather than a local reimplementation, so it cannot drift from what actually ships.",
+          "All ten of the 0.6.0 AI-app primitives are catalogued and rendered live, the hook-free ones inline and the stateful ones as client islands.",
           "A props playground per primitive, since the question is usually what a component does under a prop rather than how it looks at rest.",
           "Design tokens shown alongside the components that consume them.",
         ]}
