@@ -173,9 +173,25 @@ export const FEATURES: FeatureItem[] = [
     color: "#6451ba",
     thoughtsHref: "/thoughts/v5-redesign",
   },
+  {
+    id: "updates",
+    title: "Updates",
+    description:
+      "A public, plain-language changelog you can search, filter, and sort, next to a ticket board where anyone can suggest a feature or report a bug, upvote, and watch it move from idea to shipped — where each shipped ticket links back to the update that closed it.",
+    href: "/updates",
+    color: "#2b7d8c",
+    thoughtsHref: "/thoughts/updates",
+  },
 ];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "Updates",
+    href: "/thoughts/updates",
+    preview:
+      "A public changelog that isn't a parse of the internal one: curated entries, pure search/sort logic, and a ticket board that says out loud it has no server",
+    color: "#2b7d8c",
+  },
   {
     title: "Learn",
     href: "/thoughts/learn",

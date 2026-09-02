@@ -44,6 +44,9 @@ describe("world exhibits", () => {
       // display in front of you there is nothing to do on the page, so an
       // exhibit would walk someone to a sign-in wall and an empty list.
       "check-in",
+      // A meta-page about the site's own changes, not a place in the city. A
+      // landmark for the changelog would be a signpost to the map legend.
+      "updates",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));
