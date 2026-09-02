@@ -42,6 +42,7 @@ Tailwind. Tested with Vitest and Playwright, test-first.
 - [Particle Lab](https://paulsumido.com/lab/particles): an R3F particle network with live controls
 - [Pokémon TCG](https://paulsumido.com/pokemon): card browser, Pocket expansions, and a GraphQL Pokédex
 - [Web Vitals](https://paulsumido.com/vitals): real-user Core Web Vitals, site-wide and non-personal
+- [Updates](https://paulsumido.com/updates): a plain-language public changelog you can search and filter, next to a ticket board for suggesting and upvoting what comes next
 
 ## Notes
 

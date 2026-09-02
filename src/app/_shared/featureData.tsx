@@ -764,7 +764,52 @@ export const FEATURE_TOKEN: Record<string, string> = {
   "design-system": "--color-feature-design-system",
   craft: "--color-feature-craft",
   "gallery-wall": "--color-feature-gallery-wall",
+  updates: "--color-feature-updates",
 };
+
+// Mini changelog feed for the hub card: a category dot, a title, and a version
+// badge, echoing the real /updates entries.
+const UPDATES_PREVIEW = [
+  {
+    title: "Sets load from our catalog",
+    tone: "var(--color-update-fix)",
+    version: "5.19",
+  },
+  {
+    title: "Volunteer check-in",
+    tone: "var(--color-update-feature)",
+    version: "5.18",
+  },
+  {
+    title: "Jump anywhere with ⌘K",
+    tone: "var(--color-update-feature)",
+    version: "5.12",
+  },
+];
+
+export function UpdatesPreview() {
+  return (
+    <div className="space-y-1.5">
+      {UPDATES_PREVIEW.map((u) => (
+        <div
+          key={u.title}
+          className="flex items-center gap-2 rounded-lg border border-black/10 bg-black/5 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/5"
+        >
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: u.tone }}
+          />
+          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
+            {u.title}
+          </span>
+          <span className="shrink-0 rounded bg-black/10 px-1 py-0.5 font-mono text-[8px] tabular-nums text-black/50 dark:bg-white/10 dark:text-white/50">
+            v{u.version}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
@@ -782,6 +827,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   "design-system": DesignSystemPreview,
   craft: CraftPreview,
   "gallery-wall": GalleryWallPreview,
+  updates: UpdatesPreview,
 };
 
 // ---------------------------------------------------------------------------
