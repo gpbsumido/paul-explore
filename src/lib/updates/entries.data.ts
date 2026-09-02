@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-ai-components",
+    date: "2026-09-02",
+    version: "5.21.0",
+    category: "feature",
+    tags: ["design-system", "a11y"],
+    title: "Ten AI-app components join the design system gallery",
+    summary:
+      "A chat composer, streaming text, a command palette, a token meter and more — live in the showcase.",
+    body: [
+      "The shared component library grew a set of pieces aimed at AI surfaces: a chat composer and message bubble, text that streams in the way a model replies, a typing indicator, a code block with a copy button, a filterable combobox, a ⌘K command palette, a small rich-text editor, a toast stack, and a token-usage meter.",
+      "Every one is now rendered live on the design-system page from the real published package, with its accessibility guarantees spelled out on the card — labelled controls, live regions for the streaming and typing pieces, and progressbar semantics on the meter. The gallery documents the whole package or the build goes red, so these couldn't be added quietly.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-tcg-catalog",
     date: "2026-08-31",
     version: "5.19.0",
