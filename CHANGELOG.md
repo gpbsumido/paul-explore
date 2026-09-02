@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-31 - version 5.19.10
+
+- **Draft Lab write-up gains an owner-only MockoSheet note.** Elite: adopting the community sheet as an optional ADP override + VAL recommendation overlay (not a points source), the block-grid parsing, and an honest benchmark — +138 on our yardstick / -52 on theirs across 400 sims, i.e. each yardstick flatters its own source, so a preseason "it is better" is not provable; it ships as a credible second opinion (Spearman 0.85 to our order) rather than a silent replacement.
+
 ## 2026-08-31 - version 5.19.9
 
 - **The README documents volunteer check-in, as two flows rather than a feature blurb.** An organizer walkthrough (create a site, put its display at the entrance, copy the link for the poster, read today's arrivals) and a volunteer one (open the posted link, sign in, type the six digits), plus what a check-in actually proves — that someone with that volunteer's login had that site's code within two minutes, which is right for honest attendance and the wrong tool for catching a determined cheat.

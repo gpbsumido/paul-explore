@@ -51,6 +51,11 @@ function EliteSections() {
       <UpdateTimeline
         entries={[
           {
+            id: "elite-mockosheet",
+            date: "Aug 31, 2026",
+            title: "A second opinion on ADP, and why I can't tell you it's better",
+          },
+          {
             id: "elite-proj-adjust",
             date: "Aug 31, 2026",
             title: "A manual thumb on the scale, without lying about the number",
@@ -111,6 +116,47 @@ function EliteSections() {
           <i>worse advice</i> dressed up as the real thing.
         </p>
       </section>
+
+      <Update
+        id="elite-mockosheet"
+        date="August 31, 2026"
+        title="A second opinion on ADP, and why I can't tell you it's better"
+      >
+        <p>
+          ESPN&apos;s ADP is the standing complaint, and Sleeper already gives me
+          a stronger board, but the community&apos;s data-driven sheets are their
+          own kind of signal. So Elite gains MockoSheet as an optional source: a
+          button pulls the public sheet and its ADP overrides mine, while its VAL
+          score tilts the recommendation list. One line I held: MockoSheet is a
+          ranking-and-value sheet, <i>not</i> point projections, so it never
+          touches the projected points the lineup math and schedule model run on
+          — it moves ADP and nudges the order, nothing more. Parsing it was the
+          unglamorous half: it&apos;s a formatted draft board, not a table, with
+          position blocks stacked both across the page and down each column
+          (quarterbacks, then tight ends, then defenses beneath them), each with
+          its own column order. Reading every field by its header name rather
+          than a fixed offset is what survives that — and the next version&apos;s
+          reshuffle.
+        </p>
+        <p>
+          The part I want to be honest about is whether it actually helps, because
+          I don&apos;t think that&apos;s answerable yet. I benchmarked it the only
+          way I could — 400 simulated drafts, my roster with the sheet versus
+          without — and scored each one <i>two</i> ways: on my own projections and
+          on MockoSheet&apos;s value. With the sheet I gained +138 on my yardstick
+          and lost 52 on theirs. That symmetry is the whole point: each yardstick
+          flatters the source it came from, so neither is proof. A preseason
+          &quot;this projection set is better&quot; has no ground truth until the
+          games are played; anyone who tells you otherwise is grading the exam
+          they wrote. What I <i>can</i> say is that it isn&apos;t a regression and
+          it isn&apos;t noise — its value order agrees with mine at a Spearman
+          0.85 while disagreeing sharply on specific names (much higher on Tyler
+          Shough and Chris Olave, much lower on Alvin Kamara and George Kittle).
+          So it ships as a source you turn on to get a credible second opinion and
+          compare live, not as a silent replacement claiming to know more than it
+          can.
+        </p>
+      </Update>
 
       <Update
         id="elite-proj-adjust"
