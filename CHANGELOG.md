@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-02 - version 5.20.0
+
+- **A public Updates section: a changelog people would actually read, plus a ticket board.** New at `/updates` — a curated, plain-language feed of what shipped and why, searchable, filterable by category and tag, sortable newest/oldest, with expand-in-place cards. It is a separate curated data file rather than a parse of this `CHANGELOG.md`, which is dense and written for me; the two never have to agree on tone because they are not the same document. The search/sort/filter logic is pure (`src/lib/updates/query.ts`) so the feed's behaviour is tested without a browser.
+- **A ticket board at `/updates/tickets` that is honest about having no server.** Status columns (Open / Planned / In progress / Shipped), upvoting, and a suggestion form. A visitor's own submissions and votes live in their own browser, layered on top of the seed tickets by `src/lib/updates/ticketStore.ts` and wired to React through `useSyncExternalStore` rather than a setState-in-effect. The page says this in as many words rather than implying a shared board that does not exist; the store takes its `Storage` as an argument, so swapping in a real API later is a one-file change.
+- **The two halves link, and a test keeps them in sync.** A shipped ticket names the update that closed it and that update lists the ticket back; a data test walks every cross-link in both directions and fails the build if a shipped ticket points at an entry that does not list it, or at no entry at all.
+- **Wired in everywhere a new feature has to be:** a hub feature card with its own accent token, a `/thoughts/updates` write-up, the sitemap, and the `llms.txt` crawler file. The world exhibit is deliberately skipped — a changelog is a meta-page about the site's own changes, not a place in the city.
+
 ## 2026-08-31 - version 5.19.10
 
 - **Draft Lab write-up gains an owner-only MockoSheet note.** Elite: adopting the community sheet as an optional ADP override + VAL recommendation overlay (not a points source), the block-grid parsing, and an honest benchmark — +138 on our yardstick / -52 on theirs across 400 sims, i.e. each yardstick flatters its own source, so a preseason "it is better" is not provable; it ships as a credible second opinion (Spearman 0.85 to our order) rather than a silent replacement.
