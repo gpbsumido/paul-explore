@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { updateEntrySchema, ticketSchema } from "./types";
 import { UPDATE_ENTRIES } from "./entries.data";
 import { SEED_TICKETS } from "./tickets.data";
@@ -17,6 +19,26 @@ describe("update entries data", () => {
 
   it("has at least a handful of entries to make the feed worth reading", () => {
     expect(UPDATE_ENTRIES.length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe("the public feed keeps pace with releases", () => {
+  const version: string = JSON.parse(
+    readFileSync(join(process.cwd(), "package.json"), "utf-8"),
+  ).version;
+
+  it("gives the current minor or major release a public update entry", () => {
+    const patch = version.split(".")[2];
+    // Patch releases are small fixes and stay out of the curated feed on
+    // purpose. A minor or major bump (X.Y.0) ships a feature or a real change,
+    // so it has to be told to a reader here — this is the guard that a version
+    // bump can't land without one.
+    if (patch !== "0") return;
+    const shipped = new Set(UPDATE_ENTRIES.map((e) => e.version));
+    expect(
+      shipped.has(version),
+      `${version} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts`,
+    ).toBe(true);
   });
 });
 
