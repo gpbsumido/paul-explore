@@ -5,6 +5,7 @@
 - **The `/design-system` showcase gains the 10 AI-app primitives from `@paul-portfolio/react` 0.6.0.** ChatComposer, ChatMessage, CodeBlock, Combobox, CommandPalette, RichTextEditor, StreamingText, Toast, TokenUsageMeter, and TypingDots — each catalogued with a usage note and its accessibility guarantees, and rendered live from the real published package rather than a mockup. Bumped `@paul-portfolio/css` to 0.9.0 too, so the new component styles arrive through the existing `components.css` import.
 - **The catalog is what forced the coverage.** The integrity test pins the documented set to the package's exact runtime exports, so bumping the dependency turned the gallery red until all 10 were documented and previewed. Toast ships as a `ToastProvider` plus a `useToast` hook; the hook joins the non-component list and the card documents the provider.
 - **Portal primitives stay closed.** CommandPalette and Toast render behind a trigger button so nothing overlays the page and the per-primitive axe test stays clean. The hook-free primitives render inline in the server shell; the stateful ones hydrate as small client islands.
+- **Announced it on the public `/updates` feed, and added a guard so I can't forget next time.** This release has a curated entry in the Updates feature, and a new test fails the build if a minor or major version (an `X.Y.0` bump) ever lands without one. Patch releases stay out of the curated feed on purpose.
 
 ## 2026-09-02 - version 5.20.0
 
