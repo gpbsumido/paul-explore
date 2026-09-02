@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-02 - version 5.21.0
+
+- **The `/design-system` showcase gains the 10 AI-app primitives from `@paul-portfolio/react` 0.6.0.** ChatComposer, ChatMessage, CodeBlock, Combobox, CommandPalette, RichTextEditor, StreamingText, Toast, TokenUsageMeter, and TypingDots — each catalogued with a usage note and its accessibility guarantees, and rendered live from the real published package rather than a mockup. Bumped `@paul-portfolio/css` to 0.9.0 too, so the new component styles arrive through the existing `components.css` import.
+- **The catalog is what forced the coverage.** The integrity test pins the documented set to the package's exact runtime exports, so bumping the dependency turned the gallery red until all 10 were documented and previewed. Toast ships as a `ToastProvider` plus a `useToast` hook; the hook joins the non-component list and the card documents the provider.
+- **Portal primitives stay closed.** CommandPalette and Toast render behind a trigger button so nothing overlays the page and the per-primitive axe test stays clean. The hook-free primitives render inline in the server shell; the stateful ones hydrate as small client islands.
+
 ## 2026-09-02 - version 5.20.0
 
 - **A public Updates section: a changelog people would actually read, plus a ticket board.** New at `/updates` — a curated, plain-language feed of what shipped and why, searchable, filterable by category and tag, sortable newest/oldest, with expand-in-place cards. It is a separate curated data file rather than a parse of this `CHANGELOG.md`, which is dense and written for me; the two never have to agree on tone because they are not the same document. The search/sort/filter logic is pure (`src/lib/updates/query.ts`) so the feed's behaviour is tested without a browser.
