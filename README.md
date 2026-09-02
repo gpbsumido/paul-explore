@@ -30,11 +30,14 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Gallery Wall](https://paulsumido.com/gallery-wall) — arrange framed prints on a wall to scale, save the layout, and get the hanging measurements out
 - [Résumé](https://paulsumido.com/resume) — the CV, as a page rather than a PDF download
 - [Thoughts](https://paulsumido.com/thoughts) — write-ups on design decisions
+- [Volunteer Check-in](https://paulsumido.com/check-in) — proof someone actually turned up: a display at the entrance shows a code that rotates every two minutes, volunteers type it on their phone. The volunteer page is public (it prompts a sign-in); the organizer surfaces below need a login. Flows and limits in [Volunteer check-in](#volunteer-check-in)
 - [Web Vitals](https://paulsumido.com/vitals) — real-user Core Web Vitals dashboard; site-wide, non-personal aggregate data, public (no login)
 
 Requires login (redirected to Auth0 by `src/proxy.ts`):
 
 - [Calendar](https://paulsumido.com/calendar) — personal calendar (per-user) with Google Calendar sync; includes events and countdowns
+- [Check-in sites](https://paulsumido.com/check-in/sites) — create sites, open a display, copy the link for the poster, and see who arrived today
+- `/check-in/display?site=<id>` — the screen that goes at the entrance
 - [Settings](https://paulsumido.com/settings)
 
 Requires login **and** being on the admin allowlist:
@@ -47,6 +50,88 @@ Requires login **and** being on the admin allowlist:
   exists. The rows live in the database rather than in either repo on purpose:
   both are public, and a list of what has not been fixed yet is not something to
   publish.
+
+---
+
+## Volunteer check-in
+
+Confirming a volunteer arrived **on site**, without buying hardware. A screen at
+the entrance shows a six-digit code that changes every two minutes; the
+volunteer types it on their phone. Possessing the code is the evidence, because
+only someone standing there can read it.
+
+The code is never stored. It is derived from `HMAC(CHECKIN_CODE_SECRET, "<site
+salt>:<window>")` in portfolio_api, truncated the way TOTP does it, so a
+database dump yields no working code and an unset secret fails closed rather
+than deriving one from an empty key.
+
+### Organizer flow
+
+1. Sign in and open [/check-in/sites](https://paulsumido.com/check-in/sites).
+   It is also under ⌘K, or the Volunteer Check-in card on `/discover`.
+2. **Add a site** — a name is all it takes. The salt is generated server-side
+   and never shown or chosen.
+3. **Open display** puts `/check-in/display?site=<id>` on a laptop or tablet at
+   the entrance: the code, large, with a countdown. It refreshes itself exactly
+   when the code expires, and if it cannot reach the server it hides the digits
+   and says so rather than leaving a dead code on screen for someone to type.
+4. **Copy the volunteer link** printed under each site — that is what goes on a
+   poster or a QR code. The site id in it is what tells the page which site a
+   volunteer is checking into.
+5. **Today's arrivals** on the site card lists who has turned up and when.
+
+### Volunteer flow
+
+1. Open the posted link (`/check-in?site=<id>`) on a phone.
+2. **Sign in.** Arrivals are recorded against an account rather than a typed
+   name — a roster anyone can write into is a roster, not a record.
+3. Type the six digits from the display and confirm. The field asks for a
+   numeric keypad and marks itself as a one-time code, so iOS and Android offer
+   it rather than a full keyboard.
+4. The page confirms the site and the time. Submitting the same code twice says
+   you are already checked in rather than recording a second arrival.
+
+If the code is wrong or has rolled over, the page says which — and it keeps what
+was typed, because retyping six digits on a phone because the app cleared them
+is its own small cruelty.
+
+### What a check-in actually proves
+
+That **someone with that volunteer's login had that site's code within the last
+two minutes**. That is the right strength for honest attendance and the wrong
+tool for catching a determined cheat: a code can be photographed and sent to
+someone off site, and nothing here stops that. The two-minute window narrows it
+to a live accomplice and no further.
+
+Guessing, replay, double-counting and checking in as someone else are all
+handled — six digits with a five-attempt ceiling per volunteer per window
+checked *before* the code is compared, only the current and previous window
+accepted, one arrival per volunteer per window enforced by the database, and
+arrivals keyed to the Auth0 subject.
+
+### Next steps
+
+- **Tap-to-check-in needs a native app, on both platforms.** The original idea
+  was tapping a phone against a device at the entrance, and it is not built
+  because it cannot be on the web: Web NFC ships in Chrome on Android and Safari
+  on iOS does not support it at all. A web tap would work for some volunteers
+  and silently fail for every iPhone — and the people it failed would look
+  exactly like the people who did not turn up, which is worse than not having
+  it. iOS exposes NFC only to native apps through Core NFC, so this needs a real
+  iOS app and a real Android app, sharing this same API. That is the only way
+  the tap covers everyone, and it is why typed codes ship first: they work
+  identically on every phone.
+- **Shift windows**, so an arrival can be early, on time, or late rather than
+  just timestamped. Right now four hours late reads the same as bang on.
+- **Check-out**, and a CSV export of a site's arrivals.
+- **A QR code on the display itself**, so the volunteer link does not have to be
+  printed separately.
+- **GPS is deliberately not on this list.** It is spoofable, it puts a location
+  permission in front of a volunteer before their first successful check-in, and
+  it means storing location data that then needs a retention answer.
+
+The reasoning, including the parts that went wrong, is written up at
+[/thoughts/volunteer-check-in](https://paulsumido.com/thoughts/volunteer-check-in).
 
 ---
 

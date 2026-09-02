@@ -51,6 +51,11 @@ function EliteSections() {
       <UpdateTimeline
         entries={[
           {
+            id: "elite-mockosheet",
+            date: "Aug 31, 2026",
+            title: "A second opinion on ADP, and why I can't tell you it's better",
+          },
+          {
             id: "elite-proj-adjust",
             date: "Aug 31, 2026",
             title: "A manual thumb on the scale, without lying about the number",
@@ -111,6 +116,47 @@ function EliteSections() {
           <i>worse advice</i> dressed up as the real thing.
         </p>
       </section>
+
+      <Update
+        id="elite-mockosheet"
+        date="August 31, 2026"
+        title="A second opinion on ADP, and why I can't tell you it's better"
+      >
+        <p>
+          ESPN&apos;s ADP is the standing complaint, and Sleeper already gives me
+          a stronger board, but the community&apos;s data-driven sheets are their
+          own kind of signal. So Elite gains MockoSheet as an optional source: a
+          button pulls the public sheet and its ADP overrides mine, while its VAL
+          score tilts the recommendation list. One line I held: MockoSheet is a
+          ranking-and-value sheet, <i>not</i> point projections, so it never
+          touches the projected points the lineup math and schedule model run on
+          — it moves ADP and nudges the order, nothing more. Parsing it was the
+          unglamorous half: it&apos;s a formatted draft board, not a table, with
+          position blocks stacked both across the page and down each column
+          (quarterbacks, then tight ends, then defenses beneath them), each with
+          its own column order. Reading every field by its header name rather
+          than a fixed offset is what survives that — and the next version&apos;s
+          reshuffle.
+        </p>
+        <p>
+          The part I want to be honest about is whether it actually helps, because
+          I don&apos;t think that&apos;s answerable yet. I benchmarked it the only
+          way I could — 400 simulated drafts, my roster with the sheet versus
+          without — and scored each one <i>two</i> ways: on my own projections and
+          on MockoSheet&apos;s value. With the sheet I gained +138 on my yardstick
+          and lost 52 on theirs. That symmetry is the whole point: each yardstick
+          flatters the source it came from, so neither is proof. A preseason
+          &quot;this projection set is better&quot; has no ground truth until the
+          games are played; anyone who tells you otherwise is grading the exam
+          they wrote. What I <i>can</i> say is that it isn&apos;t a regression and
+          it isn&apos;t noise — its value order agrees with mine at a Spearman
+          0.85 while disagreeing sharply on specific names (much higher on Tyler
+          Shough and Chris Olave, much lower on Alvin Kamara and George Kittle).
+          So it ships as a source you turn on to get a credible second opinion and
+          compare live, not as a silent replacement claiming to know more than it
+          can.
+        </p>
+      </Update>
 
       <Update
         id="elite-proj-adjust"
@@ -515,6 +561,16 @@ export default function DraftLabContent({
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-31-pick-review",
+            date: "Aug 31, 2026",
+            title: "Grading each pick against the board as it actually was",
+          },
+          {
+            id: "update-2026-08-31-portability",
+            date: "Aug 31, 2026",
+            title: "Take your setup with you: settings CSV and result files",
+          },
+          {
             id: "update-2026-08-30-adaptive-tendencies",
             date: "Aug 30, 2026",
             title: "I tried to auto-learn the room, and the simulator said don't",
@@ -559,6 +615,37 @@ export default function DraftLabContent({
           width={1600}
           height={1066}
         />
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Setting it up</h2>
+        <p className="text-muted">
+          It&apos;s a Firefox extension — it uses Firefox&apos;s extension APIs,
+          so it won&apos;t load in Chrome. Once you have the zip:
+        </p>
+        <ol className="mt-3 list-decimal space-y-1 pl-5 text-muted">
+          <li>Unzip it into a folder.</li>
+          <li>
+            Open <code>about:debugging#/runtime/this-firefox</code> in Firefox.
+          </li>
+          <li>Click <b>Load Temporary Add-on…</b> and pick the <code>manifest.json</code> inside the folder.</li>
+          <li>The Draft Lab icon appears in the toolbar — click it to open the board.</li>
+        </ol>
+        <p className="text-muted mt-3">
+          In Setup, enter your <b>League ID</b> (the <code>leagueId=…</code> in
+          your ESPN league URL) or just open your league&apos;s ESPN page once so
+          it&apos;s picked up — then your real team names load automatically. Set
+          keepers, per-team tendencies, and confirm the roster/scoring match your
+          league. Practice against the AI, or run Companion mode inside your live
+          ESPN draft room.
+        </p>
+        <p className="text-muted mt-3">
+          One caveat of an unsigned add-on: a <b>temporary</b> install unloads when
+          Firefox restarts — reload it the same way. For a permanent install, use
+          Firefox Developer Edition, set <code>xpinstall.signatures.required</code>
+          to <code>false</code> in <code>about:config</code>, then install the zip
+          from <code>about:addons → Install Add-on From File</code>.
+        </p>
       </section>
 
       <section>
@@ -754,6 +841,75 @@ oracle (true settings) Brier 0.1895   -1.72%  better`}
           negative result than a feature that quietly makes the numbers you trust
           a little worse. The prototype and its benchmark live in the repo as the
           record of why.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-31-pick-review"
+        date="August 31, 2026"
+        title="Grading each pick against the board as it actually was"
+      >
+        <p>
+          When a draft finishes, every one of your picks now gets a grade — and
+          the grade isn&apos;t &quot;did this player score well,&quot; which you
+          can&apos;t know in August. It&apos;s &quot;of everyone still on the
+          board when you were on the clock, how close was this to the best move
+          for your lineup.&quot; A pick is measured by how much it added to the
+          startable lineup you could field at that moment, so a third quarterback
+          scores near zero even if he projects well, and the receiver who filled
+          a real hole grades out. The column next to each pick names the best
+          alternative you passed, and the hover lists the others at that
+          position. It&apos;s all tiers — the review reads a finished draft, it
+          doesn&apos;t need the live model.
+        </p>
+        <p>
+          The whole thing lives or dies on two words: <i>available then</i>. The
+          first cut got this subtly wrong — the alternatives hover reused the
+          board&apos;s &quot;other options at this position&quot; popup, which
+          answers who&apos;s left <i>now</i>. So a first-round pick&apos;s hover
+          suggested the dregs — the quarterbacks nobody wanted — when the players
+          who mattered, the ones actually on the board in round one, had all been
+          drafted by the time you looked. The fix reconstructs the pool pick by
+          pick: walk the draft in order, and at each of your selections the
+          available set is everyone not yet taken and not a keeper — keepers were
+          never draftable, so they can&apos;t be the answer either. Grade and
+          alternatives both read from that point-in-time board. A review that
+          judges you against players who weren&apos;t available is worse than no
+          review, because it sounds authoritative while being wrong.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-31-portability"
+        date="August 31, 2026"
+        title="Take your setup with you: settings CSV and result files"
+      >
+        <p>
+          The extension keeps everything in the browser&apos;s own storage, which
+          is fast and private right up until the moment it isn&apos;t there — a
+          reload, a reinstall, a second machine, and the league you spent twenty
+          minutes configuring is gone. I learned that the unglamorous way. So two
+          small round-trips now cover it, and neither touches a server.
+        </p>
+        <p>
+          <b>Settings CSV</b>, for everyone: one button in Setup writes your
+          league — team names, keepers, per-manager tendencies, position caps —
+          to a plain CSV, and another reads it back. It&apos;s config only, not
+          the projection pool, so the file stays small and human-readable, and it
+          restores in one click after a reset or onto a laptop that&apos;s never
+          seen the extension. The importer refuses a file from the wrong sport
+          rather than quietly loading a 12-team football setup over a basketball
+          league.
+        </p>
+        <p>
+          <b>Result files</b>, for the free and pro tiers: when a draft finishes
+          you can download the whole thing as JSON — every pick, who took it, the
+          final projected-lineup standings — and load it back to review later or
+          hand to a leaguemate. Each pick carries whether it was yours or the
+          simulator&apos;s, so an imported result reads honestly: &quot;fully
+          simulated&quot; versus &quot;nine of your own picks, finished second.&quot;
+          It&apos;s the same shape the tool records internally, just written to a
+          file you own instead of a database you don&apos;t.
         </p>
       </Update>
 
