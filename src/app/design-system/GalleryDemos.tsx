@@ -130,6 +130,9 @@ export function ChatComposerDemo() {
   return (
     <div className="w-full space-y-3">
       {sent && (
+        // role is ChatMessage's own prop, not an ARIA role — see the note in
+        // DesignSystemShowcaseContent's chat-message preview.
+        // eslint-disable-next-line jsx-a11y/aria-role
         <ChatMessage role="user" name="You">
           {sent}
         </ChatMessage>

@@ -212,9 +212,13 @@ const PREVIEWS: Record<string, ReactNode> = {
   "chat-composer": <ChatComposerDemo />,
   "chat-message": (
     <div className="w-full space-y-2">
+      {/* role here is ChatMessage's own domain prop (user/assistant/system),
+          not an ARIA role, so jsx-a11y/aria-role is a false positive. */}
+      {/* eslint-disable-next-line jsx-a11y/aria-role */}
       <ChatMessage role="user" name="You">
         How do I centre a div?
       </ChatMessage>
+      {/* eslint-disable-next-line jsx-a11y/aria-role */}
       <ChatMessage role="assistant" name="Assistant">
         Use a flex or grid container and let the item align to the centre.
       </ChatMessage>
