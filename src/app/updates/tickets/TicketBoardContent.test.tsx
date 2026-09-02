@@ -1,16 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import TicketBoardContent from "./TicketBoardContent";
+import { resetTicketStore } from "./useTicketBoard";
 import { SEED_TICKETS } from "@/lib/updates/tickets.data";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** Every test starts from a clean browser store. */
+/** Every test starts from a clean browser store and a cleared snapshot cache. */
 const fresh = () => {
   window.localStorage.clear();
+  resetTicketStore();
   return render(<TicketBoardContent />);
 };
 
