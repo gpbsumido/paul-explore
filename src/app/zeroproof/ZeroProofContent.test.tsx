@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   render,
   screen,
@@ -303,5 +303,48 @@ describe("ZeroProofContent — bet slip", () => {
       selection: "Celtics",
       stakeCents: 2500,
     });
+  });
+});
+
+describe("ZeroProofContent — live updates", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("polls so a bet that grades server-side appears without a reload", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let call = 0;
+    const openBet = {
+      id: "b1",
+      walletId: "w1",
+      eventId: "evt-1",
+      market: "h2h",
+      selection: "Celtics",
+      oddsAmerican: 122,
+      lineValue: null,
+      closingOddsAmerican: null,
+      clv: null,
+      stakeCents: 2500,
+      status: "open",
+      placedAt: "2026-09-01T00:00:00.000Z",
+      settledAt: null,
+    };
+    const settledBet = {
+      ...openBet,
+      status: "won",
+      closingOddsAmerican: 130,
+      clv: 7.9,
+      settledAt: "2026-09-02T00:00:00.000Z",
+    };
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => {
+        call += 1;
+        return HttpResponse.json({ bets: [call === 1 ? openBet : settledBet] });
+      },
+    );
+    expect(await screen.findByText("open")).toBeInTheDocument();
+    await vi.advanceTimersByTimeAsync(31_000);
+    expect(await screen.findByText("won")).toBeInTheDocument();
   });
 });

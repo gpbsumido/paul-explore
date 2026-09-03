@@ -478,6 +478,11 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
     queryKey: queryKeys.zeroproof.me(),
     queryFn: fetchProfile,
     staleTime: 60 * 1000,
+    // Poll while signed in so a settlement lands here without a reload; stop
+    // polling once we know there's no session, so a signed-out visitor isn't
+    // re-asking every 30 seconds.
+    refetchInterval: (query) =>
+      query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
   const [stake, setStake] = useState("");
   const [walletId, setWalletId] = useState("");
@@ -627,6 +632,9 @@ function BetHistory() {
     queryKey: queryKeys.zeroproof.bets(),
     queryFn: fetchBets,
     staleTime: 30 * 1000,
+    // Only mounts inside the signed-in profile, so a plain interval is safe:
+    // a bet that grades server-side shows up here on the next poll.
+    refetchInterval: 30_000,
   });
 
   if (!betsQuery.data || betsQuery.data.length === 0) return null;
@@ -670,6 +678,11 @@ function Profile() {
     queryKey: queryKeys.zeroproof.me(),
     queryFn: fetchProfile,
     staleTime: 60 * 1000,
+    // Poll while signed in so a settlement lands here without a reload; stop
+    // polling once we know there's no session, so a signed-out visitor isn't
+    // re-asking every 30 seconds.
+    refetchInterval: (query) =>
+      query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
 
   return (
