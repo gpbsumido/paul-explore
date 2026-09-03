@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.21.2
+
+- **New write-up: building a no-loss sportsbook, ledger first.** A dev-thoughts page on the ZeroProof API I built behind this site — a betting product where the record is real and the dollars are simulated. It walks the decisions that were expensive to reverse: a double-entry ledger with derived balances so the fake-money MVP can become real money without a rewrite, closing-line value captured on every bet from the first row because it's unrecoverable later, and a seven-PR stack where each slice deploys on its own. Filed under Architecture & Backend; a patch release, so it stays out of the curated `/updates` feed by design.
+
 ## 2026-09-02 - version 5.21.1
 
 - **Draft Lab write-up gains two owner-only Elite updates.** The first covers the keeper finder — keeping is a value-minus-round-cost decision, not "keep my two best", so it enumerates every candidate pair, simulates the whole draft for each (kept players and their rounds burned, opponents on their tendencies, my picks from the recommender), and ranks by the starting lineup I end up with. Candidates and costs load from last year's ESPN draft and final rosters; the note keeps the wrong turn in — matching my team across seasons by name silently found nothing once I'd renamed it, so it now picks the team from a dropdown. The second covers depth-chart status from firstdown.studio: the slot (WR1/RB2/TE1) is rebuilt by grouping each team by ADP because the source doesn't carry it, the data is prised out of a Next.js payload that has no API, and the CORS block that forced the fetch through the background script.
