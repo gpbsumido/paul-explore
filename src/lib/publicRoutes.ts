@@ -150,4 +150,5 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/vitals",
   "/work-portfolio",
   "/world",
+  "/zeroproof",
 ];

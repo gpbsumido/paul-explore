@@ -182,6 +182,15 @@ export const FEATURES: FeatureItem[] = [
     color: "#2b7d8c",
     thoughtsHref: "/thoughts/updates",
   },
+  {
+    id: "zeroproof",
+    title: "ZeroProof",
+    description:
+      "A no-loss sportsbook: lock a deposit, bet real lines, get the deposit back at term end, and keep the record forever. A read-only lobby over a real double-entry ledger — the dollars are simulated on purpose.",
+    href: "/zeroproof",
+    color: "#6451ba",
+    thoughtsHref: "/thoughts/zeroproof",
+  },
 ];
 
 export const THOUGHTS: ThoughtItem[] = [

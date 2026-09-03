@@ -47,6 +47,10 @@ describe("world exhibits", () => {
       // A meta-page about the site's own changes, not a place in the city. A
       // landmark for the changelog would be a signpost to the map legend.
       "updates",
+      // The lobby is read-only for now: there's a board to look at but nothing
+      // to do on it yet. An exhibit would walk someone to a page they can only
+      // watch. It earns a landmark once the bet slip gives the block a reason.
+      "zeroproof",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));
