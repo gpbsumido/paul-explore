@@ -52,7 +52,11 @@ export const leaderboardResponseSchema = z.object({
   entries: z.array(leaderboardEntrySchema),
 });
 
-export type ZeroproofOutcome = z.infer<typeof outcomeSchema>;
 export type ZeroproofMarket = z.infer<typeof marketSchema>;
+// The read-model types the ZeroProof lobby/leaderboard consume. They land a
+// stacked PR ahead of their first import, so the dead-code check would flag
+// them until the frontend merges.
+// ts-prune-ignore-next
 export type ZeroproofEvent = z.infer<typeof eventSchema>;
+// ts-prune-ignore-next
 export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;
