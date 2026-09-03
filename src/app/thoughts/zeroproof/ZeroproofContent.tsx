@@ -197,6 +197,7 @@ board.textContent  →  never contains "auth0|"`}
           "A read-only front-end lobby: the public events board and the sharp leaderboard, built in a stack over this API.",
           "A signed-in profile on the lobby — record, ROI, sharp score, CLV, streaks, wallets and accolades, read from an authed /me endpoint.",
           "The interactive loop: open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake against the live board — the frontend names the outcome and the backend freezes the line.",
+          "Bet history on the profile — each graded bet with its result and the closing-line value the settler stamped, read from an authed /bets endpoint, so a decision sits next to how the market moved on it.",
         ]}
         couldImprove={[
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
@@ -205,7 +206,7 @@ board.textContent  →  never contains "auth0|"`}
           "It's all simulated dollars on purpose. Real deposits and investing the float is custody and money-transmission territory, and that waits on counsel, not code.",
         ]}
         upcoming={[
-          "Bet history and live settlement on the profile: the settler already grades in the background, so surfacing each graded bet with its closing line and CLV is the next read to build.",
+          "Live polish: the ROI board toggle the API already supports, and settlement that lands on the open page without a reload rather than on the next visit.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
         ]}
       />

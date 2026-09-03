@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.5
+
+- **The ZeroProof profile shows your bet history.** A "Recent bets" list under the wallets: each bet's selection and market, the stake, the odds locked at placement, its result (won/lost/push/void, colour-coded), and the closing-line value the settler stamped once it graded. It reads the new authed `GET /api/zeroproof/bets` (Zod-validated, 401 without a session), so every decision sits next to how the market moved on it — the record a no-loss book is actually about. Tested against a mocked history: a graded win renders with its result and `CLV +7.9%`.
+
 ## 2026-09-03 - version 5.22.4
 
 - **ZeroProof goes interactive: open a wallet and place a bet.** The lobby's board outcomes are buttons now — pick one and it fills a bet slip. Signed-in players choose a wallet, enter a stake, and place: the frontend posts `{ walletId, eventId, market, selection, stakeCents }` to a new authed `/api/zeroproof/bets` proxy, and the backend freezes the line and checks the balance server-side. Opening a Season or Challenge wallet is a button in the profile (new authed `POST /api/zeroproof/wallets`), and both refresh the profile on success. Signed-out visitors get a sign-in prompt in the slip instead. Tested against mocked endpoints: picking an outcome fills the slip, opening a wallet posts the mode, and placing a bet posts the picked outcome with the stake in cents.
