@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-02 - version 5.21.1
+
+- **Draft Lab write-up gains two owner-only Elite updates.** The first covers the keeper finder — keeping is a value-minus-round-cost decision, not "keep my two best", so it enumerates every candidate pair, simulates the whole draft for each (kept players and their rounds burned, opponents on their tendencies, my picks from the recommender), and ranks by the starting lineup I end up with. Candidates and costs load from last year's ESPN draft and final rosters; the note keeps the wrong turn in — matching my team across seasons by name silently found nothing once I'd renamed it, so it now picks the team from a dropdown. The second covers depth-chart status from firstdown.studio: the slot (WR1/RB2/TE1) is rebuilt by grouping each team by ADP because the source doesn't carry it, the data is prised out of a Next.js payload that has no API, and the CORS block that forced the fetch through the background script.
+
 ## 2026-09-02 - version 5.21.0
 
 - **The `/design-system` showcase gains the 10 AI-app primitives from `@paul-portfolio/react` 0.6.0.** ChatComposer, ChatMessage, CodeBlock, Combobox, CommandPalette, RichTextEditor, StreamingText, Toast, TokenUsageMeter, and TypingDots — each catalogued with a usage note and its accessibility guarantees, and rendered live from the real published package rather than a mockup. Bumped `@paul-portfolio/css` to 0.9.0 too, so the new component styles arrive through the existing `components.css` import.
