@@ -255,21 +255,50 @@ function LeaderboardRow({
 }
 
 function Leaderboard() {
+  const [board, setBoard] = useState<"sharp" | "roi">("sharp");
   const boardQuery = useQuery({
-    queryKey: queryKeys.zeroproof.leaderboard(),
-    queryFn: () => getJson("/api/zeroproof/leaderboard"),
+    queryKey: queryKeys.zeroproof.leaderboard(board),
+    queryFn: () => getJson(`/api/zeroproof/leaderboard?board=${board}`),
     select: (json) => leaderboardResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
   });
 
   return (
     <section aria-labelledby="leaderboard-title" className="mt-12">
-      <h2 id="leaderboard-title" className="text-xl font-semibold text-foreground">
-        The sharp leaderboard
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2
+          id="leaderboard-title"
+          className="text-xl font-semibold text-foreground"
+        >
+          The leaderboard
+        </h2>
+        <div
+          role="tablist"
+          aria-label="Leaderboard ranking"
+          className="flex rounded-full border border-border bg-surface p-0.5 text-xs"
+        >
+          {(["sharp", "roi"] as const).map((b) => (
+            <button
+              key={b}
+              type="button"
+              role="tab"
+              aria-selected={board === b}
+              onClick={() => setBoard(b)}
+              className={`rounded-full px-3 py-1 font-medium capitalize transition-colors ${
+                board === b
+                  ? "bg-foreground text-background"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              {b === "sharp" ? "Sharp" : "ROI"}
+            </button>
+          ))}
+        </div>
+      </div>
       <p className="mt-1 max-w-2xl text-sm text-muted">
-        Ranked by a sharp score — closing-line value rolled up with return and
-        volume, so it rewards beating the market, not just getting lucky.
+        {board === "sharp"
+          ? "Ranked by a sharp score — closing-line value rolled up with return and volume, so it rewards beating the market, not just getting lucky."
+          : "Ranked by return on stake. High variance can top this board a sharp score would not."}{" "}
         Players are shown by an opaque handle; nobody&apos;s account is on
         display.
       </p>

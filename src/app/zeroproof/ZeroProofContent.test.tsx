@@ -165,6 +165,37 @@ describe("ZeroProofContent — leaderboard", () => {
     await screen.findByRole("table", { name: /leaderboard/i });
     expect(screen.getByText("41-22-3")).toBeInTheDocument();
   });
+
+  it("toggles between the sharp and ROI boards", async () => {
+    renderPage();
+    // sharp is the default board
+    expect(await screen.findByText("88.5")).toBeInTheDocument();
+    // now serve a different board per ?board, and switch to ROI
+    server.use(
+      http.get("/api/zeroproof/leaderboard", ({ request }) => {
+        const board = new URL(request.url).searchParams.get("board");
+        return HttpResponse.json({
+          entries:
+            board === "roi"
+              ? [
+                  {
+                    userSub: "auth0|roi-king",
+                    wins: 5,
+                    losses: 4,
+                    pushes: 0,
+                    betCount: 9,
+                    roiPct: 99.9,
+                    sharpScore: null,
+                  },
+                ]
+              : LEADERBOARD.entries,
+        });
+      }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: /^roi$/i }));
+    expect(await screen.findByText("+99.9%")).toBeInTheDocument();
+    expect(screen.queryByText("88.5")).not.toBeInTheDocument();
+  });
 });
 
 describe("ZeroProofContent — profile", () => {
