@@ -44,12 +44,21 @@ export function sortMarkets(markets: ZeroproofMarket[]): ZeroproofMarket[] {
  * back to the sub — so the board can name rows without exposing anyone.
  */
 export function playerHandle(userSub: string): string {
-  let hash = 5381;
+  // FNV-1a over the sub, then a murmur3 finalizer. The finalizer is the point:
+  // without it, subs that share a prefix (auth0|a1, auth0|b2) differ only in the
+  // low bits, and the leading base36 digits — the ones a naive slice keeps —
+  // come out identical, so every player reads as the same handle. The avalanche
+  // spreads each input difference across all 32 bits.
+  let h = 2166136261;
   for (let i = 0; i < userSub.length; i++) {
-    hash = (hash * 33) ^ userSub.charCodeAt(i);
+    h ^= userSub.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  const token = (hash >>> 0).toString(36).toUpperCase().slice(0, 5);
-  return `P-${token.padStart(5, "0")}`;
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x45d9f3b);
+  h ^= h >>> 16;
+  const token = (h >>> 0).toString(36).toUpperCase().padStart(7, "0").slice(-5);
+  return `P-${token}`;
 }
 
 /** Win-loss-push record as `12-7-1`. */

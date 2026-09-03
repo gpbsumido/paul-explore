@@ -63,6 +63,14 @@ describe("playerHandle", () => {
   it("distinguishes different subs", () => {
     expect(playerHandle("auth0|one")).not.toBe(playerHandle("auth0|two"));
   });
+
+  it("distinguishes subs that share a long prefix", () => {
+    // The real failure mode: near-identical subs collapsing to one handle. A
+    // handful of prefix-sharing subs must all read differently.
+    const subs = ["auth0|a1", "auth0|b2", "auth0|c3", "auth0|d4", "auth0|e5"];
+    const handles = new Set(subs.map(playerHandle));
+    expect(handles.size).toBe(subs.length);
+  });
 });
 
 describe("formatRecord", () => {
