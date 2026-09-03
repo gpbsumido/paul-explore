@@ -1,5 +1,3 @@
-"use client";
-
 import V5Content, { type V5ContentProps } from "./V5Content";
 
 /**

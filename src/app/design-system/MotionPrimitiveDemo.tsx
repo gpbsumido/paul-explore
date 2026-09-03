@@ -94,7 +94,7 @@ export default function MotionPrimitiveDemo({ id }: { id: string }) {
       <LoopingDemo label="animated number">
         <AnimatedNumber
           value={2454}
-          format={(n) => n.toLocaleString()}
+          format="comma"
           className="text-3xl font-bold tabular-nums text-foreground"
         />
       </LoopingDemo>
