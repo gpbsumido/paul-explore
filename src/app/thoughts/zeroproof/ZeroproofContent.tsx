@@ -195,6 +195,7 @@ board.textContent  →  never contains "auth0|"`}
           "An idempotent settler that grades h2h, spread and total, pays the ledger, and stamps closing-line value on every bet.",
           "Term-end principal refunds, challenge bust archiving, a profile with a sharp score, a leaderboard, and the house/referral revenue plumbing.",
           "A read-only front-end lobby: the public events board and the sharp leaderboard, built in a stack over this API.",
+          "A signed-in profile on the lobby — record, ROI, sharp score, CLV, streaks, wallets and accolades, read from an authed /me endpoint.",
         ]}
         couldImprove={[
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
@@ -203,7 +204,7 @@ board.textContent  →  never contains "auth0|"`}
           "It's all simulated dollars on purpose. Real deposits and investing the float is custody and money-transmission territory, and that waits on counsel, not code.",
         ]}
         upcoming={[
-          "The rest of the front end: a bet slip on the lobby's slate, wallet management, and a braggable profile — the interactive half, gated on a signed-in wallet.",
+          "The interactive half: a bet slip on the lobby's slate and wallet management — placing and settling, gated on a signed-in wallet. The profile already shows the record it will build.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
         ]}
       />

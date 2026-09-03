@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.3
+
+- **The ZeroProof lobby gets a personal profile.** A signed-in section above the board: your record, ROI, sharp score, average closing-line value, current and best streak, biggest hit, and any wallets you hold (balance against locked principal), plus the accolade badges you've earned. Signed-out visitors see a sign-in prompt instead. It reads a new authed `/api/zeroproof/me` proxy — Zod-validated, 401 when there's no session — and the money is formatted from integer cents. Opening a wallet and placing bets is still the next slice; this shows the record the bet slip will build. Tested against a mocked profile in all three states (signed out, signed in with a wallet, signed in with none).
+
 ## 2026-09-03 - version 5.22.1
 
 - **The ZeroProof lobby gains the sharp leaderboard.** Under the events board, a ranked table of players by their sharp score — closing-line value rolled up with return and volume, so it rewards beating the market rather than variance. Records read as win-loss-push, ROI is signed, and an unranked player (below the graded-bet threshold) shows a dash. Players appear by a stable opaque handle derived from their account id; the raw Auth0 sub never reaches the DOM, and a test pins that. Semantic `<table>` markup, accessible name, no axe violations.
