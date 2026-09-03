@@ -298,11 +298,17 @@
 
 .rise-in {
   animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  /* Promote to its own compositor layer so the slide runs on the compositor
+     thread, not the main thread. Without this the entrance janks: it fires
+     while the page is hydrating and the 3D hero's chunk is parsing, and a
+     main-thread transform drops frames under that load. */
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rise-in {
     animation: none;
+    will-change: auto;
   }
 }
 

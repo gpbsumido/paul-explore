@@ -7,6 +7,10 @@
 ## 2026-09-03 - version 5.22.3
 
 - **The ZeroProof lobby gets a personal profile.** A signed-in section above the board: your record, ROI, sharp score, average closing-line value, current and best streak, biggest hit, and any wallets you hold (balance against locked principal), plus the accolade badges you've earned. Signed-out visitors see a sign-in prompt instead. It reads a new authed `/api/zeroproof/me` proxy — Zod-validated, 401 when there's no session — and the money is formatted from integer cents. Opening a wallet and placing bets is still the next slice; this shows the record the bet slip will build. Tested against a mocked profile in all three states (signed out, signed in with a wallet, signed in with none).
+## 2026-09-03 - version 5.22.2
+
+- **The hero entrance stopped juddering.** The `.rise-in` slide fires while the page is hydrating and the 3D hero's chunk is parsing, and without its own compositor layer a `transform` animation runs on the main thread and drops frames under that load — a visibly choppy entrance. Added `will-change: transform` so the slide runs on the compositor thread and stays smooth regardless of what the main thread is doing.
+- **The ZeroProof hub card looks like the others now.** It was rendering an empty preview slot and borrowing the NBA accent colour, because `zeroproof` had no entry in the preview map or the feature-token map. Gave it a small odds-board preview (a couple of matchups with lines) and its own purple accent token in both themes.
 
 ## 2026-09-03 - version 5.22.1
 
