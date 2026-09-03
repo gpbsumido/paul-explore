@@ -143,6 +143,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/volunteer-check-in",
   "/thoughts/work-portfolio",
   "/thoughts/world",
+  "/thoughts/zeroproof",
   "/privacy",
   "/updates",
   "/updates/tickets",
