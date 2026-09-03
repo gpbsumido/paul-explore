@@ -195,6 +195,11 @@ board.textContent  →  never contains "auth0|"`}
           "An idempotent settler that grades h2h, spread and total, pays the ledger, and stamps closing-line value on every bet.",
           "Term-end principal refunds, challenge bust archiving, a profile with a sharp score, a leaderboard, and the house/referral revenue plumbing.",
           "A read-only front-end lobby: the public events board and the sharp leaderboard, built in a stack over this API.",
+          "A signed-in profile on the lobby — record, ROI, sharp score, CLV, streaks, wallets and accolades, read from an authed /me endpoint.",
+          "The interactive loop: open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake against the live board — the frontend names the outcome and the backend freezes the line.",
+          "Bet history on the profile — each graded bet with its result and the closing-line value the settler stamped, read from an authed /bets endpoint, so a decision sits next to how the market moved on it.",
+          "A Sharp/ROI toggle on the leaderboard, forwarding ?board through the proxy — sharp for skill, ROI for the variance a sharp score would talk you out of.",
+          "Live settlement: the profile and bet history poll while you're signed in, so a bet the settler grades in the background lands on the open page — result, closing line and updated balance — with no reload. The front end is now a book you can sit in front of.",
         ]}
         couldImprove={[
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
@@ -203,7 +208,7 @@ board.textContent  →  never contains "auth0|"`}
           "It's all simulated dollars on purpose. Real deposits and investing the float is custody and money-transmission territory, and that waits on counsel, not code.",
         ]}
         upcoming={[
-          "The rest of the front end: a bet slip on the lobby's slate, wallet management, and a braggable profile — the interactive half, gated on a signed-in wallet.",
+          "Real money, which is the whole reason the ledger came first: custody and money transmission are a licensing-and-counsel problem, not a code one. The simulated version is complete; the real one waits on lawyers.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
         ]}
       />

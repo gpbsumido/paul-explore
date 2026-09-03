@@ -6,6 +6,9 @@ import {
   sortMarkets,
   playerHandle,
   formatRecord,
+  formatCents,
+  formatSignedPct,
+  formatStreak,
 } from "./format";
 import { eventsResponseSchema, leaderboardResponseSchema } from "./schemas";
 import type { ZeroproofMarket } from "./schemas";
@@ -76,6 +79,29 @@ describe("playerHandle", () => {
 describe("formatRecord", () => {
   it("reads wins-losses-pushes", () => {
     expect(formatRecord({ wins: 12, losses: 7, pushes: 1 })).toBe("12-7-1");
+  });
+});
+
+describe("formatCents", () => {
+  it("renders integer cents as dollars", () => {
+    expect(formatCents(11840)).toBe("$118.40");
+    expect(formatCents(0)).toBe("$0.00");
+  });
+});
+
+describe("formatSignedPct", () => {
+  it("signs a percentage and dashes null", () => {
+    expect(formatSignedPct(8.4)).toBe("+8.4%");
+    expect(formatSignedPct(-2.1)).toBe("-2.1%");
+    expect(formatSignedPct(null)).toBe("—");
+  });
+});
+
+describe("formatStreak", () => {
+  it("reads a win or losing run, dashing a cold start", () => {
+    expect(formatStreak(3)).toBe("W3");
+    expect(formatStreak(-2)).toBe("L2");
+    expect(formatStreak(0)).toBe("—");
   });
 });
 

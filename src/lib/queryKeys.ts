@@ -270,7 +270,14 @@ export const queryKeys = {
     /** The public events slate with the latest lines. */
     events: () => ["zeroproof", "events"] as const,
 
-    /** The public sharp-score leaderboard. */
-    leaderboard: () => ["zeroproof", "leaderboard"] as const,
+    /** The public leaderboard, ranked by the given board (sharp or roi). */
+    leaderboard: (board: "sharp" | "roi") =>
+      ["zeroproof", "leaderboard", board] as const,
+
+    /** The signed-in player's profile: stats, wallets, accolades. */
+    me: () => ["zeroproof", "me"] as const,
+
+    /** The signed-in player's bet history. */
+    bets: () => ["zeroproof", "bets"] as const,
   },
 } as const;
