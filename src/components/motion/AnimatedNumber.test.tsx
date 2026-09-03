@@ -22,11 +22,11 @@ describe("AnimatedNumber", () => {
     expect(html).not.toMatch(/>\s*0\s*</);
   });
 
-  it("applies the format function to the rendered value", () => {
+  it("groups thousands when the comma format is asked for", () => {
     const html = renderToStaticMarkup(
-      <AnimatedNumber value={1234} format={(n) => `${n} tests`} />,
+      <AnimatedNumber value={1234} format="comma" />,
     );
-    expect(html).toContain("1234 tests");
+    expect(html).toContain("1,234");
   });
 
   it("never renders a fractional figure, even for a fractional input", () => {

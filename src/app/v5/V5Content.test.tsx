@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
@@ -45,6 +47,33 @@ describe("V5Content", () => {
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
     expect(headings[0]).toHaveTextContent("Paul Sumido");
+  });
+
+  it("paints the hero heading on the first frame instead of gating LCP behind a fade", () => {
+    // The h1 is the page's LCP element. .reveal-up animates opacity from 0,
+    // which Chrome does not count as painted, so under a busy main thread the
+    // largest text lands seconds after first paint. .rise-in slides the same
+    // distance on transform alone, opacity held at 1, so the heading is painted
+    // immediately either way and LCP tracks FCP.
+    renderPage();
+    const heading = screen.getAllByRole("heading", { level: 1 })[0];
+    expect(heading.className).toContain("rise-in");
+    expect(heading.className).not.toContain("reveal-up");
+  });
+
+  it("defines rise-in as a transform-only entrance, so it never ships opacity:0", () => {
+    // The className contract above only holds if the class itself doesn't touch
+    // opacity. Read the real stylesheet and pin the keyframe: transform moves,
+    // opacity is never animated to or from zero.
+    const css = readFileSync(
+      join(process.cwd(), "src/app/globals.css"),
+      "utf8",
+    );
+    const match = css.match(/@keyframes\s+rise-in\s*\{([\s\S]*?)\}\s*\}/);
+    expect(match).not.toBeNull();
+    const block = match?.[0] ?? "";
+    expect(block).toContain("transform");
+    expect(block).not.toContain("opacity");
   });
 
   it("states the lead frontend positioning, which is the job the page is for", () => {

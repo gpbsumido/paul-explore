@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import GradientMesh from "@/components/motion/GradientMesh";
 import TextScramble from "@/components/motion/TextScramble";
