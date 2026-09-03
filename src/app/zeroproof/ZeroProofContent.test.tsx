@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
@@ -177,8 +183,63 @@ describe("ZeroProofContent — profile", () => {
     expect(screen.getByText("First Win")).toBeInTheDocument();
   });
 
-  it("tells a signed-in player with no wallet where opening one lives", async () => {
+  it("tells a signed-in player with no wallet how to open one", async () => {
     renderPage(() => HttpResponse.json({ ...PROFILE, wallets: [] }));
     expect(await screen.findByText(/no wallet open yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /open a season wallet/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens a wallet by posting the chosen mode", async () => {
+    let openedMode: string | null = null;
+    server.use(
+      http.post("/api/zeroproof/wallets", async ({ request }) => {
+        openedMode = ((await request.json()) as { mode: string }).mode;
+        return HttpResponse.json({ id: "w-new", mode: openedMode });
+      }),
+    );
+    renderPage(() => HttpResponse.json({ ...PROFILE, wallets: [] }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /open a season wallet/i }),
+    );
+    await waitFor(() => expect(openedMode).toBe("season"));
+  });
+});
+
+describe("ZeroProofContent — bet slip", () => {
+  it("fills the slip when an outcome is picked, and prompts a signed-out visitor to sign in", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    expect(within(slip).getByText("Celtics")).toBeInTheDocument();
+    expect(
+      within(slip).getByRole("link", { name: /sign in to bet/i }),
+    ).toHaveAttribute("href", "/auth/login");
+  });
+
+  it("places a bet from a signed-in wallet with the picked outcome and stake", async () => {
+    let placed: Record<string, unknown> | null = null;
+    server.use(
+      http.post("/api/zeroproof/bets", async ({ request }) => {
+        placed = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ id: "bet-1" });
+      }),
+    );
+    renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    fireEvent.change(within(slip).getByLabelText(/stake/i), {
+      target: { value: "25" },
+    });
+    fireEvent.click(within(slip).getByRole("button", { name: /place bet/i }));
+    await waitFor(() => expect(placed).not.toBeNull());
+    expect(placed).toMatchObject({
+      walletId: "w1",
+      eventId: "evt-1",
+      market: "h2h",
+      selection: "Celtics",
+      stakeCents: 2500,
+    });
   });
 });

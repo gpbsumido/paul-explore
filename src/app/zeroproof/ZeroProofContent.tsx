@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   eventsResponseSchema,
@@ -46,18 +47,40 @@ function formatKickoff(iso: string): string {
   });
 }
 
-function OutcomeRow({
+type SelectedBet = {
+  eventId: string;
+  eventLabel: string;
+  market: string;
+  selection: string;
+  point: number | undefined;
+  price: number;
+};
+
+function OutcomeButton({
   name,
   point,
   price,
+  selected,
+  onPick,
 }: {
   name: string;
   point: number | undefined;
   price: number;
+  selected: boolean;
+  onPick: () => void;
 }) {
   const line = formatPoint(point);
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+    <button
+      type="button"
+      onClick={onPick}
+      aria-pressed={selected}
+      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
+        selected
+          ? "border-primary-500 bg-primary-500/10"
+          : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
+      }`}
+    >
       <span className="truncate text-foreground">
         {name}
         {line && <span className="ml-1 text-muted">{line}</span>}
@@ -65,11 +88,20 @@ function OutcomeRow({
       <span className="font-mono tabular-nums text-foreground">
         {formatAmerican(price)}
       </span>
-    </div>
+    </button>
   );
 }
 
-function EventCard({ event }: { event: ZeroproofEvent }) {
+function EventCard({
+  event,
+  selected,
+  onPick,
+}: {
+  event: ZeroproofEvent;
+  selected: SelectedBet | null;
+  onPick: (bet: SelectedBet) => void;
+}) {
+  const label = `${event.away} @ ${event.home}`;
   return (
     <li className="rounded-2xl border border-border bg-surface/50 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -97,14 +129,32 @@ function EventCard({ event }: { event: ZeroproofEvent }) {
                 {marketLabel(market.market)}
               </h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {market.outcomes.map((outcome) => (
-                  <OutcomeRow
-                    key={`${outcome.name}-${outcome.point ?? ""}`}
-                    name={outcome.name}
-                    point={outcome.point}
-                    price={outcome.priceAmerican}
-                  />
-                ))}
+                {market.outcomes.map((outcome) => {
+                  const isSelected =
+                    selected !== null &&
+                    selected.eventId === event.id &&
+                    selected.market === market.market &&
+                    selected.selection === outcome.name;
+                  return (
+                    <OutcomeButton
+                      key={`${outcome.name}-${outcome.point ?? ""}`}
+                      name={outcome.name}
+                      point={outcome.point}
+                      price={outcome.priceAmerican}
+                      selected={isSelected}
+                      onPick={() =>
+                        onPick({
+                          eventId: event.id,
+                          eventLabel: label,
+                          market: market.market,
+                          selection: outcome.name,
+                          point: outcome.point,
+                          price: outcome.priceAmerican,
+                        })
+                      }
+                    />
+                  );
+                })}
               </div>
             </section>
           ))}
@@ -114,7 +164,13 @@ function EventCard({ event }: { event: ZeroproofEvent }) {
   );
 }
 
-function Slate() {
+function Slate({
+  selected,
+  onPick,
+}: {
+  selected: SelectedBet | null;
+  onPick: (bet: SelectedBet) => void;
+}) {
   const eventsQuery = useQuery({
     queryKey: queryKeys.zeroproof.events(),
     queryFn: () => getJson("/api/zeroproof/events"),
@@ -153,7 +209,12 @@ function Slate() {
       {eventsQuery.data && eventsQuery.data.events.length > 0 && (
         <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {eventsQuery.data.events.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventCard
+              key={event.id}
+              event={event}
+              selected={selected}
+              onPick={onPick}
+            />
           ))}
         </ul>
       )}
@@ -317,6 +378,204 @@ function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
   );
 }
 
+function useOpenWallet() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (mode: "season" | "challenge") => {
+      const res = await fetch("/api/zeroproof/wallets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(body?.error ?? `Couldn't open a wallet (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() }),
+  });
+}
+
+const openWalletButton =
+  "inline-flex h-9 items-center rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
+
+function OpenWalletActions() {
+  const open = useOpenWallet();
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => open.mutate("season")}
+          disabled={open.isPending}
+          className={openWalletButton}
+        >
+          Open a Season wallet
+        </button>
+        <button
+          type="button"
+          onClick={() => open.mutate("challenge")}
+          disabled={open.isPending}
+          className={openWalletButton}
+        >
+          Open a Challenge wallet
+        </button>
+      </div>
+      {open.isError && (
+        <p className="mt-2 text-xs text-error-600 dark:text-error-300">
+          {(open.error as Error).message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Dollars typed by a person to positive integer cents, or null if not valid. */
+function centsFromDollars(input: string): number | null {
+  const n = Number.parseFloat(input);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 100);
+}
+
+function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
+  const queryClient = useQueryClient();
+  const profileQuery = useQuery({
+    queryKey: queryKeys.zeroproof.me(),
+    queryFn: fetchProfile,
+    staleTime: 60 * 1000,
+  });
+  const [stake, setStake] = useState("");
+  const [walletId, setWalletId] = useState("");
+
+  const signedOut = profileQuery.data?.signedOut ?? false;
+  const wallets =
+    profileQuery.data && !profileQuery.data.signedOut
+      ? profileQuery.data.wallets
+      : [];
+  const activeWallet = walletId || wallets[0]?.id || "";
+  const stakeCents = centsFromDollars(stake);
+
+  const placeBet = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/zeroproof/bets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletId: activeWallet,
+          eventId: bet.eventId,
+          market: bet.market,
+          selection: bet.selection,
+          stakeCents,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(body?.error ?? `Couldn't place the bet (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
+      setStake("");
+    },
+  });
+
+  return (
+    <div
+      role="region"
+      aria-label="Bet slip"
+      className="mt-6 rounded-2xl border border-primary-500/40 bg-surface p-5"
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Bet slip</h2>
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-sm text-muted hover:text-foreground"
+        >
+          Clear
+        </button>
+      </div>
+      <p className="mt-2 text-sm text-muted">{bet.eventLabel}</p>
+      <p className="text-foreground">
+        <span className="font-medium">{bet.selection}</span>{" "}
+        {formatPoint(bet.point) && (
+          <span className="text-muted">{formatPoint(bet.point)} </span>
+        )}
+        <span className="font-mono tabular-nums">{formatAmerican(bet.price)}</span>
+      </p>
+
+      {signedOut ? (
+        <Link
+          href="/auth/login"
+          className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+        >
+          Sign in to bet
+        </Link>
+      ) : wallets.length === 0 ? (
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-muted">Open a wallet to place this bet.</p>
+          <OpenWalletActions />
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          {wallets.length > 1 && (
+            <label className="text-xs text-muted">
+              Wallet
+              <select
+                value={activeWallet}
+                onChange={(e) => setWalletId(e.target.value)}
+                className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+              >
+                {wallets.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.mode} — {formatCents(w.balanceCents)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label className="text-xs text-muted">
+            Stake
+            <input
+              inputMode="decimal"
+              value={stake}
+              onChange={(e) => setStake(e.target.value)}
+              placeholder="$0.00"
+              className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => placeBet.mutate()}
+            disabled={stakeCents === null || placeBet.isPending}
+            className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
+          >
+            {placeBet.isPending ? "Placing…" : "Place bet"}
+          </button>
+        </div>
+      )}
+
+      {placeBet.isError && (
+        <p className="mt-2 text-xs text-error-600 dark:text-error-300">
+          {(placeBet.error as Error).message}
+        </p>
+      )}
+      {placeBet.isSuccess && (
+        <p className="mt-2 text-xs text-success-600 dark:text-success-300">
+          Bet placed — your balance is updated below.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function Profile() {
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
@@ -396,15 +655,22 @@ function Profile() {
           </dl>
 
           {profileQuery.data.wallets.length > 0 ? (
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {profileQuery.data.wallets.map((wallet) => (
-                <WalletCard key={wallet.id} wallet={wallet} />
-              ))}
-            </ul>
+            <div className="space-y-4">
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {profileQuery.data.wallets.map((wallet) => (
+                  <WalletCard key={wallet.id} wallet={wallet} />
+                ))}
+              </ul>
+              <OpenWalletActions />
+            </div>
           ) : (
-            <p className="text-sm text-muted">
-              No wallet open yet — opening one comes with the bet slip.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted">
+                No wallet open yet. Lock a simulated deposit to start betting the
+                board — you get it back at term end whatever your record.
+              </p>
+              <OpenWalletActions />
+            </div>
           )}
 
           {profileQuery.data.accolades.length > 0 && (
@@ -426,11 +692,13 @@ function Profile() {
 }
 
 /**
- * The public face of ZeroProof: read-only for now. It reads the same slate the
- * bet slip will be built on, so the lobby is honest about what's live before a
- * single bet can be placed.
+ * The public face of ZeroProof. The board is live, the profile and bet slip are
+ * gated on a signed-in wallet: picking an outcome fills the slip, and the slip
+ * places against the same slate the settler grades.
  */
 export default function ZeroProofContent() {
+  const [selectedBet, setSelectedBet] = useState<SelectedBet | null>(null);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <header>
@@ -451,8 +719,11 @@ export default function ZeroProofContent() {
         </p>
       </header>
 
+      {selectedBet && (
+        <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
+      )}
       <Profile />
-      <Slate />
+      <Slate selected={selectedBet} onPick={setSelectedBet} />
       <Leaderboard />
     </div>
   );
