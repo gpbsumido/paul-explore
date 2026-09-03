@@ -12,7 +12,7 @@ import { SHELL } from "../shell";
  *
  * The heading here is the page's LCP element, and Chrome does not count an
  * element as painted until it is visible. Anything that starts at `opacity: 0`
- * — framer's `initial`, or `.reveal-up`'s keyframe — therefore defers LCP until
+ * (framer's `initial`, or `.reveal-up`'s keyframe) therefore defers LCP until
  * the fade runs, which on a busy main thread is seconds after first paint. So
  * the above-the-fold text uses `.rise-in`: the same slide on transform alone,
  * opacity held at 1, painted on the first frame. Each element carries its own
