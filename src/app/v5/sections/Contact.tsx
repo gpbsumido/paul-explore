@@ -1,5 +1,3 @@
-"use client";
-
 import MagneticButton from "@/components/motion/MagneticButton";
 import SpotlightCard from "@/components/motion/SpotlightCard";
 import TextReveal from "@/components/motion/TextReveal";

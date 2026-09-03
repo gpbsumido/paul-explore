@@ -1,12 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import AnimatedNumber from "@/components/motion/AnimatedNumber";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 import { SHELL } from "../shell";
-
-const comma = (n: number) => n.toLocaleString("en-US");
 
 /**
  * Every figure here is imported, not typed.
@@ -16,14 +12,14 @@ const comma = (n: number) => n.toLocaleString("en-US");
  * case. A guard test asserts against the same imports for the same reason.
  */
 const FIGURES = [
-  { value: TEST_COUNT, format: comma, caption: "tests, written first" },
-  { value: FEATURES.length, format: String, caption: "apps, all of them live" },
+  { value: TEST_COUNT, format: "comma", caption: "tests, written first" },
+  { value: FEATURES.length, format: "plain", caption: "apps, all of them live" },
   {
     value: THOUGHTS.length,
-    format: String,
+    format: "plain",
     caption: "write-ups on how they were built",
   },
-];
+] as const;
 
 /**
  * The claim check, directly under the hero.

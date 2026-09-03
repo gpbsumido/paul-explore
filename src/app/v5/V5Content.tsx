@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import LandingActions from "@/app/v4/LandingActions";

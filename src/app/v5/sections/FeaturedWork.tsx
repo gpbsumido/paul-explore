@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
-import { m } from "framer-motion";
 import TextReveal from "@/components/motion/TextReveal";
+import RevealOnScroll from "@/components/motion/RevealOnScroll";
 import { FEATURES } from "@/app/_shared/featureData.data";
-import { useHubReducedMotion } from "@/app/providers";
 import { FEATURED, previewSrc } from "../featured";
 import { SHELL, BAND } from "../shell";
 
@@ -55,7 +52,6 @@ const SPAN: Record<number, string> = {
  * surface.
  */
 export default function FeaturedWork() {
-  const reducedMotion = useHubReducedMotion();
   const picks = FEATURED.flatMap((pick) => {
     const feature = FEATURES.find((f) => f.id === pick.id);
     return feature ? [{ ...pick, feature }] : [];
@@ -75,17 +71,14 @@ export default function FeaturedWork() {
           {picks.map(({ feature, pitch, span }, index) => {
             const wide = span >= 4;
             return (
-              <m.article
+              <RevealOnScroll
+                as="article"
                 key={feature.id}
                 className={SPAN[span]}
-                initial={reducedMotion ? false : { opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{
-                  duration: 0.5,
-                  delay: index * 0.05,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
+                y={24}
+                amount={0.2}
+                duration={0.5}
+                delay={index * 0.05}
               >
                 <Link
                   href={feature.href}
@@ -118,7 +111,7 @@ export default function FeaturedWork() {
                     Open &rarr;
                   </span>
                 </Link>
-              </m.article>
+              </RevealOnScroll>
             );
           })}
         </div>

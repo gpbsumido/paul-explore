@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import BlobBackground from "@/components/motion/BlobBackground";
 import MagneticButton from "@/components/motion/MagneticButton";
