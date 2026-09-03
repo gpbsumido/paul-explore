@@ -272,5 +272,8 @@ export const queryKeys = {
 
     /** The public sharp-score leaderboard. */
     leaderboard: () => ["zeroproof", "leaderboard"] as const,
+
+    /** The signed-in player's profile: stats, wallets, accolades. */
+    me: () => ["zeroproof", "me"] as const,
   },
 } as const;

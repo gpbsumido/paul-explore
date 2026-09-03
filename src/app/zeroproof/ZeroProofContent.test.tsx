@@ -53,12 +53,43 @@ const LEADERBOARD = {
   ],
 };
 
-const renderPage = () => {
+const PROFILE = {
+  stats: {
+    wins: 18,
+    losses: 11,
+    pushes: 2,
+    betCount: 29,
+    roiPct: 8.4,
+    currentStreak: 3,
+    longestStreak: 6,
+    biggestHitCents: 4200,
+    clvAvgPct: 2.1,
+    sharpScore: 72.5,
+  },
+  wallets: [
+    {
+      id: "w1",
+      mode: "season",
+      principalCents: 10000,
+      balanceCents: 11840,
+      lockStart: "2026-09-01T00:00:00.000Z",
+      lockEnd: "2026-12-01T00:00:00.000Z",
+      status: "active",
+      createdAt: "2026-09-01T00:00:00.000Z",
+    },
+  ],
+  accolades: [{ id: "first_win", name: "First Win", awardedAt: "2026-09-02T00:00:00.000Z" }],
+};
+
+const renderPage = (
+  meResponse: () => Response = () => new HttpResponse(null, { status: 401 }),
+) => {
   server.use(
     http.get("/api/zeroproof/events", () => HttpResponse.json(EVENTS)),
     http.get("/api/zeroproof/leaderboard", () =>
       HttpResponse.json(LEADERBOARD),
     ),
+    http.get("/api/zeroproof/me", () => meResponse()),
   );
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -125,5 +156,29 @@ describe("ZeroProofContent — leaderboard", () => {
     renderPage();
     await screen.findByRole("table", { name: /leaderboard/i });
     expect(screen.getByText("41-22-3")).toBeInTheDocument();
+  });
+});
+
+describe("ZeroProofContent — profile", () => {
+  it("prompts a signed-out visitor to sign in", async () => {
+    renderPage();
+    const cta = await screen.findByRole("link", { name: /sign in/i });
+    expect(cta).toHaveAttribute("href", "/auth/login");
+  });
+
+  it("shows a signed-in player's stats, wallet balance, and accolades", async () => {
+    renderPage(() => HttpResponse.json(PROFILE));
+    // stats
+    expect(await screen.findByText("18-11-2")).toBeInTheDocument();
+    expect(screen.getByText("+8.4%")).toBeInTheDocument();
+    // wallet balance in dollars from cents
+    expect(screen.getByText("$118.40")).toBeInTheDocument();
+    // accolade
+    expect(screen.getByText("First Win")).toBeInTheDocument();
+  });
+
+  it("tells a signed-in player with no wallet where opening one lives", async () => {
+    renderPage(() => HttpResponse.json({ ...PROFILE, wallets: [] }));
+    expect(await screen.findByText(/no wallet open yet/i)).toBeInTheDocument();
   });
 });

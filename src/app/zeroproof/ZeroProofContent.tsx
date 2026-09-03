@@ -6,15 +6,22 @@ import { queryKeys } from "@/lib/queryKeys";
 import {
   eventsResponseSchema,
   leaderboardResponseSchema,
+  profileResponseSchema,
 } from "@/lib/zeroproof/schemas";
 import type {
   ZeroproofEvent,
   LeaderboardEntry,
+  ProfileStats,
+  ZeroproofWallet,
+  Accolade,
 } from "@/lib/zeroproof/schemas";
 import {
   formatAmerican,
+  formatCents,
   formatPoint,
   formatRecord,
+  formatSignedPct,
+  formatStreak,
   marketLabel,
   playerHandle,
   sortMarkets,
@@ -259,6 +266,165 @@ function Leaderboard() {
   );
 }
 
+type ProfileResult =
+  | { signedOut: true }
+  | {
+      signedOut: false;
+      stats: ProfileStats;
+      wallets: ZeroproofWallet[];
+      accolades: Accolade[];
+    };
+
+async function fetchProfile(): Promise<ProfileResult> {
+  const res = await fetch("/api/zeroproof/me");
+  if (res.status === 401) return { signedOut: true };
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  const parsed = profileResponseSchema.parse(await res.json());
+  return { signedOut: false, ...parsed };
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface/50 px-3 py-2">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-0.5 font-mono text-lg tabular-nums text-foreground">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
+  return (
+    <li className="rounded-xl border border-border bg-surface/50 p-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-foreground capitalize">
+          {wallet.mode}
+        </span>
+        <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-muted capitalize">
+          {wallet.status}
+        </span>
+      </div>
+      <div className="mt-3 flex items-baseline justify-between">
+        <span className="font-mono text-2xl tabular-nums text-foreground">
+          {formatCents(wallet.balanceCents)}
+        </span>
+        <span className="text-xs text-muted">
+          of {formatCents(wallet.principalCents)} locked
+        </span>
+      </div>
+    </li>
+  );
+}
+
+function Profile() {
+  const profileQuery = useQuery({
+    queryKey: queryKeys.zeroproof.me(),
+    queryFn: fetchProfile,
+    staleTime: 60 * 1000,
+  });
+
+  return (
+    <section aria-labelledby="profile-title" className="mt-12">
+      <h2 id="profile-title" className="text-xl font-semibold text-foreground">
+        Your record
+      </h2>
+
+      {profileQuery.isLoading && (
+        <p className="mt-6 text-sm text-muted" role="status">
+          Loading your profile…
+        </p>
+      )}
+
+      {profileQuery.isError && (
+        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
+          Couldn&apos;t load your profile right now.
+        </p>
+      )}
+
+      {profileQuery.data?.signedOut && (
+        <div className="mt-4 rounded-2xl border border-border bg-surface/50 p-6">
+          <p className="text-sm text-muted">
+            Sign in to open a wallet, track your bets, and build a record you can
+            show off.
+          </p>
+          <Link
+            href="/auth/login"
+            className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+          >
+            Sign in
+          </Link>
+        </div>
+      )}
+
+      {profileQuery.data && !profileQuery.data.signedOut && (
+        <div className="mt-6 space-y-6">
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Stat label="Record" value={formatRecord(profileQuery.data.stats)} />
+            <Stat
+              label="ROI"
+              value={formatSignedPct(profileQuery.data.stats.roiPct)}
+            />
+            <Stat
+              label="Sharp score"
+              value={
+                profileQuery.data.stats.sharpScore === null
+                  ? "—"
+                  : String(profileQuery.data.stats.sharpScore)
+              }
+            />
+            <Stat
+              label="Avg CLV"
+              value={formatSignedPct(profileQuery.data.stats.clvAvgPct)}
+            />
+            <Stat
+              label="Streak"
+              value={formatStreak(profileQuery.data.stats.currentStreak)}
+            />
+            <Stat
+              label="Best streak"
+              value={`W${profileQuery.data.stats.longestStreak}`}
+            />
+            <Stat
+              label="Biggest hit"
+              value={formatCents(profileQuery.data.stats.biggestHitCents)}
+            />
+            <Stat
+              label="Bets"
+              value={String(profileQuery.data.stats.betCount)}
+            />
+          </dl>
+
+          {profileQuery.data.wallets.length > 0 ? (
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {profileQuery.data.wallets.map((wallet) => (
+                <WalletCard key={wallet.id} wallet={wallet} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted">
+              No wallet open yet — opening one comes with the bet slip.
+            </p>
+          )}
+
+          {profileQuery.data.accolades.length > 0 && (
+            <ul className="flex flex-wrap gap-2" aria-label="Accolades">
+              {profileQuery.data.accolades.map((accolade) => (
+                <li
+                  key={accolade.id}
+                  className="rounded-full border border-primary-500/40 bg-primary-500/10 px-3 py-1 text-xs text-primary-700 dark:text-primary-300"
+                >
+                  {accolade.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 /**
  * The public face of ZeroProof: read-only for now. It reads the same slate the
  * bet slip will be built on, so the lobby is honest about what's live before a
@@ -285,6 +451,7 @@ export default function ZeroProofContent() {
         </p>
       </header>
 
+      <Profile />
       <Slate />
       <Leaderboard />
     </div>

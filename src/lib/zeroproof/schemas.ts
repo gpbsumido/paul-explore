@@ -52,6 +52,45 @@ export const leaderboardResponseSchema = z.object({
   entries: z.array(leaderboardEntrySchema),
 });
 
+// The signed-in player's profile: stats, wallets, and earned accolades. Money
+// is integer cents; timestamps are ISO strings; clvAvgPct and sharpScore are
+// null until enough graded bets carry them.
+export const walletSchema = z.object({
+  id: z.string(),
+  mode: z.string(), // 'season' | 'challenge'
+  principalCents: z.number(),
+  balanceCents: z.number(),
+  lockStart: z.string(),
+  lockEnd: z.string(),
+  status: z.string(), // 'active' | 'busted' | 'refunded'
+  createdAt: z.string(),
+});
+
+export const profileStatsSchema = z.object({
+  wins: z.number(),
+  losses: z.number(),
+  pushes: z.number(),
+  betCount: z.number(),
+  roiPct: z.number(),
+  currentStreak: z.number(),
+  longestStreak: z.number(),
+  biggestHitCents: z.number(),
+  clvAvgPct: z.number().nullable(),
+  sharpScore: z.number().nullable(),
+});
+
+export const accoladeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  awardedAt: z.string(),
+});
+
+export const profileResponseSchema = z.object({
+  stats: profileStatsSchema,
+  wallets: z.array(walletSchema),
+  accolades: z.array(accoladeSchema),
+});
+
 export type ZeroproofMarket = z.infer<typeof marketSchema>;
 // The read-model types the ZeroProof lobby/leaderboard consume. They land a
 // stacked PR ahead of their first import, so the dead-code check would flag
@@ -60,3 +99,6 @@ export type ZeroproofMarket = z.infer<typeof marketSchema>;
 export type ZeroproofEvent = z.infer<typeof eventSchema>;
 // ts-prune-ignore-next
 export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;
+export type ProfileStats = z.infer<typeof profileStatsSchema>;
+export type ZeroproofWallet = z.infer<typeof walletSchema>;
+export type Accolade = z.infer<typeof accoladeSchema>;

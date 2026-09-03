@@ -69,3 +69,27 @@ export function formatRecord(entry: {
 }): string {
   return `${entry.wins}-${entry.losses}-${entry.pushes}`;
 }
+
+/** Integer cents as a dollar amount, e.g. 12345 -> `$123.45`. */
+export function formatCents(cents: number): string {
+  return (cents / 100).toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+}
+
+/** A signed percentage, e.g. 12.5 -> `+12.5%`, null -> `—`. */
+export function formatSignedPct(pct: number | null): string {
+  if (pct === null) return "—";
+  return `${pct > 0 ? "+" : ""}${pct}%`;
+}
+
+/**
+ * A current streak as a readable run: positive is a win streak, negative a
+ * losing one, zero is nothing going.
+ */
+export function formatStreak(streak: number): string {
+  if (streak === 0) return "—";
+  const n = Math.abs(streak);
+  return streak > 0 ? `W${n}` : `L${n}`;
+}
