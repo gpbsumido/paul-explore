@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.6
+
+- **The ZeroProof leaderboard toggles between Sharp and ROI.** A segmented control on the board flips the ranking: Sharp (closing-line value rolled up with return and volume) or ROI (return on stake, where high variance can top a board a sharp score wouldn't). The API already served both — `?board=roi` — so this forwards the choice through the proxy and keys the query by board so each is cached on its own. A test flips to ROI and asserts the board re-ranks.
+
 ## 2026-09-03 - version 5.22.5
 
 - **The ZeroProof profile shows your bet history.** A "Recent bets" list under the wallets: each bet's selection and market, the stake, the odds locked at placement, its result (won/lost/push/void, colour-coded), and the closing-line value the settler stamped once it graded. It reads the new authed `GET /api/zeroproof/bets` (Zod-validated, 401 without a session), so every decision sits next to how the market moved on it — the record a no-loss book is actually about. Tested against a mocked history: a graded win renders with its result and `CLV +7.9%`.
