@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import TextReveal from "@/components/motion/TextReveal";
 import { THOUGHTS } from "@/app/_shared/featureData.data";

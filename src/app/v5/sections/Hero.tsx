@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import BlobBackground from "@/components/motion/BlobBackground";
 import MagneticButton from "@/components/motion/MagneticButton";
@@ -8,13 +6,16 @@ import { HERO_TAGLINES } from "../taglines";
 import { SHELL } from "../shell";
 
 /**
- * Entrances above the fold are CSS, never framer.
+ * Entrances above the fold slide, they never fade.
  *
- * framer's `initial` ships the largest text on the page as `opacity: 0` in the
- * server HTML, and LCP then waits for hydration. `.reveal-up` animates from a
- * stylesheet the browser already has, so the headline is painted and readable
- * on the first frame either way. Each element carries its own delay, which is
- * what makes the stagger.
+ * The heading here is the page's LCP element, and Chrome does not count an
+ * element as painted until it is visible. Anything that starts at `opacity: 0`
+ * (framer's `initial`, or `.reveal-up`'s keyframe) therefore defers LCP until
+ * the fade runs, which on a busy main thread is seconds after first paint. So
+ * the above-the-fold text uses `.rise-in`: the same slide on transform alone,
+ * opacity held at 1, painted on the first frame. Each element carries its own
+ * delay, which is what makes the stagger. `.reveal-up` still drives the scene
+ * on the right, which is below the LCP text and free to fade.
  */
 const rise = (ms: number) => ({ animationDelay: `${ms}ms` });
 
@@ -58,28 +59,28 @@ export default function Hero({ taglineIndex = 0 }: { taglineIndex?: number }) {
         <div className="lg:col-span-7">
           <h1
             id="hero-title"
-            className="reveal-up font-display text-5xl leading-[0.95] font-semibold tracking-tight sm:text-6xl lg:text-7xl"
+            className="rise-in font-display text-5xl leading-[0.95] font-semibold tracking-tight sm:text-6xl lg:text-7xl"
             style={rise(0)}
           >
             Paul Sumido
           </h1>
 
           <p
-            className="reveal-up mt-4 text-xl font-medium text-primary-700 sm:text-2xl dark:text-primary-300"
+            className="rise-in mt-4 text-xl font-medium text-primary-700 sm:text-2xl dark:text-primary-300"
             style={rise(90)}
           >
             Lead Frontend Developer
           </p>
 
           <p
-            className="reveal-up mt-6 max-w-[38ch] text-lg leading-relaxed text-muted sm:text-xl"
+            className="rise-in mt-6 max-w-[38ch] text-lg leading-relaxed text-muted sm:text-xl"
             style={rise(180)}
           >
             {tagline}
           </p>
 
           <div
-            className="reveal-up mt-10 flex flex-wrap items-center gap-3"
+            className="rise-in mt-10 flex flex-wrap items-center gap-3"
             style={rise(270)}
           >
             <MagneticButton strength={0.3}>

@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -581,14 +581,201 @@ const FeaturesSection = dynamic(
           , the effect returns early and lets the navigation complete.
         </p>
       </section>
+
+      <Update
+        id="update-2026-09-02-hero-lcp"
+        date="September 2, 2026"
+        title="The homepage was hiding its own headline from the LCP clock"
+      >
+        <p>
+          The vitals dashboard had gone red again — the by-page table showed the
+          home LCP up around ten seconds and half the thoughts pages in the Poor
+          band. I nearly took it at face value and started tearing pages apart. I
+          didn&apos;t, and that turned out to matter twice.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The dashboard said ten seconds; the lab said the page painted fine
+        </h3>
+        <p className="text-muted">
+          Before touching a page I ran Lighthouse against a production build
+          under mobile throttling, which is the closest a lab gets to the slow
+          real devices behind a P75. First contentful paint came back around a
+          second everywhere. The problem wasn&apos;t that nothing painted — it
+          was that the <em>largest</em> thing painted seconds later.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`/ (home, mobile, throttled)   FCP 1.1s   LCP 6.3s   TBT 190ms
+                              the 5s gap is one element: the hero <h1>`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The comment right above the code said this was already handled
+        </h3>
+        <p className="text-muted">
+          The hero heading animates in with a class called{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .reveal-up
+          </code>
+          , and I&apos;d left myself a confident note next to it: entrances above
+          the fold are CSS and never framer, so the headline is painted on the
+          first frame either way. That reasoning is half right. Framer ships the
+          element as{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            opacity: 0
+          </code>{" "}
+          and waits on hydration, which CSS does avoid — but the keyframe itself
+          also starts at{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            opacity: 0
+          </code>
+          , and Chrome doesn&apos;t count an element as painted until it&apos;s
+          visible. CSS versus framer was never the axis that mattered. Opacity
+          was. The largest text on the page sat invisible until the fade ran, and
+          under a busy main thread the fade ran late.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Slide it in on transform, hold opacity at one
+        </h3>
+        <p className="text-muted">
+          The fix is a sibling class,{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .rise-in
+          </code>{" "}
+          — the same twenty-pixel slide, on transform alone, opacity pinned at 1
+          the whole way. An element offset by a translate is still painted; only
+          its position moves. So the heading counts as visible on the first frame
+          and LCP stops waiting. I used it only for the above-the-fold hero text;{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .reveal-up
+          </code>{" "}
+          still fades everything below the fold, where the LCP clock has already
+          stopped.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`home LCP, mobile throttled, median of 6 runs
+  before  6.3s   (heading waiting to fade in)
+  after   3.2s   (heading painted on frame 1)`}
+        </pre>
+        <p className="mt-3 text-muted">
+          I&apos;m not going to call 3.2s good — it&apos;s still short of the
+          2.5s line. But the remaining time isn&apos;t the entrance any more,
+          it&apos;s client-JS bootup around the 3D hero, which is a different job
+          with a bigger blast radius. The entrance was the cheap, certain three
+          seconds, and it&apos;s a fix I can pin: a test asserts the heading uses{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .rise-in
+          </code>{" "}
+          and that{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .rise-in
+          </code>{" "}
+          never touches opacity, so nobody re-gates it by reflex.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The other half of &quot;the dashboard is red&quot; wasn&apos;t a page at all
+        </h3>
+        <p className="text-muted">
+          The reason I didn&apos;t go page-smashing: most of the red cells were
+          on pages with seven to thirty samples, and a P75 over a handful of
+          samples is two slow phones and a guess. <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/research</code>{" "}
+          was the giveaway — a CLS of 0.716 sitting next to LCP/FCP/INP that read
+          perfectly fine, off a sample count too small to trust. That&apos;s not
+          a layout bug; it&apos;s an untrustworthy number wearing a real one&apos;s
+          clothes. The floor on a cell&apos;s sample count lived per page, not per
+          metric, so a page could clear it while one metric had three samples.
+          The fix for that is in the API, not here: a per-metric sample floor, so
+          a cell only shows once enough data backs it. The lesson for this page is
+          the older one — measure the true signal before you believe the
+          convenient one.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-03-landing-islands"
+        date="September 3, 2026"
+        title="I went hunting for three more seconds of LCP and found an architecture problem instead"
+      >
+        <p>
+          The entrance fix halved the home LCP but left it at ~3.2s in the lab,
+          short of the 2.5s line. The obvious next move was the 161 KiB of unused
+          JavaScript the audit kept flagging on the hero. I almost spent a day on
+          it. Measuring first is the only reason I didn&apos;t.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The unused JavaScript was the 3D hero, and it loads after LCP
+        </h3>
+        <p className="text-muted">
+          The two heavy chunks are three.js and its React renderer — already
+          lazy-loaded behind an idle callback and a WebGL check, so they arrive
+          late and on their own. I blocked them outright in Lighthouse to see what
+          they cost the paint. The answer was nothing:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`home LCP, mobile throttled
+  with three.js    3224 ms    TBT 107 ms
+  three.js blocked 3222 ms    TBT  33 ms   <- LCP unchanged`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Its long tasks land at 6.6s, well after the 3.2s LCP. Trimming it would
+          buy back some TBT and bandwidth, but not one millisecond of LCP. The
+          premise was wrong.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The lab&apos;s 3.2s is a projection; the real number was already fixed
+        </h3>
+        <p className="text-muted">
+          The LCP element is the hero tagline — stable server-rendered text, no
+          hydration swap — and its observed render delay is 94ms. The 3.2s is
+          lantern&apos;s model of the throttled critical path, not a defect I can
+          point at. Real-user LCP tracks the ~1.2s the text actually paints at.
+          The entrance fix was the whole win; there was no second three seconds to
+          find.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          So I fixed the thing that was actually wrong: the boundary
+        </h3>
+        <p className="text-muted">
+          What the profiling did surface was an architecture smell. The landing&apos;s
+          top component was <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">&quot;use client&quot;</code>{" "}
+          and did nothing but forward props, and under it seven sections with no
+          state at all hydrated in full — shipping ~843 lines of static content
+          data to the browser for markup that never changes. So the sections are
+          server components again, and only the interactive leaves stay client:
+          the session control, the scroll bar, the 3D scene, and one new{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">RevealOnScroll</code>{" "}
+          island that replaced the same scroll-reveal copy-pasted into two
+          sections.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`First Load JS for /   792 KiB -> 770 KiB
+craft-trait data      in a client chunk -> server HTML only`}
+        </pre>
+        <p className="mt-3 text-muted">
+          This does not move LCP either, and I shipped it anyway — not to chase the
+          number, but because the correct boundary is better engineering and the
+          data belongs on the server. The honest lesson repeats the one from the
+          entrance fix: measure the true signal before you spend a day on the
+          convenient one.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "The five vitals treated separately, because they fail for different reasons and a single performance score hides which one moved.",
           "ISR for TTFB and server-seeded content for LCP — fixes matched to the metric rather than general advice applied everywhere.",
+          "The hero heading painted on the first frame instead of fading in, which halved the home LCP under throttling.",
+          "The landing served as a server tree with client islands, so its static data stays out of the browser bundle.",
+          "A per-metric sample floor on the by-page table, so a cell needs enough data before it shows a score — the noisy small-sample cells stop reading as real regressions.",
         ]}
         couldImprove={[
+          "Home LCP is down but not yet good, and the last of it is the lab's projection of the critical path, not a single element I can point at — real-user LCP already tracks the ~1.2s the text paints at.",
           "The work is recorded and not defended: nothing fails a build when a metric regresses, so these gains rely on nobody undoing them.",
-          "Measurement is P75 across the site rather than per route, so one slow page hides inside the aggregate.",
         ]}
         upcoming={[
           "Per-route budgets on the vitals page, which is the change that would turn all of this from a past effort into a standing guarantee.",
