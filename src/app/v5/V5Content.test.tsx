@@ -76,6 +76,18 @@ describe("V5Content", () => {
     expect(block).not.toContain("opacity");
   });
 
+  it("composites the rise-in entrance so it doesn't jank on a busy main thread", () => {
+    // The entrance fires while the page hydrates and the 3D hero chunk parses.
+    // Without a compositor layer the transform runs on the main thread and drops
+    // frames under that load — the choppy entrance. will-change promotes it.
+    const css = readFileSync(
+      join(process.cwd(), "src/app/globals.css"),
+      "utf8",
+    );
+    const rule = css.match(/\.rise-in\s*\{([\s\S]*?)\}/);
+    expect(rule?.[1] ?? "").toMatch(/will-change:\s*transform/);
+  });
+
   it("states the lead frontend positioning, which is the job the page is for", () => {
     renderPage();
     expect(screen.getByText(/Lead Frontend Developer/i)).toBeInTheDocument();
