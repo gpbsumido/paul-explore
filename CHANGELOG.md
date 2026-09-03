@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09-03 - version 5.21.3
+
+- **The homepage stopped hiding its own headline from the LCP clock.** The hero `h1` is the page's largest contentful element, and it shipped with `.reveal-up`, whose keyframe fades opacity from 0. Chrome doesn't count an element as painted until it's visible, so on a mid-tier phone under a busy main thread the largest text landed seconds after first paint — Lighthouse (mobile, throttled) measured the home LCP at ~6.3s against an FCP of ~1.1s, the whole gap being the heading waiting to fade in. I added `.rise-in`, the same 20px slide on `transform` alone with opacity held at 1, and used it for the above-the-fold hero text; `.reveal-up` still drives everything below the fold, where a fade costs nothing. Home LCP dropped to ~3.2s median over six throttled runs. The remaining time is client-JS bootup, not the entrance, and is a separate job. Tests pin that the heading uses `.rise-in` and that `.rise-in` never animates opacity.
 ## 2026-09-03 - version 5.21.2
 
 - **New write-up: building a no-loss sportsbook, ledger first.** A dev-thoughts page on the ZeroProof API I built behind this site — a betting product where the record is real and the dollars are simulated. It walks the decisions that were expensive to reverse: a double-entry ledger with derived balances so the fake-money MVP can become real money without a rewrite, closing-line value captured on every bet from the first row because it's unrecoverable later, and a seven-PR stack where each slice deploys on its own. Filed under Architecture & Backend; a patch release, so it stays out of the curated `/updates` feed by design.
