@@ -30,9 +30,35 @@ const EVENTS = {
   ],
 };
 
+const LEADERBOARD = {
+  entries: [
+    {
+      userSub: "auth0|sharp-one",
+      wins: 41,
+      losses: 22,
+      pushes: 3,
+      betCount: 63,
+      roiPct: 14.2,
+      sharpScore: 88.5,
+    },
+    {
+      userSub: "auth0|sharp-two",
+      wins: 30,
+      losses: 28,
+      pushes: 1,
+      betCount: 58,
+      roiPct: 3.1,
+      sharpScore: 61.0,
+    },
+  ],
+};
+
 const renderPage = () => {
   server.use(
     http.get("/api/zeroproof/events", () => HttpResponse.json(EVENTS)),
+    http.get("/api/zeroproof/leaderboard", () =>
+      HttpResponse.json(LEADERBOARD),
+    ),
   );
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -80,5 +106,24 @@ describe("ZeroProofContent — slate", () => {
     await screen.findByRole("heading", { level: 3 });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+});
+
+describe("ZeroProofContent — leaderboard", () => {
+  it("ranks players by sharp score with an opaque handle, never the raw sub", async () => {
+    renderPage();
+    const board = await screen.findByRole("table", { name: /leaderboard/i });
+    const rows = within(board).getAllByRole("row");
+    // header + two players
+    expect(rows.length).toBeGreaterThanOrEqual(3);
+    // the raw Auth0 sub must never reach the DOM
+    expect(board.textContent).not.toContain("auth0|");
+    expect(board.textContent).toContain("88.5");
+  });
+
+  it("shows each player's win-loss-push record", async () => {
+    renderPage();
+    await screen.findByRole("table", { name: /leaderboard/i });
+    expect(screen.getByText("41-22-3")).toBeInTheDocument();
   });
 });

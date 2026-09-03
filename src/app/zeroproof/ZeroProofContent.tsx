@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { eventsResponseSchema } from "@/lib/zeroproof/schemas";
-import type { ZeroproofEvent } from "@/lib/zeroproof/schemas";
+import {
+  eventsResponseSchema,
+  leaderboardResponseSchema,
+} from "@/lib/zeroproof/schemas";
+import type {
+  ZeroproofEvent,
+  LeaderboardEntry,
+} from "@/lib/zeroproof/schemas";
 import {
   formatAmerican,
   formatPoint,
+  formatRecord,
   marketLabel,
+  playerHandle,
   sortMarkets,
 } from "@/lib/zeroproof/format";
 
@@ -146,6 +154,111 @@ function Slate() {
   );
 }
 
+function formatRoi(roiPct: number): string {
+  return `${roiPct > 0 ? "+" : ""}${roiPct}%`;
+}
+
+function LeaderboardRow({
+  entry,
+  rank,
+}: {
+  entry: LeaderboardEntry;
+  rank: number;
+}) {
+  return (
+    <tr className="border-b border-border last:border-0">
+      <td className="py-2 pr-3 text-muted tabular-nums">{rank}</td>
+      <td className="py-2 pr-3 font-mono text-foreground">
+        {playerHandle(entry.userSub)}
+      </td>
+      <td className="py-2 pr-3 tabular-nums text-muted">
+        {formatRecord(entry)}
+      </td>
+      <td className="py-2 pr-3 text-right tabular-nums text-foreground">
+        {formatRoi(entry.roiPct)}
+      </td>
+      <td className="py-2 text-right font-medium tabular-nums text-foreground">
+        {entry.sharpScore === null ? "—" : entry.sharpScore}
+      </td>
+    </tr>
+  );
+}
+
+function Leaderboard() {
+  const boardQuery = useQuery({
+    queryKey: queryKeys.zeroproof.leaderboard(),
+    queryFn: () => getJson("/api/zeroproof/leaderboard"),
+    select: (json) => leaderboardResponseSchema.parse(json),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return (
+    <section aria-labelledby="leaderboard-title" className="mt-12">
+      <h2 id="leaderboard-title" className="text-xl font-semibold text-foreground">
+        The sharp leaderboard
+      </h2>
+      <p className="mt-1 max-w-2xl text-sm text-muted">
+        Ranked by a sharp score — closing-line value rolled up with return and
+        volume, so it rewards beating the market, not just getting lucky.
+        Players are shown by an opaque handle; nobody&apos;s account is on
+        display.
+      </p>
+
+      {boardQuery.isLoading && (
+        <p className="mt-6 text-sm text-muted" role="status">
+          Loading the leaderboard…
+        </p>
+      )}
+
+      {boardQuery.isError && (
+        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
+          The leaderboard is unavailable right now.
+        </p>
+      )}
+
+      {boardQuery.data && boardQuery.data.entries.length === 0 && (
+        <p className="mt-6 text-sm text-muted">
+          No ranked players yet — the board fills once enough bets are graded.
+        </p>
+      )}
+
+      {boardQuery.data && boardQuery.data.entries.length > 0 && (
+        <div className="mt-6 overflow-x-auto">
+          <table
+            aria-label="Leaderboard"
+            className="w-full min-w-[28rem] text-left text-sm"
+          >
+            <thead>
+              <tr className="border-b border-border text-xs tracking-wide text-muted uppercase">
+                <th scope="col" className="py-2 pr-3 font-medium">
+                  #
+                </th>
+                <th scope="col" className="py-2 pr-3 font-medium">
+                  Player
+                </th>
+                <th scope="col" className="py-2 pr-3 font-medium">
+                  Record
+                </th>
+                <th scope="col" className="py-2 pr-3 text-right font-medium">
+                  ROI
+                </th>
+                <th scope="col" className="py-2 text-right font-medium">
+                  Sharp
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {boardQuery.data.entries.map((entry, i) => (
+                <LeaderboardRow key={entry.userSub} entry={entry} rank={i + 1} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /**
  * The public face of ZeroProof: read-only for now. It reads the same slate the
  * bet slip will be built on, so the lobby is honest about what's live before a
@@ -173,6 +286,7 @@ export default function ZeroProofContent() {
       </header>
 
       <Slate />
+      <Leaderboard />
     </div>
   );
 }
