@@ -765,6 +765,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   craft: "--color-feature-craft",
   "gallery-wall": "--color-feature-gallery-wall",
   updates: "--color-feature-updates",
+  zeroproof: "--color-feature-zeroproof",
 };
 
 // Mini changelog feed for the hub card: a category dot, a title, and a version
@@ -812,6 +813,32 @@ export function UpdatesPreview() {
 }
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
+const ZEROPROOF_PREVIEW = [
+  { away: "Lakers", home: "Celtics", odds: "+120" },
+  { away: "Chiefs", home: "Bills", odds: "-155" },
+];
+
+export function ZeroproofPreview() {
+  return (
+    <div className="space-y-1.5">
+      {ZEROPROOF_PREVIEW.map((m) => (
+        <div
+          key={m.home}
+          className="flex items-center gap-2 rounded-lg border border-black/10 bg-black/5 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/5"
+        >
+          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
+            {m.away}{" "}
+            <span className="text-black/40 dark:text-white/40">@</span> {m.home}
+          </span>
+          <span className="shrink-0 rounded bg-black/10 px-1 py-0.5 font-mono text-[8px] tabular-nums text-black/60 dark:bg-white/10 dark:text-white/60">
+            {m.odds}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   world: WorldPreview,
   "fantasy-nba": PlayoffsPreview,
@@ -828,6 +855,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   craft: CraftPreview,
   "gallery-wall": GalleryWallPreview,
   updates: UpdatesPreview,
+  zeroproof: ZeroproofPreview,
 };
 
 // ---------------------------------------------------------------------------

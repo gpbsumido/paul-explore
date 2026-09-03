@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.2
+
+- **The hero entrance stopped juddering.** The `.rise-in` slide fires while the page is hydrating and the 3D hero's chunk is parsing, and without its own compositor layer a `transform` animation runs on the main thread and drops frames under that load — a visibly choppy entrance. Added `will-change: transform` so the slide runs on the compositor thread and stays smooth regardless of what the main thread is doing.
+- **The ZeroProof hub card looks like the others now.** It was rendering an empty preview slot and borrowing the NBA accent colour, because `zeroproof` had no entry in the preview map or the feature-token map. Gave it a small odds-board preview (a couple of matchups with lines) and its own purple accent token in both themes.
+
 ## 2026-09-03 - version 5.22.1
 
 - **The ZeroProof lobby gains the sharp leaderboard.** Under the events board, a ranked table of players by their sharp score — closing-line value rolled up with return and volume, so it rewards beating the market rather than variance. Records read as win-loss-push, ROI is signed, and an unranked player (below the graded-bet threshold) shows a dash. Players appear by a stable opaque handle derived from their account id; the raw Auth0 sub never reaches the DOM, and a test pins that. Semantic `<table>` markup, accessible name, no axe violations.
