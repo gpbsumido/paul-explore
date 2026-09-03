@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.0
+
+- **ZeroProof gets a front end: a read-only lobby at `/zeroproof`.** The no-loss sportsbook API landed across eight backend PRs; this is the first slice of the UI over it. The lobby renders the public events board — upcoming games with their latest moneyline, spread and total lines, served from the database only (no vendor call rides on user traffic). Odds read the way a book writes them (`+122`, `-3.5`). It's a new hub feature with its own page, error boundary, loading skeleton, and dev-notes link; the bet slip, profile and leaderboards build on the same slate next. Data layer is Zod-validated at the trust boundary, the leaderboard's raw Auth0 subs are never exposed (a stable opaque handle stands in), and the slate + odds formatting are tested against a mocked API.
+
 ## 2026-09-03 - version 5.21.2
 
 - **New write-up: building a no-loss sportsbook, ledger first.** A dev-thoughts page on the ZeroProof API I built behind this site — a betting product where the record is real and the dollars are simulated. It walks the decisions that were expensive to reverse: a double-entry ledger with derived balances so the fake-money MVP can become real money without a rewrite, closing-line value captured on every bet from the first row because it's unrecoverable later, and a seven-PR stack where each slice deploys on its own. Filed under Architecture & Backend; a patch release, so it stays out of the curated `/updates` feed by design.
