@@ -186,6 +186,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "ZeroProof: A No-Loss Sportsbook",
+    href: "/thoughts/zeroproof",
+    preview:
+      "Betting with the loss taken out: a double-entry ledger from the first row, closing-line value captured on every bet, and seven stacked PRs that each deploy on their own",
+    color: "#6451ba",
+  },
+  {
     title: "Updates",
     href: "/thoughts/updates",
     preview:
