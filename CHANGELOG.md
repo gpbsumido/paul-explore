@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.4
+
+- **ZeroProof goes interactive: open a wallet and place a bet.** The lobby's board outcomes are buttons now — pick one and it fills a bet slip. Signed-in players choose a wallet, enter a stake, and place: the frontend posts `{ walletId, eventId, market, selection, stakeCents }` to a new authed `/api/zeroproof/bets` proxy, and the backend freezes the line and checks the balance server-side. Opening a Season or Challenge wallet is a button in the profile (new authed `POST /api/zeroproof/wallets`), and both refresh the profile on success. Signed-out visitors get a sign-in prompt in the slip instead. Tested against mocked endpoints: picking an outcome fills the slip, opening a wallet posts the mode, and placing a bet posts the picked outcome with the stake in cents.
+
 ## 2026-09-03 - version 5.22.3
 
 - **The ZeroProof lobby gets a personal profile.** A signed-in section above the board: your record, ROI, sharp score, average closing-line value, current and best streak, biggest hit, and any wallets you hold (balance against locked principal), plus the accolade badges you've earned. Signed-out visitors see a sign-in prompt instead. It reads a new authed `/api/zeroproof/me` proxy — Zod-validated, 401 when there's no session — and the money is formatted from integer cents. Opening a wallet and placing bets is still the next slice; this shows the record the bet slip will build. Tested against a mocked profile in all three states (signed out, signed in with a wallet, signed in with none).
