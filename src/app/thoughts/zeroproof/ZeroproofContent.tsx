@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -144,6 +144,49 @@ computeClv(-130, -110)  →  -7.33   // the other side of the same move`}
         </p>
       </section>
 
+      <Update
+        id="update-2026-09-03-lobby"
+        date="September 3, 2026"
+        title="The front end starts where the API is safest to show: read-only"
+      >
+        <p>
+          The API shipped as eight stacked backend PRs, and the front end is
+          following the same discipline: small, stacked, each one deployable. The
+          first slice is the part that can&apos;t go wrong, because it can&apos;t
+          do anything — a read-only lobby.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Show the board before the bet slip
+        </h3>
+        <p className="text-muted">
+          The lobby at <code className={code}>/zeroproof</code> renders the
+          public events board — upcoming games with their latest moneyline,
+          spread and total lines — straight from the same DB-backed endpoint the
+          settler reads, so no vendor call rides on a visitor. Under it sits the
+          sharp leaderboard: players ranked by closing-line value rolled up with
+          return and volume. There is nothing to click that spends anything,
+          which is exactly why it&apos;s the honest first thing to ship.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The raw sub never reaches the page
+        </h3>
+        <p className="text-muted">
+          The leaderboard endpoint returns the Auth0{" "}
+          <code className={code}>sub</code> per row, which is a user identifier
+          and has no business on a public page. The front end derives a stable,
+          opaque handle from it instead — the same player always reads the same
+          token, and the token can&apos;t be walked back — and a test asserts the{" "}
+          <code className={code}>sub</code> string never appears in the rendered
+          DOM.
+        </p>
+        <pre className={pre}>
+          {`playerHandle("auth0|abc123")  →  "P-1F9K2"   // stable, opaque
+board.textContent  →  never contains "auth0|"`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
@@ -151,6 +194,7 @@ computeClv(-130, -110)  →  -7.33   // the other side of the same move`}
           "Placing a bet with the odds frozen at placement, an available-balance check inside the transaction, and a stale-line gate.",
           "An idempotent settler that grades h2h, spread and total, pays the ledger, and stamps closing-line value on every bet.",
           "Term-end principal refunds, challenge bust archiving, a profile with a sharp score, a leaderboard, and the house/referral revenue plumbing.",
+          "A read-only front-end lobby: the public events board and the sharp leaderboard, built in a stack over this API.",
         ]}
         couldImprove={[
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
@@ -159,8 +203,8 @@ computeClv(-130, -110)  →  -7.33   // the other side of the same move`}
           "It's all simulated dollars on purpose. Real deposits and investing the float is custody and money-transmission territory, and that waits on counsel, not code.",
         ]}
         upcoming={[
-          "The front end: a lobby, a bet slip, a braggable profile and the leaderboards, built against this API once it's deployed.",
-          "Accolades — the milestone and speed badges — wired into settlement so the profile has something to show off besides the numbers.",
+          "The rest of the front end: a bet slip on the lobby's slate, wallet management, and a braggable profile — the interactive half, gated on a signed-in wallet.",
+          "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
         ]}
       />
     </ThoughtLayout>

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.1
+
+- **The ZeroProof lobby gains the sharp leaderboard.** Under the events board, a ranked table of players by their sharp score — closing-line value rolled up with return and volume, so it rewards beating the market rather than variance. Records read as win-loss-push, ROI is signed, and an unranked player (below the graded-bet threshold) shows a dash. Players appear by a stable opaque handle derived from their account id; the raw Auth0 sub never reaches the DOM, and a test pins that. Semantic `<table>` markup, accessible name, no axe violations.
+
+## 2026-09-03 - version 5.22.0
+
+- **ZeroProof gets a front end: a read-only lobby at `/zeroproof`.** The no-loss sportsbook API landed across eight backend PRs; this is the first slice of the UI over it. The lobby renders the public events board — upcoming games with their latest moneyline, spread and total lines, served from the database only (no vendor call rides on user traffic). Odds read the way a book writes them (`+122`, `-3.5`). It's a new hub feature with its own page, error boundary, loading skeleton, and dev-notes link; the bet slip, profile and leaderboards build on the same slate next. Data layer is Zod-validated at the trust boundary, the leaderboard's raw Auth0 subs are never exposed (a stable opaque handle stands in), and the slate + odds formatting are tested against a mocked API.
 ## 2026-09-03 - version 5.21.4
 
 - **The landing is a server tree with client islands now, not one big client component.** `LandingContentV5` was a `"use client"` wrapper that did nothing but forward props, and under it seven sections — none of which use a single state hook — hydrated in full and dragged ~843 lines of static content data (`featureData.data`, `craft`) across the wire for markup that never changes. `V5Content` and all seven sections are server components again; the genuinely-interactive parts stay client islands (`LandingActions`, `ScrollProgress`, `HeroScene`, the motion leaves, and a new `RevealOnScroll`). Verified the section data (e.g. the craft principles) is now in the server HTML only, never in a client chunk; First Load JS for `/` fell ~22 KiB. This does **not** move LCP — I confirmed by measurement that the client bundle was never the LCP bottleneck (the R3F chunk loads after LCP; blocking it leaves LCP unchanged). It ships because the correct boundary is better engineering and the data belongs on the server, not because it chases a number.

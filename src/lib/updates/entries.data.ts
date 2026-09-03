@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-lobby",
+    date: "2026-09-03",
+    version: "5.22.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof: a no-loss sportsbook, now with a lobby",
+    summary:
+      "The public events board is live — real lines over a real double-entry ledger, with the dollars simulated on purpose.",
+    body: [
+      "ZeroProof is sports betting with the loss taken out: you lock a deposit for a term, bet it freely on real lines, and get the original deposit back at the end no matter your record — what you keep forever is the record itself. The ledger is real from the first row; the money is a button.",
+      "This first slice of the front end is read-only: a lobby that shows the upcoming events board with the latest moneyline, spread and total lines, served straight from the database. The bet slip, the profile and the leaderboards come next, built on the same slate. The write-up explains why it was built ledger-first.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-ai-components",
     date: "2026-09-02",
     version: "5.21.0",
