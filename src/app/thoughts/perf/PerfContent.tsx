@@ -693,15 +693,88 @@ const FeaturesSection = dynamic(
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-03-landing-islands"
+        date="September 3, 2026"
+        title="I went hunting for three more seconds of LCP and found an architecture problem instead"
+      >
+        <p>
+          The entrance fix halved the home LCP but left it at ~3.2s in the lab,
+          short of the 2.5s line. The obvious next move was the 161 KiB of unused
+          JavaScript the audit kept flagging on the hero. I almost spent a day on
+          it. Measuring first is the only reason I didn&apos;t.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The unused JavaScript was the 3D hero, and it loads after LCP
+        </h3>
+        <p className="text-muted">
+          The two heavy chunks are three.js and its React renderer — already
+          lazy-loaded behind an idle callback and a WebGL check, so they arrive
+          late and on their own. I blocked them outright in Lighthouse to see what
+          they cost the paint. The answer was nothing:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`home LCP, mobile throttled
+  with three.js    3224 ms    TBT 107 ms
+  three.js blocked 3222 ms    TBT  33 ms   <- LCP unchanged`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Its long tasks land at 6.6s, well after the 3.2s LCP. Trimming it would
+          buy back some TBT and bandwidth, but not one millisecond of LCP. The
+          premise was wrong.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The lab&apos;s 3.2s is a projection; the real number was already fixed
+        </h3>
+        <p className="text-muted">
+          The LCP element is the hero tagline — stable server-rendered text, no
+          hydration swap — and its observed render delay is 94ms. The 3.2s is
+          lantern&apos;s model of the throttled critical path, not a defect I can
+          point at. Real-user LCP tracks the ~1.2s the text actually paints at.
+          The entrance fix was the whole win; there was no second three seconds to
+          find.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          So I fixed the thing that was actually wrong: the boundary
+        </h3>
+        <p className="text-muted">
+          What the profiling did surface was an architecture smell. The landing&apos;s
+          top component was <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">&quot;use client&quot;</code>{" "}
+          and did nothing but forward props, and under it seven sections with no
+          state at all hydrated in full — shipping ~843 lines of static content
+          data to the browser for markup that never changes. So the sections are
+          server components again, and only the interactive leaves stay client:
+          the session control, the scroll bar, the 3D scene, and one new{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">RevealOnScroll</code>{" "}
+          island that replaced the same scroll-reveal copy-pasted into two
+          sections.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`First Load JS for /   792 KiB -> 770 KiB
+craft-trait data      in a client chunk -> server HTML only`}
+        </pre>
+        <p className="mt-3 text-muted">
+          This does not move LCP either, and I shipped it anyway — not to chase the
+          number, but because the correct boundary is better engineering and the
+          data belongs on the server. The honest lesson repeats the one from the
+          entrance fix: measure the true signal before you spend a day on the
+          convenient one.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "The five vitals treated separately, because they fail for different reasons and a single performance score hides which one moved.",
           "ISR for TTFB and server-seeded content for LCP — fixes matched to the metric rather than general advice applied everywhere.",
           "The hero heading painted on the first frame instead of fading in, which halved the home LCP under throttling.",
+          "The landing served as a server tree with client islands, so its static data stays out of the browser bundle.",
           "A per-metric sample floor on the by-page table, so a cell needs enough data before it shows a score — the noisy small-sample cells stop reading as real regressions.",
         ]}
         couldImprove={[
-          "Home LCP is down but not yet good — the rest is client-JS bootup around the 3D hero, which no entrance tweak will reach.",
+          "Home LCP is down but not yet good, and the last of it is the lab's projection of the critical path, not a single element I can point at — real-user LCP already tracks the ~1.2s the text paints at.",
           "The work is recorded and not defended: nothing fails a build when a metric regresses, so these gains rely on nobody undoing them.",
         ]}
         upcoming={[
