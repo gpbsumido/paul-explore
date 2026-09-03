@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-02 - version 5.21.2
+
+- **The homepage stopped hiding its own headline from the LCP clock.** The hero `h1` is the page's largest contentful element, and it shipped with `.reveal-up`, whose keyframe fades opacity from 0. Chrome doesn't count an element as painted until it's visible, so on a mid-tier phone under a busy main thread the largest text landed seconds after first paint — Lighthouse (mobile, throttled) measured the home LCP at ~6.3s against an FCP of ~1.1s, the whole gap being the heading waiting to fade in. I added `.rise-in`, the same 20px slide on `transform` alone with opacity held at 1, and used it for the above-the-fold hero text; `.reveal-up` still drives everything below the fold, where a fade costs nothing. Home LCP dropped to ~3.2s median over six throttled runs. The remaining time is client-JS bootup, not the entrance, and is a separate job. Tests pin that the heading uses `.rise-in` and that `.rise-in` never animates opacity.
+
 ## 2026-09-02 - version 5.21.1
 
 - **Draft Lab write-up gains two owner-only Elite updates.** The first covers the keeper finder — keeping is a value-minus-round-cost decision, not "keep my two best", so it enumerates every candidate pair, simulates the whole draft for each (kept players and their rounds burned, opponents on their tendencies, my picks from the recommender), and ranks by the starting lineup I end up with. Candidates and costs load from last year's ESPN draft and final rosters; the note keeps the wrong turn in — matching my team across seasons by name silently found nothing once I'd renamed it, so it now picks the team from a dropdown. The second covers depth-chart status from firstdown.studio: the slot (WR1/RB2/TE1) is rebuilt by grouping each team by ADP because the source doesn't carry it, the data is prised out of a Next.js payload that has no API, and the CORS block that forced the fetch through the background script.
