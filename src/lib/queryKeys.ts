@@ -265,4 +265,12 @@ export const queryKeys = {
     /** The signed-in user's pulled-card collection. */
     collection: () => ["card-lab", "collection"] as const,
   },
+
+  zeroproof: {
+    /** The public events slate with the latest lines. */
+    events: () => ["zeroproof", "events"] as const,
+
+    /** The public sharp-score leaderboard. */
+    leaderboard: () => ["zeroproof", "leaderboard"] as const,
+  },
 } as const;
