@@ -21,3 +21,19 @@ export const POST = withBackend("zeroproof place bet", async ({ token }, request
   }
   return NextResponse.json(payload);
 });
+
+// GET /api/zeroproof/bets — the signed-in player's bet history, newest first.
+// Auth required; withBackend answers 401 when there's no session.
+export const GET = withBackend("zeroproof bet history", async ({ token }) => {
+  const result = await fetchUpstream(`${API_URL}/api/zeroproof/bets`, {
+    headers: buildHeaders(token, null),
+  });
+  if (!result.ok) return upstreamErrorResponse(result);
+  if (!result.response.ok) {
+    return NextResponse.json(
+      { error: "Failed to load bet history" },
+      { status: result.response.status },
+    );
+  }
+  return NextResponse.json(await result.response.json());
+});

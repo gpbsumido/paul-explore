@@ -8,6 +8,7 @@ import {
   eventsResponseSchema,
   leaderboardResponseSchema,
   profileResponseSchema,
+  betsResponseSchema,
 } from "@/lib/zeroproof/schemas";
 import type {
   ZeroproofEvent,
@@ -15,6 +16,7 @@ import type {
   ProfileStats,
   ZeroproofWallet,
   Accolade,
+  ZeroproofBet,
 } from "@/lib/zeroproof/schemas";
 import {
   formatAmerican,
@@ -576,6 +578,64 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
   );
 }
 
+async function fetchBets(): Promise<ZeroproofBet[]> {
+  const res = await fetch("/api/zeroproof/bets");
+  if (res.status === 401) return [];
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return betsResponseSchema.parse(await res.json()).bets;
+}
+
+const BET_STATUS_STYLE: Record<string, string> = {
+  won: "text-success-600 dark:text-success-300",
+  lost: "text-error-600 dark:text-error-300",
+  open: "text-primary-700 dark:text-primary-300",
+  push: "text-muted",
+  void: "text-muted",
+};
+
+function BetHistory() {
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+  });
+
+  if (!betsQuery.data || betsQuery.data.length === 0) return null;
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">Recent bets</h3>
+      <ul className="mt-3 divide-y divide-border rounded-xl border border-border">
+        {betsQuery.data.slice(0, 12).map((bet) => (
+          <li
+            key={bet.id}
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2 text-sm"
+          >
+            <span className="text-foreground">
+              {bet.selection}{" "}
+              <span className="text-muted">{marketLabel(bet.market)}</span>
+            </span>
+            <span className="flex items-center gap-3 font-mono tabular-nums">
+              <span className="text-muted">{formatCents(bet.stakeCents)}</span>
+              <span className="text-foreground">
+                {formatAmerican(bet.oddsAmerican)}
+              </span>
+              {bet.clv !== null && (
+                <span className="text-muted">CLV {formatSignedPct(bet.clv)}</span>
+              )}
+              <span
+                className={`font-medium capitalize ${BET_STATUS_STYLE[bet.status] ?? "text-muted"}`}
+              >
+                {bet.status}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function Profile() {
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
@@ -685,6 +745,8 @@ function Profile() {
               ))}
             </ul>
           )}
+
+          <BetHistory />
         </div>
       )}
     </section>

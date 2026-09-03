@@ -275,5 +275,8 @@ export const queryKeys = {
 
     /** The signed-in player's profile: stats, wallets, accolades. */
     me: () => ["zeroproof", "me"] as const,
+
+    /** The signed-in player's bet history. */
+    bets: () => ["zeroproof", "bets"] as const,
   },
 } as const;

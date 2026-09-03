@@ -89,6 +89,7 @@ const PROFILE = {
 
 const renderPage = (
   meResponse: () => Response = () => new HttpResponse(null, { status: 401 }),
+  betsResponse: () => Response = () => HttpResponse.json({ bets: [] }),
 ) => {
   server.use(
     http.get("/api/zeroproof/events", () => HttpResponse.json(EVENTS)),
@@ -96,6 +97,7 @@ const renderPage = (
       HttpResponse.json(LEADERBOARD),
     ),
     http.get("/api/zeroproof/me", () => meResponse()),
+    http.get("/api/zeroproof/bets", () => betsResponse()),
   );
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -181,6 +183,35 @@ describe("ZeroProofContent — profile", () => {
     expect(screen.getByText("$118.40")).toBeInTheDocument();
     // accolade
     expect(screen.getByText("First Win")).toBeInTheDocument();
+  });
+
+  it("lists a signed-in player's recent bets with result and closing-line value", async () => {
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () =>
+        HttpResponse.json({
+          bets: [
+            {
+              id: "b1",
+              walletId: "w1",
+              eventId: "evt-1",
+              market: "h2h",
+              selection: "Celtics",
+              oddsAmerican: 122,
+              lineValue: null,
+              closingOddsAmerican: 130,
+              clv: 7.9,
+              stakeCents: 2500,
+              status: "won",
+              placedAt: "2026-09-01T00:00:00.000Z",
+              settledAt: "2026-09-02T00:00:00.000Z",
+            },
+          ],
+        }),
+    );
+    expect(await screen.findByText(/recent bets/i)).toBeInTheDocument();
+    expect(screen.getByText("won")).toBeInTheDocument();
+    expect(screen.getByText(/CLV \+7\.9%/)).toBeInTheDocument();
   });
 
   it("tells a signed-in player with no wallet how to open one", async () => {

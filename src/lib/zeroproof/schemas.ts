@@ -99,6 +99,29 @@ export type ZeroproofMarket = z.infer<typeof marketSchema>;
 export type ZeroproofEvent = z.infer<typeof eventSchema>;
 // ts-prune-ignore-next
 export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;
+// A placed bet: the selection and odds locked at placement, plus the closing
+// odds and closing-line value the settler stamps once it grades.
+export const betSchema = z.object({
+  id: z.string(),
+  walletId: z.string(),
+  eventId: z.string(),
+  market: z.string(),
+  selection: z.string(),
+  oddsAmerican: z.number(),
+  lineValue: z.number().nullable(),
+  closingOddsAmerican: z.number().nullable(),
+  clv: z.number().nullable(),
+  stakeCents: z.number(),
+  status: z.string(), // 'open' | 'won' | 'lost' | 'push' | 'void'
+  placedAt: z.string(),
+  settledAt: z.string().nullable(),
+});
+
+export const betsResponseSchema = z.object({
+  bets: z.array(betSchema),
+});
+
 export type ProfileStats = z.infer<typeof profileStatsSchema>;
 export type ZeroproofWallet = z.infer<typeof walletSchema>;
 export type Accolade = z.infer<typeof accoladeSchema>;
+export type ZeroproofBet = z.infer<typeof betSchema>;
