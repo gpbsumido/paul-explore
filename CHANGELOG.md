@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.7
+
+- **Settlement lands on the ZeroProof lobby without a reload.** The profile and bet-history now poll every 30 seconds while you're signed in, so a bet the settler grades in the background shows its result and closing-line value, and your balance and stats update, on the open page — no refresh. The poll stops itself once the page knows there's no session, so a signed-out visitor isn't re-asking every 30 seconds. A fake-timer test pins it: an open bet becomes a graded win after the interval, with no user action.
+
 ## 2026-09-03 - version 5.22.6
 
 - **The ZeroProof leaderboard toggles between Sharp and ROI.** A segmented control on the board flips the ranking: Sharp (closing-line value rolled up with return and volume) or ROI (return on stake, where high variance can top a board a sharp score wouldn't). The API already served both — `?board=roi` — so this forwards the choice through the proxy and keys the query by board so each is cached on its own. A test flips to ROI and asserts the board re-ranks.
