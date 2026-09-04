@@ -471,6 +471,39 @@ describe("ZeroProofContent — profile", () => {
     expect(screen.getByText("First Win")).toBeInTheDocument();
   });
 
+  it("charts a bankroll trend once there are settled bets", async () => {
+    const settled = (id: string, status: string, settledAt: string) => ({
+      id,
+      walletId: "w1",
+      eventId: "e",
+      market: "h2h",
+      selection: "x",
+      oddsAmerican: 100,
+      lineValue: null,
+      closingOddsAmerican: 130,
+      clv: 5,
+      stakeCents: 1000,
+      status,
+      placedAt: "2026-09-01T00:00:00.000Z",
+      settledAt,
+    });
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () =>
+        HttpResponse.json({
+          bets: [
+            settled("b1", "won", "2026-09-02T00:00:00.000Z"),
+            settled("b2", "lost", "2026-09-03T00:00:00.000Z"),
+          ],
+        }),
+    );
+    await goToTab(/your record/i);
+    expect(
+      await screen.findByRole("heading", { name: /bankroll trend/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/over 2 settled bets/i)).toBeInTheDocument();
+  });
+
   it("lists a signed-in player's recent bets with result and closing-line value", async () => {
     renderPage(
       () => HttpResponse.json(PROFILE),

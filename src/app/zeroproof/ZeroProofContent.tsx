@@ -8,7 +8,9 @@ import {
 } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
+import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
   leaderboardResponseSchema,
@@ -836,6 +838,50 @@ function BetHistory() {
   );
 }
 
+function RecordTrend({ wallets }: { wallets: ZeroproofWallet[] }) {
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+  });
+  const { overall, season } = bankrollTrend(betsQuery.data ?? [], wallets);
+  // A line needs at least two points; skip until there's a trend to show.
+  if (overall.length < 2) return null;
+
+  const hasSeason =
+    wallets.some((w) => w.mode === "season") && season.some((v) => v !== 0);
+  const series = hasSeason
+    ? [
+        { label: "Overall", values: overall },
+        { label: "Season", values: season },
+      ]
+    : [{ label: "Overall", values: overall }];
+  const money = (value: number) =>
+    `${value >= 0 ? "+" : "-"}$${Math.abs(value).toFixed(2)}`;
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">Bankroll trend</h3>
+      <p className="mt-1 text-xs text-muted">
+        Cumulative profit and loss over your settled bets.
+      </p>
+      <div className="mt-3">
+        <StackedLineChart
+          label="Cumulative profit and loss over settled bets, season and overall"
+          variant="lines"
+          series={series}
+        />
+      </div>
+      {/* The numbers in text, so the trend isn't colour-and-shape only. */}
+      <p className="mt-2 text-xs text-muted">
+        Overall {money(overall[overall.length - 1])}
+        {hasSeason ? ` · Season ${money(season[season.length - 1])}` : ""} over{" "}
+        {overall.length} settled bets.
+      </p>
+    </div>
+  );
+}
+
 function Profile() {
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
@@ -918,6 +964,8 @@ function Profile() {
               value={String(profileQuery.data.stats.betCount)}
             />
           </dl>
+
+          <RecordTrend wallets={profileQuery.data.wallets} />
 
           {profileQuery.data.wallets.length > 0 ? (
             <div className="space-y-4">
