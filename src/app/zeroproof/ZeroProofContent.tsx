@@ -253,8 +253,9 @@ function Slate({
 
       {eventsQuery.data && allEvents.length > 0 && (
         <>
-          {/* Sticky so the controls stay reachable while you scroll the board. */}
-          <div className="sticky top-0 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
+          {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
+              controls stay visible while you scroll the board. */}
+          <div className="sticky top-14 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
             <p className="text-xs text-muted" aria-live="polite">
               Showing games in the next {daysAhead} days
             </p>
