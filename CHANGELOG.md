@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-04 - version 5.25.0
+
+- **Your record grows a bankroll trend.** The Your record tab now charts cumulative profit and loss over your settled bets — two overlaid lines, one for everything ("Overall") and one for just your Season wallets — so you can see how a season is going against your record as a whole. It's a `StackedLineChart` from the design system (shared y-domain, so the two lines are actually comparable), computed client-side from the bets you already load, and it prints the numbers in text under the chart so the trend isn't shape-and-colour only.
+
 ## 2026-09-04 - version 5.24.0
 
 - **The ZeroProof board groups fixtures by day.** Instead of one flat list, games sit under a heading for each day (e.g. "Sunday, Sep 7"), so a weekend slate reads as days rather than a wall — the events are already sorted by kickoff, so it's just a grouping over the same list.

@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-trend",
+    date: "2026-09-04",
+    version: "5.25.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See how your season is trending, on your record",
+    summary:
+      "Your record now charts cumulative profit and loss over your settled bets — one line for the season, one for everything.",
+    body: [
+      "The Your record tab grows a bankroll trend: two overlaid lines charting cumulative profit and loss over your settled bets, one for just your Season wallets and one for everything, so you can see how a season is going against your record as a whole.",
+      "It's computed from the bets you already load and drawn with the shared design-system chart, and the current figures are printed in text under it so the trend never reads as shape-and-colour alone.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-days",
     date: "2026-09-04",
     version: "5.24.0",
