@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.8
+
+- **Opening a ZeroProof wallet (and placing a bet) actually works now.** Both POST BFF routes forwarded the body to the backend without a `Content-Type: application/json` header, so Express's `express.json()` never parsed it and every field read as missing — the "mode is required" that surfaced in the UI as "Validation failed". The header is set now on both `/api/zeroproof/wallets` and `/api/zeroproof/bets`.
+- **The Season button sends a deposit.** A Season wallet needs a deposit amount ($20 minimum on the backend), but the button posted a bare `{ mode }`, which would fail even once the body parsed. It now defaults to $500 to match the lobby wireframe; a proper deposit-amount input is the follow-up. Challenge is unchanged — it's a fixed $100 and sends no amount.
+
 ## 2026-09-03 - version 5.22.7
 
 - **Settlement lands on the ZeroProof lobby without a reload.** The profile and bet-history now poll every 30 seconds while you're signed in, so a bet the settler grades in the background shows its result and closing-line value, and your balance and stats update, on the open page — no refresh. The poll stops itself once the page knows there's no session, so a signed-out visitor isn't re-asking every 30 seconds. A fake-timer test pins it: an open bet becomes a graded win after the interval, with no user action.
