@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
@@ -893,13 +898,45 @@ function Profile() {
   );
 }
 
+const LOBBY_TABS = [
+  { id: "board", label: "Board" },
+  { id: "leaderboard", label: "Leaderboard" },
+  { id: "record", label: "Your record" },
+] as const;
+type LobbyTab = (typeof LOBBY_TABS)[number]["id"];
+
 /**
- * The public face of ZeroProof. The board is live, the profile and bet slip are
- * gated on a signed-in wallet: picking an outcome fills the slip, and the slip
- * places against the same slate the settler grades.
+ * The public face of ZeroProof, split into tabs so the three things you might be
+ * doing stay separate: the live board (and bet slip), the leaderboard, and your
+ * own record. All three panels stay mounted so their data preloads and a tab
+ * switch is instant; inactive ones are `hidden`, which also keeps them out of
+ * the accessibility tree.
  */
 export default function ZeroProofContent() {
   const [selectedBet, setSelectedBet] = useState<SelectedBet | null>(null);
+  const [tab, setTab] = useState<LobbyTab>("board");
+  const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
+
+  const focusTab = (id: LobbyTab) => {
+    setTab(id);
+    tabRefs.current[id]?.focus();
+  };
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    const index = LOBBY_TABS.findIndex((t) => t.id === tab);
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[(index + 1) % LOBBY_TABS.length].id);
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[(index - 1 + LOBBY_TABS.length) % LOBBY_TABS.length].id);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[0].id);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[LOBBY_TABS.length - 1].id);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -921,12 +958,72 @@ export default function ZeroProofContent() {
         </p>
       </header>
 
-      {selectedBet && (
-        <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
-      )}
-      <Profile />
-      <Slate selected={selectedBet} onPick={setSelectedBet} />
-      <Leaderboard />
+      <div
+        role="tablist"
+        aria-label="ZeroProof sections"
+        className="mt-8 flex gap-1 border-b border-border"
+      >
+        {LOBBY_TABS.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              ref={(element) => {
+                tabRefs.current[t.id] = element;
+              }}
+              type="button"
+              role="tab"
+              id={`zp-tab-${t.id}`}
+              aria-selected={active}
+              aria-controls={`zp-panel-${t.id}`}
+              tabIndex={active ? 0 : -1}
+              onClick={() => setTab(t.id)}
+              onKeyDown={onTabKeyDown}
+              className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
+                active
+                  ? "border-primary-600 text-foreground"
+                  : "border-transparent text-muted hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        role="tabpanel"
+        id="zp-panel-board"
+        aria-labelledby="zp-tab-board"
+        tabIndex={0}
+        hidden={tab !== "board"}
+        className="focus-visible:outline-none"
+      >
+        {selectedBet && (
+          <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
+        )}
+        <Slate selected={selectedBet} onPick={setSelectedBet} />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-leaderboard"
+        aria-labelledby="zp-tab-leaderboard"
+        tabIndex={0}
+        hidden={tab !== "leaderboard"}
+        className="focus-visible:outline-none"
+      >
+        <Leaderboard />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-record"
+        aria-labelledby="zp-tab-record"
+        tabIndex={0}
+        hidden={tab !== "record"}
+        className="focus-visible:outline-none"
+      >
+        <Profile />
+      </div>
     </div>
   );
 }
