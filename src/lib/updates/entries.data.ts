@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-board-horizon",
+    date: "2026-09-03",
+    version: "5.23.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof goes live, and the board opens on the next few days",
+    summary:
+      "Real football lines feed the lobby now, and the board shows the next three days by default — with a load-more, an auto-load-on-scroll toggle, and a collapse back.",
+    body: [
+      "The events board is fed by real odds now: they're pulled from a sportsbook data API on a schedule and stored to the database, so the lobby shows live lines with no vendor call riding on the page.",
+      "Football is a weekly slate, so rather than a wall of games a week out, the board opens on the next three days. Load more adds three days at a time, a toggle switches to loading automatically as you scroll, and you can collapse back to three whenever you want — a filter over the list the page already has, so widening the window costs no fetch.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-lobby",
     date: "2026-09-03",
     version: "5.22.0",

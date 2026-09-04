@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
@@ -166,6 +166,11 @@ function EventCard({
   );
 }
 
+const HORIZON_STEP_DAYS = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const controlButton =
+  "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
+
 function Slate({
   selected,
   onPick,
@@ -179,6 +184,39 @@ function Slate({
     select: (json) => eventsResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
   });
+
+  // How far out the board reaches, in days. Starts at 3 and grows by 3 each
+  // "load more" (or automatically as you scroll, when that toggle is on).
+  const [daysAhead, setDaysAhead] = useState(HORIZON_STEP_DAYS);
+  const [autoLoad, setAutoLoad] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Captured once at mount so filtering is a pure function of state across
+  // re-renders (a live-updating clock would make render impure).
+  const [now] = useState(() => Date.now());
+  const allEvents = eventsQuery.data?.events ?? [];
+  const cutoff = now + daysAhead * DAY_MS;
+  const visibleEvents = allEvents.filter(
+    (event) => new Date(event.commenceTime).getTime() <= cutoff,
+  );
+  const hasMore = visibleEvents.length < allEvents.length;
+
+  // Auto lazy-load: when the toggle is on, extend the horizon as the sentinel at
+  // the bottom of the list scrolls into view. Guarded for environments without
+  // IntersectionObserver; the manual "load more" button is the fallback.
+  useEffect(() => {
+    if (!autoLoad || !hasMore) return;
+    if (typeof IntersectionObserver === "undefined") return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setDaysAhead((days) => days + HORIZON_STEP_DAYS);
+      }
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [autoLoad, hasMore, visibleEvents.length]);
 
   return (
     <section aria-labelledby="slate-title" className="mt-10">
@@ -202,23 +240,78 @@ function Slate({
         </p>
       )}
 
-      {eventsQuery.data && eventsQuery.data.events.length === 0 && (
+      {eventsQuery.data && allEvents.length === 0 && (
         <p className="mt-6 text-sm text-muted">
           No upcoming events on the board right now.
         </p>
       )}
 
-      {eventsQuery.data && eventsQuery.data.events.length > 0 && (
-        <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {eventsQuery.data.events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              selected={selected}
-              onPick={onPick}
-            />
-          ))}
-        </ul>
+      {eventsQuery.data && allEvents.length > 0 && (
+        <>
+          {/* Sticky so the controls stay reachable while you scroll the board. */}
+          <div className="sticky top-0 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
+            <p className="text-xs text-muted" aria-live="polite">
+              Showing games in the next {daysAhead} days
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              {daysAhead > HORIZON_STEP_DAYS && (
+                <button
+                  type="button"
+                  onClick={() => setDaysAhead(HORIZON_STEP_DAYS)}
+                  className={controlButton}
+                >
+                  Show only next 3 days
+                </button>
+              )}
+              <label className="flex items-center gap-2 text-xs text-foreground">
+                <input
+                  type="checkbox"
+                  checked={autoLoad}
+                  onChange={(event) => setAutoLoad(event.target.checked)}
+                  className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                />
+                Auto-load as I scroll
+              </label>
+            </div>
+          </div>
+
+          {visibleEvents.length === 0 ? (
+            <p className="mt-6 text-sm text-muted">
+              Nothing kicks off in the next {daysAhead} days.
+              {hasMore ? " Load more to see games further out." : ""}
+            </p>
+          ) : (
+            <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {visibleEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  selected={selected}
+                  onPick={onPick}
+                />
+              ))}
+            </ul>
+          )}
+
+          {hasMore && (
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
+              {autoLoad ? (
+                <p className="text-xs text-muted" role="status">
+                  Loading more as you scroll…
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setDaysAhead((days) => days + HORIZON_STEP_DAYS)}
+                  className={controlButton}
+                >
+                  Load more games
+                </button>
+              )}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
