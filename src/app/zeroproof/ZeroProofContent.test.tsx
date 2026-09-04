@@ -112,6 +112,11 @@ const renderPage = (
   );
 };
 
+// The lobby splits Board / Leaderboard / Your record into tabs, and inactive
+// panels are hidden (out of the a11y tree). Switch to the tab a test cares about.
+const goToTab = async (name: RegExp) =>
+  fireEvent.click(await screen.findByRole("tab", { name }));
+
 describe("ZeroProofContent — slate", () => {
   // The board windows events to the next few days off "now"; pin it so the
   // fixture's dated event stays inside the default 3-day window.
@@ -157,6 +162,48 @@ describe("ZeroProofContent — slate", () => {
     await screen.findByRole("heading", { level: 3 });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+});
+
+describe("ZeroProofContent — tabs", () => {
+  it("splits the lobby into Board, Leaderboard and Your record, Board first", async () => {
+    renderPage();
+    const tablist = screen.getByRole("tablist", {
+      name: /zeroproof sections/i,
+    });
+    expect(
+      within(tablist)
+        .getAllByRole("tab")
+        .map((t) => t.textContent),
+    ).toEqual(["Board", "Leaderboard", "Your record"]);
+    expect(screen.getByRole("tab", { name: "Board" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(
+      await screen.findByRole("heading", { name: /the board/i }),
+    ).toBeVisible();
+  });
+
+  it("reveals a panel's content only once its tab is selected", async () => {
+    renderPage();
+    // The leaderboard sits on its own tab, hidden (and out of the a11y tree) first.
+    expect(screen.queryByRole("table", { name: /leaderboard/i })).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: "Leaderboard" }));
+    expect(
+      await screen.findByRole("table", { name: /leaderboard/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("moves between tabs with the arrow keys", () => {
+    renderPage();
+    const board = screen.getByRole("tab", { name: "Board" });
+    board.focus();
+    fireEvent.keyDown(board, { key: "ArrowRight" });
+    expect(screen.getByRole("tab", { name: "Leaderboard" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });
 
@@ -253,6 +300,7 @@ describe("ZeroProofContent — board horizon", () => {
 describe("ZeroProofContent — leaderboard", () => {
   it("ranks players by sharp score with an opaque handle, never the raw sub", async () => {
     renderPage();
+    await goToTab(/leaderboard/i);
     const board = await screen.findByRole("table", { name: /leaderboard/i });
     const rows = within(board).getAllByRole("row");
     // header + two players
@@ -264,12 +312,14 @@ describe("ZeroProofContent — leaderboard", () => {
 
   it("shows each player's win-loss-push record", async () => {
     renderPage();
+    await goToTab(/leaderboard/i);
     await screen.findByRole("table", { name: /leaderboard/i });
     expect(screen.getByText("41-22-3")).toBeInTheDocument();
   });
 
   it("toggles between the sharp and ROI boards", async () => {
     renderPage();
+    await goToTab(/leaderboard/i);
     // sharp is the default board
     expect(await screen.findByText("88.5")).toBeInTheDocument();
     // now serve a different board per ?board, and switch to ROI
@@ -303,12 +353,14 @@ describe("ZeroProofContent — leaderboard", () => {
 describe("ZeroProofContent — profile", () => {
   it("prompts a signed-out visitor to sign in", async () => {
     renderPage();
+    await goToTab(/your record/i);
     const cta = await screen.findByRole("link", { name: /sign in/i });
     expect(cta).toHaveAttribute("href", "/auth/login");
   });
 
   it("shows a signed-in player's stats, wallet balance, and accolades", async () => {
     renderPage(() => HttpResponse.json(PROFILE));
+    await goToTab(/your record/i);
     // stats
     expect(await screen.findByText("18-11-2")).toBeInTheDocument();
     expect(screen.getByText("+8.4%")).toBeInTheDocument();
@@ -342,6 +394,7 @@ describe("ZeroProofContent — profile", () => {
           ],
         }),
     );
+    await goToTab(/your record/i);
     expect(await screen.findByText(/recent bets/i)).toBeInTheDocument();
     expect(screen.getByText("won")).toBeInTheDocument();
     expect(screen.getByText(/CLV \+7\.9%/)).toBeInTheDocument();
@@ -349,6 +402,7 @@ describe("ZeroProofContent — profile", () => {
 
   it("tells a signed-in player with no wallet how to open one", async () => {
     renderPage(() => HttpResponse.json({ ...PROFILE, wallets: [] }));
+    await goToTab(/your record/i);
     expect(await screen.findByText(/no wallet open yet/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /open a season wallet/i }),
@@ -370,6 +424,7 @@ describe("ZeroProofContent — profile", () => {
       }),
     );
     renderPage(() => HttpResponse.json({ ...PROFILE, wallets: [] }));
+    await goToTab(/your record/i);
     fireEvent.click(
       await screen.findByRole("button", { name: /open a season wallet/i }),
     );
