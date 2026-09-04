@@ -103,22 +103,32 @@ function EventCard({
   event,
   selected,
   onPick,
+  hasBet,
 }: {
   event: ZeroproofEvent;
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
+  /** Whether the caller already has a bet on this fixture. */
+  hasBet: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
   return (
     <li className="rounded-2xl border border-border bg-surface/50 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-lg font-semibold text-foreground">
-          <span>{event.away}</span>
-          <span className="mx-2 text-muted" aria-label="at">
-            @
-          </span>
-          <span>{event.home}</span>
-        </h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground">
+            <span>{event.away}</span>
+            <span className="mx-2 text-muted" aria-label="at">
+              @
+            </span>
+            <span>{event.home}</span>
+          </h3>
+          {hasBet && (
+            <span className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
+              Your bet
+            </span>
+          )}
+        </div>
         <p className="text-xs text-muted">
           <time dateTime={event.commenceTime}>
             {formatKickoff(event.commenceTime)}
@@ -176,6 +186,32 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const controlButton =
   "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
 
+/** A whole-day label for a kickoff time, e.g. "Sunday, Sep 7", in the local zone. */
+function dayLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/**
+ * Group kickoff-sorted events into day buckets. Events arrive sorted by
+ * commence_time, so same-day events are already contiguous.
+ */
+function groupEventsByDay(
+  events: ZeroproofEvent[],
+): { key: string; label: string; events: ZeroproofEvent[] }[] {
+  const groups: { key: string; label: string; events: ZeroproofEvent[] }[] = [];
+  for (const event of events) {
+    const label = dayLabel(event.commenceTime);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.events.push(event);
+    else groups.push({ key: label, label, events: [event] });
+  }
+  return groups;
+}
+
 function Slate({
   selected,
   onPick,
@@ -196,15 +232,28 @@ function Slate({
   const [autoLoad, setAutoLoad] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  // The caller's bets, so a fixture they've already bet on is flagged on the
+  // board — and always shown, even past the horizon. Reuses the profile's query
+  // and returns [] when signed out.
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+  });
+  const betEventIds = new Set((betsQuery.data ?? []).map((bet) => bet.eventId));
+
   // Captured once at mount so filtering is a pure function of state across
   // re-renders (a live-updating clock would make render impure).
   const [now] = useState(() => Date.now());
   const allEvents = eventsQuery.data?.events ?? [];
   const cutoff = now + daysAhead * DAY_MS;
   const visibleEvents = allEvents.filter(
-    (event) => new Date(event.commenceTime).getTime() <= cutoff,
+    (event) =>
+      new Date(event.commenceTime).getTime() <= cutoff ||
+      betEventIds.has(event.id),
   );
   const hasMore = visibleEvents.length < allEvents.length;
+  const dayGroups = groupEventsByDay(visibleEvents);
 
   // Auto lazy-load: when the toggle is on, extend the horizon as the sentinel at
   // the bottom of the list scrolls into view. Guarded for environments without
@@ -287,16 +336,26 @@ function Slate({
               {hasMore ? " Load more to see games further out." : ""}
             </p>
           ) : (
-            <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {visibleEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  selected={selected}
-                  onPick={onPick}
-                />
+            <div className="mt-6 space-y-8">
+              {dayGroups.map((group) => (
+                <div key={group.key}>
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">
+                    {group.label}
+                  </h3>
+                  <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {group.events.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        selected={selected}
+                        onPick={onPick}
+                        hasBet={betEventIds.has(event.id)}
+                      />
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
 
           {hasMore && (
