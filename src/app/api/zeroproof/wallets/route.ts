@@ -8,7 +8,10 @@ export const POST = withBackend("zeroproof open wallet", async ({ token }, reque
   const body = await request.json().catch(() => ({}));
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/wallets`, {
     method: "POST",
-    headers: buildHeaders(token, null),
+    // The JSON content-type is required: the backend's express.json() only
+    // parses the body when it's set, and without it every field reads as
+    // missing ("mode is required").
+    headers: buildHeaders(token, null, { "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
   if (!result.ok) return upstreamErrorResponse(result);
