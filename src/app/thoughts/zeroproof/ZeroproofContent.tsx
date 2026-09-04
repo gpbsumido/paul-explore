@@ -243,6 +243,22 @@ headers: buildHeaders(token, null, { "Content-Type": "application/json" })  // f
 visible = events.filter(e => e.commenceTime <= cutoff)
 // load more → daysAhead += 3 ; collapse → daysAhead = 3`}
         </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Three tabs, not one scroll
+        </h3>
+        <p className="text-muted">
+          The lobby had grown three jobs on one page — the board you bet from,
+          the leaderboard you compare on, and your own record — and they read as
+          one long scroll. They&apos;re tabs now: Board, Leaderboard, Your
+          record. All three panels stay mounted so their data preloads and a
+          switch is instant; the inactive ones are{" "}
+          <code className={code}>hidden</code>, which also drops them out of the
+          accessibility tree, so a screen reader and the keyboard only ever see
+          the panel you&apos;re on. The tablist is a proper ARIA one — arrow
+          keys move between tabs, and the selected tab is the only one in the tab
+          order.
+        </p>
       </Update>
 
       <WhatsNext
@@ -260,6 +276,7 @@ visible = events.filter(e => e.commenceTime <= cutoff)
           "Live settlement: the profile and bet history poll while you're signed in, so a bet the settler grades in the background lands on the open page — result, closing line and updated balance — with no reload. The front end is now a book you can sit in front of.",
           "Real odds on a cron: The Odds API feeds the board through the odds-sync worker, snapshotted to the DB, so the lobby shows live football lines without a vendor call on the page.",
           "A board horizon: the lobby shows the next three days by default, with a load-more that adds three days, an auto-load-on-scroll toggle, and a collapse back — a client filter over the served-from-DB list, so it costs no fetch.",
+          "Tabs: Board, Leaderboard and Your record are separate tabs now — a proper ARIA tablist with arrow-key navigation, panels kept mounted so their data preloads and inactive ones out of the a11y tree.",
         ]}
         couldImprove={[
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
