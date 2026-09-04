@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-04 - version 5.24.0
+
+- **The ZeroProof board groups fixtures by day.** Instead of one flat list, games sit under a heading for each day (e.g. "Sunday, Sep 7"), so a weekend slate reads as days rather than a wall — the events are already sorted by kickoff, so it's just a grouping over the same list.
+- **A fixture you've already bet on is always flagged, and always shown.** Each card the caller has a bet on gets a "Your bet" badge, and a fixture with a bet on it stays on the board even when it's past the current day-horizon — so you never lose track of a game you're in. The board reuses the profile's bets query (and shows nothing extra when signed out).
+
 ## 2026-09-04 - version 5.23.2
 
 - **The ZeroProof board's sticky controls actually stay visible now.** The board's "showing games in the next N days / load more / auto-load" control bar was `sticky top-0`, but so is the site's `PageHeader` (a `top-0 h-14` bar) — so the controls pinned behind the header and scrolled out of sight. They stick at `top-14` now, just below the header, the same offset the other in-page sticky bars use.
