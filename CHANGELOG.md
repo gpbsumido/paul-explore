@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-03 - version 5.23.0
+
+- **The ZeroProof board opens on the next three days, and grows from there.** MLB is a daily slate but NFL is weekly, so pointing the odds cron at football turned the board into a wall of games a week out. It now defaults to a three-day horizon: a "load more" that adds three days, a toggle to auto-load as you scroll instead, and a "show only next 3 days" collapse. The control bar is sticky so it stays reachable while you scroll. It's a client-side filter over the same served-from-DB slate — the endpoint already returns every upcoming game in kickoff order, so widening the window costs no fetch and no vendor credit.
+- **Documented, in the write-up and the public feed.** The `/thoughts/zeroproof` page gets a dated update covering going live on real odds, the wallet content-type bug that only a live product surfaced, and the horizon control; the `/updates` feed gets a curated entry for the release. Minor bump — the major milestone version is reserved for the release cut.
+
 ## 2026-09-03 - version 5.22.8
 
 - **Opening a ZeroProof wallet (and placing a bet) actually works now.** Both POST BFF routes forwarded the body to the backend without a `Content-Type: application/json` header, so Express's `express.json()` never parsed it and every field read as missing — the "mode is required" that surfaced in the UI as "Validation failed". The header is set now on both `/api/zeroproof/wallets` and `/api/zeroproof/bets`.
