@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-live",
+    date: "2026-09-04",
+    version: "6.0.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof is live — real lines, a bettable lobby, a milestone 6.0",
+    summary:
+      "The no-loss sportsbook is fully live: real odds on the board, wallets, a bet slip, live settlement, a leaderboard and your own record. A milestone major — nothing breaking.",
+    body: [
+      "This is where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and the closing-line value landing back on your record without a reload.",
+      "The lobby splits into Board, Leaderboard and Your record tabs, and the board opens on the next three days with a load-more and an auto-load-on-scroll toggle. It's the 6.0 milestone because the product genuinely went live; the dollars staying simulated is the only thing between here and real money, and that's a licensing question, not a code one.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-horizon",
     date: "2026-09-03",
     version: "5.23.0",

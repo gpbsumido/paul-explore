@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-04 - version 6.0.0
+
+- **ZeroProof is live — a milestone major, not a breaking one.** This is the version where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and closing-line value landing back on your record without a reload. Nothing in the public API broke; I'm calling it 6.0 because the product genuinely went live, and the dollars staying simulated is the only thing between here and real money (a licensing question, not a code one).
+- **What this release bundles since 5.22.7:** the wallet-open fix (a BFF that dropped its JSON content-type), the board's three-day horizon with load-more and an auto-load-on-scroll toggle, and the lobby split into Board / Leaderboard / Your record tabs. Cut through `ps/release/6.0.0` with `main` merged in first so its release-only history survives.
+
 ## 2026-09-03 - version 5.23.1
 
 - **The ZeroProof lobby splits into tabs: Board, Leaderboard, Your record.** It had grown three jobs on one long scroll — the board you bet from, the leaderboard you compare on, and your own record — so they're separate tabs now, and it's easier to see what you're doing. It's a proper ARIA tablist: arrow keys move between tabs, only the selected tab is in the tab order, and all three panels stay mounted so their data preloads and a switch is instant while the inactive ones drop out of the accessibility tree. Board is the default; the bet slip lives with it. Patch release, so it stays out of the curated `/updates` feed.
