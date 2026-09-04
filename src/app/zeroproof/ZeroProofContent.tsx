@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
+import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
   leaderboardResponseSchema,
@@ -98,22 +105,32 @@ function EventCard({
   event,
   selected,
   onPick,
+  hasBet,
 }: {
   event: ZeroproofEvent;
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
+  /** Whether the caller already has a bet on this fixture. */
+  hasBet: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
   return (
     <li className="rounded-2xl border border-border bg-surface/50 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-lg font-semibold text-foreground">
-          <span>{event.away}</span>
-          <span className="mx-2 text-muted" aria-label="at">
-            @
-          </span>
-          <span>{event.home}</span>
-        </h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground">
+            <span>{event.away}</span>
+            <span className="mx-2 text-muted" aria-label="at">
+              @
+            </span>
+            <span>{event.home}</span>
+          </h3>
+          {hasBet && (
+            <span className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
+              Your bet
+            </span>
+          )}
+        </div>
         <p className="text-xs text-muted">
           <time dateTime={event.commenceTime}>
             {formatKickoff(event.commenceTime)}
@@ -166,6 +183,37 @@ function EventCard({
   );
 }
 
+const HORIZON_STEP_DAYS = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const controlButton =
+  "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
+
+/** A whole-day label for a kickoff time, e.g. "Sunday, Sep 7", in the local zone. */
+function dayLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/**
+ * Group kickoff-sorted events into day buckets. Events arrive sorted by
+ * commence_time, so same-day events are already contiguous.
+ */
+function groupEventsByDay(
+  events: ZeroproofEvent[],
+): { key: string; label: string; events: ZeroproofEvent[] }[] {
+  const groups: { key: string; label: string; events: ZeroproofEvent[] }[] = [];
+  for (const event of events) {
+    const label = dayLabel(event.commenceTime);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.events.push(event);
+    else groups.push({ key: label, label, events: [event] });
+  }
+  return groups;
+}
+
 function Slate({
   selected,
   onPick,
@@ -179,6 +227,52 @@ function Slate({
     select: (json) => eventsResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
   });
+
+  // How far out the board reaches, in days. Starts at 3 and grows by 3 each
+  // "load more" (or automatically as you scroll, when that toggle is on).
+  const [daysAhead, setDaysAhead] = useState(HORIZON_STEP_DAYS);
+  const [autoLoad, setAutoLoad] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // The caller's bets, so a fixture they've already bet on is flagged on the
+  // board — and always shown, even past the horizon. Reuses the profile's query
+  // and returns [] when signed out.
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+  });
+  const betEventIds = new Set((betsQuery.data ?? []).map((bet) => bet.eventId));
+
+  // Captured once at mount so filtering is a pure function of state across
+  // re-renders (a live-updating clock would make render impure).
+  const [now] = useState(() => Date.now());
+  const allEvents = eventsQuery.data?.events ?? [];
+  const cutoff = now + daysAhead * DAY_MS;
+  const visibleEvents = allEvents.filter(
+    (event) =>
+      new Date(event.commenceTime).getTime() <= cutoff ||
+      betEventIds.has(event.id),
+  );
+  const hasMore = visibleEvents.length < allEvents.length;
+  const dayGroups = groupEventsByDay(visibleEvents);
+
+  // Auto lazy-load: when the toggle is on, extend the horizon as the sentinel at
+  // the bottom of the list scrolls into view. Guarded for environments without
+  // IntersectionObserver; the manual "load more" button is the fallback.
+  useEffect(() => {
+    if (!autoLoad || !hasMore) return;
+    if (typeof IntersectionObserver === "undefined") return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setDaysAhead((days) => days + HORIZON_STEP_DAYS);
+      }
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [autoLoad, hasMore, visibleEvents.length]);
 
   return (
     <section aria-labelledby="slate-title" className="mt-10">
@@ -202,23 +296,89 @@ function Slate({
         </p>
       )}
 
-      {eventsQuery.data && eventsQuery.data.events.length === 0 && (
+      {eventsQuery.data && allEvents.length === 0 && (
         <p className="mt-6 text-sm text-muted">
           No upcoming events on the board right now.
         </p>
       )}
 
-      {eventsQuery.data && eventsQuery.data.events.length > 0 && (
-        <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {eventsQuery.data.events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              selected={selected}
-              onPick={onPick}
-            />
-          ))}
-        </ul>
+      {eventsQuery.data && allEvents.length > 0 && (
+        <>
+          {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
+              controls stay visible while you scroll the board. */}
+          <div className="sticky top-14 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
+            <p className="text-xs text-muted" aria-live="polite">
+              Showing games in the next {daysAhead} days
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              {daysAhead > HORIZON_STEP_DAYS && (
+                <button
+                  type="button"
+                  onClick={() => setDaysAhead(HORIZON_STEP_DAYS)}
+                  className={controlButton}
+                >
+                  Show only next 3 days
+                </button>
+              )}
+              <label className="flex items-center gap-2 text-xs text-foreground">
+                <input
+                  type="checkbox"
+                  checked={autoLoad}
+                  onChange={(event) => setAutoLoad(event.target.checked)}
+                  className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                />
+                Auto-load as I scroll
+              </label>
+            </div>
+          </div>
+
+          {visibleEvents.length === 0 ? (
+            <p className="mt-6 text-sm text-muted">
+              Nothing kicks off in the next {daysAhead} days.
+              {hasMore ? " Load more to see games further out." : ""}
+            </p>
+          ) : (
+            <div className="mt-6 space-y-8">
+              {dayGroups.map((group) => (
+                <div key={group.key}>
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">
+                    {group.label}
+                  </h3>
+                  <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {group.events.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        selected={selected}
+                        onPick={onPick}
+                        hasBet={betEventIds.has(event.id)}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {hasMore && (
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
+              {autoLoad ? (
+                <p className="text-xs text-muted" role="status">
+                  Loading more as you scroll…
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setDaysAhead((days) => days + HORIZON_STEP_DAYS)}
+                  className={controlButton}
+                >
+                  Load more games
+                </button>
+              )}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
@@ -413,10 +573,15 @@ function useOpenWallet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (mode: "season" | "challenge") => {
+      // A Season wallet needs a deposit ($20 minimum on the backend); default to
+      // $500 to match the lobby wireframe until a deposit-amount input lands.
+      // Challenge is a fixed $100, so it sends no amount.
+      const body =
+        mode === "season" ? { mode, depositCents: 50_000 } : { mode };
       const res = await fetch("/api/zeroproof/wallets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
@@ -673,6 +838,50 @@ function BetHistory() {
   );
 }
 
+function RecordTrend({ wallets }: { wallets: ZeroproofWallet[] }) {
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+  });
+  const { overall, season } = bankrollTrend(betsQuery.data ?? [], wallets);
+  // A line needs at least two points; skip until there's a trend to show.
+  if (overall.length < 2) return null;
+
+  const hasSeason =
+    wallets.some((w) => w.mode === "season") && season.some((v) => v !== 0);
+  const series = hasSeason
+    ? [
+        { label: "Overall", values: overall },
+        { label: "Season", values: season },
+      ]
+    : [{ label: "Overall", values: overall }];
+  const money = (value: number) =>
+    `${value >= 0 ? "+" : "-"}$${Math.abs(value).toFixed(2)}`;
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">Bankroll trend</h3>
+      <p className="mt-1 text-xs text-muted">
+        Cumulative profit and loss over your settled bets.
+      </p>
+      <div className="mt-3">
+        <StackedLineChart
+          label="Cumulative profit and loss over settled bets, season and overall"
+          variant="lines"
+          series={series}
+        />
+      </div>
+      {/* The numbers in text, so the trend isn't colour-and-shape only. */}
+      <p className="mt-2 text-xs text-muted">
+        Overall {money(overall[overall.length - 1])}
+        {hasSeason ? ` · Season ${money(season[season.length - 1])}` : ""} over{" "}
+        {overall.length} settled bets.
+      </p>
+    </div>
+  );
+}
+
 function Profile() {
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
@@ -756,6 +965,8 @@ function Profile() {
             />
           </dl>
 
+          <RecordTrend wallets={profileQuery.data.wallets} />
+
           {profileQuery.data.wallets.length > 0 ? (
             <div className="space-y-4">
               <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -795,13 +1006,45 @@ function Profile() {
   );
 }
 
+const LOBBY_TABS = [
+  { id: "board", label: "Board" },
+  { id: "leaderboard", label: "Leaderboard" },
+  { id: "record", label: "Your record" },
+] as const;
+type LobbyTab = (typeof LOBBY_TABS)[number]["id"];
+
 /**
- * The public face of ZeroProof. The board is live, the profile and bet slip are
- * gated on a signed-in wallet: picking an outcome fills the slip, and the slip
- * places against the same slate the settler grades.
+ * The public face of ZeroProof, split into tabs so the three things you might be
+ * doing stay separate: the live board (and bet slip), the leaderboard, and your
+ * own record. All three panels stay mounted so their data preloads and a tab
+ * switch is instant; inactive ones are `hidden`, which also keeps them out of
+ * the accessibility tree.
  */
 export default function ZeroProofContent() {
   const [selectedBet, setSelectedBet] = useState<SelectedBet | null>(null);
+  const [tab, setTab] = useState<LobbyTab>("board");
+  const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
+
+  const focusTab = (id: LobbyTab) => {
+    setTab(id);
+    tabRefs.current[id]?.focus();
+  };
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    const index = LOBBY_TABS.findIndex((t) => t.id === tab);
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[(index + 1) % LOBBY_TABS.length].id);
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[(index - 1 + LOBBY_TABS.length) % LOBBY_TABS.length].id);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[0].id);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      focusTab(LOBBY_TABS[LOBBY_TABS.length - 1].id);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -823,12 +1066,72 @@ export default function ZeroProofContent() {
         </p>
       </header>
 
-      {selectedBet && (
-        <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
-      )}
-      <Profile />
-      <Slate selected={selectedBet} onPick={setSelectedBet} />
-      <Leaderboard />
+      <div
+        role="tablist"
+        aria-label="ZeroProof sections"
+        className="mt-8 flex gap-1 border-b border-border"
+      >
+        {LOBBY_TABS.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              ref={(element) => {
+                tabRefs.current[t.id] = element;
+              }}
+              type="button"
+              role="tab"
+              id={`zp-tab-${t.id}`}
+              aria-selected={active}
+              aria-controls={`zp-panel-${t.id}`}
+              tabIndex={active ? 0 : -1}
+              onClick={() => setTab(t.id)}
+              onKeyDown={onTabKeyDown}
+              className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
+                active
+                  ? "border-primary-600 text-foreground"
+                  : "border-transparent text-muted hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        role="tabpanel"
+        id="zp-panel-board"
+        aria-labelledby="zp-tab-board"
+        tabIndex={0}
+        hidden={tab !== "board"}
+        className="focus-visible:outline-none"
+      >
+        {selectedBet && (
+          <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
+        )}
+        <Slate selected={selectedBet} onPick={setSelectedBet} />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-leaderboard"
+        aria-labelledby="zp-tab-leaderboard"
+        tabIndex={0}
+        hidden={tab !== "leaderboard"}
+        className="focus-visible:outline-none"
+      >
+        <Leaderboard />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-record"
+        aria-labelledby="zp-tab-record"
+        tabIndex={0}
+        hidden={tab !== "record"}
+        className="focus-visible:outline-none"
+      >
+        <Profile />
+      </div>
     </div>
   );
 }

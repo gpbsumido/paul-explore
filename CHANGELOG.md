@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-09-04 - version 6.0.0
+
+- **ZeroProof is live — a milestone major, not a breaking one.** This is the version where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and closing-line value landing back on your record without a reload. Nothing in the public API broke; I'm calling it 6.0 because the product genuinely went live, and the dollars staying simulated is the only thing between here and real money (a licensing question, not a code one).
+- **What this release bundles since 5.22.7:** the wallet-open fix (a BFF that dropped its JSON content-type), the board's three-day horizon with load-more and an auto-load-on-scroll toggle, and the lobby split into Board / Leaderboard / Your record tabs. Cut through `ps/release/6.0.0` with `main` merged in first so its release-only history survives.
+## 2026-09-04 - version 5.25.0
+
+- **Your record grows a bankroll trend.** The Your record tab now charts cumulative profit and loss over your settled bets — two overlaid lines, one for everything ("Overall") and one for just your Season wallets — so you can see how a season is going against your record as a whole. It's a `StackedLineChart` from the design system (shared y-domain, so the two lines are actually comparable), computed client-side from the bets you already load, and it prints the numbers in text under the chart so the trend isn't shape-and-colour only.
+
+## 2026-09-04 - version 5.24.0
+
+- **The ZeroProof board groups fixtures by day.** Instead of one flat list, games sit under a heading for each day (e.g. "Sunday, Sep 7"), so a weekend slate reads as days rather than a wall — the events are already sorted by kickoff, so it's just a grouping over the same list.
+- **A fixture you've already bet on is always flagged, and always shown.** Each card the caller has a bet on gets a "Your bet" badge, and a fixture with a bet on it stays on the board even when it's past the current day-horizon — so you never lose track of a game you're in. The board reuses the profile's bets query (and shows nothing extra when signed out).
+
+## 2026-09-04 - version 5.23.2
+
+- **The ZeroProof board's sticky controls actually stay visible now.** The board's "showing games in the next N days / load more / auto-load" control bar was `sticky top-0`, but so is the site's `PageHeader` (a `top-0 h-14` bar) — so the controls pinned behind the header and scrolled out of sight. They stick at `top-14` now, just below the header, the same offset the other in-page sticky bars use.
+
+## 2026-09-03 - version 5.23.1
+
+- **The ZeroProof lobby splits into tabs: Board, Leaderboard, Your record.** It had grown three jobs on one long scroll — the board you bet from, the leaderboard you compare on, and your own record — so they're separate tabs now, and it's easier to see what you're doing. It's a proper ARIA tablist: arrow keys move between tabs, only the selected tab is in the tab order, and all three panels stay mounted so their data preloads and a switch is instant while the inactive ones drop out of the accessibility tree. Board is the default; the bet slip lives with it. Patch release, so it stays out of the curated `/updates` feed.
+
+## 2026-09-03 - version 5.23.0
+
+- **The ZeroProof board opens on the next three days, and grows from there.** MLB is a daily slate but NFL is weekly, so pointing the odds cron at football turned the board into a wall of games a week out. It now defaults to a three-day horizon: a "load more" that adds three days, a toggle to auto-load as you scroll instead, and a "show only next 3 days" collapse. The control bar is sticky so it stays reachable while you scroll. It's a client-side filter over the same served-from-DB slate — the endpoint already returns every upcoming game in kickoff order, so widening the window costs no fetch and no vendor credit.
+- **Documented, in the write-up and the public feed.** The `/thoughts/zeroproof` page gets a dated update covering going live on real odds, the wallet content-type bug that only a live product surfaced, and the horizon control; the `/updates` feed gets a curated entry for the release. Minor bump — the major milestone version is reserved for the release cut.
+
+## 2026-09-03 - version 5.22.8
+
+- **Opening a ZeroProof wallet (and placing a bet) actually works now.** Both POST BFF routes forwarded the body to the backend without a `Content-Type: application/json` header, so Express's `express.json()` never parsed it and every field read as missing — the "mode is required" that surfaced in the UI as "Validation failed". The header is set now on both `/api/zeroproof/wallets` and `/api/zeroproof/bets`.
+- **The Season button sends a deposit.** A Season wallet needs a deposit amount ($20 minimum on the backend), but the button posted a bare `{ mode }`, which would fail even once the body parsed. It now defaults to $500 to match the lobby wireframe; a proper deposit-amount input is the follow-up. Challenge is unchanged — it's a fixed $100 and sends no amount.
+
 ## 2026-09-03 - version 5.22.7
 
 - **Settlement lands on the ZeroProof lobby without a reload.** The profile and bet-history now poll every 30 seconds while you're signed in, so a bet the settler grades in the background shows its result and closing-line value, and your balance and stats update, on the open page — no refresh. The poll stops itself once the page knows there's no session, so a signed-out visitor isn't re-asking every 30 seconds. A fake-timer test pins it: an open bet becomes a graded win after the interval, with no user action.

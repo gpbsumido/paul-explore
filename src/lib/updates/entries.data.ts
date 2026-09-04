@@ -11,6 +11,66 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-live",
+    date: "2026-09-04",
+    version: "6.0.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof is live — real lines, a bettable lobby, a milestone 6.0",
+    summary:
+      "The no-loss sportsbook is fully live: real odds on the board, wallets, a bet slip, live settlement, a leaderboard and your own record. A milestone major — nothing breaking.",
+    body: [
+      "This is where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and the closing-line value landing back on your record without a reload.",
+      "The lobby splits into Board, Leaderboard and Your record tabs; the board opens on the next few days, groups fixtures by day and flags the games you're already in; and Your record charts a bankroll trend. It's the 6.0 milestone because the product genuinely went live — the dollars staying simulated is the only thing between here and real money, and that's a licensing question, not a code one.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-trend",
+    date: "2026-09-04",
+    version: "5.25.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See how your season is trending, on your record",
+    summary:
+      "Your record now charts cumulative profit and loss over your settled bets — one line for the season, one for everything.",
+    body: [
+      "The Your record tab grows a bankroll trend: two overlaid lines charting cumulative profit and loss over your settled bets, one for just your Season wallets and one for everything, so you can see how a season is going against your record as a whole.",
+      "It's computed from the bets you already load and drawn with the shared design-system chart, and the current figures are printed in text under it so the trend never reads as shape-and-colour alone.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-days",
+    date: "2026-09-04",
+    version: "5.24.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "The ZeroProof board reads by day, and flags games you're already in",
+    summary:
+      "Fixtures are grouped under a heading per day, and any game you've already bet on is badged and always shown — even past the day-horizon.",
+    body: [
+      "The board used to be one flat list of upcoming games. It's grouped by day now — each day its own heading — so a weekend slate reads as days rather than a wall.",
+      "And a fixture you've already placed a bet on gets a \"Your bet\" badge and stays on the board even when it's beyond the current few-day window, so you never lose track of a game you're in.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-horizon",
+    date: "2026-09-03",
+    version: "5.23.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof goes live, and the board opens on the next few days",
+    summary:
+      "Real football lines feed the lobby now, and the board shows the next three days by default — with a load-more, an auto-load-on-scroll toggle, and a collapse back.",
+    body: [
+      "The events board is fed by real odds now: they're pulled from a sportsbook data API on a schedule and stored to the database, so the lobby shows live lines with no vendor call riding on the page.",
+      "Football is a weekly slate, so rather than a wall of games a week out, the board opens on the next three days. Load more adds three days at a time, a toggle switches to loading automatically as you scroll, and you can collapse back to three whenever you want — a filter over the list the page already has, so widening the window costs no fetch.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-lobby",
     date: "2026-09-03",
     version: "5.22.0",

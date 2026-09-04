@@ -9,7 +9,9 @@ export const POST = withBackend("zeroproof place bet", async ({ token }, request
   const body = await request.json().catch(() => ({}));
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/bets`, {
     method: "POST",
-    headers: buildHeaders(token, null),
+    // JSON content-type required, or the backend's express.json() leaves the
+    // body unparsed and every field reads as missing.
+    headers: buildHeaders(token, null, { "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
   if (!result.ok) return upstreamErrorResponse(result);

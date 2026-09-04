@@ -187,6 +187,116 @@ board.textContent  →  never contains "auth0|"`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-03-live-and-horizon"
+        date="September 3, 2026"
+        title="Going live turned up a bug the tests couldn't have caught, and the board grew a horizon"
+      >
+        <p>
+          With the lobby merged and real odds flowing from The Odds API on a
+          cron, two things surfaced that only a live product does: the first bet
+          you try to place fails, and a weekly sport makes the board look empty.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The wallet you couldn&apos;t open
+        </h3>
+        <p className="text-muted">
+          Opening a Season wallet returned{" "}
+          <code className={code}>Validation failed</code>. The body looked right
+          from the browser, so I chased the schema first — wrong. The frontend
+          proxies the write through a BFF route, and that route forwarded the
+          body to the API with only an Authorization header. Express&apos;s{" "}
+          <code className={code}>express.json()</code> only parses when the
+          content-type says JSON, so the API received an empty body and the
+          first required field failed. Every integration test passed because
+          supertest sets the header for you — the gap was in the one seam the
+          tests mocked.
+        </p>
+        <pre className={pre}>
+          {`headers: buildHeaders(token, null)   // Authorization only, no Content-Type
+// → express.json() skips the body → req.body = {} → "mode is required"
+headers: buildHeaders(token, null, { "Content-Type": "application/json" })  // fixed`}
+        </pre>
+        <p className="text-muted">
+          One more layer down: the Season button posted a bare{" "}
+          <code className={code}>{`{ mode }`}</code> with no amount, which the
+          backend rejects because a Season wallet needs a deposit. It defaults to
+          $500 now; a real deposit-amount input is the follow-up.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Three days at a time
+        </h3>
+        <p className="text-muted">
+          MLB is a daily slate, but NFL is weekly — point the odds cron at
+          football and the board shows a wall of games a week out, or nothing for
+          days. So the board defaults to the next three days and grows from
+          there: a load-more that adds three days, a toggle to auto-load as you
+          scroll instead, and a collapse back to three. The window is a client
+          filter over the same served-from-DB list — the endpoint already returns
+          every upcoming game in kickoff order, so &quot;load more&quot; costs no
+          fetch and no vendor credit.
+        </p>
+        <pre className={pre}>
+          {`cutoff = now + daysAhead * ONE_DAY        // daysAhead starts at 3
+visible = events.filter(e => e.commenceTime <= cutoff)
+// load more → daysAhead += 3 ; collapse → daysAhead = 3`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Three tabs, not one scroll
+        </h3>
+        <p className="text-muted">
+          The lobby had grown three jobs on one page — the board you bet from,
+          the leaderboard you compare on, and your own record — and they read as
+          one long scroll. They&apos;re tabs now: Board, Leaderboard, Your
+          record. All three panels stay mounted so their data preloads and a
+          switch is instant; the inactive ones are{" "}
+          <code className={code}>hidden</code>, which also drops them out of the
+          accessibility tree, so a screen reader and the keyboard only ever see
+          the panel you&apos;re on. The tablist is a proper ARIA one — arrow
+          keys move between tabs, and the selected tab is the only one in the tab
+          order.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-04-board-days"
+        date="September 4, 2026"
+        title="The board reads by day, and remembers the games you're in"
+      >
+        <p>
+          Two board refinements once real football lines were flowing, both about
+          not losing the game you care about in a list.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A wall of games becomes a few days
+        </h3>
+        <p className="text-muted">
+          A weekend NFL slate is a lot of games at once. The board groups them by
+          day under a heading each — the events already arrive sorted by kickoff,
+          so it&apos;s a grouping over the same list, no new fetch.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A fixture you&apos;re in is flagged, and never hidden
+        </h3>
+        <p className="text-muted">
+          Any fixture the caller already has a bet on gets a{" "}
+          <code className={code}>Your bet</code> badge, and stays on the board
+          even when it&apos;s past the day-horizon — so a game you&apos;re in
+          can&apos;t scroll off behind the three-day default. The board reuses the
+          profile&apos;s bets query and shows nothing extra when you&apos;re
+          signed out.
+        </p>
+        <pre className={pre}>
+          {`visible = events.filter(e => e.commenceTime <= cutoff || betOn.has(e.id))
+// bet-on fixtures are always in, horizon or not`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
@@ -200,8 +310,14 @@ board.textContent  →  never contains "auth0|"`}
           "Bet history on the profile — each graded bet with its result and the closing-line value the settler stamped, read from an authed /bets endpoint, so a decision sits next to how the market moved on it.",
           "A Sharp/ROI toggle on the leaderboard, forwarding ?board through the proxy — sharp for skill, ROI for the variance a sharp score would talk you out of.",
           "Live settlement: the profile and bet history poll while you're signed in, so a bet the settler grades in the background lands on the open page — result, closing line and updated balance — with no reload. The front end is now a book you can sit in front of.",
+          "Real odds on a cron: The Odds API feeds the board through the odds-sync worker, snapshotted to the DB, so the lobby shows live football lines without a vendor call on the page.",
+          "A board horizon: the lobby shows the next three days by default, with a load-more that adds three days, an auto-load-on-scroll toggle, and a collapse back — a client filter over the served-from-DB list, so it costs no fetch.",
+          "Tabs: Board, Leaderboard and Your record are separate tabs now — a proper ARIA tablist with arrow-key navigation, panels kept mounted so their data preloads and inactive ones out of the a11y tree.",
+          "The board groups fixtures by day, and a fixture you've already bet on is badged and always shown — even past the day-horizon.",
+          "A bankroll trend on Your record: cumulative profit and loss over your settled bets, a line for the season and a line for everything, with the figures printed in text under the chart.",
         ]}
         couldImprove={[
+          "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
           "Results only match by the vendor's own event ids. An ESPN fallback would need fuzzy team-and-time matching, which I left as a deliberate later problem.",
           "Bust is a periodic sweep rather than instant on the losing bet — fine at this scale, worth tightening for the feel of it.",
