@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
-import { m } from "framer-motion";
 import TextReveal from "@/components/motion/TextReveal";
+import RevealOnScroll from "@/components/motion/RevealOnScroll";
 import { CRAFT_TRAITS, type CraftTrait } from "@/lib/craft";
-import { useHubReducedMotion } from "@/app/providers";
 import { SHELL, BAND } from "../shell";
 
 /**
@@ -78,8 +75,6 @@ function TraitRow({ trait, index }: { trait: CraftTrait; index: number }) {
  * somewhere inside it.
  */
 export default function CraftSpine() {
-  const reducedMotion = useHubReducedMotion();
-
   return (
     <section id="craft" className={BAND}>
       <div className={`${SHELL} grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14`}>
@@ -106,17 +101,14 @@ export default function CraftSpine() {
 
         <ul className="divide-y divide-border border-y border-border lg:col-span-8">
           {CRAFT_TRAITS.map((trait, index) => (
-            <m.li
+            <RevealOnScroll
+              as="li"
               key={trait.id}
               className="group relative"
               style={{ ["--trait" as string]: trait.color }}
-              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
               <TraitRow trait={trait} index={index} />
-            </m.li>
+            </RevealOnScroll>
           ))}
         </ul>
       </div>

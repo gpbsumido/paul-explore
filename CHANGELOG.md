@@ -1,5 +1,68 @@
 # Changelog
 
+## 2026-09-03 - version 5.22.7
+
+- **Settlement lands on the ZeroProof lobby without a reload.** The profile and bet-history now poll every 30 seconds while you're signed in, so a bet the settler grades in the background shows its result and closing-line value, and your balance and stats update, on the open page — no refresh. The poll stops itself once the page knows there's no session, so a signed-out visitor isn't re-asking every 30 seconds. A fake-timer test pins it: an open bet becomes a graded win after the interval, with no user action.
+
+## 2026-09-03 - version 5.22.6
+
+- **The ZeroProof leaderboard toggles between Sharp and ROI.** A segmented control on the board flips the ranking: Sharp (closing-line value rolled up with return and volume) or ROI (return on stake, where high variance can top a board a sharp score wouldn't). The API already served both — `?board=roi` — so this forwards the choice through the proxy and keys the query by board so each is cached on its own. A test flips to ROI and asserts the board re-ranks.
+
+## 2026-09-03 - version 5.22.5
+
+- **The ZeroProof profile shows your bet history.** A "Recent bets" list under the wallets: each bet's selection and market, the stake, the odds locked at placement, its result (won/lost/push/void, colour-coded), and the closing-line value the settler stamped once it graded. It reads the new authed `GET /api/zeroproof/bets` (Zod-validated, 401 without a session), so every decision sits next to how the market moved on it — the record a no-loss book is actually about. Tested against a mocked history: a graded win renders with its result and `CLV +7.9%`.
+
+## 2026-09-03 - version 5.22.4
+
+- **ZeroProof goes interactive: open a wallet and place a bet.** The lobby's board outcomes are buttons now — pick one and it fills a bet slip. Signed-in players choose a wallet, enter a stake, and place: the frontend posts `{ walletId, eventId, market, selection, stakeCents }` to a new authed `/api/zeroproof/bets` proxy, and the backend freezes the line and checks the balance server-side. Opening a Season or Challenge wallet is a button in the profile (new authed `POST /api/zeroproof/wallets`), and both refresh the profile on success. Signed-out visitors get a sign-in prompt in the slip instead. Tested against mocked endpoints: picking an outcome fills the slip, opening a wallet posts the mode, and placing a bet posts the picked outcome with the stake in cents.
+
+## 2026-09-03 - version 5.22.3
+
+- **The ZeroProof lobby gets a personal profile.** A signed-in section above the board: your record, ROI, sharp score, average closing-line value, current and best streak, biggest hit, and any wallets you hold (balance against locked principal), plus the accolade badges you've earned. Signed-out visitors see a sign-in prompt instead. It reads a new authed `/api/zeroproof/me` proxy — Zod-validated, 401 when there's no session — and the money is formatted from integer cents. Opening a wallet and placing bets is still the next slice; this shows the record the bet slip will build. Tested against a mocked profile in all three states (signed out, signed in with a wallet, signed in with none).
+## 2026-09-03 - version 5.22.2
+
+- **The hero entrance stopped juddering.** The `.rise-in` slide fires while the page is hydrating and the 3D hero's chunk is parsing, and without its own compositor layer a `transform` animation runs on the main thread and drops frames under that load — a visibly choppy entrance. Added `will-change: transform` so the slide runs on the compositor thread and stays smooth regardless of what the main thread is doing.
+- **The ZeroProof hub card looks like the others now.** It was rendering an empty preview slot and borrowing the NBA accent colour, because `zeroproof` had no entry in the preview map or the feature-token map. Gave it a small odds-board preview (a couple of matchups with lines) and its own purple accent token in both themes.
+
+## 2026-09-03 - version 5.22.1
+
+- **The ZeroProof lobby gains the sharp leaderboard.** Under the events board, a ranked table of players by their sharp score — closing-line value rolled up with return and volume, so it rewards beating the market rather than variance. Records read as win-loss-push, ROI is signed, and an unranked player (below the graded-bet threshold) shows a dash. Players appear by a stable opaque handle derived from their account id; the raw Auth0 sub never reaches the DOM, and a test pins that. Semantic `<table>` markup, accessible name, no axe violations.
+
+## 2026-09-03 - version 5.22.0
+
+- **ZeroProof gets a front end: a read-only lobby at `/zeroproof`.** The no-loss sportsbook API landed across eight backend PRs; this is the first slice of the UI over it. The lobby renders the public events board — upcoming games with their latest moneyline, spread and total lines, served from the database only (no vendor call rides on user traffic). Odds read the way a book writes them (`+122`, `-3.5`). It's a new hub feature with its own page, error boundary, loading skeleton, and dev-notes link; the bet slip, profile and leaderboards build on the same slate next. Data layer is Zod-validated at the trust boundary, the leaderboard's raw Auth0 subs are never exposed (a stable opaque handle stands in), and the slate + odds formatting are tested against a mocked API.
+## 2026-09-03 - version 5.21.4
+
+- **The landing is a server tree with client islands now, not one big client component.** `LandingContentV5` was a `"use client"` wrapper that did nothing but forward props, and under it seven sections — none of which use a single state hook — hydrated in full and dragged ~843 lines of static content data (`featureData.data`, `craft`) across the wire for markup that never changes. `V5Content` and all seven sections are server components again; the genuinely-interactive parts stay client islands (`LandingActions`, `ScrollProgress`, `HeroScene`, the motion leaves, and a new `RevealOnScroll`). Verified the section data (e.g. the craft principles) is now in the server HTML only, never in a client chunk; First Load JS for `/` fell ~22 KiB. This does **not** move LCP — I confirmed by measurement that the client bundle was never the LCP bottleneck (the R3F chunk loads after LCP; blocking it leaves LCP unchanged). It ships because the correct boundary is better engineering and the data belongs on the server, not because it chases a number.
+- **`RevealOnScroll` replaces a copy-pasted `m.div whileInView`.** `CraftSpine` and `FeaturedWork` each hand-rolled the same reduced-motion-gated scroll reveal inline, which is the only thing that forced them client. One reusable island (`as`/`y`/`amount`/`duration`/`delay` knobs) both de-duplicates the gesture and lets those two sections go server.
+- **`AnimatedNumber`'s `format` is a serializable descriptor (`"plain" | "comma"`) rather than a function.** A format function is a client-only prop, so it forced every caller across the client boundary — the opposite of a component whose whole point is that a server component can render the final value. The closed set covers every real caller (`Proof`, the design-system demo); custom callers extend the union.
+
+## 2026-09-03 - version 5.21.3
+
+- **The homepage stopped hiding its own headline from the LCP clock.** The hero `h1` is the page's largest contentful element, and it shipped with `.reveal-up`, whose keyframe fades opacity from 0. Chrome doesn't count an element as painted until it's visible, so on a mid-tier phone under a busy main thread the largest text landed seconds after first paint — Lighthouse (mobile, throttled) measured the home LCP at ~6.3s against an FCP of ~1.1s, the whole gap being the heading waiting to fade in. I added `.rise-in`, the same 20px slide on `transform` alone with opacity held at 1, and used it for the above-the-fold hero text; `.reveal-up` still drives everything below the fold, where a fade costs nothing. Home LCP dropped to ~3.2s median over six throttled runs. The remaining time is client-JS bootup, not the entrance, and is a separate job. Tests pin that the heading uses `.rise-in` and that `.rise-in` never animates opacity.
+
+## 2026-09-03 - version 5.21.2
+
+- **New write-up: building a no-loss sportsbook, ledger first.** A dev-thoughts page on the ZeroProof API I built behind this site — a betting product where the record is real and the dollars are simulated. It walks the decisions that were expensive to reverse: a double-entry ledger with derived balances so the fake-money MVP can become real money without a rewrite, closing-line value captured on every bet from the first row because it's unrecoverable later, and a seven-PR stack where each slice deploys on its own. Filed under Architecture & Backend; a patch release, so it stays out of the curated `/updates` feed by design.
+
+## 2026-09-02 - version 5.21.1
+
+- **Draft Lab write-up gains two owner-only Elite updates.** The first covers the keeper finder — keeping is a value-minus-round-cost decision, not "keep my two best", so it enumerates every candidate pair, simulates the whole draft for each (kept players and their rounds burned, opponents on their tendencies, my picks from the recommender), and ranks by the starting lineup I end up with. Candidates and costs load from last year's ESPN draft and final rosters; the note keeps the wrong turn in — matching my team across seasons by name silently found nothing once I'd renamed it, so it now picks the team from a dropdown. The second covers depth-chart status from firstdown.studio: the slot (WR1/RB2/TE1) is rebuilt by grouping each team by ADP because the source doesn't carry it, the data is prised out of a Next.js payload that has no API, and the CORS block that forced the fetch through the background script.
+
+## 2026-09-02 - version 5.21.0
+
+- **The `/design-system` showcase gains the 10 AI-app primitives from `@paul-portfolio/react` 0.6.0.** ChatComposer, ChatMessage, CodeBlock, Combobox, CommandPalette, RichTextEditor, StreamingText, Toast, TokenUsageMeter, and TypingDots — each catalogued with a usage note and its accessibility guarantees, and rendered live from the real published package rather than a mockup. Bumped `@paul-portfolio/css` to 0.9.0 too, so the new component styles arrive through the existing `components.css` import.
+- **The catalog is what forced the coverage.** The integrity test pins the documented set to the package's exact runtime exports, so bumping the dependency turned the gallery red until all 10 were documented and previewed. Toast ships as a `ToastProvider` plus a `useToast` hook; the hook joins the non-component list and the card documents the provider.
+- **Portal primitives stay closed.** CommandPalette and Toast render behind a trigger button so nothing overlays the page and the per-primitive axe test stays clean. The hook-free primitives render inline in the server shell; the stateful ones hydrate as small client islands.
+- **Announced it on the public `/updates` feed, and added a guard so I can't forget next time.** This release has a curated entry in the Updates feature, and a new test fails the build if a minor or major version (an `X.Y.0` bump) ever lands without one. Patch releases stay out of the curated feed on purpose.
+
+## 2026-09-02 - version 5.20.0
+
+- **A public Updates section: a changelog people would actually read, plus a ticket board.** New at `/updates` — a curated, plain-language feed of what shipped and why, searchable, filterable by category and tag, sortable newest/oldest, with expand-in-place cards. It is a separate curated data file rather than a parse of this `CHANGELOG.md`, which is dense and written for me; the two never have to agree on tone because they are not the same document. The search/sort/filter logic is pure (`src/lib/updates/query.ts`) so the feed's behaviour is tested without a browser.
+- **A ticket board at `/updates/tickets` that is honest about having no server.** Status columns (Open / Planned / In progress / Shipped), upvoting, and a suggestion form. A visitor's own submissions and votes live in their own browser, layered on top of the seed tickets by `src/lib/updates/ticketStore.ts` and wired to React through `useSyncExternalStore` rather than a setState-in-effect. The page says this in as many words rather than implying a shared board that does not exist; the store takes its `Storage` as an argument, so swapping in a real API later is a one-file change.
+- **The two halves link, and a test keeps them in sync.** A shipped ticket names the update that closed it and that update lists the ticket back; a data test walks every cross-link in both directions and fails the build if a shipped ticket points at an entry that does not list it, or at no entry at all.
+- **Wired in everywhere a new feature has to be:** a hub feature card with its own accent token, a `/thoughts/updates` write-up, the sitemap, and the `llms.txt` crawler file. The world exhibit is deliberately skipped — a changelog is a meta-page about the site's own changes, not a place in the city.
+
 ## 2026-08-31 - version 5.19.10
 
 - **Draft Lab write-up gains an owner-only MockoSheet note.** Elite: adopting the community sheet as an optional ADP override + VAL recommendation overlay (not a points source), the block-grid parsing, and an honest benchmark — +138 on our yardstick / -52 on theirs across 400 sims, i.e. each yardstick flatters its own source, so a preseason "it is better" is not provable; it ships as a credible second opinion (Spearman 0.85 to our order) rather than a silent replacement.

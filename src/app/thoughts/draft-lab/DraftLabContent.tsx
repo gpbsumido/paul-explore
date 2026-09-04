@@ -51,6 +51,16 @@ function EliteSections() {
       <UpdateTimeline
         entries={[
           {
+            id: "elite-keeper-finder",
+            date: "Sep 2, 2026",
+            title: "Which two to keep, decided by 250 drafts instead of a hunch",
+          },
+          {
+            id: "elite-depth-charts",
+            date: "Sep 2, 2026",
+            title: "Depth-chart status, prised out of a page with no API",
+          },
+          {
             id: "elite-mockosheet",
             date: "Aug 31, 2026",
             title: "A second opinion on ADP, and why I can't tell you it's better",
@@ -116,6 +126,91 @@ function EliteSections() {
           <i>worse advice</i> dressed up as the real thing.
         </p>
       </section>
+
+      <Update
+        id="elite-keeper-finder"
+        date="September 2, 2026"
+        title="Which two to keep, decided by 250 drafts instead of a hunch"
+      >
+        <p>
+          My league keeps two, and every year I agonise over the wrong question.
+          The instinct is &quot;keep my two best players&quot;, but that&apos;s
+          not the decision — a keeper costs the draft round I took him in, so the
+          real question is <i>surplus</i>: an elite back I drafted in the 5th is a
+          steal to keep, the same back drafted in the 1st is worth almost nothing,
+          because I&apos;d spend a first-rounder to get a first-rounder. Value
+          minus cost, and the cost is a pick I no longer get to make.
+        </p>
+        <p>
+          So Elite gets a finder that answers it by playing the season out. It
+          enumerates every pair of my candidate keepers, and for each pair
+          simulates the whole draft — the two players kept, the matching rounds
+          burned, opponents drafting on their own tendencies and ESPN&apos;s
+          board, my remaining picks coming from the recommender — then scores the
+          starting lineup I end up with. It runs that many times per pair and
+          averages, because a single sim is noise; the pair with the best average
+          startable lineup wins. The round cost falls out for free: keep a stud in
+          the 10th and the sim still has my early picks to spend, so the rosters it
+          builds are simply better, and the ranking says so without my having to
+          reason about it.
+        </p>
+        <p>
+          The candidates and their costs come straight from last year&apos;s ESPN
+          league — a button pulls the 2025 draft and final rosters, takes everyone
+          still on my team, and prices each at the round I drafted him (a
+          waiver-wire pickup that was never drafted costs my last round, which is
+          my league&apos;s rule). The one thing I got wrong first: I matched my
+          team across seasons by name, and it silently found nothing, because
+          I&apos;d renamed the team over the offseason — so it left my two existing
+          keepers in place and cheerfully told me there was nothing to choose
+          between. It now makes me pick my team from a dropdown of that
+          season&apos;s rosters instead of guessing. And because a real candidate
+          set is a dozen sims deep and takes a few seconds, it shows a running
+          clock while it works and how long it took when it&apos;s done, rather
+          than a spinner that looks hung.
+        </p>
+      </Update>
+
+      <Update
+        id="elite-depth-charts"
+        date="September 2, 2026"
+        title="Depth-chart status, prised out of a page with no API"
+      >
+        <p>
+          A player&apos;s spot on his own team&apos;s depth chart — WR1 versus WR3,
+          the back who&apos;s clearly RB1 versus the one in a committee — is a
+          signal my projections only half-capture, and I wanted it on the board at
+          a glance. So Elite now shows each skill player&apos;s depth slot on the
+          Available list and in the companion overlay, and lets me filter and sort
+          the pool by it: show me only the starters, or push the backups down. It
+          reads from firstdown.studio&apos;s ADP-based depth charts, the same
+          source a lot of the community leans on.
+        </p>
+        <p>
+          Two things made it more work than a fetch-and-show. First, the slot
+          isn&apos;t actually a field anywhere — the page renders it, but the data
+          only carries each player&apos;s team, position and ADP. So I rebuild the
+          slot myself: group by team and position, sort by ADP, and the order is
+          the depth chart. Chase ahead of Higgins on the Bengals falls straight out
+          of it, which is the point — it&apos;s the same logic the page itself uses.
+          Second, the page has no API or CSV; the data is embedded in the
+          Next.js streaming payload, so I pull the players array out of that and
+          parse it by field name so a reshuffle doesn&apos;t break it.
+        </p>
+        <p>
+          The bug that cost me the most time wasn&apos;t parsing — it was CORS.
+          firstdown answers a direct request from the extension page with a 200 and
+          no cross-origin header, so Firefox blocks me from reading a response the
+          server was happy to send. Every other source I use (Sleeper, ESPN,
+          Google&apos;s sheets) sends a permissive header, so this was the first one
+          that actually needed the extension&apos;s host permission to bite — and in
+          Firefox that only reliably applies to a background fetch, not one from a
+          tab. Routing the request through the background script fixed it. One
+          honest limit: the source only covers running backs, receivers and tight
+          ends, so quarterbacks, kickers and defenses simply show no slot rather
+          than a made-up one.
+        </p>
+      </Update>
 
       <Update
         id="elite-mockosheet"
@@ -924,7 +1019,7 @@ oracle (true settings) Brier 0.1895   -1.72%  better`}
           "A Firefox MV3 extension in its own repo: practice drafts against configurable AI opponents, a live companion overlay in the ESPN draft room, keeper reservation, editable tiers with a supply grid, and recommendations with survival odds — all under my league's exact scoring.",
         ]}
         couldImprove={[
-          "The scrapers are still pattern-matching an unversioned page; ESPN can break them silently on any deploy. The diagnostics make breakage visible, not impossible.",
+          "The scrapers are still pattern-matching unversioned pages — ESPN, and now firstdown's depth charts embedded in a Next.js payload; either can break on any deploy. The diagnostics make breakage visible, not impossible.",
           "Auto-keeper cannot beat ESPN’s autopick to a sniped player; the native Keepers tab is the real lock and the extension can only warn.",
           "Temporary add-on installs unload on every Firefox restart; it should get signed for a permanent install before next season.",
         ]}

@@ -20,11 +20,24 @@ const useIsServerRender = () =>
     () => true,
   );
 
+/**
+ * How the figure reads. A closed, serializable set rather than a format
+ * function on purpose: the function forced every caller across the client
+ * boundary, when the component's whole point is that a server component can
+ * render the final value. `plain` is the raw integer, `comma` groups thousands.
+ */
+export type NumberFormat = "plain" | "comma";
+
+const FORMATTERS: Record<NumberFormat, (value: number) => string> = {
+  plain: (n) => String(n),
+  comma: (n) => n.toLocaleString("en-US"),
+};
+
 export type AnimatedNumberProps = {
   /** The number to land on. */
   value: number;
-  /** Turns the raw number into what gets rendered. */
-  format?: (value: number) => string;
+  /** How the figure reads. Defaults to the raw integer. */
+  format?: NumberFormat;
   /** How long the count takes, in milliseconds. */
   durationMs?: number;
   className?: string;
@@ -44,10 +57,11 @@ export type AnimatedNumberProps = {
  */
 export default function AnimatedNumber({
   value,
-  format = (n) => String(n),
+  format = "plain",
   durationMs = 900,
   className,
 }: AnimatedNumberProps) {
+  const render = FORMATTERS[format];
   const reducedMotion = useHubReducedMotion();
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
@@ -62,7 +76,7 @@ export default function AnimatedNumber({
 
   return (
     <span ref={ref} className={className}>
-      {format(display)}
+      {render(display)}
     </span>
   );
 }

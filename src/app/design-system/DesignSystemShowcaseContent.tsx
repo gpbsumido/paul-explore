@@ -29,6 +29,7 @@ import {
   Badge,
   BarChart,
   Card,
+  ChatMessage,
   Divider,
   DonutChart,
   FunnelChart,
@@ -42,6 +43,8 @@ import {
   Sparkline,
   Spinner,
   StackedLineChart,
+  TokenUsageMeter,
+  TypingDots,
   VisuallyHidden,
   WordCloud,
 } from "@paul-portfolio/react";
@@ -58,12 +61,19 @@ import ScrollProgress from "@/components/motion/ScrollProgress";
 import ButtonPlayground from "./ButtonPlayground";
 import MotionPrimitiveDemo from "./MotionPrimitiveDemo";
 import {
+  ChatComposerDemo,
   ChipDemo,
+  CodeBlockPreview,
+  ComboboxDemo,
+  CommandPaletteDemo,
   ModalDemo,
+  RichTextEditorDemo,
   SpotlightPreview,
+  StreamingTextPreview,
   SwitchDemo,
   TickerPreview,
   TiltCardPreview,
+  ToastDemo,
 } from "./GalleryDemos";
 import { ACCENT_BAND } from "@/lib/accentBand";
 
@@ -199,6 +209,39 @@ const PREVIEWS: Record<string, ReactNode> = {
   // frame where the component should be. They sit first in the catalog, so the
   // page opened on a column of blank boxes and only looked alive further down.
   // Sample data is small and hand-written so each shape reads at preview size.
+  "chat-composer": <ChatComposerDemo />,
+  "chat-message": (
+    <div className="w-full space-y-2">
+      {/* role here is ChatMessage's own domain prop (user/assistant/system),
+          not an ARIA role, so jsx-a11y/aria-role is a false positive. */}
+      {/* eslint-disable-next-line jsx-a11y/aria-role */}
+      <ChatMessage role="user" name="You">
+        How do I centre a div?
+      </ChatMessage>
+      {/* eslint-disable-next-line jsx-a11y/aria-role */}
+      <ChatMessage role="assistant" name="Assistant">
+        Use a flex or grid container and let the item align to the centre.
+      </ChatMessage>
+    </div>
+  ),
+  "code-block": <CodeBlockPreview />,
+  combobox: <ComboboxDemo />,
+  "command-palette": <CommandPaletteDemo />,
+  "rich-text-editor": <RichTextEditorDemo />,
+  "streaming-text": <StreamingTextPreview />,
+  toast: <ToastDemo />,
+  "token-usage-meter": (
+    <div className="w-full">
+      <TokenUsageMeter
+        label="Context window"
+        promptTokens={9200}
+        completionTokens={2400}
+        maxTokens={16000}
+        costPerMTok={3}
+      />
+    </div>
+  ),
+  "typing-dots": <TypingDots label="Assistant is typing" />,
   sparkline: (
     <Sparkline data={[4, 9, 6, 12, 10, 16, 14]} label="Weekly signups" />
   ),

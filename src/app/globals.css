@@ -280,6 +280,38 @@
   }
 }
 
+/* The above-the-fold cousin of reveal-up. Same slide, but transform only, with
+   opacity held at 1 the whole way. reveal-up starts at opacity:0, and Chrome
+   does not count an element as painted until it is visible, so using it on the
+   hero deferred LCP for the largest text on the page until the fade ran under a
+   busy main thread. rise-in is painted on the first frame, so LCP tracks FCP,
+   and the slide reads the same. Only for elements in the initial viewport;
+   below the fold reveal-up's fade costs nothing. */
+@keyframes rise-in {
+  from {
+    transform: translateY(20px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  /* Promote to its own compositor layer so the slide runs on the compositor
+     thread, not the main thread. Without this the entrance janks: it fires
+     while the page is hydrating and the 3D hero's chunk is parsing, and a
+     main-thread transform drops frames under that load. */
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in {
+    animation: none;
+    will-change: auto;
+  }
+}
+
 /* BlobBackground's ambient wander. Runs on the blob path's own transform so it
    never fights the scroll parallax framer drives on the parent svg. Each layer
    gets its own duration and a negative delay from the component, so the layers

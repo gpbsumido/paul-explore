@@ -19,6 +19,9 @@ const NON_COMPONENT_EXPORTS = [
   // and the motion-preference hook they and the effects share.
   "chartGeometry",
   "usePrefersReducedMotion",
+  // Toast ships its runtime surface as ToastProvider plus this hook; the
+  // provider is the primitive we document, so the hook isn't a component.
+  "useToast",
 ];
 
 describe("design system catalog integrity", () => {

@@ -33,7 +33,160 @@ export type ComponentDoc = {
   elsewhere?: string;
 };
 
+const AI_ELSEWHERE =
+  "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.";
+
 export const COMPONENTS: ComponentDoc[] = [
+  {
+    id: "chat-composer",
+    name: "ChatComposer",
+    importName: "ChatComposer",
+    tagline: "An auto-growing prompt box that sends on Enter.",
+    usage:
+      "Use as the input for a chat or AI surface. It grows with the message, sends on Enter and inserts a newline on Shift+Enter, refuses to send an empty message, and locks the whole control while busy so a reply can't be double-sent.",
+    a11y: [
+      "The message field carries a real label — pass hideLabel to keep it for screen readers while hiding it visually",
+      "Enter sends and Shift+Enter adds a line, so the keyboard contract is explicit rather than guessed",
+      "busy and disabled lock the field and button together, keeping an accessible name throughout",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "chat-message",
+    name: "ChatMessage",
+    importName: "ChatMessage",
+    tagline: "A chat bubble aligned and coloured by role.",
+    usage:
+      "Use for one turn in a conversation. Set role to user, assistant, or system to align and colour it, pass name and timestamp for the meta line, and set pending while a reply streams to show a typing indicator in place of content.",
+    a11y: [
+      "Each turn renders as an article, so a screen reader can navigate the conversation turn by turn",
+      "The role is baked into the accessible name, so 'Assistant message' reads even when colour and alignment can't",
+      "pending swaps in a live typing indicator rather than an empty bubble",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "code-block",
+    name: "CodeBlock",
+    importName: "CodeBlock",
+    tagline: "A read-only code panel with a copy button.",
+    usage:
+      "Use to show a snippet a model returned or a command to run. Pass language and filename for the header, and showLineNumbers when the reader needs to reference a line — the gutter is decorative and hidden from assistive tech.",
+    a11y: [
+      "The copy button reports success back to assistive tech instead of changing silently",
+      "Line numbers are decorative and hidden, so a screen reader reads the code, not the gutter",
+      "The code sits in a real pre/code pair, keeping whitespace and structure intact",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "combobox",
+    name: "Combobox",
+    importName: "Combobox",
+    tagline: "An accessible autocomplete over a list of options.",
+    usage:
+      "Use for a model or tool picker where typing to filter beats scrolling a long select. It's controlled via value and onChange; commit an option with Enter or a click.",
+    a11y: [
+      "Implements the ARIA combobox pattern with aria-expanded on the input",
+      "aria-activedescendant announces the active option while focus stays in the field",
+      "Fully keyboard operable — arrow to move, Enter to commit, Escape to close",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "command-palette",
+    name: "CommandPalette",
+    importName: "CommandPalette",
+    tagline: "A ⌘K-style command menu, filtered as you type.",
+    usage:
+      "Use for a keyboard-driven action launcher. Pass open/onClose and a list of commands with labels, optional groups, icons, and keywords; type to filter, arrow to move, Enter to run, Escape to close.",
+    a11y: [
+      "Follows the combobox/listbox pattern — the input owns aria-activedescendant so the active command is announced without moving focus",
+      "role=dialog with a required accessible name, opened only when you ask for it",
+      "Escape closes it and returns control to where you were",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "rich-text-editor",
+    name: "RichTextEditor",
+    importName: "RichTextEditor",
+    tagline: "A small formatting editor with a keyboard-driven toolbar.",
+    usage:
+      "Use for short rich input — a system prompt, a note, a description. Choose which controls the toolbar shows and in what order; bold, italic, and underline also respond to the usual Cmd/Ctrl shortcuts.",
+    a11y: [
+      "The editable region carries a required label — pass hideLabel to keep it for screen readers only",
+      "Toolbar buttons are real buttons with names, reachable and operable from the keyboard",
+      "Formatting shortcuts mirror the toolbar, so the mouse is never required",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "streaming-text",
+    name: "StreamingText",
+    importName: "StreamingText",
+    tagline: "Text revealed a few characters at a time, the way a model streams.",
+    usage:
+      "Use to animate a model response arriving. Tune speed and interval for the pace, show a caret with cursor, and pass onDone to fire once the whole string is out.",
+    a11y: [
+      "Honours prefers-reduced-motion by showing the whole string at once instead of animating",
+      "Announces through a polite live region, so the finished text reaches a screen reader",
+      "The caret is decorative and never spoken",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "toast",
+    name: "Toast",
+    importName: "ToastProvider",
+    tagline: "Stacking notifications raised from anywhere via a hook.",
+    usage:
+      "Wrap the app in ToastProvider and call useToast().toast(...) to raise one. Set variant for tone and duration to control auto-dismiss — pass 0 to keep it until dismissed.",
+    a11y: [
+      "Toasts stack in a live region so screen readers announce them as they arrive",
+      "Errors announce assertively, everything else politely, matching urgency to tone",
+      "Each toast auto-dismisses on a timer unless you set duration to 0",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "token-usage-meter",
+    name: "TokenUsageMeter",
+    importName: "TokenUsageMeter",
+    tagline: "A budget bar for LLM token usage, prompt and completion split out.",
+    usage:
+      "Use to show context-window or spend usage. Pass promptTokens, completionTokens, and maxTokens for the two-segment track, costPerMTok for an estimated cost, and warnAt to set where the near-limit tone kicks in.",
+    a11y: [
+      "Exposes progressbar semantics with aria-valuetext spelling out used-of-budget and percent",
+      "Switches to a warning and then an over tone as usage nears and passes the budget — never colour alone",
+      "The used total and percent are real text, not just the width of a bar",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "typing-dots",
+    name: "TypingDots",
+    importName: "TypingDots",
+    tagline: "A three-dot typing indicator for chat surfaces.",
+    usage:
+      "Use while an assistant reply is on its way. Pass label to set what a screen reader hears — the dots themselves are pure decoration.",
+    a11y: [
+      "Renders as a polite status region, so the label announces without stealing focus",
+      "The animated dots are decorative and hidden from assistive tech",
+      "The label carries all the meaning, so nothing is lost with animation off",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
   {
     id: "sparkline",
     name: "Sparkline",

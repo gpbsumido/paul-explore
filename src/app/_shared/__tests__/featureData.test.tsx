@@ -46,6 +46,13 @@ describe("Explore Toronto hub card", () => {
     expect(FEATURE_TOKEN.world).toBe("--color-feature-world");
   });
 
+  it("gives the ZeroProof card its own preview and accent, not the fallback", () => {
+    // Without these the card renders an empty preview slot and borrows the NBA
+    // accent — the hub-card gap.
+    expect(PREVIEW_MAP.zeroproof).toBeDefined();
+    expect(FEATURE_TOKEN.zeroproof).toBe("--color-feature-zeroproof");
+  });
+
   it("renders the skyline preview and the walk hint", () => {
     render(<FeatureCard feature={world} prefersReduced={false} />);
     expect(

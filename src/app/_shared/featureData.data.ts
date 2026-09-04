@@ -173,9 +173,41 @@ export const FEATURES: FeatureItem[] = [
     color: "#6451ba",
     thoughtsHref: "/thoughts/v5-redesign",
   },
+  {
+    id: "updates",
+    title: "Updates",
+    description:
+      "A public, plain-language changelog you can search, filter, and sort, next to a ticket board where anyone can suggest a feature or report a bug, upvote, and watch it move from idea to shipped — where each shipped ticket links back to the update that closed it.",
+    href: "/updates",
+    color: "#2b7d8c",
+    thoughtsHref: "/thoughts/updates",
+  },
+  {
+    id: "zeroproof",
+    title: "ZeroProof",
+    description:
+      "A no-loss sportsbook: lock a deposit, bet real lines, get the deposit back at term end, and keep the record forever. A read-only lobby over a real double-entry ledger — the dollars are simulated on purpose.",
+    href: "/zeroproof",
+    color: "#6451ba",
+    thoughtsHref: "/thoughts/zeroproof",
+  },
 ];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "ZeroProof: A No-Loss Sportsbook",
+    href: "/thoughts/zeroproof",
+    preview:
+      "Betting with the loss taken out: a double-entry ledger from the first row, closing-line value captured on every bet, and seven stacked PRs that each deploy on their own",
+    color: "#6451ba",
+  },
+  {
+    title: "Updates",
+    href: "/thoughts/updates",
+    preview:
+      "A public changelog that isn't a parse of the internal one: curated entries, pure search/sort logic, and a ticket board that says out loud it has no server",
+    color: "#2b7d8c",
+  },
   {
     title: "Learn",
     href: "/thoughts/learn",

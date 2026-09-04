@@ -150,6 +150,7 @@
   --color-feature-tcg: #b04351;
   --color-feature-nba: #8a670e;
   --color-feature-vitals: #6a55c8;
+  --color-feature-zeroproof: #6451ba;
   --color-feature-graphql: #33639e;
   --color-feature-auth: #b13d31;
   --color-feature-particles: #0d7686;
@@ -164,6 +165,15 @@
   --color-feature-craft: #94459e;
   --color-feature-gallery-wall: #ab4380;
   --color-feature-world: #286f9e;
+  --color-feature-updates: #2b7d8c;
+
+  /* Updates feed category accents + ticket type accents. Darker here for the
+     light surface; the [data-theme="dark"] block lightens them. */
+  --color-update-feature: #7c4dcc;
+  --color-update-improvement: #2f6fb8;
+  --color-update-fix: #b06f12;
+  --color-update-experiment: #1f8a63;
+  --color-ticket-bug: #c23b3b;
 
   /* ========================================
      GLASS SYSTEM
@@ -355,6 +365,7 @@
   --color-feature-tcg: #f7c3c6;
   --color-feature-nba: #f2d38b;
   --color-feature-vitals: #d3cbf5;
+  --color-feature-zeroproof: #c8bef0;
   --color-feature-graphql: #b9d2ee;
   --color-feature-auth: #f4b3ac;
   --color-feature-particles: #a3e6ef;
@@ -369,6 +380,12 @@
   --color-feature-craft: #ecc2f0;
   --color-feature-gallery-wall: #f3bedd;
   --color-feature-world: #a6d6f0;
+  --color-feature-updates: #a3d5de;
+  --color-update-feature: #b79af0;
+  --color-update-improvement: #9cc2ee;
+  --color-update-fix: #e6b566;
+  --color-update-experiment: #86d6b4;
+  --color-ticket-bug: #ef9a9a;
 
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
