@@ -4,6 +4,18 @@
 
 - **ZeroProof is live — a milestone major, not a breaking one.** This is the version where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and closing-line value landing back on your record without a reload. Nothing in the public API broke; I'm calling it 6.0 because the product genuinely went live, and the dollars staying simulated is the only thing between here and real money (a licensing question, not a code one).
 - **What this release bundles since 5.22.7:** the wallet-open fix (a BFF that dropped its JSON content-type), the board's three-day horizon with load-more and an auto-load-on-scroll toggle, and the lobby split into Board / Leaderboard / Your record tabs. Cut through `ps/release/6.0.0` with `main` merged in first so its release-only history survives.
+## 2026-09-04 - version 5.25.0
+
+- **Your record grows a bankroll trend.** The Your record tab now charts cumulative profit and loss over your settled bets — two overlaid lines, one for everything ("Overall") and one for just your Season wallets — so you can see how a season is going against your record as a whole. It's a `StackedLineChart` from the design system (shared y-domain, so the two lines are actually comparable), computed client-side from the bets you already load, and it prints the numbers in text under the chart so the trend isn't shape-and-colour only.
+
+## 2026-09-04 - version 5.24.0
+
+- **The ZeroProof board groups fixtures by day.** Instead of one flat list, games sit under a heading for each day (e.g. "Sunday, Sep 7"), so a weekend slate reads as days rather than a wall — the events are already sorted by kickoff, so it's just a grouping over the same list.
+- **A fixture you've already bet on is always flagged, and always shown.** Each card the caller has a bet on gets a "Your bet" badge, and a fixture with a bet on it stays on the board even when it's past the current day-horizon — so you never lose track of a game you're in. The board reuses the profile's bets query (and shows nothing extra when signed out).
+
+## 2026-09-04 - version 5.23.2
+
+- **The ZeroProof board's sticky controls actually stay visible now.** The board's "showing games in the next N days / load more / auto-load" control bar was `sticky top-0`, but so is the site's `PageHeader` (a `top-0 h-14` bar) — so the controls pinned behind the header and scrolled out of sight. They stick at `top-14` now, just below the header, the same offset the other in-page sticky bars use.
 
 ## 2026-09-03 - version 5.23.1
 

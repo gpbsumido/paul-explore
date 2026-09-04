@@ -138,7 +138,7 @@ describe("ZeroProofContent — slate", () => {
 
   it("lists an upcoming event with both teams", async () => {
     renderPage();
-    const heading = await screen.findByRole("heading", { level: 3 });
+    const heading = await screen.findByRole("heading", { name: /Celtics/ });
     expect(heading).toHaveTextContent("Celtics");
     expect(heading).toHaveTextContent("Lakers");
   });
@@ -152,14 +152,14 @@ describe("ZeroProofContent — slate", () => {
 
   it("links to the write-up behind the feature", async () => {
     renderPage();
-    await screen.findByRole("heading", { level: 3 });
+    await screen.findByRole("heading", { name: /Celtics/ });
     const links = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
     expect(links).toContain("/thoughts/zeroproof");
   });
 
   it("has no axe violations once the slate has loaded", async () => {
     const { container } = renderPage();
-    await screen.findByRole("heading", { level: 3 });
+    await screen.findByRole("heading", { name: /Celtics/ });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -297,6 +297,107 @@ describe("ZeroProofContent — board horizon", () => {
   });
 });
 
+describe("ZeroProofContent — board days and existing bets", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  const dayLabel = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+  const ev = (id: string, iso: string, home: string, away: string) => ({
+    id,
+    sport: "americanfootball_nfl",
+    home,
+    away,
+    commenceTime: iso,
+    status: "upcoming",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: iso,
+        outcomes: [
+          { name: home, priceAmerican: -110 },
+          { name: away, priceAmerican: 120 },
+        ],
+      },
+    ],
+  });
+  const betOn = (eventId: string) => ({
+    id: `bet-${eventId}`,
+    walletId: "w1",
+    eventId,
+    market: "h2h",
+    selection: "Bills",
+    oddsAmerican: -110,
+    lineValue: null,
+    closingOddsAmerican: null,
+    clv: null,
+    stakeCents: 2500,
+    status: "open",
+    placedAt: "2026-09-05T00:00:00.000Z",
+    settledAt: null,
+  });
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  it("groups fixtures under a heading per day", async () => {
+    const events = {
+      events: [
+        ev("d1", "2026-09-09T18:00:00.000Z", "Bills", "Jets"),
+        ev("d2", "2026-09-09T21:00:00.000Z", "Rams", "Niners"),
+        ev("d3", "2026-09-10T18:00:00.000Z", "Bears", "Packers"),
+      ],
+    };
+    renderPage(undefined, undefined, () => HttpResponse.json(events));
+    expect(
+      await screen.findByRole("heading", {
+        name: dayLabel("2026-09-09T18:00:00.000Z"),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: dayLabel("2026-09-10T18:00:00.000Z"),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("flags a fixture the caller already has a bet on", async () => {
+    const events = { events: [ev("evt-b", "2026-09-09T18:00:00.000Z", "Bills", "Jets")] };
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => HttpResponse.json({ bets: [betOn("evt-b")] }),
+      () => HttpResponse.json(events),
+    );
+    await screen.findByRole("heading", { name: /Bills/ });
+    expect(screen.getByText(/your bet/i)).toBeInTheDocument();
+  });
+
+  it("always shows a fixture the caller has bet on, even past the horizon", async () => {
+    const events = {
+      events: [
+        ev("near", "2026-09-09T18:00:00.000Z", "Bills", "Jets"),
+        ev("far", "2026-09-20T18:00:00.000Z", "Bears", "Packers"),
+      ],
+    };
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => HttpResponse.json({ bets: [betOn("far")] }),
+      () => HttpResponse.json(events),
+    );
+    // The far fixture is 12 days out — past the 3-day default — but shown anyway.
+    expect(
+      await screen.findByRole("heading", { name: /Bears/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/your bet/i)).toBeInTheDocument();
+  });
+});
+
 describe("ZeroProofContent — leaderboard", () => {
   it("ranks players by sharp score with an opaque handle, never the raw sub", async () => {
     renderPage();
@@ -368,6 +469,39 @@ describe("ZeroProofContent — profile", () => {
     expect(screen.getByText("$118.40")).toBeInTheDocument();
     // accolade
     expect(screen.getByText("First Win")).toBeInTheDocument();
+  });
+
+  it("charts a bankroll trend once there are settled bets", async () => {
+    const settled = (id: string, status: string, settledAt: string) => ({
+      id,
+      walletId: "w1",
+      eventId: "e",
+      market: "h2h",
+      selection: "x",
+      oddsAmerican: 100,
+      lineValue: null,
+      closingOddsAmerican: 130,
+      clv: 5,
+      stakeCents: 1000,
+      status,
+      placedAt: "2026-09-01T00:00:00.000Z",
+      settledAt,
+    });
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () =>
+        HttpResponse.json({
+          bets: [
+            settled("b1", "won", "2026-09-02T00:00:00.000Z"),
+            settled("b2", "lost", "2026-09-03T00:00:00.000Z"),
+          ],
+        }),
+    );
+    await goToTab(/your record/i);
+    expect(
+      await screen.findByRole("heading", { name: /bankroll trend/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/over 2 settled bets/i)).toBeInTheDocument();
   });
 
   it("lists a signed-in player's recent bets with result and closing-line value", async () => {

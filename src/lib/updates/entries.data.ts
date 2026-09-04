@@ -21,7 +21,37 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
       "The no-loss sportsbook is fully live: real odds on the board, wallets, a bet slip, live settlement, a leaderboard and your own record. A milestone major — nothing breaking.",
     body: [
       "This is where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and the closing-line value landing back on your record without a reload.",
-      "The lobby splits into Board, Leaderboard and Your record tabs, and the board opens on the next three days with a load-more and an auto-load-on-scroll toggle. It's the 6.0 milestone because the product genuinely went live; the dollars staying simulated is the only thing between here and real money, and that's a licensing question, not a code one.",
+      "The lobby splits into Board, Leaderboard and Your record tabs; the board opens on the next few days, groups fixtures by day and flags the games you're already in; and Your record charts a bankroll trend. It's the 6.0 milestone because the product genuinely went live — the dollars staying simulated is the only thing between here and real money, and that's a licensing question, not a code one.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-trend",
+    date: "2026-09-04",
+    version: "5.25.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See how your season is trending, on your record",
+    summary:
+      "Your record now charts cumulative profit and loss over your settled bets — one line for the season, one for everything.",
+    body: [
+      "The Your record tab grows a bankroll trend: two overlaid lines charting cumulative profit and loss over your settled bets, one for just your Season wallets and one for everything, so you can see how a season is going against your record as a whole.",
+      "It's computed from the bets you already load and drawn with the shared design-system chart, and the current figures are printed in text under it so the trend never reads as shape-and-colour alone.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-days",
+    date: "2026-09-04",
+    version: "5.24.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "The ZeroProof board reads by day, and flags games you're already in",
+    summary:
+      "Fixtures are grouped under a heading per day, and any game you've already bet on is badged and always shown — even past the day-horizon.",
+    body: [
+      "The board used to be one flat list of upcoming games. It's grouped by day now — each day its own heading — so a weekend slate reads as days rather than a wall.",
+      "And a fixture you've already placed a bet on gets a \"Your bet\" badge and stays on the board even when it's beyond the current few-day window, so you never lose track of a game you're in.",
     ],
     resolvedTicketIds: [],
   },
