@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-04 - version 5.25.0
+
+- **Your record grows a bankroll trend.** The Your record tab now charts cumulative profit and loss over your settled bets — two overlaid lines, one for everything ("Overall") and one for just your Season wallets — so you can see how a season is going against your record as a whole. It's a `StackedLineChart` from the design system (shared y-domain, so the two lines are actually comparable), computed client-side from the bets you already load, and it prints the numbers in text under the chart so the trend isn't shape-and-colour only.
+
+## 2026-09-04 - version 5.24.0
+
+- **The ZeroProof board groups fixtures by day.** Instead of one flat list, games sit under a heading for each day (e.g. "Sunday, Sep 7"), so a weekend slate reads as days rather than a wall — the events are already sorted by kickoff, so it's just a grouping over the same list.
+- **A fixture you've already bet on is always flagged, and always shown.** Each card the caller has a bet on gets a "Your bet" badge, and a fixture with a bet on it stays on the board even when it's past the current day-horizon — so you never lose track of a game you're in. The board reuses the profile's bets query (and shows nothing extra when signed out).
+
+## 2026-09-04 - version 5.23.2
+
+- **The ZeroProof board's sticky controls actually stay visible now.** The board's "showing games in the next N days / load more / auto-load" control bar was `sticky top-0`, but so is the site's `PageHeader` (a `top-0 h-14` bar) — so the controls pinned behind the header and scrolled out of sight. They stick at `top-14` now, just below the header, the same offset the other in-page sticky bars use.
+
 ## 2026-09-03 - version 5.23.1
 
 - **The ZeroProof lobby splits into tabs: Board, Leaderboard, Your record.** It had grown three jobs on one long scroll — the board you bet from, the leaderboard you compare on, and your own record — so they're separate tabs now, and it's easier to see what you're doing. It's a proper ARIA tablist: arrow keys move between tabs, only the selected tab is in the tab order, and all three panels stay mounted so their data preloads and a switch is instant while the inactive ones drop out of the accessibility tree. Board is the default; the bet slip lives with it. Patch release, so it stays out of the curated `/updates` feed.

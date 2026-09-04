@@ -261,6 +261,42 @@ visible = events.filter(e => e.commenceTime <= cutoff)
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-04-board-days"
+        date="September 4, 2026"
+        title="The board reads by day, and remembers the games you're in"
+      >
+        <p>
+          Two board refinements once real football lines were flowing, both about
+          not losing the game you care about in a list.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A wall of games becomes a few days
+        </h3>
+        <p className="text-muted">
+          A weekend NFL slate is a lot of games at once. The board groups them by
+          day under a heading each — the events already arrive sorted by kickoff,
+          so it&apos;s a grouping over the same list, no new fetch.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A fixture you&apos;re in is flagged, and never hidden
+        </h3>
+        <p className="text-muted">
+          Any fixture the caller already has a bet on gets a{" "}
+          <code className={code}>Your bet</code> badge, and stays on the board
+          even when it&apos;s past the day-horizon — so a game you&apos;re in
+          can&apos;t scroll off behind the three-day default. The board reuses the
+          profile&apos;s bets query and shows nothing extra when you&apos;re
+          signed out.
+        </p>
+        <pre className={pre}>
+          {`visible = events.filter(e => e.commenceTime <= cutoff || betOn.has(e.id))
+// bet-on fixtures are always in, horizon or not`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
@@ -277,6 +313,8 @@ visible = events.filter(e => e.commenceTime <= cutoff)
           "Real odds on a cron: The Odds API feeds the board through the odds-sync worker, snapshotted to the DB, so the lobby shows live football lines without a vendor call on the page.",
           "A board horizon: the lobby shows the next three days by default, with a load-more that adds three days, an auto-load-on-scroll toggle, and a collapse back — a client filter over the served-from-DB list, so it costs no fetch.",
           "Tabs: Board, Leaderboard and Your record are separate tabs now — a proper ARIA tablist with arrow-key navigation, panels kept mounted so their data preloads and inactive ones out of the a11y tree.",
+          "The board groups fixtures by day, and a fixture you've already bet on is badged and always shown — even past the day-horizon.",
+          "A bankroll trend on Your record: cumulative profit and loss over your settled bets, a line for the season and a line for everything, with the figures printed in text under the chart.",
         ]}
         couldImprove={[
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
