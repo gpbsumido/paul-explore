@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   render,
   screen,
@@ -90,9 +90,10 @@ const PROFILE = {
 const renderPage = (
   meResponse: () => Response = () => new HttpResponse(null, { status: 401 }),
   betsResponse: () => Response = () => HttpResponse.json({ bets: [] }),
+  eventsResponse: () => Response = () => HttpResponse.json(EVENTS),
 ) => {
   server.use(
-    http.get("/api/zeroproof/events", () => HttpResponse.json(EVENTS)),
+    http.get("/api/zeroproof/events", () => eventsResponse()),
     http.get("/api/zeroproof/leaderboard", () =>
       HttpResponse.json(LEADERBOARD),
     ),
@@ -112,6 +113,17 @@ const renderPage = (
 };
 
 describe("ZeroProofContent — slate", () => {
+  // The board windows events to the next few days off "now"; pin it so the
+  // fixture's dated event stays inside the default 3-day window.
+  const SLATE_NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(SLATE_NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
   it("names the product in the only h1", () => {
     renderPage();
     const h1 = screen.getAllByRole("heading", { level: 1 });
@@ -145,6 +157,96 @@ describe("ZeroProofContent — slate", () => {
     await screen.findByRole("heading", { level: 3 });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+});
+
+describe("ZeroProofContent — board horizon", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  const boardEvent = (id: string, iso: string, home: string, away: string) => ({
+    id,
+    sport: "americanfootball_nfl",
+    home,
+    away,
+    commenceTime: iso,
+    status: "upcoming",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: iso,
+        outcomes: [
+          { name: home, priceAmerican: -110 },
+          { name: away, priceAmerican: 120 },
+        ],
+      },
+    ],
+  });
+  const HORIZON_EVENTS = {
+    events: [
+      boardEvent("h-near", "2026-09-09T18:00:00.000Z", "Bills", "Chiefs"), // +1d
+      boardEvent("h-mid", "2026-09-13T18:00:00.000Z", "Eagles", "Cowboys"), // +5d
+      boardEvent("h-far", "2026-09-18T18:00:00.000Z", "Niners", "Rams"), // +10d
+    ],
+  };
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  const renderBoard = () =>
+    renderPage(undefined, undefined, () => HttpResponse.json(HORIZON_EVENTS));
+
+  it("shows only games within the next 3 days by default", async () => {
+    renderBoard();
+    expect(
+      await screen.findByRole("heading", { name: /Bills/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Eagles/ })).toBeNull();
+    expect(screen.queryByRole("heading", { name: /Niners/ })).toBeNull();
+  });
+
+  it("reveals games further out when you click load more", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Bills/ });
+    fireEvent.click(screen.getByRole("button", { name: /load more games/i }));
+    expect(
+      await screen.findByRole("heading", { name: /Eagles/ }),
+    ).toBeInTheDocument();
+    // +10d is still beyond the widened 6-day window.
+    expect(screen.queryByRole("heading", { name: /Niners/ })).toBeNull();
+  });
+
+  it("collapses back to the next 3 days", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Bills/ });
+    fireEvent.click(screen.getByRole("button", { name: /load more games/i }));
+    await screen.findByRole("heading", { name: /Eagles/ });
+    fireEvent.click(
+      screen.getByRole("button", { name: /show only next 3 days/i }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("heading", { name: /Eagles/ })).toBeNull(),
+    );
+    expect(screen.getByRole("heading", { name: /Bills/ })).toBeInTheDocument();
+  });
+
+  it("swaps the load-more button for auto-load when the toggle is on", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Bills/ });
+    expect(
+      screen.getByRole("button", { name: /load more games/i }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-load as i scroll/i }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /load more games/i }),
+      ).toBeNull(),
+    );
+    expect(screen.getByText(/loading more as you scroll/i)).toBeInTheDocument();
   });
 });
 
@@ -279,6 +381,18 @@ describe("ZeroProofContent — profile", () => {
 });
 
 describe("ZeroProofContent — bet slip", () => {
+  // The slip is filled from the board, so keep the fixture event inside the
+  // default 3-day window by pinning "now".
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(
+      new Date("2026-09-08T00:00:00.000Z").getTime(),
+    );
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
   it("fills the slip when an outcome is picked, and prompts a signed-out visitor to sign in", async () => {
     renderPage();
     fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
