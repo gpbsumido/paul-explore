@@ -253,19 +253,28 @@ describe("ZeroProofContent — profile", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens a wallet by posting the chosen mode", async () => {
+  it("opens a Season wallet with a deposit amount the backend requires", async () => {
     let openedMode: string | null = null;
+    let openedDeposit: number | undefined;
     server.use(
       http.post("/api/zeroproof/wallets", async ({ request }) => {
-        openedMode = ((await request.json()) as { mode: string }).mode;
-        return HttpResponse.json({ id: "w-new", mode: openedMode });
+        const body = (await request.json()) as {
+          mode: string;
+          depositCents?: number;
+        };
+        openedMode = body.mode;
+        openedDeposit = body.depositCents;
+        return HttpResponse.json({ id: "w-new", mode: body.mode });
       }),
     );
     renderPage(() => HttpResponse.json({ ...PROFILE, wallets: [] }));
     fireEvent.click(
       await screen.findByRole("button", { name: /open a season wallet/i }),
     );
+    // Season must carry a depositCents (the backend rejects it otherwise); a bare
+    // { mode } is the bug that surfaced as "Validation failed".
     await waitFor(() => expect(openedMode).toBe("season"));
+    expect(openedDeposit).toBeGreaterThanOrEqual(2000);
   });
 });
 

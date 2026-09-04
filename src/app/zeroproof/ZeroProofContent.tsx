@@ -413,10 +413,15 @@ function useOpenWallet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (mode: "season" | "challenge") => {
+      // A Season wallet needs a deposit ($20 minimum on the backend); default to
+      // $500 to match the lobby wireframe until a deposit-amount input lands.
+      // Challenge is a fixed $100, so it sends no amount.
+      const body =
+        mode === "season" ? { mode, depositCents: 50_000 } : { mode };
       const res = await fetch("/api/zeroproof/wallets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
