@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-04 - version 5.23.2
+
+- **The ZeroProof board's sticky controls actually stay visible now.** The board's "showing games in the next N days / load more / auto-load" control bar was `sticky top-0`, but so is the site's `PageHeader` (a `top-0 h-14` bar) — so the controls pinned behind the header and scrolled out of sight. They stick at `top-14` now, just below the header, the same offset the other in-page sticky bars use.
+
 ## 2026-09-03 - version 5.23.1
 
 - **The ZeroProof lobby splits into tabs: Board, Leaderboard, Your record.** It had grown three jobs on one long scroll — the board you bet from, the leaderboard you compare on, and your own record — so they're separate tabs now, and it's easier to see what you're doing. It's a proper ARIA tablist: arrow keys move between tabs, only the selected tab is in the tab order, and all three panels stay mounted so their data preloads and a switch is instant while the inactive ones drop out of the accessibility tree. Board is the default; the bet slip lives with it. Patch release, so it stays out of the curated `/updates` feed.
