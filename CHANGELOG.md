@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03 - version 5.23.1
+
+- **The ZeroProof lobby splits into tabs: Board, Leaderboard, Your record.** It had grown three jobs on one long scroll — the board you bet from, the leaderboard you compare on, and your own record — so they're separate tabs now, and it's easier to see what you're doing. It's a proper ARIA tablist: arrow keys move between tabs, only the selected tab is in the tab order, and all three panels stay mounted so their data preloads and a switch is instant while the inactive ones drop out of the accessibility tree. Board is the default; the bet slip lives with it. Patch release, so it stays out of the curated `/updates` feed.
+
 ## 2026-09-03 - version 5.23.0
 
 - **The ZeroProof board opens on the next three days, and grows from there.** MLB is a daily slate but NFL is weekly, so pointing the odds cron at football turned the board into a wall of games a week out. It now defaults to a three-day horizon: a "load more" that adds three days, a toggle to auto-load as you scroll instead, and a "show only next 3 days" collapse. The control bar is sticky so it stays reachable while you scroll. It's a client-side filter over the same served-from-DB slate — the endpoint already returns every upcoming game in kickoff order, so widening the window costs no fetch and no vendor credit.
