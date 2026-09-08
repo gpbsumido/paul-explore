@@ -382,6 +382,22 @@ describe("ZeroProofContent — board days and existing bets", () => {
     expect(screen.getByText(/your bet/i)).toBeInTheDocument();
   });
 
+  it("shows what the caller bet and the stake on the fixture card", async () => {
+    const events = { events: [ev("evt-b", "2026-09-09T18:00:00.000Z", "Bills", "Jets")] };
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => HttpResponse.json({ bets: [betOn("evt-b")] }),
+      () => HttpResponse.json(events),
+    );
+    const card = (await screen.findByRole("heading", { name: /Bills/ })).closest("li");
+    expect(card).not.toBeNull();
+    const yourBets = within(card as HTMLElement).getByRole("list", {
+      name: /your bets on this matchup/i,
+    });
+    expect(within(yourBets).getByText("Bills")).toBeInTheDocument();
+    expect(within(yourBets).getByText("$25.00")).toBeInTheDocument();
+  });
+
   it("always shows a fixture the caller has bet on, even past the horizon", async () => {
     const events = {
       events: [
