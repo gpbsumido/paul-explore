@@ -550,7 +550,11 @@ describe("ZeroProofContent — profile", () => {
     );
     await goToTab(/your record/i);
     expect(await screen.findByText(/recent bets/i)).toBeInTheDocument();
-    expect(screen.getByText("won")).toBeInTheDocument();
+    // "won" now also appears on the board card for this fixture, so scope to the
+    // visible record panel where the recent-bets list lives.
+    expect(
+      within(screen.getByRole("tabpanel")).getByText("won"),
+    ).toBeInTheDocument();
     expect(screen.getByText(/CLV \+7\.9%/)).toBeInTheDocument();
   });
 
@@ -677,7 +681,8 @@ describe("ZeroProofContent — live updates", () => {
     );
     expect(await screen.findByText("open")).toBeInTheDocument();
     await vi.advanceTimersByTimeAsync(31_000);
-    expect(await screen.findByText("won")).toBeInTheDocument();
+    // Grades on both the recent-bets list and the board card for the fixture.
+    expect((await screen.findAllByText("won")).length).toBeGreaterThan(0);
   });
 });
 
