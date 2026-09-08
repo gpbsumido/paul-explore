@@ -172,5 +172,4 @@ export const leagueDetailResponseSchema = z.object({
 });
 
 export type ZeroproofLeague = z.infer<typeof leagueSchema>;
-export type LeagueStanding = z.infer<typeof leagueStandingSchema>;
 export type LeagueDetail = z.infer<typeof leagueDetailResponseSchema>;
