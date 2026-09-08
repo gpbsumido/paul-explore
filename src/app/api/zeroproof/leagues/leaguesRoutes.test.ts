@@ -76,6 +76,7 @@ describe("POST /api/zeroproof/leagues", () => {
         method: "POST",
         body: JSON.stringify({ name: "Friday", visibility: "public" }),
       }),
+      {},
     );
     const body = await res.json();
 
@@ -92,6 +93,7 @@ describe("POST /api/zeroproof/leagues", () => {
         method: "POST",
         body: JSON.stringify({}),
       }),
+      {},
     );
     expect(res.status).toBe(401);
   });
@@ -153,14 +155,16 @@ describe("GET /api/zeroproof/leagues/mine", () => {
     vi.mocked(fetchUpstream).mockResolvedValue(upstream({ leagues: [{ id: "lg-1", joinCode: "ABC234" }] }));
     const { GET } = await import("./mine/route");
 
-    const body = await (await GET(new NextRequest("http://localhost/api/zeroproof/leagues/mine"))).json();
+    const body = await (
+      await GET(new NextRequest("http://localhost/api/zeroproof/leagues/mine"), {})
+    ).json();
     expect(body.leagues[0].joinCode).toBe("ABC234");
   });
 
   it("401s without a session", async () => {
     signedOut();
     const { GET } = await import("./mine/route");
-    const res = await GET(new NextRequest("http://localhost/api/zeroproof/leagues/mine"));
+    const res = await GET(new NextRequest("http://localhost/api/zeroproof/leagues/mine"), {});
     expect(res.status).toBe(401);
   });
 });
