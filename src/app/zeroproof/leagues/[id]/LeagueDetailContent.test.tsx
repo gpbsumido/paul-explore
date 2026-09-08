@@ -89,6 +89,19 @@ describe("LeagueDetailContent", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(/winner/i);
   });
 
+  it("shows the ESPN binding when the league is bound", async () => {
+    server.use(
+      http.get("/api/zeroproof/leagues/lg-1", () =>
+        HttpResponse.json(
+          detail({ league: league({ espnGame: "ffl", espnLeagueId: "836777691", espnSeason: "2026" }) }),
+        ),
+      ),
+    );
+    renderDetail();
+    expect(await screen.findByText(/only ESPN football league/i)).toBeInTheDocument();
+    expect(screen.getByText("836777691")).toBeInTheDocument();
+  });
+
   it("has no axe violations", async () => {
     server.use(http.get("/api/zeroproof/leagues/lg-1", () => HttpResponse.json(detail())));
     const { container } = renderDetail();

@@ -143,6 +143,11 @@ export const leagueSchema = z.object({
   endsAt: z.string().nullable(),
   status: z.string(), // 'open' | 'settled'
   winnerSub: z.string().nullable(),
+  // Set together when the league is bound to one ESPN fantasy league — members
+  // then only bet its matchups. Nullish so an older payload without them parses.
+  espnGame: z.string().nullish(),
+  espnLeagueId: z.string().nullish(),
+  espnSeason: z.string().nullish(),
   createdAt: z.string(),
   settledAt: z.string().nullable(),
   memberCount: z.number(),

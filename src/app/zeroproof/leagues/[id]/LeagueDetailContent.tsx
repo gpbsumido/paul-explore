@@ -116,6 +116,14 @@ export default function LeagueDetailContent({ leagueId }: { leagueId: string }) 
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">{league.name}</h1>
         <p className="mt-1 text-sm text-muted">{ruleLine(detail)}</p>
+        {league.espnLeagueId && (
+          <p className="mt-1 text-sm text-muted">
+            Bets only ESPN{" "}
+            {league.espnGame === "fba" ? "basketball" : league.espnGame === "ffl" ? "football" : league.espnGame}{" "}
+            league <span className="font-mono text-foreground">{league.espnLeagueId}</span>
+            {league.espnSeason ? ` (${league.espnSeason})` : ""}.
+          </p>
+        )}
       </header>
 
       {league.status === "settled" && league.winnerSub && (

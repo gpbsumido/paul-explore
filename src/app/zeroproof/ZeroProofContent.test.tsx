@@ -740,3 +740,70 @@ describe("ZeroProofContent — leagues", () => {
     expect(results).toHaveNoViolations();
   });
 });
+
+describe("ZeroProofContent — ESPN fantasy", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  const FANTASY = {
+    events: [
+      {
+        id: "fev-1",
+        sport: "fantasy_ffl",
+        home: "Vancouver Seahawks",
+        away: "Barbarians",
+        commenceTime: "2026-09-09T18:00:00.000Z",
+        status: "upcoming",
+        markets: [
+          {
+            market: "h2h",
+            fetchedAt: "2026-09-08T00:00:00.000Z",
+            outcomes: [
+              { name: "Vancouver Seahawks", priceAmerican: -110 },
+              { name: "Barbarians", priceAmerican: -110 },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  it("badges a fantasy matchup on the board", async () => {
+    renderPage(undefined, undefined, () => HttpResponse.json(FANTASY));
+    expect(await screen.findByText("Fantasy Football")).toBeInTheDocument();
+  });
+
+  it("sends the ESPN binding from the create form when its fields are filled", async () => {
+    let captured: Record<string, unknown> | null = null;
+    server.use(
+      http.post("/api/zeroproof/leagues", async ({ request }) => {
+        captured = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ league: { id: "lg-9" } }, { status: 201 });
+      }),
+    );
+    renderPage();
+    await goToTab(/^leagues$/i);
+    fireEvent.click(screen.getByRole("button", { name: /create a league/i }));
+    fireEvent.change(screen.getByLabelText(/league name/i), {
+      target: { value: "Fantasy League" },
+    });
+    fireEvent.change(screen.getByLabelText(/ESPN league id/i), {
+      target: { value: "836777691" },
+    });
+    fireEvent.change(screen.getByLabelText(/^season$/i), { target: { value: "2026" } });
+    fireEvent.click(screen.getByRole("button", { name: /^create league$/i }));
+
+    await waitFor(() => expect(captured).not.toBeNull());
+    expect(captured).toMatchObject({
+      espnGame: "ffl",
+      espnLeagueId: "836777691",
+      espnSeason: "2026",
+    });
+  });
+});

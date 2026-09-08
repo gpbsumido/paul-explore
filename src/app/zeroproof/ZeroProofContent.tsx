@@ -102,6 +102,17 @@ function OutcomeButton({
   );
 }
 
+/** A friendly label for an ESPN fantasy matchup, or null for a real-sports event. */
+function fantasyLabel(sport: string): string | null {
+  if (!sport.startsWith("fantasy_")) return null;
+  const game = sport.slice("fantasy_".length);
+  const names: Record<string, string> = {
+    ffl: "Fantasy Football",
+    fba: "Fantasy Basketball",
+  };
+  return names[game] ?? "Fantasy";
+}
+
 function EventCard({
   event,
   selected,
@@ -129,6 +140,11 @@ function EventCard({
           {hasBet && (
             <span className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
               Your bet
+            </span>
+          )}
+          {fantasyLabel(event.sport) && (
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+              {fantasyLabel(event.sport)}
             </span>
           )}
         </div>
