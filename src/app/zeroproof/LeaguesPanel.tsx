@@ -374,7 +374,8 @@ export default function LeaguesPanel() {
       </div>
       <p className="mt-2 max-w-2xl text-sm text-muted">
         Start your own contest: set the bankroll everyone begins with, the size,
-        and how it's won — first to a target, or the highest balance by a date.
+        and how it&apos;s won — first to a target, or the highest balance by a
+        date.
         Each league keeps its own board and crowns a winner.
       </p>
 
@@ -394,7 +395,7 @@ export default function LeaguesPanel() {
           </ul>
         ) : (
           <p className="mt-2 text-sm text-muted">
-            You're not in a league yet — create one or join below.
+            You&apos;re not in a league yet — create one or join below.
           </p>
         )}
       </div>

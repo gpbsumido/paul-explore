@@ -145,7 +145,7 @@ export default function LeagueDetailContent({ leagueId }: { leagueId: string }) 
       </div>
       {detail.isMember && (
         <p className="mt-2 text-xs text-muted">
-          Your league wallet is in the bet slip's wallet picker on the board.
+          Your league wallet is in the bet slip&apos;s wallet picker on the board.
         </p>
       )}
 
