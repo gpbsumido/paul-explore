@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 - version 6.3.0
+
+- **The board shows my bets on a fixture, not just a badge.** A card I've bet on now lists each bet — selection, market, stake, odds, and a coloured status once it grades — instead of only flagging that I'm in. It threads the bets the board already fetches into `EventCard` (no extra request) and reuses `BetHistory`'s formatting, so the figures match Your record. Moved `BET_STATUS_STYLE` above `EventCard` so both share it. Covered by a board test asserting the selection and stake render in a per-card "Your bets on this matchup" list; two existing tests that assumed a status label was unique now scope to their panel.
+
 ## 2026-09-08 - version 6.2.0
 
 - **ESPN fantasy matchups on the board, and leagues you can bind to one.** The create-league form grows an optional "Bind to an ESPN league" section — sport, ESPN league id, season — so a commissioner can tie a league to one ESPN fantasy league; its members then only bet that league's weekly matchups (enforced on the API side). The bound league's detail page spells the binding out ("Bets only ESPN football league 836777691 (2026)"). And any fantasy matchup ingested onto the board — team A vs team B, a `fantasy_ffl`/`fantasy_fba` event — now carries a "Fantasy Football" / "Fantasy Basketball" badge so it reads apart from the real-sports lines. The league schema takes the ESPN fields nullish so older payloads still parse; new component tests cover the badge, the create-form binding being sent, and the detail page showing it.

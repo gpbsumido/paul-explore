@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-board-bet-line",
+    date: "2026-09-08",
+    version: "6.3.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See your bet right on the board",
+    summary:
+      "A fixture you've bet on now shows what you picked and how much you staked, on its card — with the odds and, once it's graded, the result.",
+    body: [
+      "The board already kept a game you'd bet on in view and badged it. Now the card says what the bet was: your selection, the stake, the price you got, and a coloured result once it settles. Bet more than once on the same matchup and each one is listed.",
+      "It reuses the bets the board already loads, so it's just surfacing what was there — no extra call, and it lines up with the same figures on Your record.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-espn-matchups",
     date: "2026-09-08",
     version: "6.2.0",
