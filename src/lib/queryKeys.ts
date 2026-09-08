@@ -279,5 +279,15 @@ export const queryKeys = {
 
     /** The signed-in player's bet history. */
     bets: () => ["zeroproof", "bets"] as const,
+
+    /** Discoverable leagues, or one resolved by join code. */
+    leaguesList: (params?: { q?: string; code?: string }) =>
+      ["zeroproof", "leagues", "list", params ?? {}] as const,
+
+    /** One league's detail and standings. */
+    league: (id: string) => ["zeroproof", "leagues", "detail", id] as const,
+
+    /** The signed-in player's leagues. */
+    myLeagues: () => ["zeroproof", "leagues", "mine"] as const,
   },
 } as const;

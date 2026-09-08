@@ -125,3 +125,52 @@ export type ProfileStats = z.infer<typeof profileStatsSchema>;
 export type ZeroproofWallet = z.infer<typeof walletSchema>;
 export type Accolade = z.infer<typeof accoladeSchema>;
 export type ZeroproofBet = z.infer<typeof betSchema>;
+
+// Leagues: user-run contests. Mirrors the backend league DTOs. Money is integer
+// cents; timestamps are ISO strings; visibility/winCondition/status stay `string`
+// so a new backend value doesn't break the page. joinCode is null unless the
+// caller is inside the league.
+export const leagueSchema = z.object({
+  id: z.string(),
+  commissionerSub: z.string(),
+  name: z.string(),
+  joinCode: z.string().nullable(),
+  visibility: z.string(), // 'public' | 'invite'
+  startingBankrollCents: z.number(),
+  maxMembers: z.number(),
+  winCondition: z.string(), // 'threshold' | 'timeline'
+  thresholdCents: z.number().nullable(),
+  endsAt: z.string().nullable(),
+  status: z.string(), // 'open' | 'settled'
+  winnerSub: z.string().nullable(),
+  createdAt: z.string(),
+  settledAt: z.string().nullable(),
+  memberCount: z.number(),
+});
+
+export const leaguesResponseSchema = z.object({ leagues: z.array(leagueSchema) });
+
+// A member's place on a league board, ranked by bankroll.
+export const leagueStandingSchema = z.object({
+  userSub: z.string(),
+  balanceCents: z.number(),
+  wins: z.number(),
+  losses: z.number(),
+  pushes: z.number(),
+  betCount: z.number(),
+  roiPct: z.number(),
+  rank: z.number(),
+});
+
+export const leagueDetailResponseSchema = z.object({
+  league: leagueSchema,
+  standings: z.array(leagueStandingSchema),
+  // The caller's league wallet id, for the betslip; null when not a member.
+  callerWalletId: z.string().nullable(),
+  isMember: z.boolean(),
+  isCommissioner: z.boolean(),
+});
+
+export type ZeroproofLeague = z.infer<typeof leagueSchema>;
+export type LeagueStanding = z.infer<typeof leagueStandingSchema>;
+export type LeagueDetail = z.infer<typeof leagueDetailResponseSchema>;
