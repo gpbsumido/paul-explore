@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 - version 6.1.0
+
+- **Leagues: run your own ZeroProof contest.** A new Leagues tab in the lobby lets a commissioner create a league and set the rules — starting bankroll, size cap, and how it's won (first to a target, or highest balance by a date). Public leagues are searchable and join with a tap; invite-only ones take a short code. Each league gets its own page at `/zeroproof/leagues/[id]` with the rules, a board ranked by bankroll (ROI breaking ties), and the winner once it settles. You bet from a league-scoped wallet — it shows up in the bet slip's wallet picker — so league play stays out of the global sharp record. Built against the leagues backend that shipped on the API side; the frontend is BFF proxy routes (`/api/zeroproof/leagues*`), a `LeaguesPanel`, and the detail route, all covered by route + component tests with axe checks.
+
 ## 2026-09-04 - version 6.0.0
 
 - **ZeroProof is live — a milestone major, not a breaking one.** This is the version where ZeroProof stops being a read-only preview and becomes the whole loop: real football lines feed the board on a schedule, you open a Season or Challenge wallet, pick an outcome to fill a bet slip, and place a stake the settler grades — with the result and closing-line value landing back on your record without a reload. Nothing in the public API broke; I'm calling it 6.0 because the product genuinely went live, and the dollars staying simulated is the only thing between here and real money (a licensing question, not a code one).

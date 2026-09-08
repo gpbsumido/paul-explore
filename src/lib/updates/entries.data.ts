@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-leagues",
+    date: "2026-09-08",
+    version: "6.1.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Start your own ZeroProof league",
+    summary:
+      "Run your own contest: set the starting bankroll, the size, and how it's won — first to a target or highest by a date. Players join, each league keeps its own board and crowns a winner.",
+    body: [
+      "The new Leagues tab lets you spin up a private contest and set the rules: how much everyone starts with, how many can join, and the win condition — first to a target bankroll, or the highest balance by a deadline. Public leagues are searchable and join with a tap; invite-only ones share a short code.",
+      "Every league has its own page: the rules, a board ranked by bankroll (ROI breaking ties), and — once it's settled — the winner. You bet from a league-scoped wallet, so league play stays separate from the global sharp record. The whole thing is a scope over the machinery ZeroProof already had, so bets, the ledger and settlement didn't change.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-live",
     date: "2026-09-04",
     version: "6.0.0",

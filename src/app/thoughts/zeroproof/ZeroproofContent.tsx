@@ -297,8 +297,64 @@ visible = events.filter(e => e.commenceTime <= cutoff)
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-08-leagues"
+        date="September 8, 2026"
+        title="Leagues, without touching how a bet works"
+      >
+        <p>
+          People wanted to run their own contests — set the bankroll, the size,
+          how you win — and compete on a private board. The temptation was a whole
+          second system. It didn&apos;t need one.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A league is a scope, not a new game
+        </h3>
+        <p className="text-muted">
+          Every member bets from a league-scoped wallet — a new{" "}
+          <code className={code}>mode=&apos;league&apos;</code> row tagged with a{" "}
+          <code className={code}>league_id</code>. Placement, the ledger and the
+          settler never learned the word &quot;league&quot;; a league only decides
+          which wallet you bet from and whose bankroll your standing compares
+          against. The board ranks by balance, ROI breaking ties — the same pure
+          ranking the global leaderboard already used.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The one place it wasn&apos;t free: keeping league play out of your record
+        </h3>
+        <p className="text-muted">
+          League wallets belong to you, so they&apos;d have quietly leaked into the
+          global sharp leaderboard and your <code className={code}>/me</code> stats
+          — a for-fun contest inflating the record that&apos;s the actual product.
+          So the global scans are scoped to season and challenge play only, and
+          because a user can now hold an active wallet in many leagues at once, the
+          one-active-wallet index had to split.
+        </p>
+        <pre className={pre}>
+          {`-- season/challenge: still one active wallet per mode
+CREATE UNIQUE INDEX ... ON (user_sub, mode) WHERE status='active' AND mode <> 'league';
+-- league wallets: unique per league instead
+CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode='league';`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Winning is a sweep, not a hook in every bet
+        </h3>
+        <p className="text-muted">
+          A cron settles finished leagues — threshold once a member crosses the
+          target, timeline once the deadline passes — stamps the winner and freezes
+          the final board. The winner is the leader the moment a crossing is first
+          seen rather than strictly the first to cross: a deliberate simplification
+          that keeps settlement a decoupled sweep instead of logic threaded into
+          every bet&apos;s settlement.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Leagues: run your own contest with its own rules — starting bankroll, size, and a first-to-a-target or highest-by-a-date win condition. Public leagues are searchable, invite ones share a code, and each has its own bankroll-ranked board and a winner. You bet from a league-scoped wallet, so league play stays out of the global record.",
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
           "Odds ingestion behind a swappable provider, snapshotted on every pull, served to users from the database only.",
           "Placing a bet with the odds frozen at placement, an available-balance check inside the transaction, and a stale-line gate.",
@@ -322,10 +378,12 @@ visible = events.filter(e => e.commenceTime <= cutoff)
           "Results only match by the vendor's own event ids. An ESPN fallback would need fuzzy team-and-time matching, which I left as a deliberate later problem.",
           "Bust is a periodic sweep rather than instant on the losing bet — fine at this scale, worth tightening for the feel of it.",
           "It's all simulated dollars on purpose. Real deposits and investing the float is custody and money-transmission territory, and that waits on counsel, not code.",
+          "League betting reuses the board's wallet picker rather than a league-scoped bet slip; auto-selecting your league wallet when you arrive from a league page, and a 'you' marker on the standings, are the obvious follow-ups.",
         ]}
         upcoming={[
           "Real money, which is the whole reason the ledger came first: custody and money transmission are a licensing-and-counsel problem, not a code one. The simulated version is complete; the real one waits on lawyers.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
+          "Connecting an ESPN fantasy league to a betting league: search a league and bet a given week's matchups, or bind a betting league so it only takes that ESPN league's games. The matchups would enter through the same provider port the odds already use, so the bet and settle paths wouldn't change.",
         ]}
       />
     </ThoughtLayout>

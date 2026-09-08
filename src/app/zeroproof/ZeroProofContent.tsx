@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
+import LeaguesPanel from "./LeaguesPanel";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -1008,6 +1009,7 @@ function Profile() {
 
 const LOBBY_TABS = [
   { id: "board", label: "Board" },
+  { id: "leagues", label: "Leagues" },
   { id: "leaderboard", label: "Leaderboard" },
   { id: "record", label: "Your record" },
 ] as const;
@@ -1111,6 +1113,16 @@ export default function ZeroProofContent() {
           <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
         )}
         <Slate selected={selectedBet} onPick={setSelectedBet} />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-leagues"
+        aria-labelledby="zp-tab-leagues"
+        tabIndex={0}
+        hidden={tab !== "leagues"}
+        className="focus-visible:outline-none"
+      >
+        <LeaguesPanel />
       </div>
       <div
         role="tabpanel"
