@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-espn-matchups",
+    date: "2026-09-08",
+    version: "6.2.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Bet ESPN fantasy matchups, and bind a league to one",
+    summary:
+      "Fantasy matchups show up on the board with a Fantasy badge, and you can create a league bound to one ESPN fantasy league so members only bet its weekly games.",
+    body: [
+      "The board now carries ESPN fantasy head-to-head matchups alongside the real-sports lines — each badged Fantasy Football or Fantasy Basketball so you know which is which — and they bet like anything else.",
+      "Creating a league, you can optionally bind it to a single ESPN fantasy league by sport, id and season. A bound league's members can only bet that league's matchups, and its page says so. It reuses the same wallet, ledger and settlement as the rest of ZeroProof — a fantasy matchup is just another event that settles on the weekly score.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-leagues",
     date: "2026-09-08",
     version: "6.1.0",

@@ -352,8 +352,51 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-08-espn"
+        date="September 8, 2026"
+        title="Fantasy matchups are just events, so they were nearly free"
+      >
+        <p>
+          The ask was betting on ESPN fantasy weekly matchups, and binding a
+          league so its members only bet one ESPN league. The surprise was how
+          little new machinery it needed.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ESPN hands you scores, not a line
+        </h3>
+        <p className="text-muted">
+          The matchup feed has projected and actual scores and a winner, but no
+          odds — so there&apos;s no line to normalise. v1 prices every matchup as
+          a pick&apos;em (both sides -110); a projected-score moneyline is the next
+          step. There&apos;s also no kickoff timestamp, so the commence time is
+          synthesised and betting stays open until the matchup settles.
+        </p>
+        <pre className={pre}>
+          {`{ "matchupPeriodId": 1, "winner": "UNDECIDED",
+  "home": { "teamId": 5, "totalPoints": 0 },
+  "away": { "teamId": 4, "totalPoints": 0 } }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A matchup is an event; a binding is a prefix check
+        </h3>
+        <p className="text-muted">
+          The provider writes each matchup as an event with a stable key —{" "}
+          <code className={code}>espn:&#123;game&#125;:&#123;season&#125;:&#123;leagueId&#125;:…</code>{" "}
+          — so a bet, the ledger and settlement never learned the word
+          &quot;fantasy.&quot; Binding a league to one ESPN league is then just a
+          prefix match at placement: a bound league&apos;s wallet may only bet
+          events whose key names that game, season and league, and anything else
+          is refused. No new state, no new settlement path — the weekly score
+          grades it like any other result.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A ZeroProof league can be bound to one ESPN league so its members only bet those games.",
           "Leagues: run your own contest with its own rules — starting bankroll, size, and a first-to-a-target or highest-by-a-date win condition. Public leagues are searchable, invite ones share a code, and each has its own bankroll-ranked board and a winner. You bet from a league-scoped wallet, so league play stays out of the global record.",
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
           "Odds ingestion behind a swappable provider, snapshotted on every pull, served to users from the database only.",
@@ -383,7 +426,8 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         upcoming={[
           "Real money, which is the whole reason the ledger came first: custody and money transmission are a licensing-and-counsel problem, not a code one. The simulated version is complete; the real one waits on lawyers.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
-          "Connecting an ESPN fantasy league to a betting league: search a league and bet a given week's matchups, or bind a betting league so it only takes that ESPN league's games. The matchups would enter through the same provider port the odds already use, so the bet and settle paths wouldn't change.",
+          "Pricing fantasy matchups off ESPN's projected scores instead of the -110 pick'em they ship as now — a real favourite and underdog, derived from each side's projected starters.",
+          "Adding ESPN leagues without a redeploy: the sync reads its league list from env today, so a small registry (and an admin endpoint) would let a league be added as data, not a config change.",
         ]}
       />
     </ThoughtLayout>

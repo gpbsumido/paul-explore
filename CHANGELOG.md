@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 - version 6.2.0
+
+- **ESPN fantasy matchups on the board, and leagues you can bind to one.** The create-league form grows an optional "Bind to an ESPN league" section — sport, ESPN league id, season — so a commissioner can tie a league to one ESPN fantasy league; its members then only bet that league's weekly matchups (enforced on the API side). The bound league's detail page spells the binding out ("Bets only ESPN football league 836777691 (2026)"). And any fantasy matchup ingested onto the board — team A vs team B, a `fantasy_ffl`/`fantasy_fba` event — now carries a "Fantasy Football" / "Fantasy Basketball" badge so it reads apart from the real-sports lines. The league schema takes the ESPN fields nullish so older payloads still parse; new component tests cover the badge, the create-form binding being sent, and the detail page showing it.
+
 ## 2026-09-08 - version 6.1.0
 
 - **Leagues: run your own ZeroProof contest.** A new Leagues tab in the lobby lets a commissioner create a league and set the rules — starting bankroll, size cap, and how it's won (first to a target, or highest balance by a date). Public leagues are searchable and join with a tap; invite-only ones take a short code. Each league gets its own page at `/zeroproof/leagues/[id]` with the rules, a board ranked by bankroll (ROI breaking ties), and the winner once it settles. You bet from a league-scoped wallet — it shows up in the bet slip's wallet picker — so league play stays out of the global sharp record. Built against the leagues backend that shipped on the API side; the frontend is BFF proxy routes (`/api/zeroproof/leagues*`), a `LeaguesPanel`, and the detail route, all covered by route + component tests with axe checks.
