@@ -394,9 +394,59 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-08-espn-additive"
+        date="September 8, 2026"
+        title="I built the binding as a cage, then realised it should be a shelf"
+      >
+        <p>
+          A day after shipping the ESPN binding, I changed the shape of it. The
+          first version tied a league to one ESPN league and refused everything
+          else — and that turned out to be the wrong instinct.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &quot;Only bet this&quot; is a worse contest than &quot;also bet this&quot;
+        </h3>
+        <p className="text-muted">
+          A league locked to one ESPN league is a narrower product than the one
+          it&apos;s inside. The point of a contest is a shared bankroll and a
+          leaderboard; forcing every bet to be one fantasy league&apos;s weekly
+          matchup makes it thinner, not more focused. What a commissioner actually
+          wants is to <em>add</em> their league&apos;s matchups to the board their
+          members already bet — a shelf you put things on, not a cage you lock
+          them in.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The whole feature was one gate, so inverting it was mostly deletion
+        </h3>
+        <p className="text-muted">
+          The restriction lived in exactly one place — a check at placement that
+          refused a league wallet betting outside its bound key. Taking it out is
+          the core of the change:
+        </p>
+        <pre className={pre}>
+          {`-  if (wallet.mode === 'league' && wallet.leagueId) {
+-    const binding = espnBindingOf(await getLeagueById(wallet.leagueId));
+-    if (binding && !isEventInEspnLeague(event.providerKey, binding))
+-      throw new ForbiddenError('This league only bets its bound ESPN matchups');
+-  }`}
+        </pre>
+        <p className="text-muted">
+          What replaces it is additive: a per-league table of ESPN leagues a
+          commissioner has added, whose keys are unioned into the ingest list so
+          their matchups show up on the board — and nothing stops a member betting
+          anything else. The single-bind columns are still there, unused; the new
+          many-to-many is the real model. Managing it moved off the create form and
+          onto the league page, where only the commissioner sees the add and remove
+          controls.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A ZeroProof league can be bound to one ESPN league so its members only bet those games.",
+          "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
           "Leagues: run your own contest with its own rules — starting bankroll, size, and a first-to-a-target or highest-by-a-date win condition. Public leagues are searchable, invite ones share a code, and each has its own bankroll-ranked board and a winner. You bet from a league-scoped wallet, so league play stays out of the global record.",
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
           "Odds ingestion behind a swappable provider, snapshotted on every pull, served to users from the database only.",
