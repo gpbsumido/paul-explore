@@ -25,12 +25,15 @@ describe("ai content engine demo", () => {
     fireEvent.click(screen.getByRole("button", { name: "Post to social" }));
 
     const dialog = screen.getByRole("dialog", { name: "Post to social" });
+    // pick a platform and a voice, then post
+    fireEvent.click(within(dialog).getByRole("button", { name: "Reddit" }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Meme Lord" }));
     // preview restyles the copy in the chosen voice
     expect(within(dialog).getByText(/no cap/i)).toBeInTheDocument();
 
-    fireEvent.click(within(dialog).getByRole("button", { name: "Post" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: /^Post to / }));
     expect(screen.getByText(/Posted as Meme Lord/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reddit/)).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(4000));
     expect(screen.getByLabelText("Generated output")).toHaveTextContent(
