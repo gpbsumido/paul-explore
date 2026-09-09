@@ -7,7 +7,9 @@ import Button from "@/components/ui/Button";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #c7508e)";
+const ACCENT = "var(--wp-accent, hsl(324 52% 55%))";
+const ONLINE = "hsl(150 60% 50%)";
+const console_ = "font-mono uppercase tracking-[0.12em]";
 
 const ROLES = ["Owner", "Admin", "Analyst", "Viewer"] as const;
 type Role = (typeof ROLES)[number];
@@ -385,29 +387,50 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
     });
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+    <div
+      className="flex min-h-full flex-col gap-3 p-5 text-foreground"
+      style={{
+        background: "hsl(288 22% 7%)",
+        backgroundImage:
+          "linear-gradient(hsl(324 52% 55% / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(324 52% 55% / 0.05) 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+      }}
+    >
+      <div className="flex items-end justify-between gap-2">
+        <div>
+          <p className={`${console_} flex items-center gap-1.5 text-[11px] text-muted`}>
+            <span
+              aria-hidden
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: ONLINE, boxShadow: `0 0 8px ${ONLINE}` }}
+            />
+            Platform console · online
+          </p>
+          <h2 className={`${console_} mt-1 text-2xl font-bold text-foreground sm:text-3xl`}>
+            {feature.title}
+          </h2>
+        </div>
         <button
           type="button"
           onClick={() => setCreating(tab)}
-          className="rounded-md px-3 py-1.5 text-[12px] font-medium text-white"
-          style={{ backgroundColor: ACCENT }}
+          className={`${console_} rounded-md border px-3 py-1.5 text-[11px] font-bold`}
+          style={{ color: ACCENT, borderColor: ACCENT }}
         >
-          New {tab.replace(/s$/, "").toLowerCase()}
+          + New {tab.replace(/s$/, "").toLowerCase()}
         </button>
       </div>
 
-      <div role="tablist" className="flex gap-1 border-b border-border">
+      <div
+        role="tablist"
+        className="flex gap-1 border-b border-white/10 bg-black/20"
+      >
         {TABS.map((t) => (
           <button
             key={t}
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-3 py-1.5 text-[12px] ${
+            className={`${console_} -mb-px border-b-2 px-3 py-2 text-[11px] font-bold ${
               tab === t
                 ? "border-current text-foreground"
                 : "border-transparent text-muted"
