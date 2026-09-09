@@ -171,10 +171,10 @@ export const FEATURES: WorkFeature[] = [
     tagline: "CRUD flows for content campaigns",
     icon: "📣",
     explainer: {
-      did: "The content team's home base: create, edit, and track marketing campaigns. I rebuilt the create flow as a progressive-disclosure wizard (basics, then schedule and targeting, then review) so a dense form never hits you all at once, and added a live store inspector that shows the Redux-style state and dispatched actions updating in real time as you work.",
+      did: "The content team's home base: create, edit, and track marketing campaigns across the year. I rebuilt it as a Season Board — the same campaigns read either as a radial dial (the shape of the year, rings pushing outward where campaigns overlap) or a run-of-show gantt you can drag to reschedule. Selecting anywhere — a dial arc, a gantt bar, a list row — drives one inspector, and edits there redraw both views live.",
       stack: "Next.js app router, MUI forms, Redux Toolkit store",
       mocked:
-        "The multi-step create modal and the live action/state inspector are fully real; persistence is an in-memory store instead of the production API.",
+        "The dial, the draggable run-of-show, the shared inspector and the goal filters are all real; everything lives in local state instead of the production API.",
     },
   },
   {

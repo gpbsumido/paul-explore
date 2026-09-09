@@ -368,6 +368,18 @@ export default function WorkPortfolioThoughtsContent({
           surface re-skins the moment you move between them.
         </p>
         <p>
+          <strong>The campaign manager became a Season Board.</strong> The old
+          version was a stepped create-modal with a store inspector &mdash;
+          honest, but it read like a form. I rebuilt it so the same campaigns
+          show two ways: a radial dial for the shape of the year, and a
+          run-of-show gantt you can drag to reschedule. One inspector drives
+          both. The constraint that shaped it was the house rules, not the
+          design: no web fonts, so the poster type is the site&apos;s own
+          display face; and the palette sweep forbids raw neon hex on a live
+          surface, so the goal colours are hsl &mdash; the same escape hatch the
+          generative-art demos already use.
+        </p>
+        <p>
           <strong>The last stop is this site.</strong> Every other demo is a
           reconstruction of past work; the new final entry is the real thing &mdash;
           a directory of live links to the features I built here, from the operator
