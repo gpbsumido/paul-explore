@@ -208,11 +208,25 @@ export default function LlmAssistantDemo({
     .find((m) => m.role === "assistant")?.id;
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-2 p-4">
+    <div
+      className="flex h-full min-h-64 flex-col gap-2 p-5 text-foreground"
+      style={{
+        background: "hsl(212 44% 8%)",
+        backgroundImage:
+          "linear-gradient(hsl(210 85% 62% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(210 85% 62% / 0.06) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Analytics portal v2{" "}
+            <span style={{ color: "hsl(210 85% 66%)" }}>&#47;&#47;</span> assistant
+          </p>
+          <p className="font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            {feature.title}
+          </p>
+        </div>
         <div className="flex overflow-hidden rounded-md border border-border text-[11px]">
           {(["agent", "chat"] as const).map((m) => (
             <button
