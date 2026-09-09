@@ -226,11 +226,25 @@ export default function PerGameAnalyticsDemo({
   const right = GAMES.find((g) => g.id === rightId)!;
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
+      style={{
+        background: "hsl(220 44% 8%)",
+        backgroundImage:
+          "linear-gradient(hsl(230 80% 65% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(230 80% 65% / 0.06) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Analytics portal v1{" "}
+            <span style={{ color: "hsl(232 80% 70%)" }}>&#47;&#47;</span> per-game
+          </p>
+          <p className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            {feature.title}
+          </p>
+        </div>
         <div className="flex overflow-hidden rounded-md border border-border text-[11px]">
           {(["single", "compare"] as const).map((m) => (
             <button
