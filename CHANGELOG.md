@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-09 - version 6.6.1
+
+- **Faster first render on the homepage.** I chased "FCP is bad" on the landing page and measured it properly: throttled lab FCP is already ~1.2s (green), and the real slow metric is LCP at ~4.3s. The cause was font contention on the critical path — the body face (Geist) was preloaded alongside the display face (Bricolage) that IS the LCP heading, so two high-priority font requests competed for a throttled connection. Above the fold Geist only sets the role line and tagline, which paint immediately in the system fallback under `display: swap`, so preloading it bought no earlier paint. Dropping its preload (the mono face was already `preload: false` for the same reason) pulls throttled LCP down to ~3.4s with FCP holding green. The ~2.1s field FCP figure is real-visitor network/device p75, not a code defect on this build.
+
 ## 2026-09-09 - version 6.6.0
 
 - **Work-portfolio polish pass.** Reviewed every demo as a visitor would and tightened the rough edges so each reads like the real product it came from.

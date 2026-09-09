@@ -11,10 +11,17 @@ import CookieConsent from "@/components/CookieConsent";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import "./globals.css";
 
+// preload:false on the body face too. Above the fold it only sets the role
+// line and the tagline, which paint immediately in the system fallback under
+// display:swap -- so preloading it bought no earlier paint and just put a
+// second high-priority font <link> on the critical path, competing for the
+// throttled connection with the display face that IS the LCP element. Geist
+// still loads on its own once the connection is free.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 // The code/mono face. preload:false because it never appears above the fold on
