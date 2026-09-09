@@ -18,6 +18,7 @@ import {
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 import { JsonView } from "./_shared/json-view";
+import { ChartTooltip } from "./_shared/ChartTooltip";
 
 /**
  * Each "slug" is a dashboard config: which tiles, which chart, what accent,
@@ -124,7 +125,7 @@ export default function SlugDashboardsDemo({
   }));
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div className="flex min-h-full flex-col gap-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[13px] font-semibold text-foreground">
           {feature.title}
@@ -195,7 +196,7 @@ export default function SlugDashboardsDemo({
                 margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
               >
                 <XAxis dataKey="d" hide />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip accent={config.accent} />} cursor={{ stroke: config.accent, strokeOpacity: 0.25 }} />
                 <Line
                   type="monotone"
                   dataKey="v"
@@ -211,7 +212,7 @@ export default function SlugDashboardsDemo({
                 margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
               >
                 <XAxis dataKey="d" hide />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip accent={config.accent} />} cursor={{ stroke: config.accent, strokeOpacity: 0.25 }} />
                 <Bar
                   dataKey="v"
                   fill={config.accent}
@@ -225,7 +226,7 @@ export default function SlugDashboardsDemo({
                 margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
               >
                 <XAxis dataKey="d" hide />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip accent={config.accent} />} cursor={{ stroke: config.accent, strokeOpacity: 0.25 }} />
                 <Area
                   type="monotone"
                   dataKey="v"
@@ -251,7 +252,7 @@ export default function SlugDashboardsDemo({
                   cornerRadius={3}
                   isAnimationActive={false}
                 />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip accent={config.accent} />} cursor={{ stroke: config.accent, strokeOpacity: 0.25 }} />
               </RadialBarChart>
             )}
           </ResponsiveContainer>
