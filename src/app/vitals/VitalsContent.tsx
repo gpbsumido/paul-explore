@@ -1,5 +1,6 @@
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import { FeatureTour, type TourStep } from "@/components/GuidedTour";
 import VersionSelector from "./VersionSelector";
 import VitalsChart from "./VitalsChart";
 import {
@@ -15,6 +16,34 @@ import type {
   VitalsResponse,
   VersionMetrics,
 } from "@/types/vitals";
+
+/** A quick walk-through of the vitals dashboard for a first-time visitor. */
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Take a quick tour?",
+    body: "First time here? I'll show you how to read this dashboard — a few clicks, no commitment.",
+  },
+  {
+    anchor: "vitals-heading",
+    title: "Real-user vitals",
+    body: "These are Core Web Vitals measured from real visitors, aggregated as P75 scores — the experience three-quarters of visits beat.",
+  },
+  {
+    anchor: "vitals-summary-cards",
+    title: "Metric scores",
+    body: "Each card is one metric's global P75 with a Good / Needs work / Poor rating.",
+  },
+  {
+    anchor: "vitals-by-page",
+    title: "Per-page breakdown",
+    body: "This table breaks each metric down page by page, colour-coded, with how many samples back it.",
+  },
+  {
+    anchor: "vitals-improvements",
+    title: "The work behind the numbers",
+    body: "And these notes say what I'm actually doing in the code to move each score.",
+  },
+];
 
 type Rating = "good" | "needs-improvement" | "poor";
 
@@ -221,14 +250,24 @@ export default function VitalsContent({
 
       <main className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
         {/* Page heading */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+          <h1
+            id="vitals-heading"
+            className="text-xl font-bold text-foreground sm:text-2xl"
+          >
             Core Web Vitals
           </h1>
           <p className="mt-1 text-[13px] text-muted">
             P75 scores from real users. Pages need at least 5 samples to appear
             in the table.
           </p>
+          </div>
+          <FeatureTour
+            label="Vitals"
+            storageKey="vitals-tour-seen"
+            steps={TOUR_STEPS}
+          />
           {/* Screen-reader announcement when version filter changes via soft navigation */}
           <p className="sr-only" aria-live="polite" aria-atomic="true">
             {unreachable
@@ -246,7 +285,10 @@ export default function VitalsContent({
         ) : (
           <>
             {/* Metric summary cards */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div
+              id="vitals-summary-cards"
+              className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+            >
               {METRIC_ORDER.map((name) => (
                 <MetricCard
                   key={name}
@@ -267,7 +309,7 @@ export default function VitalsContent({
             )}
 
             {/* By-page table */}
-            <div className="mt-8">
+            <div id="vitals-by-page" className="mt-8">
               <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                 By page
               </h2>
@@ -349,7 +391,7 @@ export default function VitalsContent({
         )}
 
         {/* Improvement notes — what's actively being done per metric */}
-        <div className="mt-10">
+        <div id="vitals-improvements" className="mt-10">
           <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             What I&apos;m doing to improve these
           </h2>
