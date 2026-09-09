@@ -426,6 +426,55 @@ this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-10-review"
+        date="September 10, 2026"
+        title="A live review pass, one screenshot at a time"
+      >
+        <p>
+          I went back through every demo again, this time driving each one and
+          fixing whatever felt like a mock rather than the product. Most of the
+          changes were interaction, not paint: the NFT transfer now asks you to
+          confirm, waits a few seconds like a real settle, and shows a completion
+          modal before it disappears from your inventory; a workflow node opens an
+          action menu and an edit modal; the AI module wears its platform and
+          personality settings on its face instead of hiding them in a dialog.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A green typecheck is not a green build.
+        </h3>
+        <p className="text-muted">
+          Centering the community feed, I added a wrapper div, re-ran{" "}
+          <code>tsc</code> and the tests, and they passed. The dev server did not.
+          Turbopack&apos;s parser is stricter about JSX than the type checker, and
+          it caught a div I had balanced in the wrong order:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Build Error — Expected ',', got '{'
+./src/app/work-portfolio/demos/community-mode.tsx (368:7)
+  > 368 |       {composer && (`}
+        </pre>
+        <p className="text-muted">
+          The lesson I keep relearning: when a build tool and a type checker
+          disagree about whether code is valid, run the build. It renders 200s or
+          it doesn&apos;t.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The dots that were always at the top.
+        </h3>
+        <p className="text-muted">
+          A screenshot of the arcade demo showed the targets clipped at the top
+          edge. The cause was the same <code>min-h-full</code> reflex that broke
+          the slug chart: the play area collapsed instead of filling, so a
+          target at 14% landed under the frame. A definite height on the cabinet
+          and a wider spawn margin fixed it. The pattern is clear enough now that
+          I should stop reaching for <code>min-h-full</code> without asking what
+          it does to a flex child.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height, not a flex-grown one), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
