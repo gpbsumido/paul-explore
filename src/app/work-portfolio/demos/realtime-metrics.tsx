@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { ChartTooltip } from "./_shared/ChartTooltip";
 import type { WorkFeature } from "../_data/types";
 
 /** Seeded starting series so the chart never opens empty. */
@@ -96,7 +97,7 @@ export default function RealtimeMetricsDemo({
               stroke="currentColor"
             />
             <YAxis tick={{ fontSize: 10 }} stroke="currentColor" />
-            <Tooltip />
+            <Tooltip content={<ChartTooltip />} />
             <Line
               type="monotone"
               dataKey="value"

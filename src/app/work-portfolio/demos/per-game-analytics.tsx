@@ -2,6 +2,7 @@
 
 import { Fragment, useState, type ReactElement } from "react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from "recharts";
+import { ChartTooltip } from "./_shared/ChartTooltip";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -104,7 +105,7 @@ function SingleDashboard({ game }: { game: GameConfig }) {
             </linearGradient>
           </defs>
           <XAxis dataKey="d" hide />
-          <Tooltip />
+          <Tooltip content={<ChartTooltip />} />
           <Area
             type="monotone"
             dataKey="v"
@@ -180,7 +181,7 @@ function CompareDashboard({
           margin={{ top: 6, right: 6, bottom: 0, left: 0 }}
         >
           <XAxis dataKey="d" hide />
-          <Tooltip />
+          <Tooltip content={<ChartTooltip />} />
           <Area
             type="monotone"
             dataKey="left"

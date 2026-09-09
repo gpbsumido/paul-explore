@@ -10,6 +10,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { ChartTooltip } from "./_shared/ChartTooltip";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -188,7 +189,7 @@ export default function StandardAnalyticsDemo({
             />
             <XAxis dataKey="i" tick={{ fontSize: 9 }} stroke="currentColor" />
             <YAxis tick={{ fontSize: 9 }} stroke="currentColor" />
-            <Tooltip />
+            <Tooltip content={<ChartTooltip />} />
             <Area
               type="monotone"
               dataKey="v"

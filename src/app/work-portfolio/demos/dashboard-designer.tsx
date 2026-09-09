@@ -20,6 +20,7 @@ import {
   Bar,
   Tooltip,
 } from "recharts";
+import { ChartTooltip } from "./_shared/ChartTooltip";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -90,7 +91,7 @@ function WidgetBody({ widget }: { widget: Widget }) {
       <ResponsiveContainer width="100%" height="100%">
         {widget.kind === "line" ? (
           <LineChart data={data}>
-            <Tooltip />
+            <Tooltip content={<ChartTooltip />} />
             <Line
               type="monotone"
               dataKey="v"
@@ -102,7 +103,7 @@ function WidgetBody({ widget }: { widget: Widget }) {
           </LineChart>
         ) : (
           <BarChart data={data}>
-            <Tooltip />
+            <Tooltip content={<ChartTooltip />} />
             <Bar
               dataKey="v"
               fill={ACCENT}
@@ -218,9 +219,9 @@ function EndZone() {
 /**
  * Flagship demo for portal v2's dashboard designer. The original used a
  * gridstack drag-drop engine; this rebuilds the idea with a dnd-kit grid you
- * compose from a widget palette. Drag a widget by its title onto another to
- * drop it into that slot, or onto the trailing zone to send it to the end,
- * so empty cells fill reliably. Keyboard move and resize stay on the buttons.
+ * compose from a widget palette. Drag a widget (from anywhere on the card) onto
+ * another to drop it into that slot, or onto the trailing zone to send it to the
+ * end, so empty cells fill reliably. Keyboard move and resize stay on the buttons.
  */
 export default function DashboardDesignerDemo({
   feature,
