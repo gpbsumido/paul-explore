@@ -11,6 +11,51 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-league-espn-additive",
+    date: "2026-09-08",
+    version: "6.4.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Add ESPN leagues to your league — and still bet everything else",
+    summary:
+      "A league's commissioner can add public ESPN fantasy leagues on the league page. Their matchups show on the board to bet, and the league stays free to bet everything else.",
+    body: [
+      "Running a league, you can now add one or more public ESPN fantasy leagues to it — sport, id, season, an optional label — right on the league page, and remove them again. Everyone in the league sees which are added; only the commissioner manages the list.",
+      "This is additive, not a cage: the added leagues' weekly matchups start showing on the board, and members bet them alongside real-sports lines and anything else. It reuses the same wallet, ledger and settlement as the rest of ZeroProof.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-bet-line",
+    date: "2026-09-08",
+    version: "6.3.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See your bet right on the board",
+    summary:
+      "A fixture you've bet on now shows what you picked and how much you staked, on its card — with the odds and, once it's graded, the result.",
+    body: [
+      "The board already kept a game you'd bet on in view and badged it. Now the card says what the bet was: your selection, the stake, the price you got, and a coloured result once it settles. Bet more than once on the same matchup and each one is listed.",
+      "It reuses the bets the board already loads, so it's just surfacing what was there — no extra call, and it lines up with the same figures on Your record.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-espn-matchups",
+    date: "2026-09-08",
+    version: "6.2.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Bet ESPN fantasy matchups",
+    summary:
+      "Fantasy matchups show up on the board with a Fantasy badge, and bet like anything else.",
+    body: [
+      "The board now carries ESPN fantasy head-to-head matchups alongside the real-sports lines — each badged Fantasy Football or Fantasy Basketball so you know which is which — and they bet like anything else.",
+      "It reuses the same wallet, ledger and settlement as the rest of ZeroProof — a fantasy matchup is just another event that settles on the weekly score. Adding ESPN leagues to a contest you run came next.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-leagues",
     date: "2026-09-08",
     version: "6.1.0",

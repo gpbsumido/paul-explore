@@ -382,6 +382,22 @@ describe("ZeroProofContent — board days and existing bets", () => {
     expect(screen.getByText(/your bet/i)).toBeInTheDocument();
   });
 
+  it("shows what the caller bet and the stake on the fixture card", async () => {
+    const events = { events: [ev("evt-b", "2026-09-09T18:00:00.000Z", "Bills", "Jets")] };
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => HttpResponse.json({ bets: [betOn("evt-b")] }),
+      () => HttpResponse.json(events),
+    );
+    const card = (await screen.findByRole("heading", { name: /Bills/ })).closest("li");
+    expect(card).not.toBeNull();
+    const yourBets = within(card as HTMLElement).getByRole("list", {
+      name: /your bets on this matchup/i,
+    });
+    expect(within(yourBets).getByText("Bills")).toBeInTheDocument();
+    expect(within(yourBets).getByText("$25.00")).toBeInTheDocument();
+  });
+
   it("always shows a fixture the caller has bet on, even past the horizon", async () => {
     const events = {
       events: [
@@ -534,7 +550,11 @@ describe("ZeroProofContent — profile", () => {
     );
     await goToTab(/your record/i);
     expect(await screen.findByText(/recent bets/i)).toBeInTheDocument();
-    expect(screen.getByText("won")).toBeInTheDocument();
+    // "won" now also appears on the board card for this fixture, so scope to the
+    // visible record panel where the recent-bets list lives.
+    expect(
+      within(screen.getByRole("tabpanel")).getByText("won"),
+    ).toBeInTheDocument();
     expect(screen.getByText(/CLV \+7\.9%/)).toBeInTheDocument();
   });
 
@@ -661,7 +681,8 @@ describe("ZeroProofContent — live updates", () => {
     );
     expect(await screen.findByText("open")).toBeInTheDocument();
     await vi.advanceTimersByTimeAsync(31_000);
-    expect(await screen.findByText("won")).toBeInTheDocument();
+    // Grades on both the recent-bets list and the board card for the fixture.
+    expect((await screen.findAllByText("won")).length).toBeGreaterThan(0);
   });
 });
 
@@ -738,5 +759,44 @@ describe("ZeroProofContent — leagues", () => {
     await screen.findByRole("link", { name: /friday night parlays/i });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+});
+
+describe("ZeroProofContent — ESPN fantasy", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  const FANTASY = {
+    events: [
+      {
+        id: "fev-1",
+        sport: "fantasy_ffl",
+        home: "Vancouver Seahawks",
+        away: "Barbarians",
+        commenceTime: "2026-09-09T18:00:00.000Z",
+        status: "upcoming",
+        markets: [
+          {
+            market: "h2h",
+            fetchedAt: "2026-09-08T00:00:00.000Z",
+            outcomes: [
+              { name: "Vancouver Seahawks", priceAmerican: -110 },
+              { name: "Barbarians", priceAmerican: -110 },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  it("badges a fantasy matchup on the board", async () => {
+    renderPage(undefined, undefined, () => HttpResponse.json(FANTASY));
+    expect(await screen.findByText("Fantasy Football")).toBeInTheDocument();
   });
 });

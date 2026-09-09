@@ -143,6 +143,11 @@ export const leagueSchema = z.object({
   endsAt: z.string().nullable(),
   status: z.string(), // 'open' | 'settled'
   winnerSub: z.string().nullable(),
+  // Set together when the league is bound to one ESPN fantasy league — members
+  // then only bet its matchups. Nullish so an older payload without them parses.
+  espnGame: z.string().nullish(),
+  espnLeagueId: z.string().nullish(),
+  espnSeason: z.string().nullish(),
   createdAt: z.string(),
   settledAt: z.string().nullable(),
   memberCount: z.number(),
@@ -162,9 +167,21 @@ export const leagueStandingSchema = z.object({
   rank: z.number(),
 });
 
+// An ESPN league a commissioner added to a ZeroProof league (additive) — its
+// matchups are bettable, and the league stays free to bet everything else.
+export const leagueEspnLeagueSchema = z.object({
+  id: z.string(),
+  game: z.string(),
+  leagueId: z.string(),
+  season: z.string(),
+  label: z.string().nullish(),
+  createdAt: z.string(),
+});
+
 export const leagueDetailResponseSchema = z.object({
   league: leagueSchema,
   standings: z.array(leagueStandingSchema),
+  espnLeagues: z.array(leagueEspnLeagueSchema),
   // The caller's league wallet id, for the betslip; null when not a member.
   callerWalletId: z.string().nullable(),
   isMember: z.boolean(),
@@ -173,6 +190,7 @@ export const leagueDetailResponseSchema = z.object({
 
 export type ZeroproofLeague = z.infer<typeof leagueSchema>;
 export type LeagueDetail = z.infer<typeof leagueDetailResponseSchema>;
+export type LeagueEspnLeague = z.infer<typeof leagueEspnLeagueSchema>;
 
 // The ESPN-league registry (admin): which ESPN fantasy leagues the crons ingest.
 export const espnLeagueSchema = z.object({
