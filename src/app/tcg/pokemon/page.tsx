@@ -71,6 +71,7 @@ export default function PokemonTcgPage() {
         right={
           <>
             <Link
+              id="tcg-sets-link"
               href="/tcg/pokemon/sets"
               className="paul-touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
             >

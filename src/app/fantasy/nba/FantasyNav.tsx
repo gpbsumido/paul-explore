@@ -18,6 +18,7 @@ export default function FantasyNav() {
 
   return (
     <nav
+      id="fx-nav"
       className="border-b border-border"
       aria-label="Fantasy basketball pages"
     >

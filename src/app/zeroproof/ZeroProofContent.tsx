@@ -10,9 +10,9 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
-import { usePersistentState } from "@/hooks/usePersistentState";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import LeaguesPanel from "./LeaguesPanel";
-import ZeroProofTour from "./ZeroProofTour";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -1086,15 +1086,43 @@ export default function ZeroProofContent() {
   const [tab, setTab] = useState<LobbyTab>("board");
   const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
 
-  // The first-run tour: auto-opens on a first visit (until it's been seen or
-  // dismissed), and the "Take the tour" button reopens it any time. Deriving the
-  // initial open state from the persisted flag avoids opening it in an effect.
-  const [tourSeen, setTourSeen] = usePersistentState("zeroproof-tour-seen", false);
-  const [tourOpen, setTourOpen] = useState(() => !tourSeen);
-  const closeTour = () => {
-    setTourOpen(false);
-    setTourSeen(true);
-  };
+  // The first-run tour, built on the shared engine. Each coach-mark switches to
+  // the tab it describes so its panel shows behind the highlight.
+  const tourSteps: TourStep[] = [
+    {
+      title: "Take a quick tour?",
+      body: "New to ZeroProof? I'll walk you through what it is and how to use it — a few clicks, no commitment.",
+    },
+    {
+      anchor: "zp-intro",
+      title: "Betting, with the loss removed",
+      body: "Lock a simulated deposit, bet real lines, get the deposit back at term end whatever your record — and the record is yours to keep.",
+    },
+    {
+      anchor: "zp-tab-board",
+      onEnter: () => setTab("board"),
+      title: "The board",
+      body: "Browse upcoming games and their live lines. Tap an outcome and it drops onto your bet slip.",
+    },
+    {
+      anchor: "zp-tab-leagues",
+      onEnter: () => setTab("leagues"),
+      title: "Leagues",
+      body: "Start your own contest — create a league, set the rules, and invite friends to a private leaderboard.",
+    },
+    {
+      anchor: "zp-tab-leaderboard",
+      onEnter: () => setTab("leaderboard"),
+      title: "The leaderboard",
+      body: "See who's sharpest — ranked by a sharp score that rewards beating the market, or by raw ROI.",
+    },
+    {
+      anchor: "zp-tab-record",
+      onEnter: () => setTab("record"),
+      title: "Your record",
+      body: "Open a wallet, place bets, and watch your bankroll trend build — a record you can show off.",
+    },
+  ];
 
   const focusTab = (id: LobbyTab) => {
     setTab(id);
@@ -1137,13 +1165,11 @@ export default function ZeroProofContent() {
           explains why the ledger is real and the money is a button.
         </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setTourOpen(true)}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
-        >
-          <span aria-hidden>🧭</span> Take the tour
-        </button>
+        <FeatureTour
+          label="ZeroProof"
+          storageKey="zeroproof-tour-seen"
+          steps={tourSteps}
+        />
       </header>
 
       <div
@@ -1222,9 +1248,6 @@ export default function ZeroProofContent() {
       >
         <Profile />
       </div>
-      {tourOpen && (
-        <ZeroProofTour onClose={closeTour} onGoToTab={setTab} />
-      )}
     </div>
   );
 }
