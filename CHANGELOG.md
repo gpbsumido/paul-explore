@@ -2,7 +2,10 @@
 
 ## 2026-09-09 - version 6.6.0
 
-- **Work-portfolio polish (first pass).** Fixed the slug-dashboards demo chart spilling out of its card at smaller window sizes — the demo root now grows and the DemoStage scrolls instead of squeezing the card past the config. Added a design-system chart tooltip (`_shared/ChartTooltip`) so recharts charts read like the rest of the app rather than the raw white default, wired into the slug-dashboards demo. Added a gentle, reduced-motion-safe glow on the "about this" info icons so it's obvious they're hover targets. This is the shared foundation for a broader per-demo pass (distinct, more realistic, more guided demos) that continues.
+- **Work-portfolio polish pass.** Reviewed every demo as a visitor would and tightened the rough edges so each reads like the real product it came from.
+  - **Shared:** fixed the slug-dashboards chart spilling out of its card at small window sizes (the demo root grows and the DemoStage scrolls instead of squeezing the card); a design-system chart tooltip (`_shared/ChartTooltip`) replaces the raw recharts default across every chart demo; a reduced-motion-safe glow on the "about this" info icons; deterministic generative-art NFT thumbnails (`_shared/NftArt`) instead of flat colour blocks.
+  - **Per-demo:** Wallet Lookup now reads like an explorer (net worth, 24h balance sparkline, token-holdings bars); Driver Signup is a focused centered card instead of a full-width sprawl; Referral Links show the created link on the current origin (a develop link opens develop, not prod); Auth Flows and Admin Suite disable their action until input is valid; the Admin configs render as styled JSON; Campaign Builder's every field drives the preview (budget gauge + channel-modeled reach/installs/CPI) with a Launch confirm modal; Dashboard Designer widgets drag from anywhere on the card; the AI content module streams on load instead of sitting blank; the not-found "Go back" falls back to the hub in a fresh tab.
+  - Covered by the existing work-portfolio suite (155 tests), updated for the new validation, env-aware links, and enriched wallet overview.
 
 ## 2026-09-09 - version 6.5.1
 

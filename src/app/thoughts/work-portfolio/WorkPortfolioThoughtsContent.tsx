@@ -322,8 +322,50 @@ export default function WorkPortfolioThoughtsContent({
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-09-polish"
+        date="September 9, 2026"
+        title="A polish pass, from the visitor's chair"
+      >
+        <p>
+          I went back through the demos the way someone landing cold would &mdash;
+          at a smaller laptop window, clicking everything. That framing surfaced a
+          run of small things that each made a demo read as a mock rather than the
+          product it came from.
+        </p>
+        <p>
+          <strong>A chart that escaped its card was a layout bug, not a chart
+          bug.</strong> The slug-dashboards line spilled over the config JSON on a
+          short window. The fix was not on the chart at all: the demo root was
+          pinned to <code>h-full</code>, so instead of the stage scrolling, the
+          flex column squeezed the card until the chart overflowed it. Switching
+          the root to <code>min-h-full</code> lets the content grow and the stage
+          scroll &mdash; the chart stays in its card at every size.
+        </p>
+        <p>
+          <strong>Most of the rest was making the demos honest.</strong> The
+          wallet lookup gained a net worth, a balance sparkline and a holdings
+          breakdown so it reads like an explorer; the campaign builder&apos;s every
+          field now moves the preview (a channel model drives reach, installs and
+          CPI), not just the name; the NFTs are deterministic generative art
+          instead of flat swatches; the AI content module streams on load rather
+          than sitting blank. And a genuine bug &mdash; a referral link created on
+          the develop deploy pointed at production, because the API builds the URL
+          against its own host, so I now rewrite it onto the current origin before
+          showing it.
+        </p>
+        <p>
+          <strong>Validation and affordances, everywhere they were missing.</strong>{" "}
+          The auth and admin forms disable their action until the input is valid;
+          the config tab renders as syntax-coloured JSON; the info icons pulse so
+          it is obvious they open an explainer; and the recharts default tooltip is
+          gone, replaced by one that matches the rest of the site.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card at small sizes (a pinned h-full squeezing the layout, not a chart problem), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
           "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
           "Both drag bugs solved with a drag overlay: a dragged item rendered inside its source container gets clipped the moment it leaves, so it belongs in a layer above the layout.",
           "Side effects moved out of state updaters and into the mutation and event handlers where they belong.",
