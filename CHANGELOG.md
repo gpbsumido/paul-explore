@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-09 - version 6.6.0
+
+- **Work-portfolio polish (first pass).** Fixed the slug-dashboards demo chart spilling out of its card at smaller window sizes — the demo root now grows and the DemoStage scrolls instead of squeezing the card past the config. Added a design-system chart tooltip (`_shared/ChartTooltip`) so recharts charts read like the rest of the app rather than the raw white default, wired into the slug-dashboards demo. Added a gentle, reduced-motion-safe glow on the "about this" info icons so it's obvious they're hover targets. This is the shared foundation for a broader per-demo pass (distinct, more realistic, more guided demos) that continues.
+
 ## 2026-09-09 - version 6.5.1
 
 - **An admin page for ingestion health.** `/zeroproof/admin/ingest-health` shows what the sync and settle crons last managed to resolve — real sports per stage (odds vs results) and ESPN leagues — with a red reason and timestamps on anything that failed, green OK on the rest. It's the operator-side counterpart to the per-league ESPN health a commissioner sees, for the real-sports keys the operator configures. Admin-only like the ESPN registry page (session-protected, 404s off the allowlist); reads the new `GET /api/zeroproof/ingest-health` backend endpoint. A patch — no change to the public product. Covered by a route test (admin gate) and a component test (failing vs healthy rows, axe clean).

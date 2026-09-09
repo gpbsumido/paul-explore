@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-work-portfolio-polish",
+    date: "2026-09-09",
+    version: "6.6.0",
+    category: "improvement",
+    tags: ["work-portfolio"],
+    title: "The work-portfolio demos are getting a polish pass",
+    summary:
+      "Cleaner charts, tooltips that match the rest of the site, a clearer hint to open a demo's explainer, and a layout fix so a demo's chart can't spill out of its card on smaller screens.",
+    body: [
+      "First pass of a broader effort to make each work-portfolio demo feel more like the real product it came from: design-system chart tooltips instead of the raw default, a gentle glow on the info icons so it's obvious they open an explainer, and a fix for the slug-dashboards chart overflowing its card on a smaller window.",
+      "More is coming — distinct looks per project, clearer interaction cues, and tighter, less generic layouts.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-espn-health",
     date: "2026-09-09",
     version: "6.5.0",
