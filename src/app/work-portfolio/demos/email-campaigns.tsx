@@ -5,8 +5,6 @@ import Image from "next/image";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #4a83c8)";
-
 type Block =
   | { id: number; kind: "heading"; text: string }
   | { id: number; kind: "text"; text: string }
@@ -45,10 +43,12 @@ const STATUS_TINT: Record<string, string> = {
 /** One editable email block: text blocks type in place, image blocks import a local file. */
 function EditableBlock({
   block,
+  accent,
   onText,
   onImport,
 }: {
   block: Block;
+  accent: string;
   onText: (text: string) => void;
   onImport: (file: File) => void;
 }) {
@@ -79,7 +79,7 @@ function EditableBlock({
           value={block.text}
           onChange={(e) => onText(e.target.value)}
           className="rounded-md px-3 py-1.5 text-center text-[12px] font-medium text-white outline-none"
-          style={{ backgroundColor: ACCENT }}
+          style={{ backgroundColor: accent }}
         />
       );
     case "image":
@@ -102,7 +102,7 @@ function EditableBlock({
             <div
               className="h-16 rounded-md"
               style={{
-                background: `linear-gradient(120deg, ${"var(--wp-accent,#4a83c8)"}, transparent)`,
+                background: `linear-gradient(120deg, ${accent}, transparent)`,
               }}
             />
           )}
@@ -128,6 +128,14 @@ function EditableBlock({
  * Vignette: portal v2's email studio. A block-based template preview on the
  * left (add blocks from a palette) and the campaign table on the right.
  */
+const SWATCHES = [
+  "hsl(210 62% 54%)",
+  "hsl(160 60% 45%)",
+  "hsl(330 62% 56%)",
+  "hsl(38 82% 52%)",
+  "hsl(265 62% 62%)",
+] as const;
+
 export default function EmailCampaignsDemo({
   feature,
 }: {
@@ -135,11 +143,27 @@ export default function EmailCampaignsDemo({
 }) {
   const [blocks, setBlocks] = useState<Block[]>(INITIAL);
   const [nextId, setNextId] = useState(5);
+  const [subject, setSubject] = useState("Season 4 is live — log in for a bonus");
+  const [accent, setAccent] = useState<string>(SWATCHES[0]);
+  const [device, setDevice] = useState<"mobile" | "desktop">("desktop");
 
   const add = (block: BlockDraft) => {
     setBlocks((b) => [...b, { ...block, id: nextId }]);
     setNextId((n) => n + 1);
   };
+
+  const removeBlock = (id: number) =>
+    setBlocks((b) => b.filter((x) => x.id !== id));
+
+  const moveBlock = (id: number, dir: -1 | 1) =>
+    setBlocks((b) => {
+      const i = b.findIndex((x) => x.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= b.length) return b;
+      const next = [...b];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
 
   const setText = (id: number, text: string) =>
     setBlocks((b) => b.map((x) => (x.id === id ? { ...x, text } : x)));
@@ -154,15 +178,80 @@ export default function EmailCampaignsDemo({
   };
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <p className="text-[13px] font-semibold text-foreground">
-        {feature.title}
-      </p>
+    <div
+      className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
+      style={{
+        background: "hsl(258 36% 8%)",
+        backgroundImage:
+          "linear-gradient(hsl(258 78% 66% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(258 78% 66% / 0.06) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+          Analytics portal v2{" "}
+          <span style={{ color: "hsl(258 78% 70%)" }}>&#47;&#47;</span> email
+        </p>
+        <p className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {feature.title}
+        </p>
+      </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[1fr_13rem]">
         <div className="flex min-h-0 flex-col gap-2">
+          {/* Config bar: subject, accent, device */}
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/40 p-2">
+            <input
+              aria-label="Subject line"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Subject line…"
+              className="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-foreground outline-none"
+            />
+            <div className="flex gap-1" role="group" aria-label="Accent colour">
+              {SWATCHES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  aria-label={`Accent ${s}`}
+                  aria-pressed={accent === s}
+                  onClick={() => setAccent(s)}
+                  className="h-4 w-4 rounded-full"
+                  style={{
+                    background: s,
+                    outline:
+                      accent === s ? "2px solid var(--color-foreground)" : "none",
+                    outlineOffset: "1px",
+                  }}
+                />
+              ))}
+            </div>
+            <div className="flex overflow-hidden rounded-md border border-border text-[12px]">
+              {(["desktop", "mobile"] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  aria-label={`${d} preview`}
+                  aria-pressed={device === d}
+                  onClick={() => setDevice(d)}
+                  className={`px-2 py-0.5 ${device === d ? "bg-white/15 text-foreground" : "text-muted"}`}
+                >
+                  {d === "desktop" ? "🖥️" : "📱"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Add-block palette */}
           <div className="flex flex-wrap gap-1.5">
             <span className="text-[11px] text-muted">Add block:</span>
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={() => add({ kind: "heading", text: "New heading" })}
+            >
+              Heading
+            </Button>
             <Button
               variant="outline"
               size="xs"
@@ -187,50 +276,98 @@ export default function EmailCampaignsDemo({
               Image
             </Button>
           </div>
-          <div
-            aria-label="Email preview"
-            className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-lg border border-border bg-background p-3"
-          >
-            {blocks.map((block) => (
-              <div key={block.id} data-testid="email-block">
-                <EditableBlock
-                  block={block}
-                  onText={(text) => setText(block.id, text)}
-                  onImport={(file) => importImage(block.id, file)}
-                />
+
+          {/* The preview canvas — bigger, framed like a real email client */}
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-black/20 p-3">
+            <div
+              className="mx-auto rounded-lg border border-border bg-background shadow-lg transition-all"
+              style={{ maxWidth: device === "mobile" ? "20rem" : "34rem" }}
+            >
+              <div className="border-b border-border px-3 py-2">
+                <p className="text-[9px] uppercase tracking-wider text-muted">
+                  Subject
+                </p>
+                <p className="truncate text-[12px] font-semibold text-foreground">
+                  {subject || "(no subject)"}
+                </p>
               </div>
-            ))}
+              <div aria-label="Email preview" className="space-y-1.5 p-3">
+                {blocks.map((block, i) => (
+                  <div
+                    key={block.id}
+                    data-testid="email-block"
+                    className="group relative rounded-md border border-transparent p-1.5 hover:border-border"
+                  >
+                    <EditableBlock
+                      block={block}
+                      accent={accent}
+                      onText={(text) => setText(block.id, text)}
+                      onImport={(file) => importImage(block.id, file)}
+                    />
+                    <div className="absolute top-1 right-1 hidden gap-0.5 rounded bg-surface-raised/90 p-0.5 group-hover:flex">
+                      <button
+                        type="button"
+                        aria-label="Move block up"
+                        disabled={i === 0}
+                        onClick={() => moveBlock(block.id, -1)}
+                        className="px-1 text-[10px] text-muted hover:text-foreground disabled:opacity-30"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Move block down"
+                        disabled={i === blocks.length - 1}
+                        onClick={() => moveBlock(block.id, 1)}
+                        className="px-1 text-[10px] text-muted hover:text-foreground disabled:opacity-30"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Delete block"
+                        onClick={() => removeBlock(block.id)}
+                        className="px-1 text-[10px] text-error-500 hover:text-error-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="min-h-0 overflow-y-auto">
-          <table className="w-full text-left text-[11px]">
-            <thead className="text-muted">
-              <tr>
-                <th className="pb-1 font-medium">Campaign</th>
-                <th className="pb-1 font-medium">Status</th>
-                <th className="pb-1 text-right font-medium">Open</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {CAMPAIGNS.map((c) => (
-                <tr key={c.name}>
-                  <td className="py-1.5 text-foreground">{c.name}</td>
-                  <td className="py-1.5">
-                    <span
-                      className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-white"
-                      style={{ backgroundColor: STATUS_TINT[c.status] }}
-                    >
-                      {c.status}
-                    </span>
-                  </td>
-                  <td className="py-1.5 text-right tabular-nums text-foreground">
-                    {c.open}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Compact campaign list */}
+        <div className="min-h-0 overflow-y-auto rounded-lg border border-border bg-background/40 p-2">
+          <p className="mb-1.5 font-mono text-[10px] uppercase tracking-wider text-muted">
+            Campaigns
+          </p>
+          <ul className="space-y-1">
+            {CAMPAIGNS.map((c) => (
+              <li
+                key={c.name}
+                className="rounded-md border border-border p-1.5"
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="truncate text-[11px] font-medium text-foreground">
+                    {c.name}
+                  </span>
+                  <span
+                    className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium text-white"
+                    style={{ backgroundColor: STATUS_TINT[c.status] }}
+                  >
+                    {c.status}
+                  </span>
+                </div>
+                <div className="mt-0.5 flex justify-between text-[10px] text-muted tabular-nums">
+                  <span>open {c.open}</span>
+                  <span>{c.sent}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

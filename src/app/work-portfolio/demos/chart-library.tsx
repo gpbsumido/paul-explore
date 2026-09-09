@@ -700,13 +700,26 @@ export default function ChartLibraryDemo({
   const editing = editingKey ? GALLERY.find((g) => g.key === editingKey) : null;
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
+      style={{
+        background: "hsl(215 42% 8%)",
+        backgroundImage:
+          "linear-gradient(hsl(205 85% 60% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(205 85% 60% / 0.06) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-[13px] font-semibold text-foreground">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Analytics suite{" "}
+            <span style={{ color: "hsl(200 85% 62%)" }}>&#47;&#47;</span> chart
+            library
+          </p>
+          <p className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {feature.title}
           </p>
-          <p className="text-[11px] text-muted">
+          <p className="mt-0.5 text-[11px] text-muted">
             all 17 chart types, re-rolled {rerolls} times
           </p>
         </div>

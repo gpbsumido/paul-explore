@@ -125,3 +125,122 @@ export type ProfileStats = z.infer<typeof profileStatsSchema>;
 export type ZeroproofWallet = z.infer<typeof walletSchema>;
 export type Accolade = z.infer<typeof accoladeSchema>;
 export type ZeroproofBet = z.infer<typeof betSchema>;
+
+// Leagues: user-run contests. Mirrors the backend league DTOs. Money is integer
+// cents; timestamps are ISO strings; visibility/winCondition/status stay `string`
+// so a new backend value doesn't break the page. joinCode is null unless the
+// caller is inside the league.
+export const leagueSchema = z.object({
+  id: z.string(),
+  commissionerSub: z.string(),
+  name: z.string(),
+  joinCode: z.string().nullable(),
+  visibility: z.string(), // 'public' | 'invite'
+  startingBankrollCents: z.number(),
+  maxMembers: z.number(),
+  winCondition: z.string(), // 'threshold' | 'timeline'
+  thresholdCents: z.number().nullable(),
+  endsAt: z.string().nullable(),
+  status: z.string(), // 'open' | 'settled'
+  winnerSub: z.string().nullable(),
+  // Set together when the league is bound to one ESPN fantasy league — members
+  // then only bet its matchups. Nullish so an older payload without them parses.
+  espnGame: z.string().nullish(),
+  espnLeagueId: z.string().nullish(),
+  espnSeason: z.string().nullish(),
+  createdAt: z.string(),
+  settledAt: z.string().nullable(),
+  memberCount: z.number(),
+});
+
+export const leaguesResponseSchema = z.object({ leagues: z.array(leagueSchema) });
+
+// A member's place on a league board, ranked by bankroll.
+export const leagueStandingSchema = z.object({
+  userSub: z.string(),
+  balanceCents: z.number(),
+  wins: z.number(),
+  losses: z.number(),
+  pushes: z.number(),
+  betCount: z.number(),
+  roiPct: z.number(),
+  rank: z.number(),
+});
+
+// An ESPN league a commissioner added to a ZeroProof league (additive) — its
+// matchups are bettable, and the league stays free to bet everything else.
+export const leagueEspnLeagueSchema = z.object({
+  id: z.string(),
+  game: z.string(),
+  leagueId: z.string(),
+  season: z.string(),
+  label: z.string().nullish(),
+  createdAt: z.string(),
+  // Resolution health from the sync cron: when it last tried, last succeeded, and
+  // the most recent error (null when healthy). All nullish for an older payload.
+  lastCheckedAt: z.string().nullish(),
+  lastOkAt: z.string().nullish(),
+  lastError: z.string().nullish(),
+});
+
+export const leagueDetailResponseSchema = z.object({
+  league: leagueSchema,
+  standings: z.array(leagueStandingSchema),
+  espnLeagues: z.array(leagueEspnLeagueSchema),
+  // The caller's league wallet id, for the betslip; null when not a member.
+  callerWalletId: z.string().nullable(),
+  isMember: z.boolean(),
+  isCommissioner: z.boolean(),
+});
+
+export type ZeroproofLeague = z.infer<typeof leagueSchema>;
+export type LeagueDetail = z.infer<typeof leagueDetailResponseSchema>;
+export type LeagueEspnLeague = z.infer<typeof leagueEspnLeagueSchema>;
+
+// The ESPN-league registry (admin): which ESPN fantasy leagues the crons ingest.
+export const espnLeagueSchema = z.object({
+  id: z.string(),
+  game: z.string(),
+  leagueId: z.string(),
+  season: z.string(),
+  label: z.string().nullish(),
+  createdAt: z.string(),
+});
+
+export const espnLeaguesResponseSchema = z.object({ leagues: z.array(espnLeagueSchema) });
+
+/** POST body to register a league — mirrors the backend's addEspnLeagueSchema. */
+export const addEspnLeagueBodySchema = z.object({
+  game: z.string().regex(/^[a-z]{3}$/),
+  leagueId: z.string().min(1).max(40),
+  season: z.string().regex(/^\d{4}$/),
+  label: z.string().max(80).optional(),
+});
+
+export type EspnLeague = z.infer<typeof espnLeagueSchema>;
+
+// Ops ingest health (admin): which sports and ESPN leagues are (not) resolving.
+export const ingestHealthRowSchema = z.object({
+  source: z.string(),
+  stage: z.string(), // 'odds' | 'results'
+  lastCheckedAt: z.string(),
+  lastOkAt: z.string().nullable(),
+  lastError: z.string().nullable(),
+});
+
+export const ingestEspnHealthRowSchema = z.object({
+  game: z.string(),
+  leagueId: z.string(),
+  season: z.string(),
+  lastCheckedAt: z.string(),
+  lastOkAt: z.string().nullable(),
+  lastError: z.string().nullable(),
+});
+
+export const ingestHealthResponseSchema = z.object({
+  sports: z.array(ingestHealthRowSchema),
+  espnLeagues: z.array(ingestEspnHealthRowSchema),
+});
+
+export type IngestHealthRow = z.infer<typeof ingestHealthRowSchema>;
+export type IngestEspnHealthRow = z.infer<typeof ingestEspnHealthRowSchema>;

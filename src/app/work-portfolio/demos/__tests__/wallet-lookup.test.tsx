@@ -8,10 +8,12 @@ const feature = FEATURES[featureIndexBySlug("wallet-lookup")!];
 afterEach(() => vi.useRealTimers());
 
 describe("wallet lookup demo", () => {
-  it("shows sample prompts before any lookup", () => {
+  it("opens on a sample wallet already resolved", () => {
     render(<WalletLookupDemo feature={feature} />);
-    expect(screen.getByText("try a sample address")).toBeInTheDocument();
-    expect(screen.queryByRole("tablist")).toBeNull();
+    // No lonely empty prompt -- a wallet is loaded on arrival.
+    expect(screen.queryByText("try a sample address")).toBeNull();
+    expect(screen.getByRole("tablist")).toBeInTheDocument();
+    expect(screen.getByText(/token holdings/i)).toBeInTheDocument();
   });
 
   it("looks up an address and shows the overview with tabs", () => {
@@ -21,7 +23,7 @@ describe("wallet lookup demo", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Look up" }));
     expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument();
-    expect(screen.getByText("Balance")).toBeInTheDocument();
+    expect(screen.getByText(/token holdings/i)).toBeInTheDocument();
   });
 
   it("a sample chip runs the lookup immediately", () => {
@@ -40,7 +42,7 @@ describe("wallet lookup demo", () => {
       target: { value: "0xloadsofnfts" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Look up" }));
-    fireEvent.click(screen.getByRole("tab", { name: "NFTs" }));
+    fireEvent.click(screen.getByRole("tab", { name: /NFTs/ }));
     expect(screen.getByLabelText("Loading")).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(600));
     expect(screen.queryByLabelText("Loading")).toBeNull();

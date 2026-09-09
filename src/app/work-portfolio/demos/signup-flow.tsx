@@ -5,7 +5,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #34d399)";
+const ACCENT = "var(--wp-accent, hsl(160 62% 48%))";
+const poster = "font-display font-bold tracking-tight";
 
 const STEPS = ["Contact", "Vehicle", "Review"] as const;
 type StepName = (typeof STEPS)[number];
@@ -101,11 +102,22 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
   }
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className="flex min-h-full flex-col gap-3 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(60% 46% at 50% 0%, hsl(160 62% 45% / 0.16), transparent 62%)",
+      }}
+    >
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+        <div>
+          <p className="text-[12px] font-semibold text-muted">
+            Driver onboarding <span style={{ color: ACCENT }}>/</span> sign-up
+          </p>
+          <h2 className={`${poster} mt-0.5 text-2xl leading-[0.9] sm:text-3xl`}>
+            {feature.title}
+          </h2>
+        </div>
         <span
           className="paul-touch-min rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted"
           title="campaign attribution from the entry link"
@@ -114,6 +126,19 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
         </span>
       </div>
 
+      {/* A boarding pass, not a field sprawled across the page. */}
+      <div className="flex flex-1 items-center justify-center">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/12 bg-white/[0.06] shadow-xl backdrop-blur-sm">
+      <div
+        className={`${poster} flex items-center justify-between px-5 py-2.5 text-[12px] uppercase text-background`}
+        style={{ background: ACCENT }}
+      >
+        <span>Driver pass</span>
+        <span className="font-mono text-[10px] tracking-normal opacity-80">
+          #{String(attribution.source).slice(0, 6).toUpperCase()}
+        </span>
+      </div>
+      <div className="p-5">
       <ol className="flex items-center gap-2 text-[11px]">
         {STEPS.map((name, i) => (
           <li key={name} className="flex items-center gap-2">
@@ -133,7 +158,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
         ))}
       </ol>
 
-      <div className="min-h-0 flex-1 space-y-2">
+      <div className="mt-4 min-h-[7rem] space-y-2">
         {current === "Contact" && (
           <>
             <Field
@@ -188,7 +213,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
         )}
       </div>
 
-      <div className="flex justify-between">
+      <div className="mt-4 flex justify-between">
         <Button
           variant="outline"
           size="sm"
@@ -216,6 +241,9 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
             Next
           </button>
         )}
+      </div>
+      </div>
+      </div>
       </div>
     </div>
   );

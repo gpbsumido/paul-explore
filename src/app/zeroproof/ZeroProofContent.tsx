@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
+import LeaguesPanel from "./LeaguesPanel";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -101,17 +102,36 @@ function OutcomeButton({
   );
 }
 
+/** A friendly label for an ESPN fantasy matchup, or null for a real-sports event. */
+function fantasyLabel(sport: string): string | null {
+  if (!sport.startsWith("fantasy_")) return null;
+  const game = sport.slice("fantasy_".length);
+  const names: Record<string, string> = {
+    ffl: "Fantasy Football",
+    fba: "Fantasy Basketball",
+  };
+  return names[game] ?? "Fantasy";
+}
+
+const BET_STATUS_STYLE: Record<string, string> = {
+  won: "text-success-600 dark:text-success-300",
+  lost: "text-error-600 dark:text-error-300",
+  open: "text-primary-700 dark:text-primary-300",
+  push: "text-muted",
+  void: "text-muted",
+};
+
 function EventCard({
   event,
   selected,
   onPick,
-  hasBet,
+  bets,
 }: {
   event: ZeroproofEvent;
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
-  /** Whether the caller already has a bet on this fixture. */
-  hasBet: boolean;
+  /** The caller's own bets on this fixture, if any. */
+  bets: ZeroproofBet[];
 }) {
   const label = `${event.away} @ ${event.home}`;
   return (
@@ -125,9 +145,14 @@ function EventCard({
             </span>
             <span>{event.home}</span>
           </h3>
-          {hasBet && (
+          {bets.length > 0 && (
             <span className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
               Your bet
+            </span>
+          )}
+          {fantasyLabel(event.sport) && (
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+              {fantasyLabel(event.sport)}
             </span>
           )}
         </div>
@@ -137,6 +162,41 @@ function EventCard({
           </time>
         </p>
       </div>
+
+      {bets.length > 0 && (
+        <ul
+          aria-label="Your bets on this matchup"
+          className="mt-3 space-y-1 rounded-lg border border-primary-500/30 bg-primary-500/5 px-3 py-2"
+        >
+          {bets.map((bet) => (
+            <li
+              key={bet.id}
+              className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-xs"
+            >
+              <span className="text-foreground">
+                <span className="font-medium">{bet.selection}</span>{" "}
+                <span className="text-muted">
+                  {marketLabel(bet.market)}
+                  {bet.lineValue !== null ? ` ${formatPoint(bet.lineValue)}` : ""}
+                </span>
+              </span>
+              <span className="flex items-center gap-2 font-mono tabular-nums">
+                <span className="text-muted">{formatCents(bet.stakeCents)}</span>
+                <span className="text-foreground">
+                  {formatAmerican(bet.oddsAmerican)}
+                </span>
+                {bet.status !== "open" && (
+                  <span
+                    className={`font-sans font-medium ${BET_STATUS_STYLE[bet.status]}`}
+                  >
+                    {bet.status}
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {event.markets.length === 0 ? (
         <p className="mt-3 text-sm text-muted">No lines posted yet.</p>
@@ -242,7 +302,13 @@ function Slate({
     queryFn: fetchBets,
     staleTime: 30 * 1000,
   });
-  const betEventIds = new Set((betsQuery.data ?? []).map((bet) => bet.eventId));
+  const betsByEvent = new Map<string, ZeroproofBet[]>();
+  for (const bet of betsQuery.data ?? []) {
+    const forEvent = betsByEvent.get(bet.eventId) ?? [];
+    forEvent.push(bet);
+    betsByEvent.set(bet.eventId, forEvent);
+  }
+  const betEventIds = new Set(betsByEvent.keys());
 
   // Captured once at mount so filtering is a pure function of state across
   // re-renders (a live-updating clock would make render impure).
@@ -351,7 +417,7 @@ function Slate({
                         event={event}
                         selected={selected}
                         onPick={onPick}
-                        hasBet={betEventIds.has(event.id)}
+                        bets={betsByEvent.get(event.id) ?? []}
                       />
                     ))}
                   </ul>
@@ -784,14 +850,6 @@ async function fetchBets(): Promise<ZeroproofBet[]> {
   return betsResponseSchema.parse(await res.json()).bets;
 }
 
-const BET_STATUS_STYLE: Record<string, string> = {
-  won: "text-success-600 dark:text-success-300",
-  lost: "text-error-600 dark:text-error-300",
-  open: "text-primary-700 dark:text-primary-300",
-  push: "text-muted",
-  void: "text-muted",
-};
-
 function BetHistory() {
   const betsQuery = useQuery({
     queryKey: queryKeys.zeroproof.bets(),
@@ -1008,6 +1066,7 @@ function Profile() {
 
 const LOBBY_TABS = [
   { id: "board", label: "Board" },
+  { id: "leagues", label: "Leagues" },
   { id: "leaderboard", label: "Leaderboard" },
   { id: "record", label: "Your record" },
 ] as const;
@@ -1111,6 +1170,16 @@ export default function ZeroProofContent() {
           <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
         )}
         <Slate selected={selectedBet} onPick={setSelectedBet} />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-leagues"
+        aria-labelledby="zp-tab-leagues"
+        tabIndex={0}
+        hidden={tab !== "leagues"}
+        className="focus-visible:outline-none"
+      >
+        <LeaguesPanel />
       </div>
       <div
         role="tabpanel"

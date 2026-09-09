@@ -297,8 +297,220 @@ visible = events.filter(e => e.commenceTime <= cutoff)
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-08-leagues"
+        date="September 8, 2026"
+        title="Leagues, without touching how a bet works"
+      >
+        <p>
+          People wanted to run their own contests — set the bankroll, the size,
+          how you win — and compete on a private board. The temptation was a whole
+          second system. It didn&apos;t need one.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A league is a scope, not a new game
+        </h3>
+        <p className="text-muted">
+          Every member bets from a league-scoped wallet — a new{" "}
+          <code className={code}>mode=&apos;league&apos;</code> row tagged with a{" "}
+          <code className={code}>league_id</code>. Placement, the ledger and the
+          settler never learned the word &quot;league&quot;; a league only decides
+          which wallet you bet from and whose bankroll your standing compares
+          against. The board ranks by balance, ROI breaking ties — the same pure
+          ranking the global leaderboard already used.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The one place it wasn&apos;t free: keeping league play out of your record
+        </h3>
+        <p className="text-muted">
+          League wallets belong to you, so they&apos;d have quietly leaked into the
+          global sharp leaderboard and your <code className={code}>/me</code> stats
+          — a for-fun contest inflating the record that&apos;s the actual product.
+          So the global scans are scoped to season and challenge play only, and
+          because a user can now hold an active wallet in many leagues at once, the
+          one-active-wallet index had to split.
+        </p>
+        <pre className={pre}>
+          {`-- season/challenge: still one active wallet per mode
+CREATE UNIQUE INDEX ... ON (user_sub, mode) WHERE status='active' AND mode <> 'league';
+-- league wallets: unique per league instead
+CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode='league';`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Winning is a sweep, not a hook in every bet
+        </h3>
+        <p className="text-muted">
+          A cron settles finished leagues — threshold once a member crosses the
+          target, timeline once the deadline passes — stamps the winner and freezes
+          the final board. The winner is the leader the moment a crossing is first
+          seen rather than strictly the first to cross: a deliberate simplification
+          that keeps settlement a decoupled sweep instead of logic threaded into
+          every bet&apos;s settlement.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-08-espn"
+        date="September 8, 2026"
+        title="Fantasy matchups are just events, so they were nearly free"
+      >
+        <p>
+          The ask was betting on ESPN fantasy weekly matchups, and binding a
+          league so its members only bet one ESPN league. The surprise was how
+          little new machinery it needed.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ESPN hands you scores, not a line
+        </h3>
+        <p className="text-muted">
+          The matchup feed has projected and actual scores and a winner, but no
+          odds — so there&apos;s no line to normalise. v1 prices every matchup as
+          a pick&apos;em (both sides -110); a projected-score moneyline is the next
+          step. There&apos;s also no kickoff timestamp, so the commence time is
+          synthesised and betting stays open until the matchup settles.
+        </p>
+        <pre className={pre}>
+          {`{ "matchupPeriodId": 1, "winner": "UNDECIDED",
+  "home": { "teamId": 5, "totalPoints": 0 },
+  "away": { "teamId": 4, "totalPoints": 0 } }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A matchup is an event; a binding is a prefix check
+        </h3>
+        <p className="text-muted">
+          The provider writes each matchup as an event with a stable key —{" "}
+          <code className={code}>espn:&#123;game&#125;:&#123;season&#125;:&#123;leagueId&#125;:…</code>{" "}
+          — so a bet, the ledger and settlement never learned the word
+          &quot;fantasy.&quot; Binding a league to one ESPN league is then just a
+          prefix match at placement: a bound league&apos;s wallet may only bet
+          events whose key names that game, season and league, and anything else
+          is refused. No new state, no new settlement path — the weekly score
+          grades it like any other result.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-08-espn-additive"
+        date="September 8, 2026"
+        title="I built the binding as a cage, then realised it should be a shelf"
+      >
+        <p>
+          A day after shipping the ESPN binding, I changed the shape of it. The
+          first version tied a league to one ESPN league and refused everything
+          else — and that turned out to be the wrong instinct.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &quot;Only bet this&quot; is a worse contest than &quot;also bet this&quot;
+        </h3>
+        <p className="text-muted">
+          A league locked to one ESPN league is a narrower product than the one
+          it&apos;s inside. The point of a contest is a shared bankroll and a
+          leaderboard; forcing every bet to be one fantasy league&apos;s weekly
+          matchup makes it thinner, not more focused. What a commissioner actually
+          wants is to <em>add</em> their league&apos;s matchups to the board their
+          members already bet — a shelf you put things on, not a cage you lock
+          them in.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The whole feature was one gate, so inverting it was mostly deletion
+        </h3>
+        <p className="text-muted">
+          The restriction lived in exactly one place — a check at placement that
+          refused a league wallet betting outside its bound key. Taking it out is
+          the core of the change:
+        </p>
+        <pre className={pre}>
+          {`-  if (wallet.mode === 'league' && wallet.leagueId) {
+-    const binding = espnBindingOf(await getLeagueById(wallet.leagueId));
+-    if (binding && !isEventInEspnLeague(event.providerKey, binding))
+-      throw new ForbiddenError('This league only bets its bound ESPN matchups');
+-  }`}
+        </pre>
+        <p className="text-muted">
+          What replaces it is additive: a per-league table of ESPN leagues a
+          commissioner has added, whose keys are unioned into the ingest list so
+          their matchups show up on the board — and nothing stops a member betting
+          anything else. The single-bind columns are still there, unused; the new
+          many-to-many is the real model. Managing it moved off the create form and
+          onto the league page, where only the commissioner sees the add and remove
+          controls.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-09-espn-health"
+        date="September 9, 2026"
+        title="A cron died on one bad league, and the fix opened a quieter hole"
+      >
+        <p>
+          The ESPN settle cron went red in staging. The reflex read was &quot;no
+          bets to settle&quot; — but that&apos;s a clean no-op. It took three passes
+          to get the real shape of it, and the first fix created the problem the
+          third one solved.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One unreachable league failed settlement for all of them
+        </h3>
+        <p className="text-muted">
+          The provider looped its configured leagues and <code className={code}>await</code>ed
+          each fetch with no isolation. One league returning a non-2xx — a private
+          league, a wrong id, an off-season season — threw, and the throw aborted
+          the loop, so <em>nothing</em> settled, not just the bad one.
+        </p>
+        <pre className={pre}>
+          {`ESPN fantasy returned 401 for fba:449389534:2027
+  → getResults() threw → settle() threw → cron exit 1 (nothing graded)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Making it resilient made the failure invisible
+        </h3>
+        <p className="text-muted">
+          The fix was to skip a league that won&apos;t fetch and settle the rest.
+          Correct — but now a commissioner&apos;s misconfigured league just silently
+          never appears, with nothing on the page to say why. Resilience without
+          observability is a worse bug wearing a calmer face. So the skip had to
+          become something you can see.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Health belongs to the key, not the row that added it
+        </h3>
+        <p className="text-muted">
+          The same ESPN league can sit in the registry, in several contests, and in
+          an env fallback — its reachability is identical everywhere, so storing a
+          status per row would duplicate it. It&apos;s one health record per key
+          (<code className={code}>game:leagueId:season</code>), written by the sync
+          as it fetches (an observer on the fetch, so no extra call), and left-joined
+          onto the league detail. The page now says which league it can&apos;t reach
+          and when it last worked, instead of quietly dropping it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then the real-sports path had the exact same bug
+        </h3>
+        <p className="text-muted">
+          Once I&apos;d named the shape, it was obvious the odds-vendor providers did
+          it too: one sport&apos;s quota blip threw and sank the whole board sync and
+          settle. Same fix — isolate per sport, log and skip, let the reachable ones
+          through. No per-league page there to surface it on, so that one stays in the
+          logs, where the operator who set the sport list can see it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
+          "Resilient ingestion with health you can see: one unreachable ESPN league — or one failing sport on the odds vendor — is skipped and logged instead of sinking the whole sync or settle, and a league page shows which of its ESPN leagues can't be reached, why, and when it last worked.",
+          "Leagues: run your own contest with its own rules — starting bankroll, size, and a first-to-a-target or highest-by-a-date win condition. Public leagues are searchable, invite ones share a code, and each has its own bankroll-ranked board and a winner. You bet from a league-scoped wallet, so league play stays out of the global record.",
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
           "Odds ingestion behind a swappable provider, snapshotted on every pull, served to users from the database only.",
           "Placing a bet with the odds frozen at placement, an available-balance check inside the transaction, and a stale-line gate.",
@@ -322,10 +534,13 @@ visible = events.filter(e => e.commenceTime <= cutoff)
           "Results only match by the vendor's own event ids. An ESPN fallback would need fuzzy team-and-time matching, which I left as a deliberate later problem.",
           "Bust is a periodic sweep rather than instant on the losing bet — fine at this scale, worth tightening for the feel of it.",
           "It's all simulated dollars on purpose. Real deposits and investing the float is custody and money-transmission territory, and that waits on counsel, not code.",
+          "League betting reuses the board's wallet picker rather than a league-scoped bet slip; auto-selecting your league wallet when you arrive from a league page, and a 'you' marker on the standings, are the obvious follow-ups.",
         ]}
         upcoming={[
           "Real money, which is the whole reason the ledger came first: custody and money transmission are a licensing-and-counsel problem, not a code one. The simulated version is complete; the real one waits on lawyers.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
+          "Pricing fantasy matchups off ESPN's projected scores instead of the -110 pick'em they ship as now — a real favourite and underdog, derived from each side's projected starters.",
+          "Adding ESPN leagues without a redeploy: the sync reads its league list from env today, so a small registry (and an admin endpoint) would let a league be added as data, not a config change.",
         ]}
       />
     </ThoughtLayout>

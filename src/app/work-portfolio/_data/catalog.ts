@@ -147,6 +147,19 @@ export const PROJECTS: WorkProject[] = [
       "style guide",
     ],
   },
+  {
+    id: "this-site",
+    name: "This Site",
+    blurb:
+      "paul-explore itself: the personal playground and portfolio you're reading now. Not a past job -- the thing I build in the open, with a write-up behind every feature.",
+    stack: "Next.js 16, TanStack Query, Tailwind, Auth0, Vitest",
+    accent: {
+      accent: "#cf9a3f",
+      surface: "rgba(207,154,63,0.09)",
+      font: "sans",
+    },
+    cutFeatures: [],
+  },
 ];
 
 export const FEATURES: WorkFeature[] = [
@@ -158,10 +171,10 @@ export const FEATURES: WorkFeature[] = [
     tagline: "CRUD flows for content campaigns",
     icon: "📣",
     explainer: {
-      did: "The content team's home base: create, edit, and track marketing campaigns. I rebuilt the create flow as a progressive-disclosure wizard (basics, then schedule and targeting, then review) so a dense form never hits you all at once, and added a live store inspector that shows the Redux-style state and dispatched actions updating in real time as you work.",
+      did: "The content team's home base: create, edit, and track marketing campaigns across the year. I rebuilt it as a Season Board — the same campaigns read either as a radial dial (the shape of the year, rings pushing outward where campaigns overlap) or a run-of-show gantt you can drag to reschedule. Selecting anywhere — a dial arc, a gantt bar, a list row — drives one inspector, and edits there redraw both views live.",
       stack: "Next.js app router, MUI forms, Redux Toolkit store",
       mocked:
-        "The multi-step create modal and the live action/state inspector are fully real; persistence is an in-memory store instead of the production API.",
+        "The dial, the draggable run-of-show, the shared inspector and the goal filters are all real; everything lives in local state instead of the production API.",
     },
   },
   {
@@ -452,6 +465,20 @@ export const FEATURES: WorkFeature[] = [
       stack: "React chat UI, streaming backend",
       mocked:
         "Every pattern is real UI; the responses are canned and streamed locally, there is no model.",
+    },
+  },
+  // This Site
+  {
+    slug: "this-site",
+    projectId: "this-site",
+    title: "This Very Site",
+    tagline: "The big features of paul-explore",
+    icon: "🧭",
+    explainer: {
+      did: "Every other stop here is a reconstruction of past work. This one is the real thing: a directory of the features I built into this site, each a live link you can open right now -- the operator dashboard, the calendar, the dev thoughts, the Pokemon TCG browser, the fantasy tools, ZeroProof, and more.",
+      stack: "Next.js 16 app router, TanStack Query, Tailwind, Auth0, Vitest",
+      mocked:
+        "Nothing is mocked -- these all open the actual, shipped pages of this site.",
     },
   },
 ];

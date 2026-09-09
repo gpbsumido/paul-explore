@@ -407,7 +407,15 @@ export default function NotFound() {
     Math.floor(Math.random() * VARIANTS.length),
   );
 
-  const goBack = useCallback(() => router.back(), [router]);
+  // In a fresh tab (opened from a shared link) there's no history to go back
+  // to, so router.back() would dead-end. Fall back to the hub in that case.
+  const goBack = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }, [router]);
 
   const variant = VARIANTS[variantIndex];
 

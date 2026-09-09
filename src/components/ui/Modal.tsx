@@ -190,7 +190,7 @@ export default function Modal({
             aria-describedby={ariaProps["aria-describedby"]}
             tabIndex={-1}
             className={[
-              "relative rounded-2xl shadow-xl",
+              "relative overflow-hidden rounded-2xl",
               "w-full max-w-lg mx-4 p-6",
               "focus:outline-none",
               className,
@@ -199,15 +199,27 @@ export default function Modal({
               .join(" ")}
             style={{
               background: "var(--modal-bg)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
+              backdropFilter: "blur(28px)",
+              WebkitBackdropFilter: "blur(28px)",
               border: "1px solid var(--modal-border)",
+              boxShadow:
+                "0 32px 80px -28px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.12)",
             }}
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={spring.smooth}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={spring.bounce}
           >
+            {/* Iridescent hairline along the top edge — a subtle premium cue,
+                decorative and non-interactive so it stays out of the focus trap. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, hsl(210 90% 66% / 0.9), hsl(280 90% 72% / 0.9), transparent)",
+              }}
+            />
             {children}
           </m.div>
         </m.div>

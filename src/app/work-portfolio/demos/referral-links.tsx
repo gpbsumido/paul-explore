@@ -8,15 +8,58 @@ import {
   useReferralStats,
   useRecordReferralClick,
 } from "@/hooks/useReferrals";
+import type { Referral } from "@/lib/referrals";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #ca4e60)";
+const ACCENT = "var(--wp-accent, hsl(350 58% 55%))";
+const GROWTH = "linear-gradient(120deg, hsl(350 72% 58%), hsl(20 92% 58%) 90%)";
+const poster = "font-display font-bold uppercase tracking-tight";
+
+/**
+ * The API builds the link against its configured host (production), so on the
+ * develop deploy show the link on THIS origin instead — a link you paste from
+ * develop should open develop, not prod.
+ */
+function onThisOrigin(url: string): string {
+  if (typeof window === "undefined") return url;
+  try {
+    const u = new URL(url);
+    return `${window.location.origin}${u.pathname}${u.search}`;
+  } catch {
+    return url;
+  }
+}
 
 const TARGETS = [
   { path: "/work-portfolio", label: "Work portfolio" },
   { path: "/", label: "Home" },
   { path: "/thoughts", label: "Thoughts" },
 ];
+
+/** A short url-safe slug for the offline preview when no slug was given. */
+function randomSlug(): string {
+  return Math.random().toString(36).slice(2, 8);
+}
+
+/**
+ * When the referrals API is unreachable — local dev with no portfolio_api
+ * running, mainly — build the link locally instead of showing a network error.
+ * It still points at THIS origin, so localhost stays localhost and the develop
+ * deploy stays develop, exactly like a real one would.
+ */
+function localPreviewLink(targetPath: string, slug: string): Referral {
+  const s = slug || randomSlug();
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  return {
+    slug: s,
+    targetPath,
+    label: null,
+    url: `${origin}/r/${s}`,
+    clicks: 0,
+    createdAt: new Date().toISOString(),
+  };
+}
 
 /**
  * Vignette: the UA referral-links tool, wired to the real portfolio_api.
@@ -32,22 +75,36 @@ export default function ReferralLinksDemo({
   const [targetPath, setTargetPath] = useState(TARGETS[0].path);
   const [slug, setSlug] = useState("");
   const [copied, setCopied] = useState(false);
+  const [offline, setOffline] = useState<Referral | null>(null);
   const create = useCreateReferral();
-  const created = create.data ?? null;
-  const stats = useReferralStats(created?.slug ?? null);
+  // Prefer the real API result; fall back to the local preview when the API
+  // could not be reached (no backend in local dev).
+  const created = create.data ?? offline;
+  const isOffline = !create.data && offline !== null;
+  const stats = useReferralStats(isOffline ? null : (created?.slug ?? null));
   const recordClick = useRecordReferralClick();
 
   const submit = () => {
     setCopied(false);
-    create.mutate({
-      targetPath,
-      slug: slug.trim() || undefined,
-    });
+    setOffline(null);
+    create.mutate(
+      { targetPath, slug: slug.trim() || undefined },
+      {
+        // Only fall back for an unreachable API (fetch rejects with a
+        // TypeError). A real API rejection -- a taken slug, a bad slug -- is a
+        // 4xx we surface as its own message, not something to paper over.
+        onError: (err) => {
+          if (err instanceof TypeError || /fetch|network/i.test(err.message)) {
+            setOffline(localPreviewLink(targetPath, slug.trim()));
+          }
+        },
+      },
+    );
   };
 
   const copy = () => {
     if (!created) return;
-    navigator.clipboard?.writeText(created.url).catch(() => {});
+    navigator.clipboard?.writeText(onThisOrigin(created.url)).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -60,10 +117,24 @@ export default function ReferralLinksDemo({
   };
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <p className="text-[13px] font-semibold text-foreground">
-        {feature.title}
-      </p>
+    <div
+      className={`flex min-h-full flex-col gap-3 p-5 text-foreground ${
+        created ? "" : "justify-center"
+      }`}
+      style={{
+        backgroundImage:
+          "radial-gradient(50% 44% at 6% 0%, hsl(350 72% 55% / 0.22), transparent 60%), radial-gradient(48% 44% at 96% 100%, hsl(20 92% 55% / 0.16), transparent 62%)",
+      }}
+    >
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
+      <div>
+        <p className="text-[12px] font-semibold text-muted">
+          UA &amp; referrals <span style={{ color: ACCENT }}>/</span> affiliate
+        </p>
+        <h2 className={`${poster} mt-0.5 text-2xl leading-[0.9] sm:text-3xl`}>
+          {feature.title}
+        </h2>
+      </div>
 
       <label className="block">
         <span className="mb-0.5 block text-[11px] text-muted">
@@ -97,7 +168,7 @@ export default function ReferralLinksDemo({
         {create.isPending ? "Creating…" : "Create link"}
       </Button>
 
-      {create.isError && (
+      {create.isError && !isOffline && (
         <p role="alert" className="text-[12px] text-error-500">
           {create.error.message}
         </p>
@@ -110,13 +181,13 @@ export default function ReferralLinksDemo({
           </p>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[12px] text-foreground dark:bg-white/10">
-              {created.url}
+              {onThisOrigin(created.url)}
             </code>
             <button
               type="button"
               onClick={copy}
-              className="rounded-md px-2.5 py-1 text-[11px] font-medium text-white"
-              style={{ backgroundColor: ACCENT }}
+              className="rounded-md px-2.5 py-1 text-[11px] font-semibold text-background"
+              style={{ background: GROWTH }}
             >
               {copied ? "Copied" : "Copy"}
             </button>
@@ -124,10 +195,15 @@ export default function ReferralLinksDemo({
           <p className="mt-2 text-[11px] text-muted">
             points to paulsumido.com{created.targetPath}
           </p>
+          {isOffline && (
+            <p className="mt-1 text-[11px] text-muted">
+              API offline — local preview link on this origin.
+            </p>
+          )}
         </div>
       )}
 
-      {created && (
+      {created && !isOffline && (
         <div
           aria-label="Referral stats"
           className="rounded-lg border border-border p-3"
@@ -183,6 +259,7 @@ export default function ReferralLinksDemo({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

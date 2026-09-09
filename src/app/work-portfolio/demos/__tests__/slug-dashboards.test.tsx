@@ -29,6 +29,14 @@ describe("slug dashboards demo", () => {
     expect(config()).not.toContain('"slug": "overview"');
   });
 
+  it("clips the chart so its SVG can't bleed out of the card", () => {
+    render(<SlugDashboardsDemo feature={feature} />);
+    const chart = screen.getByTestId("dashboard-chart");
+    // recharts' ResponsiveContainer can overshoot its box before layout
+    // settles; the wrapper clips it so the line never spills over the config.
+    expect(chart.className).toContain("overflow-hidden");
+  });
+
   it("changes chart type and tile set across slugs, not just the accent", () => {
     render(<SlugDashboardsDemo feature={feature} />);
     const chartType = () =>

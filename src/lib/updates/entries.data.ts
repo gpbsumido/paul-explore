@@ -11,6 +11,97 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-work-portfolio-polish",
+    date: "2026-09-09",
+    version: "6.6.0",
+    category: "improvement",
+    tags: ["work-portfolio"],
+    title: "The work-portfolio demos got a full polish pass",
+    summary:
+      "Each project now looks like itself, the demos open full of real data instead of empty, a new This Site stop links to the real features of this site, and a pile of small bugs — a vanishing chart, a referral link pointing at prod, forms that took bad input — are fixed.",
+    body: [
+      "Reviewed every demo the way someone landing cold would and made each read like the real product it came from. Each project's stage now carries its own accent and texture, so the jobs stop blurring into one near-black surface. Sparse demos open full — the wallet lookup lands on a resolved sample, the referral form is a focused card.",
+      "A new final stop, This Site, breaks the pattern: instead of a reconstruction it's a directory of live links to the real features of this site — the operator dashboard, the calendar, these write-ups, and more.",
+      "And the bugs: the slug-dashboards chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height), a referral link that pointed at production from the develop deploy, and forms that accepted invalid input.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-espn-health",
+    date: "2026-09-09",
+    version: "6.5.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See when an ESPN league you added can't be reached",
+    summary:
+      "If a public ESPN league you add to your contest is private, has a wrong id or season, or ESPN is down, the league page now tells you — instead of its matchups just never showing up.",
+    body: [
+      "Adding a public ESPN league to a contest is only useful if you can tell it worked. The league page now shows each added ESPN league's health: a warning with the reason and when it last resolved if it can't be reached, and nothing when it's fine.",
+      "Behind it, one unreachable league (or one failing sport on the odds side) no longer sinks the whole ingest — it's skipped and logged so everything else keeps syncing and settling, and the failing one is retried automatically.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-league-espn-additive",
+    date: "2026-09-08",
+    version: "6.4.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Add ESPN leagues to your league — and still bet everything else",
+    summary:
+      "A league's commissioner can add public ESPN fantasy leagues on the league page. Their matchups show on the board to bet, and the league stays free to bet everything else.",
+    body: [
+      "Running a league, you can now add one or more public ESPN fantasy leagues to it — sport, id, season, an optional label — right on the league page, and remove them again. Everyone in the league sees which are added; only the commissioner manages the list.",
+      "This is additive, not a cage: the added leagues' weekly matchups start showing on the board, and members bet them alongside real-sports lines and anything else. It reuses the same wallet, ledger and settlement as the rest of ZeroProof.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-bet-line",
+    date: "2026-09-08",
+    version: "6.3.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See your bet right on the board",
+    summary:
+      "A fixture you've bet on now shows what you picked and how much you staked, on its card — with the odds and, once it's graded, the result.",
+    body: [
+      "The board already kept a game you'd bet on in view and badged it. Now the card says what the bet was: your selection, the stake, the price you got, and a coloured result once it settles. Bet more than once on the same matchup and each one is listed.",
+      "It reuses the bets the board already loads, so it's just surfacing what was there — no extra call, and it lines up with the same figures on Your record.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-espn-matchups",
+    date: "2026-09-08",
+    version: "6.2.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Bet ESPN fantasy matchups",
+    summary:
+      "Fantasy matchups show up on the board with a Fantasy badge, and bet like anything else.",
+    body: [
+      "The board now carries ESPN fantasy head-to-head matchups alongside the real-sports lines — each badged Fantasy Football or Fantasy Basketball so you know which is which — and they bet like anything else.",
+      "It reuses the same wallet, ledger and settlement as the rest of ZeroProof — a fantasy matchup is just another event that settles on the weekly score. Adding ESPN leagues to a contest you run came next.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-leagues",
+    date: "2026-09-08",
+    version: "6.1.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Start your own ZeroProof league",
+    summary:
+      "Run your own contest: set the starting bankroll, the size, and how it's won — first to a target or highest by a date. Players join, each league keeps its own board and crowns a winner.",
+    body: [
+      "The new Leagues tab lets you spin up a private contest and set the rules: how much everyone starts with, how many can join, and the win condition — first to a target bankroll, or the highest balance by a deadline. Public leagues are searchable and join with a tap; invite-only ones share a short code.",
+      "Every league has its own page: the rules, a board ranked by bankroll (ROI breaking ties), and — once it's settled — the winner. You bet from a league-scoped wallet, so league play stays separate from the global sharp record. The whole thing is a scope over the machinery ZeroProof already had, so bets, the ledger and settlement didn't change.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-live",
     date: "2026-09-04",
     version: "6.0.0",

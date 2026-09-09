@@ -7,7 +7,9 @@ import Button from "@/components/ui/Button";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #c7508e)";
+const ACCENT = "var(--wp-accent, hsl(324 52% 55%))";
+const ONLINE = "hsl(150 60% 50%)";
+const console_ = "font-mono uppercase tracking-[0.12em]";
 
 const ROLES = ["Owner", "Admin", "Analyst", "Viewer"] as const;
 type Role = (typeof ROLES)[number];
@@ -76,6 +78,11 @@ const INIT_KEYS: ApiKey[] = [
 ];
 const INIT_CONFIGS: Config[] = [
   { id: "c1", name: "data_retention_days", value: "90", orgId: "o1" },
+  { id: "c2", name: "sso_enabled", value: "true", orgId: "o1" },
+  { id: "c3", name: "seat_limit", value: "50", orgId: "o1" },
+  { id: "c4", name: "data_retention_days", value: "30", orgId: "o2" },
+  { id: "c5", name: "sso_enabled", value: "false", orgId: "o2" },
+  { id: "c6", name: "webhook_url", value: "https://pixelforge.example/hook", orgId: "o2" },
 ];
 
 const uid = (prefix: string) => `${prefix}${crypto.randomUUID().slice(0, 8)}`;
@@ -156,6 +163,18 @@ function RowSelect({
 
 /** The create form for whichever entity tab is active. Users/keys/configs
  *  carry an assignment (org or user) set right here at creation. */
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+// Syntax colours for the styled-JSON config view. In-band accent hues rather
+// than stock Tailwind colour classes, so the palette sweep stays green while
+// keys, strings, numbers, and booleans each read distinctly.
+const JSON_SYNTAX = {
+  key: "#419cc5",
+  string: "#8fbf41",
+  number: "#cf9a3f",
+  bool: "#8f52cb",
+} as const;
+
 function CreateModal({
   tab,
   orgs,
@@ -175,9 +194,15 @@ function CreateModal({
   const set = (patch: Record<string, string>) =>
     setFields((f) => ({ ...f, ...patch }));
 
+  // Show the format error once something's typed; don't nag an empty field.
+  const emailError =
+    tab === "Users" && fields.email.trim() && !EMAIL_RE.test(fields.email.trim())
+      ? "Enter a valid email"
+      : undefined;
+
   const required =
     tab === "Users"
-      ? fields.name.trim() && fields.email.trim()
+      ? fields.name.trim() && EMAIL_RE.test(fields.email.trim())
       : tab === "Orgs"
         ? fields.name.trim()
         : tab === "Keys"
@@ -202,7 +227,9 @@ function CreateModal({
             <Input
               label="Email"
               size="sm"
+              type="email"
               value={fields.email}
+              error={emailError}
               onChange={(e) => set({ email: e.target.value })}
             />
             <SelectField
@@ -365,29 +392,50 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
     });
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+    <div
+      className="flex min-h-full flex-col gap-3 p-5 text-foreground"
+      style={{
+        background: "hsl(288 22% 7%)",
+        backgroundImage:
+          "linear-gradient(hsl(324 52% 55% / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(324 52% 55% / 0.05) 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+      }}
+    >
+      <div className="flex items-end justify-between gap-2">
+        <div>
+          <p className={`${console_} flex items-center gap-1.5 text-[11px] text-muted`}>
+            <span
+              aria-hidden
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: ONLINE, boxShadow: `0 0 8px ${ONLINE}` }}
+            />
+            Platform console · online
+          </p>
+          <h2 className={`${console_} mt-1 text-2xl font-bold text-foreground sm:text-3xl`}>
+            {feature.title}
+          </h2>
+        </div>
         <button
           type="button"
           onClick={() => setCreating(tab)}
-          className="rounded-md px-3 py-1.5 text-[12px] font-medium text-white"
-          style={{ backgroundColor: ACCENT }}
+          className={`${console_} rounded-md border px-3 py-1.5 text-[11px] font-bold`}
+          style={{ color: ACCENT, borderColor: ACCENT }}
         >
-          New {tab.replace(/s$/, "").toLowerCase()}
+          + New {tab.replace(/s$/, "").toLowerCase()}
         </button>
       </div>
 
-      <div role="tablist" className="flex gap-1 border-b border-border">
+      <div
+        role="tablist"
+        className="flex gap-1 border-b border-white/10 bg-black/20"
+      >
         {TABS.map((t) => (
           <button
             key={t}
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-3 py-1.5 text-[12px] ${
+            className={`${console_} -mb-px border-b-2 px-3 py-2 text-[11px] font-bold ${
               tab === t
                 ? "border-current text-foreground"
                 : "border-transparent text-muted"
@@ -490,28 +538,74 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         )}
 
         {tab === "Configs" && (
-          <ul
-            aria-label="Configs"
-            className="divide-y divide-border text-[12px]"
-          >
-            {configs.map((c) => (
-              <li
-                key={c.id}
-                className="flex items-center justify-between gap-2 py-1.5"
-              >
-                <span className="min-w-0">
-                  <code className="font-mono text-foreground">{c.name}</code>
-                  <span className="ml-2 text-muted">= {c.value}</span>
-                </span>
-                <RowSelect
-                  label={`Org for ${c.name}`}
-                  value={c.orgId}
-                  onChange={(orgId) => reassignConfig(c.id, orgId)}
-                  options={orgOptions}
-                />
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-2.5">
+            {orgs.map((org) => {
+              const orgConfigs = configs.filter((c) => c.orgId === org.id);
+              return (
+                <div
+                  key={org.id}
+                  className="rounded-lg border border-border bg-background/40 p-3 font-mono text-[12px]"
+                >
+                  <p className="mb-1 text-[10px] uppercase tracking-wider text-muted">
+                    {org.name} · config.json
+                  </p>
+                  <span className="text-muted">{"{"}</span>
+                  {orgConfigs.length === 0 ? (
+                    <p className="pl-4 text-muted">
+                      <span className="opacity-60">{"// no config yet"}</span>
+                    </p>
+                  ) : (
+                    <ul aria-label={`Config for ${org.name}`} className="my-0.5">
+                      {orgConfigs.map((c, i) => {
+                        const isBool =
+                          c.value === "true" || c.value === "false";
+                        const isNum =
+                          !isBool &&
+                          c.value.trim() !== "" &&
+                          !Number.isNaN(Number(c.value));
+                        return (
+                          <li
+                            key={c.id}
+                            className="flex items-center justify-between gap-2 py-1 pl-4"
+                          >
+                            <span className="min-w-0 truncate">
+                              <span style={{ color: JSON_SYNTAX.key }}>
+                                &quot;{c.name}&quot;
+                              </span>
+                              <span className="text-muted">: </span>
+                              {isBool ? (
+                                <span style={{ color: JSON_SYNTAX.bool }}>
+                                  {c.value}
+                                </span>
+                              ) : isNum ? (
+                                <span style={{ color: JSON_SYNTAX.number }}>
+                                  {c.value}
+                                </span>
+                              ) : (
+                                <span style={{ color: JSON_SYNTAX.string }}>
+                                  &quot;{c.value}&quot;
+                                </span>
+                              )}
+                              {i < orgConfigs.length - 1 && (
+                                <span className="text-muted">,</span>
+                              )}
+                            </span>
+                            <RowSelect
+                              label={`Org for ${org.name} ${c.name}`}
+                              value={c.orgId}
+                              onChange={(orgId) => reassignConfig(c.id, orgId)}
+                              options={orgOptions}
+                            />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                  <span className="text-muted">{"}"}</span>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
