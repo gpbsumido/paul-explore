@@ -19,7 +19,14 @@ describe("this site demo", () => {
   it("points every card at an absolute in-site path", () => {
     render(<ThisSiteDemo feature={feature} />);
     for (const link of screen.getAllByRole("link")) {
-      expect(link.getAttribute("href")).toMatch(/^\/[a-z-]+$/);
+      // absolute in-site path, optionally nested (e.g. /fantasy/nba)
+      expect(link.getAttribute("href")).toMatch(/^\/[a-z-]+(\/[a-z-]+)*$/);
     }
+  });
+
+  it("shows a screengrab for each linked page", () => {
+    render(<ThisSiteDemo feature={feature} />);
+    const shots = screen.getAllByRole("img", { name: /Screenshot of the/i });
+    expect(shots.length).toBe(screen.getAllByRole("link").length);
   });
 });

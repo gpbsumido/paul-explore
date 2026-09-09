@@ -1,67 +1,69 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #cf9a3f)";
 
 /**
- * The marquee features of this site, each a live link to the real page. Unlike
- * every other demo, nothing here is a reconstruction -- these open the actual
- * shipped routes.
+ * The marquee features of this site, each a live link to the real page with a
+ * real screengrab of it. Unlike every other demo, nothing here is a
+ * reconstruction -- these open the actual shipped routes. Every href is a
+ * public route that renders for a signed-out visitor (verified live).
  */
 const LINKS = [
   {
     href: "/operator",
-    icon: "🛠️",
+    shot: "/work-portfolio/thumbs/operator.png",
     name: "Operator Dashboard",
     blurb: "The admin console behind the site: feature flags, updates, and ops.",
   },
   {
-    href: "/calendar",
-    icon: "🗓️",
-    name: "Calendar",
-    blurb: "A month/agenda calendar with events synced to a backing store.",
+    href: "/world",
+    shot: "/work-portfolio/thumbs/world.png",
+    name: "The 3D World",
+    blurb: "An explorable low-poly world rendered with React Three Fiber.",
   },
   {
     href: "/thoughts",
-    icon: "✍️",
+    shot: "/work-portfolio/thumbs/thoughts.png",
     name: "Dev Thoughts",
     blurb: "Write-ups on how each feature was built, the wrong turns included.",
   },
   {
-    href: "/tcg",
-    icon: "🃏",
+    href: "/pokemon",
+    shot: "/work-portfolio/thumbs/pokemon.png",
     name: "Pokémon TCG",
     blurb: "A card and set browser over a live trading-card API.",
   },
   {
-    href: "/fantasy",
-    icon: "🏀",
+    href: "/fantasy/nba",
+    shot: "/work-portfolio/thumbs/fantasy.png",
     name: "Fantasy & NBA",
     blurb: "Fantasy league history and NBA stats pulled from real feeds.",
   },
   {
     href: "/zeroproof",
-    icon: "🎯",
+    shot: "/work-portfolio/thumbs/zeroproof.png",
     name: "ZeroProof",
     blurb: "A no-loss betting tracker with bankroll trends and a board.",
   },
   {
     href: "/vitals",
-    icon: "📊",
+    shot: "/work-portfolio/thumbs/vitals.png",
     name: "Core Web Vitals",
     blurb: "Real field performance for this site, measured and charted.",
   },
   {
     href: "/updates",
-    icon: "📣",
+    shot: "/work-portfolio/thumbs/updates.png",
     name: "Updates Feed",
     blurb: "A running changelog of what shipped, release by release.",
   },
   {
     href: "/design-system",
-    icon: "🎨",
+    shot: "/work-portfolio/thumbs/design-system.png",
     name: "Design System",
     blurb: "The component library and tokens the whole site is built from.",
   },
@@ -83,34 +85,42 @@ export default function ThisSiteDemo({ feature }: { feature: WorkFeature }) {
         </p>
       </div>
 
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {LINKS.map((l) => (
           <li key={l.href}>
             <Link
               href={l.href}
-              className="group flex h-full items-start gap-2.5 rounded-lg border border-border bg-background/40 p-3 transition-colors hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2"
+              className="group block overflow-hidden rounded-xl border border-border bg-background/40 transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2"
               style={
                 {
                   "--tw-ring-color": ACCENT,
                 } as React.CSSProperties
               }
             >
-              <span aria-hidden className="text-lg leading-none">
-                {l.icon}
+              <span className="relative block aspect-[16/10] overflow-hidden bg-surface">
+                <Image
+                  src={l.shot}
+                  alt={`Screenshot of the ${l.name} page`}
+                  fill
+                  sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 90vw"
+                  className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                />
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1 text-[12px] font-semibold text-foreground">
-                  {l.name}
-                  <span
-                    aria-hidden
-                    className="transition-transform group-hover:translate-x-0.5"
-                    style={{ color: ACCENT }}
-                  >
-                    →
+              <span className="flex items-start justify-between gap-2 p-3">
+                <span className="min-w-0">
+                  <span className="block text-[12px] font-semibold text-foreground">
+                    {l.name}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-relaxed text-muted">
+                    {l.blurb}
                   </span>
                 </span>
-                <span className="mt-0.5 block text-[11px] leading-relaxed text-muted">
-                  {l.blurb}
+                <span
+                  aria-hidden
+                  className="shrink-0 transition-transform group-hover:translate-x-0.5"
+                  style={{ color: ACCENT }}
+                >
+                  →
                 </span>
               </span>
             </Link>
