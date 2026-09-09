@@ -30,7 +30,10 @@ export default function StoreFilters({
   onSearchChange,
 }: StoreFiltersProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <div
+      id="op-tour-filters"
+      className="flex flex-col gap-3 sm:flex-row sm:items-end"
+    >
       {/* Status filter pills */}
       <div
         className="flex gap-1.5"

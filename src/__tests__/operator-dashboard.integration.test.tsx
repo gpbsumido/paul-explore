@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
@@ -253,5 +253,62 @@ describe("OperatorDashboard", () => {
     expect(screen.getByText("Total Stores")).toBeInTheDocument();
     expect(screen.getByText("Needs Attention")).toBeInTheDocument();
     expect(screen.getByText("Low Stock Items")).toBeInTheDocument();
+  });
+});
+
+describe("OperatorDashboard guided tour", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  function seedFleet() {
+    const stores = [makeStore({ id: "s1", name: "Lobby Fridge" })];
+    const summary: FleetSummaryResponse = {
+      summaries: stores.map((s) => ({
+        storeId: s.id,
+        alertCount: 0,
+        inventoryHealth: 80,
+        hasCritical: false,
+        hasWarning: false,
+      })),
+      fleetStats: {
+        criticalAlerts: 0,
+        warningAlerts: 0,
+        lowStockItems: 0,
+        avgInventoryHealth: 80,
+      },
+      alertTrend: emptyTrend(),
+    };
+    server.use(
+      http.get("/api/operator/stores", () => HttpResponse.json({ stores })),
+      http.get("/api/operator/fleet-summary", () => HttpResponse.json(summary)),
+    );
+  }
+
+  it("exposes a Take the tour button and the anchors it points at", async () => {
+    window.localStorage.setItem("operator-tour-seen", "true");
+    seedFleet();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Lobby Fridge");
+
+    expect(
+      screen.getByRole("button", { name: /take the tour/i }),
+    ).toBeInTheDocument();
+    expect(document.getElementById("op-tour-intro")).not.toBeNull();
+    expect(document.getElementById("op-tour-stats")).not.toBeNull();
+    expect(document.getElementById("op-tour-filters")).not.toBeNull();
+    expect(document.getElementById("op-tour-tools")).not.toBeNull();
+  });
+
+  it("opens the tour and walks into it", async () => {
+    window.localStorage.setItem("operator-tour-seen", "true");
+    seedFleet();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Lobby Fridge");
+
+    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    const tour = () => screen.getByRole("dialog", { name: /tour/i });
+    fireEvent.click(
+      within(tour()).getByRole("button", { name: /show me around/i }),
+    );
+    expect(within(tour()).getByText(/your fleet, live/i)).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FeatureTour, type TourStep } from "@/components/GuidedTour";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { queryKeys } from "@/lib/queryKeys";
 import { fleetSummaryResponseSchema } from "@/lib/operator-schemas";
@@ -35,6 +36,34 @@ const MAX_CHART_NAME_LENGTH = 20;
  * single fleet-summary request (15s poll) instead of fanning out per-store
  * queries. This scales to any fleet size with constant request count.
  */
+/** A quick walk-through of the fleet dashboard for a first-time visitor. */
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Take a quick tour?",
+    body: "First time here? I'll show you what this dashboard tracks and how to work it — a few clicks, no commitment.",
+  },
+  {
+    anchor: "op-tour-intro",
+    title: "Your fleet, live",
+    body: "This dashboard monitors a whole fleet of smart micro-stores in near real time — status, alerts, inventory and sales.",
+  },
+  {
+    anchor: "op-tour-stats",
+    title: "Health at a glance",
+    body: "These tiles roll up the fleet — total stores, how many need attention, low stock, and average inventory health.",
+  },
+  {
+    anchor: "op-tour-filters",
+    title: "Filter the fleet",
+    body: "Narrow the list by status or search by name to focus on exactly the stores you care about.",
+  },
+  {
+    anchor: "op-tour-tools",
+    title: "Deep-dive tools",
+    body: "Jump to dedicated views — search, plan a location, or analyse products, shrink and finance.",
+  },
+];
+
 export default function OperatorDashboard() {
   const queryClient = useQueryClient();
   const {
@@ -176,11 +205,18 @@ export default function OperatorDashboard() {
     <main className="reveal-up mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
       <h1 className="sr-only">Fleet Dashboard</h1>
       {/* One-line orientation for a cold visitor landing on a dense dashboard */}
-      <p className="text-sm text-muted">
-        A demo of running a smart-store fleet &mdash; live-style status, alerts,
-        inventory health, and analytics. Filter the stores below, or click one
-        to drill in.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p id="op-tour-intro" className="text-sm text-muted">
+          A demo of running a smart-store fleet &mdash; live-style status,
+          alerts, inventory health, and analytics. Filter the stores below, or
+          click one to drill in.
+        </p>
+        <FeatureTour
+          label="Operator"
+          storageKey="operator-tour-seen"
+          steps={TOUR_STEPS}
+        />
+      </div>
       {/* Heads-up: the demo runs on a real database that re-seeds on a schedule,
           so operator actions don't persist forever. */}
       <p
@@ -193,7 +229,7 @@ export default function OperatorDashboard() {
         are saved for real, but reset periodically to keep the demo fresh.
       </p>
       {/* Operator tools: search the fleet, model a new store, or dig into sales. */}
-      <div className="flex flex-wrap gap-2">
+      <div id="op-tour-tools" className="flex flex-wrap gap-2">
         <Link
           href="/operator/search"
           className="paul-touch-min inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
