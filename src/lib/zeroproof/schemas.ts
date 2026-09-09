@@ -218,3 +218,29 @@ export const addEspnLeagueBodySchema = z.object({
 });
 
 export type EspnLeague = z.infer<typeof espnLeagueSchema>;
+
+// Ops ingest health (admin): which sports and ESPN leagues are (not) resolving.
+export const ingestHealthRowSchema = z.object({
+  source: z.string(),
+  stage: z.string(), // 'odds' | 'results'
+  lastCheckedAt: z.string(),
+  lastOkAt: z.string().nullable(),
+  lastError: z.string().nullable(),
+});
+
+export const ingestEspnHealthRowSchema = z.object({
+  game: z.string(),
+  leagueId: z.string(),
+  season: z.string(),
+  lastCheckedAt: z.string(),
+  lastOkAt: z.string().nullable(),
+  lastError: z.string().nullable(),
+});
+
+export const ingestHealthResponseSchema = z.object({
+  sports: z.array(ingestHealthRowSchema),
+  espnLeagues: z.array(ingestEspnHealthRowSchema),
+});
+
+export type IngestHealthRow = z.infer<typeof ingestHealthRowSchema>;
+export type IngestEspnHealthRow = z.infer<typeof ingestEspnHealthRowSchema>;
