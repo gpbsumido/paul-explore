@@ -62,8 +62,9 @@ describe("ZeroProof guided tour", () => {
       screen.getByRole("tab", { name: "Leagues" }),
     ).toHaveAttribute("aria-selected", "true");
 
-    // Finish the tour
+    // Walk to the last step and finish
     fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // leaderboard
+    fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // record
     fireEvent.click(within(tour()).getByRole("button", { name: /finish/i }));
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
   });

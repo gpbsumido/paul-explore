@@ -10,7 +10,9 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
+import { usePersistentState } from "@/hooks/usePersistentState";
 import LeaguesPanel from "./LeaguesPanel";
+import ZeroProofTour from "./ZeroProofTour";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -1084,6 +1086,16 @@ export default function ZeroProofContent() {
   const [tab, setTab] = useState<LobbyTab>("board");
   const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
 
+  // The first-run tour: auto-opens on a first visit (until it's been seen or
+  // dismissed), and the "Take the tour" button reopens it any time. Deriving the
+  // initial open state from the persisted flag avoids opening it in an effect.
+  const [tourSeen, setTourSeen] = usePersistentState("zeroproof-tour-seen", false);
+  const [tourOpen, setTourOpen] = useState(() => !tourSeen);
+  const closeTour = () => {
+    setTourOpen(false);
+    setTourSeen(true);
+  };
+
   const focusTab = (id: LobbyTab) => {
     setTab(id);
     tabRefs.current[id]?.focus();
@@ -1107,7 +1119,8 @@ export default function ZeroProofContent() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <header>
+      <header id="zp-intro" className="flex flex-wrap items-start justify-between gap-3">
+        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           ZeroProof
         </h1>
@@ -1123,6 +1136,14 @@ export default function ZeroProofContent() {
           </Link>{" "}
           explains why the ledger is real and the money is a button.
         </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setTourOpen(true)}
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+        >
+          <span aria-hidden>🧭</span> Take the tour
+        </button>
       </header>
 
       <div
@@ -1201,6 +1222,9 @@ export default function ZeroProofContent() {
       >
         <Profile />
       </div>
+      {tourOpen && (
+        <ZeroProofTour onClose={closeTour} onGoToTab={setTab} />
+      )}
     </div>
   );
 }
