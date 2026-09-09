@@ -592,7 +592,7 @@ export const THOUGHTS: ThoughtItem[] = [
     title: "Work Portfolio",
     href: "/thoughts/work-portfolio",
     preview:
-      "Rebuilding 22 features from 10 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs",
+      "Rebuilding features from past jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs -- plus a live index of this site's own features",
     color: "#4a83c8",
   },
   {

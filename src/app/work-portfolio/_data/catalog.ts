@@ -147,6 +147,19 @@ export const PROJECTS: WorkProject[] = [
       "style guide",
     ],
   },
+  {
+    id: "this-site",
+    name: "This Site",
+    blurb:
+      "paul-explore itself: the personal playground and portfolio you're reading now. Not a past job -- the thing I build in the open, with a write-up behind every feature.",
+    stack: "Next.js 16, TanStack Query, Tailwind, Auth0, Vitest",
+    accent: {
+      accent: "#e08a3c",
+      surface: "rgba(224,138,60,0.08)",
+      font: "sans",
+    },
+    cutFeatures: [],
+  },
 ];
 
 export const FEATURES: WorkFeature[] = [
@@ -452,6 +465,20 @@ export const FEATURES: WorkFeature[] = [
       stack: "React chat UI, streaming backend",
       mocked:
         "Every pattern is real UI; the responses are canned and streamed locally, there is no model.",
+    },
+  },
+  // This Site
+  {
+    slug: "this-site",
+    projectId: "this-site",
+    title: "This Very Site",
+    tagline: "The big features of paul-explore",
+    icon: "🧭",
+    explainer: {
+      did: "Every other stop here is a reconstruction of past work. This one is the real thing: a directory of the features I built into this site, each a live link you can open right now -- the operator dashboard, the calendar, the dev thoughts, the Pokemon TCG browser, the fantasy tools, ZeroProof, and more.",
+      stack: "Next.js 16 app router, TanStack Query, Tailwind, Auth0, Vitest",
+      mocked:
+        "Nothing is mocked -- these all open the actual, shipped pages of this site.",
     },
   },
 ];
