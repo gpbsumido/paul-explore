@@ -54,6 +54,9 @@ const espnLeague = (overrides: Record<string, unknown> = {}) => ({
   season: "2026",
   label: "The office league",
   createdAt: "2026-09-08T00:00:00.000Z",
+  lastCheckedAt: "2026-09-09T00:00:00.000Z",
+  lastOkAt: "2026-09-09T00:00:00.000Z",
+  lastError: null,
   ...overrides,
 });
 
@@ -110,6 +113,29 @@ describe("LeagueDetailContent", () => {
     const list = await screen.findByRole("list", { name: /added espn leagues/i });
     expect(list).toHaveTextContent("836777691");
     expect(list).toHaveTextContent(/The office league/i);
+    // A healthy league shows no warning.
+    expect(list).not.toHaveTextContent(/couldn't reach/i);
+  });
+
+  it("warns when an added ESPN league can't be resolved", async () => {
+    server.use(
+      http.get("/api/zeroproof/leagues/lg-1", () =>
+        HttpResponse.json(
+          detail({
+            espnLeagues: [
+              espnLeague({
+                lastOkAt: null,
+                lastError: "ESPN fantasy returned 401 for ffl:836777691:2026",
+              }),
+            ],
+          }),
+        ),
+      ),
+    );
+    renderDetail();
+    const list = await screen.findByRole("list", { name: /added espn leagues/i });
+    expect(list).toHaveTextContent(/couldn't reach this league/i);
+    expect(list).toHaveTextContent(/401/);
   });
 
   it("lets the commissioner add an ESPN league", async () => {

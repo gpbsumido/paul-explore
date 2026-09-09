@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-09 - version 6.5.0
+
+- **A league page now shows when one of its ESPN leagues can't be reached.** After the ingestion resilience fix, a commissioner's misconfigured ESPN league just silently never appeared. The league detail now carries each added ESPN league's resolution health (`lastCheckedAt` / `lastOkAt` / `lastError`), and the ESPN leagues section shows a warning on any that failed — the reason and when it last worked — with a subtle "Not synced yet" for one that hasn't been checked. A healthy league shows nothing. Covered by a test (warning shown on a 401, absent when healthy). Pairs with the backend that records the health (portfolio_api#232).
+
 ## 2026-09-09 - version 6.4.1
 
 - **Fixed the slug-dashboards demo chart bleeding out of its card.** In the work-portfolio "Slug-driven Dashboards" exhibit, recharts' `ResponsiveContainer` was overshooting its box before layout settled, so the line spilled down across the card and over the config JSON below it. The chart wrapper now has a concrete min-height (so it measures a real size on mount) and clips overflow — the same fix already documented in the chart-library demo. Guarded by a test.

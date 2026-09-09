@@ -101,6 +101,16 @@ function espnLeagueLine(row: LeagueEspnLeague): string {
   return `${game} · ${row.leagueId} (${row.season})${label}`;
 }
 
+/** A short, human date-time for when the sync last touched a league. */
+function formatWhen(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function AddEspnLeagueForm({ leagueId }: { leagueId: string }) {
   const queryClient = useQueryClient();
   const [game, setGame] = useState("ffl");
@@ -269,6 +279,18 @@ function EspnLeaguesSection({ detail }: { detail: LeagueDetail }) {
             >
               <span className="text-foreground">{espnLeagueLine(row)}</span>
               {isCommissioner && <RemoveEspnLeagueButton leagueId={league.id} row={row} />}
+              {row.lastError ? (
+                <p className="w-full text-xs text-error-600 dark:text-error-300">
+                  Couldn&apos;t reach this league
+                  {row.lastCheckedAt ? ` (last tried ${formatWhen(row.lastCheckedAt)})` : ""}:{" "}
+                  {row.lastError}
+                  {row.lastOkAt
+                    ? ` Last reached ${formatWhen(row.lastOkAt)}.`
+                    : " It hasn't resolved yet — check the id, season, and that it's public."}
+                </p>
+              ) : row.lastCheckedAt == null ? (
+                <p className="w-full text-xs text-muted">Not synced yet.</p>
+              ) : null}
             </li>
           ))}
         </ul>

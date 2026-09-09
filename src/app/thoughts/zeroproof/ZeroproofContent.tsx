@@ -444,9 +444,72 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-09-espn-health"
+        date="September 9, 2026"
+        title="A cron died on one bad league, and the fix opened a quieter hole"
+      >
+        <p>
+          The ESPN settle cron went red in staging. The reflex read was &quot;no
+          bets to settle&quot; — but that&apos;s a clean no-op. It took three passes
+          to get the real shape of it, and the first fix created the problem the
+          third one solved.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One unreachable league failed settlement for all of them
+        </h3>
+        <p className="text-muted">
+          The provider looped its configured leagues and <code className={code}>await</code>ed
+          each fetch with no isolation. One league returning a non-2xx — a private
+          league, a wrong id, an off-season season — threw, and the throw aborted
+          the loop, so <em>nothing</em> settled, not just the bad one.
+        </p>
+        <pre className={pre}>
+          {`ESPN fantasy returned 401 for fba:449389534:2027
+  → getResults() threw → settle() threw → cron exit 1 (nothing graded)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Making it resilient made the failure invisible
+        </h3>
+        <p className="text-muted">
+          The fix was to skip a league that won&apos;t fetch and settle the rest.
+          Correct — but now a commissioner&apos;s misconfigured league just silently
+          never appears, with nothing on the page to say why. Resilience without
+          observability is a worse bug wearing a calmer face. So the skip had to
+          become something you can see.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Health belongs to the key, not the row that added it
+        </h3>
+        <p className="text-muted">
+          The same ESPN league can sit in the registry, in several contests, and in
+          an env fallback — its reachability is identical everywhere, so storing a
+          status per row would duplicate it. It&apos;s one health record per key
+          (<code className={code}>game:leagueId:season</code>), written by the sync
+          as it fetches (an observer on the fetch, so no extra call), and left-joined
+          onto the league detail. The page now says which league it can&apos;t reach
+          and when it last worked, instead of quietly dropping it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then the real-sports path had the exact same bug
+        </h3>
+        <p className="text-muted">
+          Once I&apos;d named the shape, it was obvious the odds-vendor providers did
+          it too: one sport&apos;s quota blip threw and sank the whole board sync and
+          settle. Same fix — isolate per sport, log and skip, let the reachable ones
+          through. No per-league page there to surface it on, so that one stays in the
+          logs, where the operator who set the sport list can see it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
+          "Resilient ingestion with health you can see: one unreachable ESPN league — or one failing sport on the odds vendor — is skipped and logged instead of sinking the whole sync or settle, and a league page shows which of its ESPN leagues can't be reached, why, and when it last worked.",
           "Leagues: run your own contest with its own rules — starting bankroll, size, and a first-to-a-target or highest-by-a-date win condition. Public leagues are searchable, invite ones share a code, and each has its own bankroll-ranked board and a winner. You bet from a league-scoped wallet, so league play stays out of the global record.",
           "A double-entry ledger with derived balances, and Season and Challenge wallets that open with a simulated deposit.",
           "Odds ingestion behind a swappable provider, snapshotted on every pull, served to users from the database only.",

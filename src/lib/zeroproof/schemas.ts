@@ -176,6 +176,11 @@ export const leagueEspnLeagueSchema = z.object({
   season: z.string(),
   label: z.string().nullish(),
   createdAt: z.string(),
+  // Resolution health from the sync cron: when it last tried, last succeeded, and
+  // the most recent error (null when healthy). All nullish for an older payload.
+  lastCheckedAt: z.string().nullish(),
+  lastOkAt: z.string().nullish(),
+  lastError: z.string().nullish(),
 });
 
 export const leagueDetailResponseSchema = z.object({
