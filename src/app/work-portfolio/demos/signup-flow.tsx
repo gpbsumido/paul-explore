@@ -101,7 +101,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
   }
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div className="flex min-h-full flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
         <p className="text-[13px] font-semibold text-foreground">
           {feature.title}
@@ -114,6 +114,9 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
         </span>
       </div>
 
+      {/* A real signup is a focused card, not a field sprawled across the page. */}
+      <div className="flex flex-1 items-center justify-center">
+      <div className="w-full max-w-md rounded-xl border border-border bg-background p-5 shadow-sm">
       <ol className="flex items-center gap-2 text-[11px]">
         {STEPS.map((name, i) => (
           <li key={name} className="flex items-center gap-2">
@@ -133,7 +136,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
         ))}
       </ol>
 
-      <div className="min-h-0 flex-1 space-y-2">
+      <div className="mt-4 min-h-[7rem] space-y-2">
         {current === "Contact" && (
           <>
             <Field
@@ -188,7 +191,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
         )}
       </div>
 
-      <div className="flex justify-between">
+      <div className="mt-4 flex justify-between">
         <Button
           variant="outline"
           size="sm"
@@ -216,6 +219,8 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
             Next
           </button>
         )}
+      </div>
+      </div>
       </div>
     </div>
   );
