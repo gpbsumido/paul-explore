@@ -70,6 +70,22 @@ describe("referral links demo", () => {
     expect(init.method).toBe("POST");
   });
 
+  it("falls back to a local preview link on the current origin when the API is unreachable", async () => {
+    const fn = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+    vi.stubGlobal("fetch", fn);
+    renderWithClient(<ReferralLinksDemo feature={feature} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /create link/i }));
+
+    // A link on this origin, not a red network error.
+    const code = await screen.findByText(
+      new RegExp(`${window.location.origin}/r/`),
+    );
+    expect(code).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByText(/API offline/i)).toBeInTheDocument();
+  });
+
   it("surfaces a taken slug as a friendly error", async () => {
     mockFetch(409, { error: "ConflictError" });
     renderWithClient(<ReferralLinksDemo feature={feature} />);

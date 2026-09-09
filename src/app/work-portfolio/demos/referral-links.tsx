@@ -8,6 +8,7 @@ import {
   useReferralStats,
   useRecordReferralClick,
 } from "@/hooks/useReferrals";
+import type { Referral } from "@/lib/referrals";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #ca4e60)";
@@ -33,6 +34,31 @@ const TARGETS = [
   { path: "/thoughts", label: "Thoughts" },
 ];
 
+/** A short url-safe slug for the offline preview when no slug was given. */
+function randomSlug(): string {
+  return Math.random().toString(36).slice(2, 8);
+}
+
+/**
+ * When the referrals API is unreachable — local dev with no portfolio_api
+ * running, mainly — build the link locally instead of showing a network error.
+ * It still points at THIS origin, so localhost stays localhost and the develop
+ * deploy stays develop, exactly like a real one would.
+ */
+function localPreviewLink(targetPath: string, slug: string): Referral {
+  const s = slug || randomSlug();
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  return {
+    slug: s,
+    targetPath,
+    label: null,
+    url: `${origin}/r/${s}`,
+    clicks: 0,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 /**
  * Vignette: the UA referral-links tool, wired to the real portfolio_api.
  * Pick where the link points on paulsumido.com, optionally name the slug, and
@@ -47,17 +73,31 @@ export default function ReferralLinksDemo({
   const [targetPath, setTargetPath] = useState(TARGETS[0].path);
   const [slug, setSlug] = useState("");
   const [copied, setCopied] = useState(false);
+  const [offline, setOffline] = useState<Referral | null>(null);
   const create = useCreateReferral();
-  const created = create.data ?? null;
-  const stats = useReferralStats(created?.slug ?? null);
+  // Prefer the real API result; fall back to the local preview when the API
+  // could not be reached (no backend in local dev).
+  const created = create.data ?? offline;
+  const isOffline = !create.data && offline !== null;
+  const stats = useReferralStats(isOffline ? null : (created?.slug ?? null));
   const recordClick = useRecordReferralClick();
 
   const submit = () => {
     setCopied(false);
-    create.mutate({
-      targetPath,
-      slug: slug.trim() || undefined,
-    });
+    setOffline(null);
+    create.mutate(
+      { targetPath, slug: slug.trim() || undefined },
+      {
+        // Only fall back for an unreachable API (fetch rejects with a
+        // TypeError). A real API rejection -- a taken slug, a bad slug -- is a
+        // 4xx we surface as its own message, not something to paper over.
+        onError: (err) => {
+          if (err instanceof TypeError || /fetch|network/i.test(err.message)) {
+            setOffline(localPreviewLink(targetPath, slug.trim()));
+          }
+        },
+      },
+    );
   };
 
   const copy = () => {
@@ -112,7 +152,7 @@ export default function ReferralLinksDemo({
         {create.isPending ? "Creating…" : "Create link"}
       </Button>
 
-      {create.isError && (
+      {create.isError && !isOffline && (
         <p role="alert" className="text-[12px] text-error-500">
           {create.error.message}
         </p>
@@ -139,10 +179,15 @@ export default function ReferralLinksDemo({
           <p className="mt-2 text-[11px] text-muted">
             points to paulsumido.com{created.targetPath}
           </p>
+          {isOffline && (
+            <p className="mt-1 text-[11px] text-muted">
+              API offline — local preview link on this origin.
+            </p>
+          )}
         </div>
       )}
 
-      {created && (
+      {created && !isOffline && (
         <div
           aria-label="Referral stats"
           className="rounded-lg border border-border p-3"
