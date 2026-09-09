@@ -70,8 +70,11 @@ function Card({
       ref={setNodeRef}
       data-post={post.id}
       data-column={post.column}
-      style={{ opacity: isDragging ? 0.4 : 1, borderLeft: `3px solid ${color}` }}
-      className="flex items-center justify-between gap-1 rounded-lg border border-white/10 bg-white/[0.06] py-2 pr-1.5 pl-2.5 backdrop-blur-sm"
+      style={{
+        opacity: isDragging ? 0.4 : 1,
+        background: `color-mix(in srgb, ${color} 10%, transparent)`,
+      }}
+      className="flex items-center justify-between gap-1 rounded-lg border border-white/10 py-2 pr-1.5 pl-2.5 backdrop-blur-sm"
     >
       <span
         {...attributes}
@@ -334,8 +337,10 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
         <DragOverlay dropAnimation={null}>
           {activePost ? (
             <div
-              className="flex cursor-grabbing items-center gap-1 rounded-lg border border-white/20 bg-background px-2.5 py-2 text-[12.5px] font-medium text-foreground shadow-xl"
-              style={{ borderLeft: `3px solid ${COLUMN_COLOR[activePost.column]}` }}
+              className="flex cursor-grabbing items-center gap-1 rounded-lg border border-white/20 px-2.5 py-2 text-[12.5px] font-medium text-foreground shadow-xl"
+              style={{
+                background: `color-mix(in srgb, ${COLUMN_COLOR[activePost.column]} 14%, var(--color-background))`,
+              }}
             >
               <span
                 className={`${poster} mr-1 rounded px-1 py-0.5 text-[9px] text-background`}

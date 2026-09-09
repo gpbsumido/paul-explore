@@ -253,6 +253,7 @@ export default function CommunityModeDemo({
           "radial-gradient(54% 42% at 88% 0%, hsl(336 100% 62% / 0.2), transparent 60%), radial-gradient(48% 40% at 8% 10%, hsl(300 66% 55% / 0.22), transparent 62%)",
       }}
     >
+      <div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col gap-4">
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-[12px] font-semibold text-muted">
@@ -286,8 +287,18 @@ export default function CommunityModeDemo({
         {posts.map((p) => (
           <li
             key={p.id}
-            className="rounded-2xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-sm"
+            className="flex gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left backdrop-blur-sm"
           >
+            <span
+              aria-hidden
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-background"
+              style={{
+                background: `hsl(${(p.author.charCodeAt(0) * 13) % 360} 60% 55%)`,
+              }}
+            >
+              {p.author[0]?.toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
             <p
               className={`${poster} text-[12px]`}
               style={{ color: ACCENT }}
@@ -349,9 +360,11 @@ export default function CommunityModeDemo({
                 ))}
               </ul>
             )}
+            </div>
           </li>
         ))}
       </ul>
+      </div>
 
       {composer && (
         <ComposerModal
