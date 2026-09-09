@@ -14,8 +14,37 @@ import {
 } from "@/lib/tcg";
 import { useDebounce } from "@/hooks/useDebounce";
 import { queryKeys } from "@/lib/queryKeys";
+import { FeatureTour, type TourStep } from "@/components/GuidedTour";
 
 const PER_PAGE = 20;
+
+/** A quick walk-through of the card browser for a first-time visitor. */
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Take a quick tour?",
+    body: "First time here? I'll show you how to find your way around the Pokémon TCG catalog — a few clicks, no commitment.",
+  },
+  {
+    anchor: "tcg-filter-bar",
+    title: "Browse the catalog",
+    body: "This page browses the full Pokémon TCG — thousands of cards, loaded as you scroll.",
+  },
+  {
+    anchor: "tcg-search",
+    title: "Search by name",
+    body: "Type a card's name here to filter the whole catalog instantly.",
+  },
+  {
+    anchor: "tcg-type-filters",
+    title: "Filter by type",
+    body: "Tap a type to show only cards of that energy — Fire, Water, Psychic and the rest.",
+  },
+  {
+    anchor: "tcg-sets-link",
+    title: "Browse by set",
+    body: "Prefer expansions? Jump to the full set list from the Sets link up top.",
+  },
+];
 
 interface BrowseContentProps {
   /**
@@ -152,20 +181,26 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
   return (
     <>
       {/* Sticky filter bar — sits directly below the nav (top-14 = 56px) */}
-      <div className="sticky top-14 z-10 border-b border-border bg-background/95 backdrop-blur-xl">
+      <div
+        id="tcg-filter-bar"
+        className="sticky top-14 z-10 border-b border-border bg-background/95 backdrop-blur-xl"
+      >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <Input
-            type="search"
-            label="Search cards"
-            hideLabel
-            size="sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search cards…"
-            className="w-40 sm:w-56 shrink-0"
-          />
+          <div id="tcg-search" className="shrink-0">
+            <Input
+              type="search"
+              label="Search cards"
+              hideLabel
+              size="sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search cards…"
+              className="w-40 sm:w-56 shrink-0"
+            />
+          </div>
           <div className="h-4 w-px bg-border shrink-0" />
           <div
+            id="tcg-type-filters"
             className="flex gap-2 overflow-x-auto"
             style={{ scrollbarWidth: "none" }}
           >
@@ -183,6 +218,14 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
                 typeColor={typeStyle(t)}
               />
             ))}
+          </div>
+          <div className="ml-auto shrink-0">
+            <FeatureTour
+              label="Pokémon TCG"
+              storageKey="tcg-tour-seen"
+              steps={TOUR_STEPS}
+              buttonLabel="Tour"
+            />
           </div>
         </div>
       </div>
