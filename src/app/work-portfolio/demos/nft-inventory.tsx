@@ -291,8 +291,44 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   );
 
+  // Staging holds while the panes are arranged; the move is only committed
+  // once the user confirms and the (simulated) transfer settles.
+  const [snapshot, setSnapshot] = useState<Asset[] | null>(null);
+  const [phase, setPhase] = useState<"idle" | "confirm" | "sending" | "done">(
+    "idle",
+  );
+  const [sentCount, setSentCount] = useState(0);
+  const staged = assets.filter((a) => a.wallet === "them").length;
+
   const send = (id: number, to: WalletSide) =>
     setAssets((prev) => transferAsset(prev, id, to));
+
+  const enterTransfer = () => {
+    setSnapshot(assets);
+    setTransferMode(true);
+  };
+  const cancelTransfer = () => {
+    if (snapshot) setAssets(snapshot);
+    setSnapshot(null);
+    setTransferMode(false);
+    setPhase("idle");
+  };
+  const startTransfer = () => {
+    setSentCount(staged);
+    setPhase("sending");
+    // Simulate the on-chain settle before confirming completion.
+    setTimeout(() => setPhase("done"), 2500);
+  };
+  const finishTransfer = () => {
+    setSnapshot(null);
+    setTransferMode(false);
+    setPhase("idle");
+  };
+  const closeTransferModal = () => {
+    if (phase === "sending") return; // can't dismiss mid-transfer
+    if (phase === "done") finishTransfer();
+    else setPhase("idle");
+  };
 
   const onDragStart = (e: DragStartEvent) => setActiveId(Number(e.active.id));
 
@@ -338,11 +374,11 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
             <>
               <button
                 type="button"
-                onClick={() => setTransferMode((t) => !t)}
+                onClick={transferMode ? cancelTransfer : enterTransfer}
                 aria-pressed={transferMode}
                 className="paul-touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground"
               >
-                {transferMode ? "Done" : "Transfer"}
+                {transferMode ? "Cancel" : "Transfer"}
               </button>
               <button
                 type="button"
@@ -375,6 +411,7 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
           </p>
         </div>
       ) : transferMode ? (
+        <>
         <DndContext
           sensors={sensors}
           collisionDetection={pointerWithin}
@@ -407,12 +444,110 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
             ) : null}
           </DragOverlay>
         </DndContext>
+
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <span className="text-[11px] text-muted">
+            {staged} staged for the recipient
+          </span>
+          <button
+            type="button"
+            disabled={staged === 0}
+            onClick={() => setPhase("confirm")}
+            className="rounded-md px-3.5 py-1.5 text-[12px] font-semibold text-background transition-opacity disabled:opacity-40"
+            style={{
+              background:
+                "linear-gradient(96deg, hsl(272 90% 66%), hsl(320 90% 62%))",
+            }}
+          >
+            Confirm transfer{staged > 0 ? ` (${staged})` : ""}
+          </button>
+        </div>
+
+        <Modal
+          open={phase !== "idle"}
+          onClose={closeTransferModal}
+          aria-label="Transfer"
+        >
+          {phase === "confirm" && (
+            <div className="flex flex-col gap-3">
+              <p className="font-display text-lg font-bold text-foreground">
+                Confirm transfer
+              </p>
+              <p className="text-[13px] leading-relaxed text-muted">
+                Send {staged} item{staged === 1 ? "" : "s"} to the recipient
+                wallet? This simulates an on-chain transfer.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPhase("idle")}
+                  className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={startTransfer}
+                  className="rounded-md px-3.5 py-1.5 text-[12px] font-semibold text-background"
+                  style={{
+                    background:
+                      "linear-gradient(96deg, hsl(272 90% 66%), hsl(320 90% 62%))",
+                  }}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
+          {phase === "sending" && (
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <span
+                className="h-8 w-8 rounded-full border-2 border-white/15 motion-safe:animate-spin"
+                style={{ borderTopColor: "hsl(272 90% 66%)" }}
+              />
+              <p className="text-[13px] text-muted">
+                Transferring {sentCount} item{sentCount === 1 ? "" : "s"}…
+              </p>
+              <p className="font-mono text-[10px] text-muted">
+                broadcasting to the network
+              </p>
+            </div>
+          )}
+          {phase === "done" && (
+            <div className="flex flex-col items-center gap-2 py-3 text-center">
+              <span className="text-3xl" aria-hidden>
+                ✅
+              </span>
+              <p className="font-display text-lg font-bold text-foreground">
+                Transfer complete
+              </p>
+              <p className="text-[13px] text-muted">
+                {sentCount} item{sentCount === 1 ? "" : "s"} sent to the
+                recipient.
+              </p>
+              <button
+                type="button"
+                onClick={finishTransfer}
+                className="mt-1 rounded-md px-4 py-1.5 text-[12px] font-semibold text-background"
+                style={{
+                  background:
+                    "linear-gradient(96deg, hsl(272 90% 66%), hsl(320 90% 62%))",
+                }}
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </Modal>
+        </>
       ) : (
         <div
           aria-label="Inventory grid"
           className="grid min-h-0 flex-1 grid-cols-3 gap-2 overflow-y-auto"
         >
-          {assets.map((item) => (
+          {assets
+            .filter((a) => a.wallet === "me")
+            .map((item) => (
             <button
               key={item.id}
               type="button"
