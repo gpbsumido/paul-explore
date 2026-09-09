@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
+import { axe } from "@/test/a11y";
 import GuidedTour from "./GuidedTour";
 import type { TourStep } from "./types";
 
@@ -52,4 +53,11 @@ describe("GuidedTour", () => {
     fireEvent.keyDown(screen.getByRole("dialog", { name: /tour/i }), { key: "Escape" });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it("has no axe violations while open", async () => {
+    render(<GuidedTour label="Demo" steps={makeSteps()} onClose={vi.fn()} />);
+    // The overlay portals to document.body, so scan there rather than the
+    // render container.
+    expect(await axe(document.body)).toHaveNoViolations();
+  }, 30000);
 });

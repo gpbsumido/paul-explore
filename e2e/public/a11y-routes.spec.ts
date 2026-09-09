@@ -1,5 +1,6 @@
 import { test } from "@playwright/test";
 import { checkA11y } from "../helpers/axe";
+import { disableTours } from "../helpers/tours";
 
 /**
  * Accessibility coverage for the public routes, scanned at WCAG 2.1 AA + axe
@@ -57,6 +58,9 @@ test.describe("Public route accessibility @a11y", () => {
         await page.addInitScript((preference) => {
           window.localStorage.setItem("theme-preference", preference);
         }, theme);
+        // First-run tours would auto-open a modal over the page these scans are
+        // about; the tours have their own a11y coverage in the unit suite.
+        await disableTours(page);
       });
 
       for (const route of ROUTES) {
