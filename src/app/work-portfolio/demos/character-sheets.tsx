@@ -18,6 +18,19 @@ const STAT_COLOR: Record<Stat, string> = {
   INT: "hsl(253 100% 71%)",
   LCK: "hsl(42 100% 62%)",
 };
+const STAT_ICON: Record<Stat, string> = {
+  STR: "⚔️",
+  AGI: "🏹",
+  INT: "🔮",
+  LCK: "🍀",
+};
+const CLASS_ICON: Record<string, string> = {
+  Ranger: "🏹",
+  Warrior: "🛡️",
+  Mage: "🔮",
+  Rogue: "🗡️",
+};
+const classIcon = (cls: string) => CLASS_ICON[cls] ?? "⭐";
 const CLASSES = ["Ranger", "Warrior", "Mage", "Rogue"];
 const BUDGET = 30;
 
@@ -59,6 +72,9 @@ function StatRow({
 }) {
   return (
     <div className="flex items-center gap-2">
+      <span aria-hidden className="w-4 text-[13px] leading-none">
+        {STAT_ICON[stat]}
+      </span>
       <span
         className={`${poster} w-8 text-[12px]`}
         style={{ color: STAT_COLOR[stat] }}
@@ -289,20 +305,30 @@ export default function CharacterSheetsDemo({
                 type="button"
                 aria-pressed={c.id === selected.id}
                 onClick={() => setSelectedId(c.id)}
-                className={`w-full rounded-lg border px-2.5 py-2 text-left transition-colors ${
+                className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors ${
                   c.id === selected.id
                     ? "border-white/25 bg-white/10"
                     : "border-transparent hover:bg-white/5"
                 }`}
               >
-                <span className={`${poster} block truncate text-[13px] text-foreground`}>
-                  {c.name}
-                </span>
                 <span
-                  className="text-[10px] font-semibold"
-                  style={{ color: ACCENT }}
+                  aria-hidden
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-black/30 text-[15px]"
                 >
-                  {c.cls}
+                  {classIcon(c.cls)}
+                </span>
+                <span className="min-w-0">
+                  <span
+                    className={`${poster} block truncate text-[13px] text-foreground`}
+                  >
+                    {c.name}
+                  </span>
+                  <span
+                    className="text-[10px] font-semibold"
+                    style={{ color: ACCENT }}
+                  >
+                    {c.cls}
+                  </span>
                 </span>
               </button>
             </li>
@@ -310,6 +336,32 @@ export default function CharacterSheetsDemo({
         </ul>
 
         <div className="flex min-h-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
+          {/* Character portrait plate */}
+          <div className="flex items-center gap-3 border-b border-white/10 pb-2.5">
+            <span
+              aria-hidden
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 text-3xl"
+              style={{
+                borderColor: ACCENT,
+                background:
+                  "radial-gradient(circle, color-mix(in srgb, var(--wp-accent, hsl(300 66% 60%)) 22%, transparent), transparent 72%)",
+              }}
+            >
+              {classIcon(selected.cls)}
+            </span>
+            <div className="min-w-0">
+              <p className={`${poster} truncate text-lg text-foreground`}>
+                {selected.name}
+              </p>
+              <p className="text-[11px] text-muted">
+                {selected.cls} ·{" "}
+                <span style={{ color: STAT_COLOR.LCK }}>
+                  Lv {Math.max(1, Math.round(total / 6))}
+                </span>
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <Input
               label="Name"
