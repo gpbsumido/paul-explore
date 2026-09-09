@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 - version 6.2.1
+
+- **An admin page to manage which ESPN leagues get ingested.** `/zeroproof/admin/espn-leagues` lists the registered ESPN fantasy leagues, adds one (sport, id, season, optional label), and removes one — so a league is added in-app rather than by editing `ESPN_FANTASY_LEAGUES` and redeploying. It's admin-only: the route is session-protected and the page 404s anyone off the allowlist, like `/to-do`, and the BFF routes go through `withAdminBackend`. A patch, not a minor, because there's no change to the public product — this surface only exists for me. Covered by route tests (admin gate, add/validation/remove) and a component test with an axe check.
+
 ## 2026-09-08 - version 6.2.0
 
 - **ESPN fantasy matchups on the board, and leagues you can bind to one.** The create-league form grows an optional "Bind to an ESPN league" section — sport, ESPN league id, season — so a commissioner can tie a league to one ESPN fantasy league; its members then only bet that league's weekly matchups (enforced on the API side). The bound league's detail page spells the binding out ("Bets only ESPN football league 836777691 (2026)"). And any fantasy matchup ingested onto the board — team A vs team B, a `fantasy_ffl`/`fantasy_fba` event — now carries a "Fantasy Football" / "Fantasy Basketball" badge so it reads apart from the real-sports lines. The league schema takes the ESPN fields nullish so older payloads still parse; new component tests cover the badge, the create-form binding being sent, and the detail page showing it.

@@ -178,3 +178,25 @@ export const leagueDetailResponseSchema = z.object({
 
 export type ZeroproofLeague = z.infer<typeof leagueSchema>;
 export type LeagueDetail = z.infer<typeof leagueDetailResponseSchema>;
+
+// The ESPN-league registry (admin): which ESPN fantasy leagues the crons ingest.
+export const espnLeagueSchema = z.object({
+  id: z.string(),
+  game: z.string(),
+  leagueId: z.string(),
+  season: z.string(),
+  label: z.string().nullish(),
+  createdAt: z.string(),
+});
+
+export const espnLeaguesResponseSchema = z.object({ leagues: z.array(espnLeagueSchema) });
+
+/** POST body to register a league — mirrors the backend's addEspnLeagueSchema. */
+export const addEspnLeagueBodySchema = z.object({
+  game: z.string().regex(/^[a-z]{3}$/),
+  leagueId: z.string().min(1).max(40),
+  season: z.string().regex(/^\d{4}$/),
+  label: z.string().max(80).optional(),
+});
+
+export type EspnLeague = z.infer<typeof espnLeagueSchema>;
