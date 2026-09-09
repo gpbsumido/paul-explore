@@ -49,40 +49,57 @@ export default function RealtimeMetricsDemo({
   }));
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-4 p-6">
-      <div>
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
-        <p className="text-[11px] text-muted">
-          live campaign metrics, updating every {TICK_MS / 1000}s
-        </p>
+    <div
+      className="flex h-full min-h-64 flex-col gap-4 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(58% 44% at 50% 0%, hsl(160 62% 45% / 0.16), transparent 62%)",
+      }}
+    >
+      <div className="flex items-end justify-between gap-2">
+        <div>
+          <p className="text-[12px] font-semibold text-muted">
+            Driver onboarding{" "}
+            <span style={{ color: "hsl(160 62% 52%)" }}>/</span> live
+          </p>
+          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            {feature.title}
+          </h2>
+        </div>
+        <span
+          className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase"
+          style={{ color: "hsl(160 62% 55%)" }}
+        >
+          <span
+            aria-hidden
+            className="h-1.5 w-1.5 rounded-full motion-safe:animate-pulse"
+            style={{ background: "hsl(160 62% 52%)" }}
+          />
+          Live · {TICK_MS / 1000}s
+        </span>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted">
-            Signups
-          </p>
-          <p
-            className="text-xl font-bold text-foreground"
-            data-testid="signup-count"
+        {[
+          { label: "Signups", value: signups.toLocaleString(), testid: "signup-count" },
+          { label: "Conversion", value: `${conversion}%` },
+          { label: "Top campaign", value: "spring-drive" },
+        ].map((tile) => (
+          <div
+            key={tile.label}
+            className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-sm"
           >
-            {signups.toLocaleString()}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted">
-            Conversion
-          </p>
-          <p className="text-xl font-bold text-foreground">{conversion}%</p>
-        </div>
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted">
-            Top campaign
-          </p>
-          <p className="text-xl font-bold text-foreground">spring-drive</p>
-        </div>
+            <p className="text-[10px] uppercase tracking-wider text-muted">
+              {tile.label}
+            </p>
+            <p
+              className="font-display text-2xl font-bold tabular-nums"
+              data-testid={tile.testid}
+            >
+              {tile.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="min-h-40 flex-1" aria-label="Signups per minute chart">
