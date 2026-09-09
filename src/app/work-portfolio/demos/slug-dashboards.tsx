@@ -125,25 +125,51 @@ export default function SlugDashboardsDemo({
   }));
 
   return (
-    <div className="flex flex-col gap-3 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
-        <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted">
-          <span>/d/</span>
-          <select
-            aria-label="Dashboard slug"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground"
+    <div
+      className="flex flex-col gap-3 p-5"
+      style={{
+        backgroundImage:
+          "radial-gradient(60% 40% at 50% 0%, hsl(90 55% 45% / 0.14), transparent 62%)",
+      }}
+    >
+      {/* Embeddable public dashboard, shown in a browser frame */}
+      <div className="overflow-hidden rounded-xl border border-white/12 bg-white/[0.04] backdrop-blur-sm">
+        <div className="flex items-center gap-2 border-b border-white/10 bg-black/20 px-3 py-2">
+          <span aria-hidden className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+          </span>
+          <div className="flex flex-1 items-center gap-1.5 rounded-md border border-white/10 bg-black/30 px-2 py-1 font-mono text-[11px] text-muted">
+            <span style={{ color: "hsl(90 55% 55%)" }}>🔒 dash.public</span>
+            <span>/d/</span>
+            <select
+              aria-label="Dashboard slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="rounded border border-white/10 bg-transparent px-1 py-0.5 text-foreground"
+            >
+              {CONFIGS.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.slug}
+                </option>
+              ))}
+            </select>
+          </div>
+          <span
+            className="flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] font-bold uppercase"
+            style={{ color: "hsl(0 70% 62%)" }}
           >
-            {CONFIGS.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.slug}
-              </option>
-            ))}
-          </select>
+            <span
+              aria-hidden
+              className="h-1.5 w-1.5 rounded-full motion-safe:animate-pulse"
+              style={{ background: "hsl(0 70% 60%)" }}
+            />
+            Live
+          </span>
+        </div>
+        <div className="p-3 font-display text-[13px] font-bold tracking-tight text-foreground uppercase">
+          {feature.title}
         </div>
       </div>
 
