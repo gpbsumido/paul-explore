@@ -125,7 +125,7 @@ export default function SlugDashboardsDemo({
   }));
 
   return (
-    <div className="flex min-h-full flex-col gap-3 p-4">
+    <div className="flex flex-col gap-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[13px] font-semibold text-foreground">
           {feature.title}
@@ -148,7 +148,7 @@ export default function SlugDashboardsDemo({
       </div>
 
       <div
-        className="flex min-h-0 flex-1 flex-col gap-3 rounded-lg border p-3"
+        className="flex flex-col gap-3 rounded-lg border p-3"
         style={{
           borderColor: config.accent,
           backgroundColor: `${config.accent}12`,
@@ -182,10 +182,11 @@ export default function SlugDashboardsDemo({
           ))}
         </div>
         <div
-          // Concrete min-height so recharts' ResponsiveContainer measures a real
-          // box on mount, and overflow-hidden so the SVG can never spill past the
-          // card onto the config below while layout settles.
-          className="min-h-[10rem] flex-1 overflow-hidden"
+          // A fixed pixel height, not flex-1: recharts' ResponsiveContainer only
+          // renders once it measures a definite box, and a flex-grown height
+          // inside a min-height root never resolves to one, so the chart came up
+          // empty. overflow-hidden keeps the SVG from spilling past the card.
+          className="h-44 overflow-hidden"
           data-testid="dashboard-chart"
           data-chart-type={config.chart}
         >
