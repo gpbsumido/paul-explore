@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 - version 6.2.1
+
+- **An admin page to manage which ESPN leagues get ingested.** `/zeroproof/admin/espn-leagues` lists the registered ESPN fantasy leagues, adds one (sport, id, season, optional label), and removes one — so a league is added in-app rather than by editing `ESPN_FANTASY_LEAGUES` and redeploying. It's admin-only: the route is session-protected and the page 404s anyone off the allowlist, like `/to-do`, and the BFF routes go through `withAdminBackend`. A patch, not a minor, because there's no change to the public product — this surface only exists for me. Covered by route tests (admin gate, add/validation/remove) and a component test with an axe check.
+
 ## 2026-09-08 - version 6.1.0
 
 - **Leagues: run your own ZeroProof contest.** A new Leagues tab in the lobby lets a commissioner create a league and set the rules — starting bankroll, size cap, and how it's won (first to a target, or highest balance by a date). Public leagues are searchable and join with a tap; invite-only ones take a short code. Each league gets its own page at `/zeroproof/leagues/[id]` with the rules, a board ranked by bankroll (ROI breaking ties), and the winner once it settles. You bet from a league-scoped wallet — it shows up in the bet slip's wallet picker — so league play stays out of the global sharp record. Built against the leagues backend that shipped on the API side; the frontend is BFF proxy routes (`/api/zeroproof/leagues*`), a `LeaguesPanel`, and the detail route, all covered by route + component tests with axe checks.
