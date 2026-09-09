@@ -11,7 +11,9 @@ import {
 import type { Referral } from "@/lib/referrals";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #ca4e60)";
+const ACCENT = "var(--wp-accent, hsl(350 58% 55%))";
+const GROWTH = "linear-gradient(120deg, hsl(350 72% 58%), hsl(20 92% 58%) 90%)";
+const poster = "font-display font-bold uppercase tracking-tight";
 
 /**
  * The API builds the link against its configured host (production), so on the
@@ -116,14 +118,23 @@ export default function ReferralLinksDemo({
 
   return (
     <div
-      className={`flex min-h-full flex-col gap-3 p-4 ${
+      className={`flex min-h-full flex-col gap-3 p-5 text-foreground ${
         created ? "" : "justify-center"
       }`}
+      style={{
+        backgroundImage:
+          "radial-gradient(50% 44% at 6% 0%, hsl(350 72% 55% / 0.22), transparent 60%), radial-gradient(48% 44% at 96% 100%, hsl(20 92% 55% / 0.16), transparent 62%)",
+      }}
     >
       <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
-      <p className="text-[13px] font-semibold text-foreground">
-        {feature.title}
-      </p>
+      <div>
+        <p className="text-[12px] font-semibold text-muted">
+          UA &amp; referrals <span style={{ color: ACCENT }}>/</span> affiliate
+        </p>
+        <h2 className={`${poster} mt-0.5 text-2xl leading-[0.9] sm:text-3xl`}>
+          {feature.title}
+        </h2>
+      </div>
 
       <label className="block">
         <span className="mb-0.5 block text-[11px] text-muted">
@@ -175,8 +186,8 @@ export default function ReferralLinksDemo({
             <button
               type="button"
               onClick={copy}
-              className="rounded-md px-2.5 py-1 text-[11px] font-medium text-white"
-              style={{ backgroundColor: ACCENT }}
+              className="rounded-md px-2.5 py-1 text-[11px] font-semibold text-background"
+              style={{ background: GROWTH }}
             >
               {copied ? "Copied" : "Copy"}
             </button>
