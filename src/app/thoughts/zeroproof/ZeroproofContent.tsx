@@ -568,6 +568,66 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-09-tour-engine"
+        date="September 9, 2026"
+        title="The tour was too good to leave on one page"
+      >
+        <p>
+          The ZeroProof tour did its job, and the obvious next thought was that
+          every dense page on the site has the same cold-start problem. So I
+          pulled the tour out of ZeroProof and made it a thing any page can wear.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One engine, five more pages
+        </h3>
+        <p className="text-muted">
+          The coach-mark overlay, the consent-first flow, the measure-in-a-frame
+          spotlight and the auto-open-once logic all moved into a shared{" "}
+          <code className={code}>GuidedTour</code> engine — a component, a{" "}
+          <code className={code}>useGuidedTour</code> hook, and a{" "}
+          <code className={code}>FeatureTour</code> drop-in that a page wires up
+          with a label, a storage key, and its own steps. ZeroProof now uses it
+          too, so there is one implementation, not two. Fantasy, the Pokémon TCG
+          browser, the operator and vitals dashboards, and the design-system
+          gallery each got a tour built from a few lines of step config.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The auto-open modal fought the test suite
+        </h3>
+        <p className="text-muted">
+          A tour that opens itself on a first visit is a modal that covers the
+          page — and the E2E suite lands on every page as a first-time visitor.
+          The operator dashboard&apos;s a11y scan started measuring the tour
+          instead of the page, and the restock and card-browser flows had a
+          backdrop over the thing they were trying to click.
+        </p>
+        <pre className={pre}>
+          {`// e2e/helpers/tours.ts — pin every tour "seen" before the page runs,
+// the same way the theme is pinned, so a coach-mark can't cover a scan.
+await disableTours(page);`}
+        </pre>
+        <p className="text-muted">
+          The fix was the same shape as the theme-pinning the a11y scans already
+          do: a shared helper that marks every tour seen before the page&apos;s
+          scripts run. The tours&apos; own behaviour — and the overlay&apos;s
+          accessibility — stay covered by the unit suite instead.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One page said no
+        </h3>
+        <p className="text-muted">
+          The 3D world is the exception. Its HUD is a set of corner panels, some
+          of them keyboard-only, over a WebGL canvas that doesn&apos;t render in
+          jsdom — so a coach-mark tour there wants more than a step config and a
+          couple of ids, and I left it for its own pass. The engine is ready when
+          the world&apos;s HUD is.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
@@ -590,6 +650,7 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
           "The board groups fixtures by day, and a fixture you've already bet on is badged and always shown — even past the day-horizon.",
           "A bankroll trend on Your record: cumulative profit and loss over your settled bets, a line for the season and a line for everything, with the figures printed in text under the chart.",
           "A guided tour: a first visit opens with a consent step, then walks the lobby a coach-mark at a time — what ZeroProof is, then the board, leagues, leaderboard and record — spotlighting each real surface and switching to its tab. It asks before it starts, never nags twice, and a Take-the-tour button in the header reopens it any time.",
+          "That tour is now a shared engine: the same consent-first coach-mark runs on Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, and the design-system gallery, each built from a small per-page step config.",
         ]}
         couldImprove={[
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
