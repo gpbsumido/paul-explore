@@ -76,6 +76,35 @@ import {
   ToastDemo,
 } from "./GalleryDemos";
 import { ACCENT_BAND } from "@/lib/accentBand";
+import { FeatureTour, type TourStep } from "@/components/GuidedTour";
+
+/** A quick walk-through of the design-system gallery for a first-time visitor. */
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Take a quick tour?",
+    body: "First time here? I'll show you what this gallery is and how to use it — a few clicks, no commitment.",
+  },
+  {
+    anchor: "ds-hero",
+    title: "The design system, live",
+    body: "Every component on this page is the real, published primitive from @paul-portfolio/react — not a screenshot.",
+  },
+  {
+    anchor: "ds-playground",
+    title: "Try it live",
+    body: "Change a component's props here and watch the rendered result and the code you'd write update together.",
+  },
+  {
+    anchor: "components",
+    title: "Browse the catalogue",
+    body: "Every primitive is listed with usage notes, an accessibility summary, and where it ships.",
+  },
+  {
+    anchor: "ds-tokens",
+    title: "Design tokens",
+    body: "Colour, radius, shadow and type all come from these tokens, so a rebrand is a token change, not a rewrite.",
+  },
+];
 
 const ACCENT = ACCENT_BAND.verdigris;
 
@@ -645,7 +674,10 @@ export default function DesignSystemShowcaseContent() {
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             Shared design system
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h1
+            id="ds-hero"
+            className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+          >
             The design system, live
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
@@ -659,11 +691,16 @@ export default function DesignSystemShowcaseContent() {
             and see where it ships.
           </p>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button href="#components">Browse components</Button>
             <Button variant="outline" href="/thoughts/design-system-showcase">
               Read the write-up
             </Button>
+            <FeatureTour
+              label="Design system"
+              storageKey="design-system-tour-seen"
+              steps={TOUR_STEPS}
+            />
           </div>
 
           <dl className="mt-8 grid grid-cols-3 gap-4 sm:max-w-md">
@@ -710,7 +747,7 @@ export default function DesignSystemShowcaseContent() {
         </Reveal>
 
         {/* Interactive playground */}
-        <Reveal className="mb-16">
+        <Reveal id="ds-playground" className="mb-16 scroll-mt-20">
           <SectionHeading>Button playground</SectionHeading>
           <p className="mb-5 mt-2 max-w-2xl text-sm text-muted">
             Change the props and watch the live button and the code you would
@@ -754,7 +791,7 @@ export default function DesignSystemShowcaseContent() {
         </Reveal>
 
         {/* Tokens */}
-        <Reveal className="mb-16">
+        <Reveal id="ds-tokens" className="mb-16 scroll-mt-20">
           <SectionHeading>Design tokens</SectionHeading>
           <p className="mb-5 mt-2 max-w-2xl text-sm text-muted">
             The primitives are skinned entirely from these tokens, so a rebrand

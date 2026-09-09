@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import DesignSystemShowcaseContent from "./DesignSystemShowcaseContent";
@@ -10,6 +10,13 @@ import { MOTION_PRIMITIVES } from "./motionPrimitives";
 // what we're testing, so stub the shared header the way the thoughts index test
 // does.
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
+
+// Render as a returning visitor by default so the first-run tour doesn't
+// auto-open over assertions that aren't about it. The tour's own tests below
+// drive it explicitly.
+beforeEach(() =>
+  window.localStorage.setItem("design-system-tour-seen", "true"),
+);
 
 describe("DesignSystemShowcaseContent", () => {
   it("leads with a single design system heading", () => {
@@ -107,4 +114,33 @@ describe("DesignSystemShowcaseContent", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   }, 30000);
+});
+
+describe("DesignSystemShowcaseContent guided tour", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it("exposes a Take the tour button and the anchors it points at", () => {
+    window.localStorage.setItem("design-system-tour-seen", "true");
+    render(<DesignSystemShowcaseContent />);
+    expect(
+      screen.getByRole("button", { name: /take the tour/i }),
+    ).toBeInTheDocument();
+    expect(document.getElementById("ds-hero")).not.toBeNull();
+    expect(document.getElementById("ds-playground")).not.toBeNull();
+    expect(document.getElementById("components")).not.toBeNull();
+    expect(document.getElementById("ds-tokens")).not.toBeNull();
+  });
+
+  it("opens the tour and walks into it", () => {
+    window.localStorage.setItem("design-system-tour-seen", "true");
+    render(<DesignSystemShowcaseContent />);
+    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    const tour = () => screen.getByRole("dialog", { name: /tour/i });
+    fireEvent.click(
+      within(tour()).getByRole("button", { name: /show me around/i }),
+    );
+    expect(
+      within(tour()).getByText(/the design system, live/i),
+    ).toBeInTheDocument();
+  });
 });
