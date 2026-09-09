@@ -307,11 +307,32 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
   const identity = ensName ?? (address ? shortAddress(address) : "");
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+    <div
+      className="flex min-h-full flex-col gap-3.5 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(50% 40% at 4% 0%, hsl(272 90% 66% / 0.26), transparent 60%), radial-gradient(46% 42% at 96% 4%, hsl(190 90% 60% / 0.2), transparent 62%), radial-gradient(60% 50% at 60% 100%, hsl(320 90% 62% / 0.14), transparent 62%)",
+      }}
+    >
+      <div className="flex items-end justify-between gap-2">
+        <div>
+          <p className="text-[12px] font-semibold text-muted">
+            Web3 gamer hub{" "}
+            <span style={{ color: "hsl(190 90% 62%)" }}>/</span> vault
+          </p>
+          <h2
+            className="font-display text-3xl font-bold tracking-tight sm:text-4xl"
+            style={{
+              backgroundImage:
+                "linear-gradient(96deg, hsl(272 90% 74%), hsl(190 90% 66%) 55%, hsl(320 90% 70%))",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            {feature.title}
+          </h2>
+        </div>
         <div className="flex items-center gap-1.5">
           {isConnected ? (
             <>
@@ -396,8 +417,17 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
               key={item.id}
               type="button"
               onClick={() => setSelected(item)}
-              className="overflow-hidden rounded-lg border border-border text-left transition hover:border-foreground/40"
+              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] text-left backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-white/25"
             >
+              {/* holographic sheen */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity group-hover:opacity-100"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(120deg, transparent 30%, hsl(190 90% 70% / 0.25) 45%, hsl(320 90% 70% / 0.2) 55%, transparent 70%)",
+                }}
+              />
               <div className="h-14">
                 <NftArt seed={item.hue + item.id * 13} className="h-full w-full" />
               </div>
