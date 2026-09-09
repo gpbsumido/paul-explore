@@ -12,6 +12,21 @@ import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #ca4e60)";
 
+/**
+ * The API builds the link against its configured host (production), so on the
+ * develop deploy show the link on THIS origin instead — a link you paste from
+ * develop should open develop, not prod.
+ */
+function onThisOrigin(url: string): string {
+  if (typeof window === "undefined") return url;
+  try {
+    const u = new URL(url);
+    return `${window.location.origin}${u.pathname}${u.search}`;
+  } catch {
+    return url;
+  }
+}
+
 const TARGETS = [
   { path: "/work-portfolio", label: "Work portfolio" },
   { path: "/", label: "Home" },
@@ -47,7 +62,7 @@ export default function ReferralLinksDemo({
 
   const copy = () => {
     if (!created) return;
-    navigator.clipboard?.writeText(created.url).catch(() => {});
+    navigator.clipboard?.writeText(onThisOrigin(created.url)).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -110,7 +125,7 @@ export default function ReferralLinksDemo({
           </p>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[12px] text-foreground dark:bg-white/10">
-              {created.url}
+              {onThisOrigin(created.url)}
             </code>
             <button
               type="button"

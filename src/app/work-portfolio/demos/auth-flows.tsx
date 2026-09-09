@@ -90,6 +90,13 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
   const set = (label: string, value: string) =>
     setValues((v) => ({ ...v, [label]: value }));
 
+  // The CTA only enables once every field on this screen is filled and valid,
+  // so you can't advance past bad input. A screen with no fields is always ready.
+  const screenValid = screen.fields.every((f) => {
+    const value = values[f.label] ?? "";
+    return value.length > 0 && !fieldError(f.kind, value, values);
+  });
+
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
@@ -156,8 +163,9 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
           </div>
           <button
             type="button"
+            disabled={!screenValid}
             onClick={() => setIndex((i) => (i + 1) % SCREENS.length)}
-            className="mt-3 w-full rounded-md py-2 text-[12px] font-medium text-white"
+            className="mt-3 w-full rounded-md py-2 text-[12px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
             style={{ backgroundColor: ACCENT }}
           >
             {screen.cta}
