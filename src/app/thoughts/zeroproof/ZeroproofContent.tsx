@@ -506,6 +506,68 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-09-tour"
+        date="September 9, 2026"
+        title="The lobby made sense to me and to no one else"
+      >
+        <p>
+          I sat someone new in front of the ZeroProof lobby and watched them not
+          know where to start. Board, Leagues, Leaderboard, Your record — obvious
+          to me, who built it, and a wall of tabs to anyone else. So the lobby now
+          offers to walk you through itself, one coach-mark at a time.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Ask before you take over the screen
+        </h3>
+        <p className="text-muted">
+          A tour that just seizes the page on arrival is a tour you resent. The
+          first step is a plain question — take a quick tour, yes or no — and
+          &quot;No thanks&quot; closes it for good. Only &quot;Show me around&quot;
+          starts spotlighting things. It auto-opens on a first visit and never
+          again once you&apos;ve seen or dismissed it, and a &quot;Take the tour&quot;
+          button in the header brings it back whenever you want it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A spotlight the linter wouldn&apos;t let me measure
+        </h3>
+        <p className="text-muted">
+          Each step highlights a real element — a tab, the intro — by measuring its
+          box with <code className={code}>getBoundingClientRect()</code> and cutting a
+          hole in a dimmed backdrop over it. The obvious place to measure is an
+          effect, and the obvious place to store the result is state. That is exactly
+          the shape the hooks lint refuses:
+        </p>
+        <pre className={pre}>
+          {`error  Do not call setState synchronously in an effect
+       react-hooks/set-state-in-effect`}
+        </pre>
+        <p className="text-muted">
+          The fix is to measure inside a{" "}
+          <code className={code}>requestAnimationFrame</code> callback — which runs
+          after the tab switch has re-rendered the lobby, so the element is where it
+          will actually sit — and set the rect from there. Switching tabs happens in
+          the Next handler, an event, not an effect; and rendering the tour only while
+          it&apos;s open means it mounts fresh at the consent step every time, so there
+          is no reset effect to trip over either.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          While I was in there: the header dropdown was painted over
+        </h3>
+        <p className="text-muted">
+          The theme menu in the page header opened <em>behind</em> the board&apos;s
+          sticky &quot;Auto-load as I scroll&quot; bar. Both sat at{" "}
+          <code className={code}>z-20</code>, and the board bar comes later in the DOM,
+          so it won — the menu&apos;s own <code className={code}>z-50</code> meant
+          nothing, capped inside the header&apos;s stacking context. Lifting just the
+          ZeroProof header to <code className={code}>z-30</code> puts the dropdown back
+          on top.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
@@ -527,6 +589,7 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
           "Tabs: Board, Leaderboard and Your record are separate tabs now — a proper ARIA tablist with arrow-key navigation, panels kept mounted so their data preloads and inactive ones out of the a11y tree.",
           "The board groups fixtures by day, and a fixture you've already bet on is badged and always shown — even past the day-horizon.",
           "A bankroll trend on Your record: cumulative profit and loss over your settled bets, a line for the season and a line for everything, with the figures printed in text under the chart.",
+          "A guided tour: a first visit opens with a consent step, then walks the lobby a coach-mark at a time — what ZeroProof is, then the board, leagues, leaderboard and record — spotlighting each real surface and switching to its tab. It asks before it starts, never nags twice, and a Take-the-tour button in the header reopens it any time.",
         ]}
         couldImprove={[
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
