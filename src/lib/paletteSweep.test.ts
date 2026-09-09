@@ -62,6 +62,10 @@ const PROSE = [
   "src/app/thoughts/landing-page/LandingChat.tsx",
   "src/app/thoughts/design-system-charts/DesignSystemChartsContent.tsx",
   "src/app/design-system/catalog.ts",
+  // The work-portfolio write-up pastes the real offenders it fixed -- a stock
+  // Tailwind class and an out-of-band hex -- as evidence in a code sample. The
+  // hex is the subject of the sentence, not a style on the page.
+  "src/app/thoughts/work-portfolio/WorkPortfolioThoughtsContent.tsx",
 ];
 
 const EXCLUDED = [...ARCHIVE, ...IDENTITY, ...SCENE_ART, ...PROSE];
