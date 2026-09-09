@@ -62,9 +62,9 @@ describe("referral links demo", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /create link/i }));
 
-    expect(
-      await screen.findByText(/paulsumido\.com\/r\/abc123/),
-    ).toBeInTheDocument();
+    // The link is shown on the current origin (so a develop link opens develop),
+    // with the path from the API preserved.
+    expect(await screen.findByText(/\/r\/abc123/)).toBeInTheDocument();
     const [url, init] = fetchMock.mock.calls[0];
     expect(String(url)).toMatch(/\/api\/referrals$/);
     expect(init.method).toBe("POST");

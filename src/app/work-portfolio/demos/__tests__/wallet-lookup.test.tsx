@@ -21,7 +21,7 @@ describe("wallet lookup demo", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Look up" }));
     expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument();
-    expect(screen.getByText("Balance")).toBeInTheDocument();
+    expect(screen.getByText(/token holdings/i)).toBeInTheDocument();
   });
 
   it("a sample chip runs the lookup immediately", () => {
@@ -40,7 +40,7 @@ describe("wallet lookup demo", () => {
       target: { value: "0xloadsofnfts" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Look up" }));
-    fireEvent.click(screen.getByRole("tab", { name: "NFTs" }));
+    fireEvent.click(screen.getByRole("tab", { name: /NFTs/ }));
     expect(screen.getByLabelText("Loading")).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(600));
     expect(screen.queryByLabelText("Loading")).toBeNull();
