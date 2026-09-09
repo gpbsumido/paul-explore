@@ -138,25 +138,27 @@ function WidgetCell({
     <div
       ref={setRefs}
       data-widget={widget.id}
+      {...drag.listeners}
+      {...drag.attributes}
       style={{
         transform: drag.transform
           ? `translate3d(${drag.transform.x}px, ${drag.transform.y}px, 0)`
           : undefined,
         opacity: drag.isDragging ? 0.4 : 1,
       }}
-      className={`flex flex-col gap-1 rounded-lg border bg-background/50 p-2 ${
+      className={`flex cursor-grab flex-col gap-1 rounded-lg border bg-background/50 p-2 active:cursor-grabbing ${
         widget.span === 2 ? "col-span-2" : "col-span-1"
       } ${drop.isOver ? "border-2" : "border border-border"}`}
     >
       <div className="flex items-center justify-between gap-1">
-        <span
-          {...drag.listeners}
-          {...drag.attributes}
-          className="cursor-grab truncate text-[11px] font-medium text-muted active:cursor-grabbing"
-        >
+        <span className="truncate text-[11px] font-medium text-muted">
           {widget.title}
         </span>
-        <span className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted">
+        {/* Controls are click targets, not drag handles — don't let a press here start a drag. */}
+        <span
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted"
+        >
           <IconButton
             size="sm"
             aria-label={`Move ${widget.title} left`}
