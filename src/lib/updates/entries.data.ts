@@ -16,12 +16,13 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
     version: "6.6.0",
     category: "improvement",
     tags: ["work-portfolio"],
-    title: "The work-portfolio demos are getting a polish pass",
+    title: "The work-portfolio demos got a full polish pass",
     summary:
-      "Cleaner charts, tooltips that match the rest of the site, a clearer hint to open a demo's explainer, and a layout fix so a demo's chart can't spill out of its card on smaller screens.",
+      "Each project now looks like itself, the demos open full of real data instead of empty, a new This Site stop links to the real features of this site, and a pile of small bugs — a vanishing chart, a referral link pointing at prod, forms that took bad input — are fixed.",
     body: [
-      "First pass of a broader effort to make each work-portfolio demo feel more like the real product it came from: design-system chart tooltips instead of the raw default, a gentle glow on the info icons so it's obvious they open an explainer, and a fix for the slug-dashboards chart overflowing its card on a smaller window.",
-      "More is coming — distinct looks per project, clearer interaction cues, and tighter, less generic layouts.",
+      "Reviewed every demo the way someone landing cold would and made each read like the real product it came from. Each project's stage now carries its own accent and texture, so the jobs stop blurring into one near-black surface. Sparse demos open full — the wallet lookup lands on a resolved sample, the referral form is a focused card.",
+      "A new final stop, This Site, breaks the pattern: instead of a reconstruction it's a directory of live links to the real features of this site — the operator dashboard, the calendar, these write-ups, and more.",
+      "And the bugs: the slug-dashboards chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height), a referral link that pointed at production from the develop deploy, and forms that accepted invalid input.",
     ],
     resolvedTicketIds: [],
   },

@@ -334,13 +334,62 @@ export default function WorkPortfolioThoughtsContent({
           product it came from.
         </p>
         <p>
-          <strong>A chart that escaped its card was a layout bug, not a chart
-          bug.</strong> The slug-dashboards line spilled over the config JSON on a
-          short window. The fix was not on the chart at all: the demo root was
-          pinned to <code>h-full</code>, so instead of the stage scrolling, the
-          flex column squeezed the card until the chart overflowed it. Switching
-          the root to <code>min-h-full</code> lets the content grow and the stage
-          scroll &mdash; the chart stays in its card at every size.
+          <strong>A chart that escaped its card was a layout bug, and my first
+          fix for it was worse than the bug.</strong> The slug-dashboards line
+          spilled over the config JSON on a short window. The demo root was pinned
+          to <code>h-full</code>, so instead of the stage scrolling, the flex
+          column squeezed the card until the chart overflowed it. I switched the
+          root to <code>min-h-full</code> so the content could grow and the stage
+          scroll &mdash; and the line vanished entirely. It looked fixed on my
+          screen and broke on a smaller one, which is the exact trap I keep
+          falling into.
+        </p>
+        <p>
+          The chart was not hidden. It was never rendered. recharts&apos;
+          ResponsiveContainer only draws once it measures a definite box, and a
+          flex-grown height inside a <code>min-h-full</code> root never resolves to
+          one, so it measured nothing and returned nothing:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`{ wrapperH: 160, svgPresent: false, linePath: null }`}
+        </pre>
+        <p>
+          The real fix was to stop being clever about the height: a fixed{" "}
+          <code>h-44</code> on the chart wrapper, not a flex-grown one. It renders
+          at every window size, and the greedy fills that had been stretching short
+          demos into empty cards went with it.
+        </p>
+        <p>
+          <strong>The projects looked like one project.</strong> Each was the same
+          near-black stage with an eight-percent tint, so switching jobs barely
+          changed anything. Now the stage takes on the project&apos;s own accent as
+          a corner glow and a texture keyed to its type &mdash; graph-paper grid for
+          the mono/data products, a dot field for the sans ones &mdash; so the
+          surface re-skins the moment you move between them.
+        </p>
+        <p>
+          <strong>The last stop is this site.</strong> Every other demo is a
+          reconstruction of past work; the new final entry is the real thing &mdash;
+          a directory of live links to the features I built here, from the operator
+          dashboard to the calendar to these write-ups. It is the one demo where
+          nothing is mocked.
+        </p>
+        <p>
+          <strong>Adding that one entry set off a chain of guards, which is the
+          system working.</strong> A new project and feature tripped the catalog
+          counts, the flagship count, the prose that states the totals, and the
+          palette sweep &mdash; which caught that my amber accent sat outside the
+          tone band and that the styled-JSON config view had reached for stock
+          Tailwind colours:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`admin-suite.tsx:518 <span className="text-sky-600 dark:text-sky-300">
+this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
+        </pre>
+        <p>
+          Each one was a real thing to correct, not a test being fussy: a
+          retuned in-band amber, and inline accent hues in place of the stock
+          classes.
         </p>
         <p>
           <strong>Most of the rest was making the demos honest.</strong> The
@@ -348,11 +397,13 @@ export default function WorkPortfolioThoughtsContent({
           breakdown so it reads like an explorer; the campaign builder&apos;s every
           field now moves the preview (a channel model drives reach, installs and
           CPI), not just the name; the NFTs are deterministic generative art
-          instead of flat swatches; the AI content module streams on load rather
-          than sitting blank. And a genuine bug &mdash; a referral link created on
-          the develop deploy pointed at production, because the API builds the URL
-          against its own host, so I now rewrite it onto the current origin before
-          showing it.
+          instead of flat swatches; the AI content module opens on real output
+          rather than sitting blank; the wallet lookup opens on a sample already
+          resolved instead of one input on an empty stage. And a genuine bug
+          &mdash; a referral link created on the develop deploy pointed at
+          production, because the API builds the URL against its own host, so I now
+          rewrite it onto the current origin and, when there is no API to reach,
+          fall back to a local preview link rather than a red network error.
         </p>
         <p>
           <strong>Validation and affordances, everywhere they were missing.</strong>{" "}
@@ -365,7 +416,8 @@ export default function WorkPortfolioThoughtsContent({
 
       <WhatsNext
         nowShipped={[
-          "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card at small sizes (a pinned h-full squeezing the layout, not a chart problem), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
+          "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height, not a flex-grown one), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
+          "Each project now carries its own accent and texture on the stage, so the jobs stop blurring together, and a final This Site entry links out to the real features of this site — the one demo where nothing is mocked.",
           "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
           "Both drag bugs solved with a drag overlay: a dragged item rendered inside its source container gets clipped the moment it leaves, so it belongs in a layer above the layout.",
           "Side effects moved out of state updaters and into the mutation and event handlers where they belong.",
