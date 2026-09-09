@@ -6,11 +6,29 @@ import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 const feature = FEATURES[featureIndexBySlug("auth-flows")!];
 
 describe("auth flows demo", () => {
-  it("steps through the identity screens", () => {
+  it("steps through the identity screens once the fields are valid", () => {
     render(<AuthFlowsDemo feature={feature} />);
     expect(screen.getByText("Sign in")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "me@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "hunter2secret" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(screen.getByText("Verify email")).toBeInTheDocument();
+  });
+
+  it("disables the action until every field is valid", () => {
+    render(<AuthFlowsDemo feature={feature} />);
+    expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "me@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "hunter2secret" },
+    });
+    expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
   });
 
   it("jumps straight to a screen from the dots", () => {

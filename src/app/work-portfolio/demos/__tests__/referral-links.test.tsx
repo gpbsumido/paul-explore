@@ -62,12 +62,28 @@ describe("referral links demo", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /create link/i }));
 
-    expect(
-      await screen.findByText(/paulsumido\.com\/r\/abc123/),
-    ).toBeInTheDocument();
+    // The link is shown on the current origin (so a develop link opens develop),
+    // with the path from the API preserved.
+    expect(await screen.findByText(/\/r\/abc123/)).toBeInTheDocument();
     const [url, init] = fetchMock.mock.calls[0];
     expect(String(url)).toMatch(/\/api\/referrals$/);
     expect(init.method).toBe("POST");
+  });
+
+  it("falls back to a local preview link on the current origin when the API is unreachable", async () => {
+    const fn = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+    vi.stubGlobal("fetch", fn);
+    renderWithClient(<ReferralLinksDemo feature={feature} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /create link/i }));
+
+    // A link on this origin, not a red network error.
+    const code = await screen.findByText(
+      new RegExp(`${window.location.origin}/r/`),
+    );
+    expect(code).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByText(/API offline/i)).toBeInTheDocument();
   });
 
   it("surfaces a taken slug as a friendly error", async () => {

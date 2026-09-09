@@ -82,6 +82,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
     loading: () => <DemoSkeleton />,
     ssr: false,
   }),
+  "this-site": dynamic(() => import("./this-site"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

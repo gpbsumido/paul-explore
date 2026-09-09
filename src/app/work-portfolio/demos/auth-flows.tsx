@@ -3,7 +3,9 @@
 import { useState } from "react";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #ca4e60)";
+const ACCENT = "var(--wp-accent, hsl(350 58% 55%))";
+const GROWTH = "linear-gradient(120deg, hsl(350 72% 58%), hsl(20 92% 58%) 90%)";
+const poster = "font-display font-bold uppercase tracking-tight";
 
 type FieldKind = "email" | "password" | "confirm" | "code";
 type Field = { label: string; kind: FieldKind };
@@ -90,12 +92,30 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
   const set = (label: string, value: string) =>
     setValues((v) => ({ ...v, [label]: value }));
 
+  // The CTA only enables once every field on this screen is filled and valid,
+  // so you can't advance past bad input. A screen with no fields is always ready.
+  const screenValid = screen.fields.every((f) => {
+    const value = values[f.label] ?? "";
+    return value.length > 0 && !fieldError(f.kind, value, values);
+  });
+
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className="flex min-h-full flex-col gap-3 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(52% 46% at 50% 0%, hsl(350 72% 55% / 0.22), transparent 62%), radial-gradient(50% 44% at 92% 100%, hsl(20 92% 55% / 0.16), transparent 62%)",
+      }}
+    >
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+        <div>
+          <p className="text-[12px] font-semibold text-muted">
+            UA &amp; referrals <span style={{ color: ACCENT }}>/</span> identity
+          </p>
+          <h2 className={`${poster} mt-1 text-2xl leading-[0.9] sm:text-3xl`}>
+            {feature.title}
+          </h2>
+        </div>
         <div className="flex gap-1">
           {SCREENS.map((s, i) => (
             <button
@@ -105,18 +125,15 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
               aria-pressed={i === index}
               onClick={() => setIndex(i)}
               className="h-1.5 w-6 rounded-full"
-              style={{
-                backgroundColor:
-                  i === index ? ACCENT : "var(--color-border, #8884)",
-              }}
+              style={{ background: i === index ? GROWTH : "var(--color-border)" }}
             />
           ))}
         </div>
       </div>
 
       <div className="mx-auto flex w-full max-w-xs flex-1 flex-col justify-center">
-        <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
-          <p className="mb-3 text-center text-[15px] font-bold text-foreground">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 shadow-xl backdrop-blur-sm">
+          <p className={`${poster} mb-3 text-center text-[17px]`}>
             {screen.title}
           </p>
           {screen.note && (
@@ -144,7 +161,7 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
                     aria-invalid={Boolean(error)}
                     className="w-full rounded-md border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
                     style={{
-                      borderColor: error ? "#c34444" : "var(--color-border)",
+                      borderColor: error ? "var(--color-error-600)" : "var(--color-border)",
                     }}
                   />
                   {error && (
@@ -156,9 +173,10 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
           </div>
           <button
             type="button"
+            disabled={!screenValid}
             onClick={() => setIndex((i) => (i + 1) % SCREENS.length)}
-            className="mt-3 w-full rounded-md py-2 text-[12px] font-medium text-white"
-            style={{ backgroundColor: ACCENT }}
+            className={`${poster} mt-3 w-full rounded-lg py-2.5 text-[13px] text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-50`}
+            style={{ background: GROWTH }}
           >
             {screen.cta}
           </button>

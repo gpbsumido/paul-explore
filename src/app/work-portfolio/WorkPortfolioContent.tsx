@@ -186,7 +186,7 @@ export default function WorkPortfolioContent() {
                           "bottom",
                         )(false)
                       }
-                      className="!h-5 !w-5 border border-border text-[10px] font-bold"
+                      className="info-glow !h-5 !w-5 border border-border text-[10px] font-bold"
                     >
                       i
                     </IconButton>

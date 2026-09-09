@@ -233,6 +233,26 @@
   }
 }
 
+/* A soft primary glow on the "about this" info icons, so it reads as
+   hover-me rather than blending into the chrome. Gentle and slow. */
+@keyframes info-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 45%, transparent);
+  }
+}
+.info-glow {
+  animation: info-glow-pulse 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .info-glow {
+    animation: none;
+  }
+}
+
 @keyframes scroll-hint {
   0%,
   100% {
