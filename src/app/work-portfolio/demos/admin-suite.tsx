@@ -156,6 +156,8 @@ function RowSelect({
 
 /** The create form for whichever entity tab is active. Users/keys/configs
  *  carry an assignment (org or user) set right here at creation. */
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
 function CreateModal({
   tab,
   orgs,
@@ -175,9 +177,15 @@ function CreateModal({
   const set = (patch: Record<string, string>) =>
     setFields((f) => ({ ...f, ...patch }));
 
+  // Show the format error once something's typed; don't nag an empty field.
+  const emailError =
+    tab === "Users" && fields.email.trim() && !EMAIL_RE.test(fields.email.trim())
+      ? "Enter a valid email"
+      : undefined;
+
   const required =
     tab === "Users"
-      ? fields.name.trim() && fields.email.trim()
+      ? fields.name.trim() && EMAIL_RE.test(fields.email.trim())
       : tab === "Orgs"
         ? fields.name.trim()
         : tab === "Keys"
@@ -202,7 +210,9 @@ function CreateModal({
             <Input
               label="Email"
               size="sm"
+              type="email"
               value={fields.email}
+              error={emailError}
               onChange={(e) => set({ email: e.target.value })}
             />
             <SelectField
@@ -490,28 +500,54 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         )}
 
         {tab === "Configs" && (
-          <ul
-            aria-label="Configs"
-            className="divide-y divide-border text-[12px]"
-          >
-            {configs.map((c) => (
-              <li
-                key={c.id}
-                className="flex items-center justify-between gap-2 py-1.5"
-              >
-                <span className="min-w-0">
-                  <code className="font-mono text-foreground">{c.name}</code>
-                  <span className="ml-2 text-muted">= {c.value}</span>
-                </span>
-                <RowSelect
-                  label={`Org for ${c.name}`}
-                  value={c.orgId}
-                  onChange={(orgId) => reassignConfig(c.id, orgId)}
-                  options={orgOptions}
-                />
-              </li>
-            ))}
-          </ul>
+          <div className="rounded-lg border border-border bg-background/40 p-3 font-mono text-[12px]">
+            <span className="text-muted">{"{"}</span>
+            <ul aria-label="Configs" className="my-0.5">
+              {configs.map((c, i) => {
+                const isBool = c.value === "true" || c.value === "false";
+                const isNum =
+                  !isBool &&
+                  c.value.trim() !== "" &&
+                  !Number.isNaN(Number(c.value));
+                return (
+                  <li
+                    key={c.id}
+                    className="flex items-center justify-between gap-2 py-1 pl-4"
+                  >
+                    <span className="min-w-0 truncate">
+                      <span className="text-sky-600 dark:text-sky-300">
+                        &quot;{c.name}&quot;
+                      </span>
+                      <span className="text-muted">: </span>
+                      {isBool ? (
+                        <span className="text-purple-600 dark:text-purple-300">
+                          {c.value}
+                        </span>
+                      ) : isNum ? (
+                        <span className="text-amber-600 dark:text-amber-300">
+                          {c.value}
+                        </span>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-300">
+                          &quot;{c.value}&quot;
+                        </span>
+                      )}
+                      {i < configs.length - 1 && (
+                        <span className="text-muted">,</span>
+                      )}
+                    </span>
+                    <RowSelect
+                      label={`Org for ${c.name}`}
+                      value={c.orgId}
+                      onChange={(orgId) => reassignConfig(c.id, orgId)}
+                      options={orgOptions}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            <span className="text-muted">{"}"}</span>
+          </div>
         )}
       </div>
 
