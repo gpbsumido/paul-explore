@@ -19,6 +19,7 @@ import ConnectWallet from "@/components/ConnectWallet";
 import { useWallet } from "@/hooks/useWallet";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
+import { NftArt } from "./_shared/NftArt";
 
 const ACCENT = "var(--wp-accent, #8f52cb)";
 const RARITIES = ["Common", "Rare", "Epic", "Legendary"] as const;
@@ -125,10 +126,9 @@ function AssetDetail({
           </button>
         </div>
 
-        <div
-          className="h-24 rounded-lg"
-          style={{ backgroundColor: `hsl(${asset.hue} 55% 55%)` }}
-        />
+        <div className="h-24 overflow-hidden rounded-lg">
+          <NftArt seed={asset.hue + asset.id * 13} className="h-full w-full" />
+        </div>
 
         <div className="flex items-center justify-between text-[11px]">
           <span
@@ -398,10 +398,9 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
               onClick={() => setSelected(item)}
               className="overflow-hidden rounded-lg border border-border text-left transition hover:border-foreground/40"
             >
-              <div
-                className="h-14"
-                style={{ backgroundColor: `hsl(${item.hue} 55% 55%)` }}
-              />
+              <div className="h-14">
+                <NftArt seed={item.hue + item.id * 13} className="h-full w-full" />
+              </div>
               <div className="p-1.5">
                 <p className="truncate text-[10px] font-medium text-foreground">
                   {item.name}

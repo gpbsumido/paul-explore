@@ -12,6 +12,7 @@ import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 import { ChartTooltip } from "./_shared/ChartTooltip";
+import { NftArt } from "./_shared/NftArt";
 
 const ACCENT = "var(--wp-accent, #4a83c8)";
 
@@ -356,10 +357,9 @@ export default function WalletLookupDemo({
                       key={nft.id}
                       className="overflow-hidden rounded-lg border border-border"
                     >
-                      <div
-                        className="h-12"
-                        style={{ backgroundColor: `hsl(${nft.hue} 60% 55%)` }}
-                      />
+                      <div className="h-12">
+                        <NftArt seed={nft.hue + nft.id * 13} className="h-full w-full" />
+                      </div>
                       <div className="p-1.5">
                         <p className="truncate text-[10px] font-medium text-foreground">
                           {nft.name}
