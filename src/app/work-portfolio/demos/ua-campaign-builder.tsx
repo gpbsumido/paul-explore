@@ -6,7 +6,9 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #ca4e60)";
+const ACCENT = "var(--wp-accent, hsl(350 58% 55%))";
+const GROWTH = "linear-gradient(120deg, hsl(350 72% 58%), hsl(20 92% 58%) 90%)";
+const poster = "font-display font-bold uppercase tracking-tight";
 
 type Campaign = {
   name: string;
@@ -70,18 +72,52 @@ export default function UaCampaignBuilderDemo({
   const budgetPct = Math.round(((campaign.budget - 1000) / (20000 - 1000)) * 100);
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
+    <div
+      className="flex min-h-full flex-col gap-4 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(52% 42% at 4% 0%, hsl(350 72% 55% / 0.24), transparent 60%), radial-gradient(48% 42% at 96% 6%, hsl(20 92% 55% / 0.2), transparent 62%)",
+      }}
+    >
+      <header>
+        <p className="text-[12px] font-semibold text-muted">
+          UA &amp; referrals{" "}
+          <span
+            style={{
+              backgroundImage: GROWTH,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            /
+          </span>{" "}
+          growth engine
         </p>
-        <p className="text-[11px] text-muted">
-          Step {step + 1} of {STEPS.length} · {STEPS[step]}
-        </p>
-      </div>
+        <div className="flex items-end justify-between gap-3">
+          <h2 className={`${poster} mt-1 text-3xl leading-[0.9] sm:text-4xl`}>
+            {feature.title}
+          </h2>
+          <p className={`${poster} text-[11px] text-muted`}>
+            Step {step + 1}/{STEPS.length} · {STEPS[step]}
+          </p>
+        </div>
+        {/* step progress */}
+        <div className="mt-2 flex gap-1.5">
+          {STEPS.map((s, i) => (
+            <span
+              key={s}
+              className="h-1 flex-1 rounded-full transition-colors"
+              style={{
+                background: i <= step ? GROWTH : "var(--color-border)",
+              }}
+            />
+          ))}
+        </div>
+      </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="flex flex-col justify-between gap-3">
+        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
           <div className="space-y-2">
             {step === 0 && (
               <>
@@ -187,25 +223,29 @@ export default function UaCampaignBuilderDemo({
 
         <div
           aria-label="Campaign preview"
-          className="flex flex-col justify-between gap-3 rounded-lg border p-3"
-          style={{ borderColor: ACCENT, backgroundColor: `${ACCENT}12` }}
+          className="flex flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05] p-4 backdrop-blur-sm"
         >
           <div>
             <div className="flex items-center justify-between gap-2">
               <p
-                className="text-[10px] uppercase tracking-wider"
-                style={{ color: ACCENT }}
+                className={`${poster} text-[10px]`}
+                style={{
+                  backgroundImage: GROWTH,
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
               >
                 {campaign.channel} campaign
               </p>
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
-                style={{ backgroundColor: ACCENT }}
+                className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-background"
+                style={{ background: GROWTH }}
               >
                 {model.icon} {campaign.channel}
               </span>
             </div>
-            <p className="text-lg font-bold text-foreground">
+            <p className={`${poster} mt-1 text-2xl leading-tight`}>
               {campaign.name || "Untitled"}
             </p>
             <p className="mt-1 text-[12px] text-muted">
@@ -225,10 +265,10 @@ export default function UaCampaignBuilderDemo({
                   ${campaign.budget.toLocaleString()}
                 </span>
               </div>
-              <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+              <span className="mt-1 block h-2 overflow-hidden rounded-full bg-white/10">
                 <span
                   className="block h-full rounded-full transition-all"
-                  style={{ width: `${budgetPct}%`, backgroundColor: ACCENT }}
+                  style={{ width: `${budgetPct}%`, background: GROWTH }}
                 />
               </span>
             </div>
@@ -240,14 +280,12 @@ export default function UaCampaignBuilderDemo({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-md bg-background/60 py-1.5"
+                  className="rounded-xl border border-white/10 bg-white/[0.04] py-2"
                 >
                   <p className="text-[9px] uppercase tracking-wider text-muted">
                     {label}
                   </p>
-                  <p className="text-[13px] font-bold text-foreground tabular-nums">
-                    {value}
-                  </p>
+                  <p className={`${poster} text-[15px] tabular-nums`}>{value}</p>
                 </div>
               ))}
             </div>
