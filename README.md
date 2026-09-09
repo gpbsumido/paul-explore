@@ -238,16 +238,18 @@ the person goes into it, and signing in is optional.
 | ----------- | ----------------------- | -------------------------- |
 | Frontend    | Vercel + Cloudflare CDN | paulsumido.com             |
 | Frontend    | Vercel (`develop`)      | develop.paulsumido.com     |
-| Backend API | Railway                 | api.paulsumido.com         |
+| Backend API | Railway (`main`)        | api.paulsumido.com         |
+| Backend API | Railway (`develop`)     | staging                    |
 | Auth        | Auth0                   | (managed)                  |
 | Database    | PostgreSQL on Railway   | (internal)                 |
 
-`main` deploys to `paulsumido.com`, `develop` to `develop.paulsumido.com`.
+Both layers have a production and a staging deployment: `main` is production
+(`paulsumido.com` + the production Railway API), `develop` is staging
+(`develop.paulsumido.com` + a separate staging Railway API). So the frontend and
+backend each have a `develop`/staging environment now.
 
-**Both point at the same production API.** There is no staging API, so anything
-exercised on `develop.paulsumido.com` is acting on live data. That is fine for
-reads and for a single-owner to-do list, and worth remembering before testing
-anything destructive there.
+The staging site no longer has to act on production by definition, but confirm
+which API a given frontend build targets before testing anything destructive.
 
 CI runs on GitHub Actions as five jobs, each on the cadence its cost justifies,
 not all of them on every push:
