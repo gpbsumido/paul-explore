@@ -799,32 +799,4 @@ describe("ZeroProofContent — ESPN fantasy", () => {
     renderPage(undefined, undefined, () => HttpResponse.json(FANTASY));
     expect(await screen.findByText("Fantasy Football")).toBeInTheDocument();
   });
-
-  it("sends the ESPN binding from the create form when its fields are filled", async () => {
-    let captured: Record<string, unknown> | null = null;
-    server.use(
-      http.post("/api/zeroproof/leagues", async ({ request }) => {
-        captured = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json({ league: { id: "lg-9" } }, { status: 201 });
-      }),
-    );
-    renderPage();
-    await goToTab(/^leagues$/i);
-    fireEvent.click(screen.getByRole("button", { name: /create a league/i }));
-    fireEvent.change(screen.getByLabelText(/league name/i), {
-      target: { value: "Fantasy League" },
-    });
-    fireEvent.change(screen.getByLabelText(/ESPN league id/i), {
-      target: { value: "836777691" },
-    });
-    fireEvent.change(screen.getByLabelText(/^season$/i), { target: { value: "2026" } });
-    fireEvent.click(screen.getByRole("button", { name: /^create league$/i }));
-
-    await waitFor(() => expect(captured).not.toBeNull());
-    expect(captured).toMatchObject({
-      espnGame: "ffl",
-      espnLeagueId: "836777691",
-      espnSeason: "2026",
-    });
-  });
 });

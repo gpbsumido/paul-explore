@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
@@ -40,9 +40,20 @@ const standing = (userSub: string, rank: number, balanceCents: number) => ({
 const detail = (overrides: Record<string, unknown> = {}) => ({
   league: league(),
   standings: [standing("auth0|a", 1, 184000), standing("auth0|b", 2, 120000)],
+  espnLeagues: [],
   callerWalletId: null,
   isMember: false,
   isCommissioner: false,
+  ...overrides,
+});
+
+const espnLeague = (overrides: Record<string, unknown> = {}) => ({
+  id: "le-1",
+  game: "ffl",
+  leagueId: "836777691",
+  season: "2026",
+  label: "The office league",
+  createdAt: "2026-09-08T00:00:00.000Z",
   ...overrides,
 });
 
@@ -89,17 +100,48 @@ describe("LeagueDetailContent", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(/winner/i);
   });
 
-  it("shows the ESPN binding when the league is bound", async () => {
+  it("lists the ESPN leagues added to the league", async () => {
     server.use(
       http.get("/api/zeroproof/leagues/lg-1", () =>
-        HttpResponse.json(
-          detail({ league: league({ espnGame: "ffl", espnLeagueId: "836777691", espnSeason: "2026" }) }),
-        ),
+        HttpResponse.json(detail({ espnLeagues: [espnLeague()] })),
       ),
     );
     renderDetail();
-    expect(await screen.findByText(/only ESPN football league/i)).toBeInTheDocument();
-    expect(screen.getByText("836777691")).toBeInTheDocument();
+    const list = await screen.findByRole("list", { name: /added espn leagues/i });
+    expect(list).toHaveTextContent("836777691");
+    expect(list).toHaveTextContent(/The office league/i);
+  });
+
+  it("lets the commissioner add an ESPN league", async () => {
+    let captured: Record<string, unknown> | null = null;
+    server.use(
+      http.get("/api/zeroproof/leagues/lg-1", () =>
+        HttpResponse.json(detail({ isCommissioner: true })),
+      ),
+      http.post("/api/zeroproof/leagues/lg-1/espn-leagues", async ({ request }) => {
+        captured = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ espnLeague: espnLeague() }, { status: 201 });
+      }),
+    );
+    renderDetail();
+    fireEvent.change(await screen.findByLabelText(/ESPN league id/i), {
+      target: { value: "836777691" },
+    });
+    fireEvent.change(screen.getByLabelText(/^season$/i), { target: { value: "2026" } });
+    fireEvent.click(screen.getByRole("button", { name: /^add league$/i }));
+    await waitFor(() => expect(captured).not.toBeNull());
+    expect(captured).toMatchObject({ game: "ffl", leagueId: "836777691", season: "2026" });
+  });
+
+  it("hides the add form from a non-commissioner", async () => {
+    server.use(
+      http.get("/api/zeroproof/leagues/lg-1", () =>
+        HttpResponse.json(detail({ espnLeagues: [espnLeague()] })),
+      ),
+    );
+    renderDetail();
+    await screen.findByRole("list", { name: /added espn leagues/i });
+    expect(screen.queryByRole("button", { name: /^add league$/i })).not.toBeInTheDocument();
   });
 
   it("has no axe violations", async () => {

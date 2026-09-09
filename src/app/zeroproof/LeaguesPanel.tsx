@@ -80,9 +80,6 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
   );
   const [target, setTarget] = useState("2000");
   const [endsAt, setEndsAt] = useState("");
-  const [espnGame, setEspnGame] = useState("ffl");
-  const [espnLeagueId, setEspnLeagueId] = useState("");
-  const [espnSeason, setEspnSeason] = useState("");
 
   const create = useMutation({
     mutationFn: async () => {
@@ -102,14 +99,6 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
       } else {
         if (!endsAt) throw new Error("Pick an end date");
         body.endsAt = new Date(endsAt).toISOString();
-      }
-      // Optional ESPN binding — sent only when a league id is given; a season is
-      // required alongside it, and the backend enforces the all-or-nothing rule.
-      if (espnLeagueId.trim()) {
-        if (!espnSeason.trim()) throw new Error("Enter the ESPN season year");
-        body.espnGame = espnGame;
-        body.espnLeagueId = espnLeagueId.trim();
-        body.espnSeason = espnSeason.trim();
       }
       const res = await fetch("/api/zeroproof/leagues", {
         method: "POST",
@@ -253,58 +242,6 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
           />
         </div>
       )}
-
-      <fieldset className="flex flex-col gap-2 rounded-lg border border-border p-3">
-        <legend className="px-1 text-sm font-medium text-foreground">
-          Bind to an ESPN league (optional)
-        </legend>
-        <p className="text-xs text-muted">
-          Tie this league to one ESPN fantasy league — members then only bet its
-          weekly matchups. Leave the league id blank for a normal league.
-        </p>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="lg-espn-game" className="text-xs text-muted">
-              Sport
-            </label>
-            <select
-              id="lg-espn-game"
-              value={espnGame}
-              onChange={(event) => setEspnGame(event.target.value)}
-              className={`${controlClass} w-32`}
-            >
-              <option value="ffl">Football</option>
-              <option value="fba">Basketball</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="lg-espn-id" className="text-xs text-muted">
-              ESPN league id
-            </label>
-            <input
-              id="lg-espn-id"
-              inputMode="numeric"
-              value={espnLeagueId}
-              onChange={(event) => setEspnLeagueId(event.target.value)}
-              placeholder="836777691"
-              className={`${controlClass} w-40`}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="lg-espn-season" className="text-xs text-muted">
-              Season
-            </label>
-            <input
-              id="lg-espn-season"
-              inputMode="numeric"
-              value={espnSeason}
-              onChange={(event) => setEspnSeason(event.target.value)}
-              placeholder="2026"
-              className={`${controlClass} w-24`}
-            />
-          </div>
-        </div>
-      </fieldset>
 
       <div className="flex items-center gap-2">
         <button type="submit" disabled={create.isPending} className={primaryButtonClass}>
