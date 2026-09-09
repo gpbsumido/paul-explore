@@ -29,8 +29,10 @@ export default function RealtimeMetricsDemo({
 }) {
   const [series, setSeries] = useState(INITIAL_SERIES);
   const [signups, setSignups] = useState(1284);
+  const [live, setLive] = useState(true);
 
   useEffect(() => {
+    if (!live) return;
     const timer = setInterval(() => {
       setSignups((s) => s + Math.floor(Math.random() * 4) + 1);
       setSeries((prev) => {
@@ -40,7 +42,16 @@ export default function RealtimeMetricsDemo({
       });
     }, TICK_MS);
     return () => clearInterval(timer);
-  }, []);
+  }, [live]);
+
+  // Fire a campaign burst: a big jump the operator can trigger on demand.
+  const spike = () => {
+    setSignups((s) => s + 40 + Math.floor(Math.random() * 30));
+    setSeries((prev) => [
+      ...prev.slice(1),
+      Math.round(prev[prev.length - 1] * 1.6 + 20),
+    ]);
+  };
 
   const conversion = ((signups % 90) / 10 + 14).toFixed(1);
   const data = series.map((value, i) => ({
@@ -66,17 +77,29 @@ export default function RealtimeMetricsDemo({
             {feature.title}
           </h2>
         </div>
-        <span
-          className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase"
-          style={{ color: "hsl(160 62% 55%)" }}
-        >
-          <span
-            aria-hidden
-            className="h-1.5 w-1.5 rounded-full motion-safe:animate-pulse"
-            style={{ background: "hsl(160 62% 52%)" }}
-          />
-          Live · {TICK_MS / 1000}s
-        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={spike}
+            className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase text-foreground transition-colors hover:bg-white/10"
+          >
+            ⚡ Spike
+          </button>
+          <button
+            type="button"
+            aria-pressed={live}
+            onClick={() => setLive((v) => !v)}
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase"
+            style={{ color: live ? "hsl(160 62% 55%)" : "var(--color-muted)" }}
+          >
+            <span
+              aria-hidden
+              className={`h-1.5 w-1.5 rounded-full ${live ? "motion-safe:animate-pulse" : ""}`}
+              style={{ background: live ? "hsl(160 62% 52%)" : "var(--color-muted)" }}
+            />
+            {live ? `Live · ${TICK_MS / 1000}s` : "Paused"}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
