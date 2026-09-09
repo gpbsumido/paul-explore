@@ -78,6 +78,11 @@ const INIT_KEYS: ApiKey[] = [
 ];
 const INIT_CONFIGS: Config[] = [
   { id: "c1", name: "data_retention_days", value: "90", orgId: "o1" },
+  { id: "c2", name: "sso_enabled", value: "true", orgId: "o1" },
+  { id: "c3", name: "seat_limit", value: "50", orgId: "o1" },
+  { id: "c4", name: "data_retention_days", value: "30", orgId: "o2" },
+  { id: "c5", name: "sso_enabled", value: "false", orgId: "o2" },
+  { id: "c6", name: "webhook_url", value: "https://pixelforge.example/hook", orgId: "o2" },
 ];
 
 const uid = (prefix: string) => `${prefix}${crypto.randomUUID().slice(0, 8)}`;
@@ -533,53 +538,73 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         )}
 
         {tab === "Configs" && (
-          <div className="rounded-lg border border-border bg-background/40 p-3 font-mono text-[12px]">
-            <span className="text-muted">{"{"}</span>
-            <ul aria-label="Configs" className="my-0.5">
-              {configs.map((c, i) => {
-                const isBool = c.value === "true" || c.value === "false";
-                const isNum =
-                  !isBool &&
-                  c.value.trim() !== "" &&
-                  !Number.isNaN(Number(c.value));
-                return (
-                  <li
-                    key={c.id}
-                    className="flex items-center justify-between gap-2 py-1 pl-4"
-                  >
-                    <span className="min-w-0 truncate">
-                      <span style={{ color: JSON_SYNTAX.key }}>
-                        &quot;{c.name}&quot;
-                      </span>
-                      <span className="text-muted">: </span>
-                      {isBool ? (
-                        <span style={{ color: JSON_SYNTAX.bool }}>
-                          {c.value}
-                        </span>
-                      ) : isNum ? (
-                        <span style={{ color: JSON_SYNTAX.number }}>
-                          {c.value}
-                        </span>
-                      ) : (
-                        <span style={{ color: JSON_SYNTAX.string }}>
-                          &quot;{c.value}&quot;
-                        </span>
-                      )}
-                      {i < configs.length - 1 && (
-                        <span className="text-muted">,</span>
-                      )}
-                    </span>
-                    <RowSelect
-                      label={`Org for ${c.name}`}
-                      value={c.orgId}
-                      onChange={(orgId) => reassignConfig(c.id, orgId)}
-                      options={orgOptions}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-            <span className="text-muted">{"}"}</span>
+          <div className="space-y-2.5">
+            {orgs.map((org) => {
+              const orgConfigs = configs.filter((c) => c.orgId === org.id);
+              return (
+                <div
+                  key={org.id}
+                  className="rounded-lg border border-border bg-background/40 p-3 font-mono text-[12px]"
+                >
+                  <p className="mb-1 text-[10px] uppercase tracking-wider text-muted">
+                    {org.name} · config.json
+                  </p>
+                  <span className="text-muted">{"{"}</span>
+                  {orgConfigs.length === 0 ? (
+                    <p className="pl-4 text-muted">
+                      <span className="opacity-60">{"// no config yet"}</span>
+                    </p>
+                  ) : (
+                    <ul aria-label={`Config for ${org.name}`} className="my-0.5">
+                      {orgConfigs.map((c, i) => {
+                        const isBool =
+                          c.value === "true" || c.value === "false";
+                        const isNum =
+                          !isBool &&
+                          c.value.trim() !== "" &&
+                          !Number.isNaN(Number(c.value));
+                        return (
+                          <li
+                            key={c.id}
+                            className="flex items-center justify-between gap-2 py-1 pl-4"
+                          >
+                            <span className="min-w-0 truncate">
+                              <span style={{ color: JSON_SYNTAX.key }}>
+                                &quot;{c.name}&quot;
+                              </span>
+                              <span className="text-muted">: </span>
+                              {isBool ? (
+                                <span style={{ color: JSON_SYNTAX.bool }}>
+                                  {c.value}
+                                </span>
+                              ) : isNum ? (
+                                <span style={{ color: JSON_SYNTAX.number }}>
+                                  {c.value}
+                                </span>
+                              ) : (
+                                <span style={{ color: JSON_SYNTAX.string }}>
+                                  &quot;{c.value}&quot;
+                                </span>
+                              )}
+                              {i < orgConfigs.length - 1 && (
+                                <span className="text-muted">,</span>
+                              )}
+                            </span>
+                            <RowSelect
+                              label={`Org for ${org.name} ${c.name}`}
+                              value={c.orgId}
+                              onChange={(orgId) => reassignConfig(c.id, orgId)}
+                              options={orgOptions}
+                            />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                  <span className="text-muted">{"}"}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
