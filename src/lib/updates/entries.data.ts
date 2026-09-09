@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-espn-health",
+    date: "2026-09-09",
+    version: "6.5.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See when an ESPN league you added can't be reached",
+    summary:
+      "If a public ESPN league you add to your contest is private, has a wrong id or season, or ESPN is down, the league page now tells you — instead of its matchups just never showing up.",
+    body: [
+      "Adding a public ESPN league to a contest is only useful if you can tell it worked. The league page now shows each added ESPN league's health: a warning with the reason and when it last resolved if it can't be reached, and nothing when it's fine.",
+      "Behind it, one unreachable league (or one failing sport on the odds side) no longer sinks the whole ingest — it's skipped and logged so everything else keeps syncing and settling, and the failing one is retried automatically.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-league-espn-additive",
     date: "2026-09-08",
     version: "6.4.0",
