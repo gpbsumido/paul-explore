@@ -115,7 +115,9 @@ export default function AiContentEngineDemo({
   feature: WorkFeature;
 }) {
   const [template, setTemplate] = useState<Template>("Patch notes");
-  const [output, setOutput] = useState("");
+  // Seed the output with the default template so the demo is never a blank box
+  // on arrival; interacting (pick a template, Generate, Post) streams live.
+  const [output, setOutput] = useState(OUTPUT["Patch notes"]);
   const [busy, setBusy] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postedVoice, setPostedVoice] = useState<string | null>(null);
@@ -139,15 +141,20 @@ export default function AiContentEngineDemo({
     }, 40);
   }, []);
 
-  // Land on real, streaming output — and re-stream whenever the template
-  // changes — so the demo is never a blank box waiting on a click.
+  // Clear the streaming timer on unmount. Cleanup only, no setState, so this
+  // effect stays off the cascading-render path the lint rule guards.
   useEffect(() => {
-    setPostedVoice(null);
-    stream(OUTPUT[template]);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [template, stream]);
+  }, []);
+
+  // Picking a template streams its copy in, so the surface reacts immediately.
+  const pick = (t: Template) => {
+    setPostedVoice(null);
+    setTemplate(t);
+    stream(OUTPUT[t]);
+  };
 
   const generate = () => {
     if (busy) return;
@@ -173,7 +180,7 @@ export default function AiContentEngineDemo({
             key={t}
             type="button"
             aria-pressed={template === t}
-            onClick={() => setTemplate(t)}
+            onClick={() => pick(t)}
             className={`rounded-full border px-2.5 py-1 text-[11px] ${
               template === t
                 ? "border-transparent text-white"
