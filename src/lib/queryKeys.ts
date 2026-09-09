@@ -292,5 +292,6 @@ export const queryKeys = {
 
     /** The ESPN-league registry (admin). */
     espnLeagues: () => ["zeroproof", "espn-leagues"] as const,
+    ingestHealth: () => ["zeroproof", "ingest-health"] as const,
   },
 } as const;

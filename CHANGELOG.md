@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-09 - version 6.5.1
+
+- **An admin page for ingestion health.** `/zeroproof/admin/ingest-health` shows what the sync and settle crons last managed to resolve — real sports per stage (odds vs results) and ESPN leagues — with a red reason and timestamps on anything that failed, green OK on the rest. It's the operator-side counterpart to the per-league ESPN health a commissioner sees, for the real-sports keys the operator configures. Admin-only like the ESPN registry page (session-protected, 404s off the allowlist); reads the new `GET /api/zeroproof/ingest-health` backend endpoint. A patch — no change to the public product. Covered by a route test (admin gate) and a component test (failing vs healthy rows, axe clean).
+
 ## 2026-09-09 - version 6.5.0
 
 - **A league page now shows when one of its ESPN leagues can't be reached.** After the ingestion resilience fix, a commissioner's misconfigured ESPN league just silently never appeared. The league detail now carries each added ESPN league's resolution health (`lastCheckedAt` / `lastOkAt` / `lastError`), and the ESPN leagues section shows a warning on any that failed — the reason and when it last worked — with a subtle "Not synced yet" for one that hasn't been checked. A healthy league shows nothing. Covered by a test (warning shown on a 401, absent when healthy). Pairs with the backend that records the health (portfolio_api#232).
