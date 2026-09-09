@@ -112,8 +112,10 @@ export default function WalletLookupDemo({
 }: {
   feature: WorkFeature;
 }) {
-  const [input, setInput] = useState("");
-  const [address, setAddress] = useState<string | null>(null);
+  // Land on a sample wallet already resolved, so the demo opens full of real
+  // data instead of one lonely input on a big empty stage.
+  const [input, setInput] = useState(SAMPLES[0]);
+  const [address, setAddress] = useState<string | null>(SAMPLES[0]);
   const [tab, setTab] = useState<Tab>("Overview");
   const [loading, setLoading] = useState(false);
 
@@ -171,26 +173,29 @@ export default function WalletLookupDemo({
         </button>
       </form>
 
-      {!address && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <p className="text-[12px] text-muted">try a sample address</p>
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {SAMPLES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => {
-                  setInput(s);
-                  submit(s);
-                }}
-                className="paul-touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Always available as a quick way to switch between sample wallets. */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[11px] text-muted">try:</span>
+        {SAMPLES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={address === s}
+            onClick={() => {
+              setInput(s);
+              submit(s);
+            }}
+            className="paul-touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
+            style={
+              address === s
+                ? { borderColor: ACCENT, color: ACCENT }
+                : undefined
+            }
+          >
+            {s}
+          </button>
+        ))}
+      </div>
 
       {address && wallet && (
         <div className="flex min-h-0 flex-1 flex-col gap-2">

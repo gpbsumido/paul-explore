@@ -115,7 +115,12 @@ export default function ReferralLinksDemo({
   };
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className={`flex min-h-full flex-col gap-3 p-4 ${
+        created ? "" : "justify-center"
+      }`}
+    >
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
       <p className="text-[13px] font-semibold text-foreground">
         {feature.title}
       </p>
@@ -243,6 +248,7 @@ export default function ReferralLinksDemo({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

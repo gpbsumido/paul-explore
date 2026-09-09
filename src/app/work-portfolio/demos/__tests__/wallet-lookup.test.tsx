@@ -8,10 +8,12 @@ const feature = FEATURES[featureIndexBySlug("wallet-lookup")!];
 afterEach(() => vi.useRealTimers());
 
 describe("wallet lookup demo", () => {
-  it("shows sample prompts before any lookup", () => {
+  it("opens on a sample wallet already resolved", () => {
     render(<WalletLookupDemo feature={feature} />);
-    expect(screen.getByText("try a sample address")).toBeInTheDocument();
-    expect(screen.queryByRole("tablist")).toBeNull();
+    // No lonely empty prompt -- a wallet is loaded on arrival.
+    expect(screen.queryByText("try a sample address")).toBeNull();
+    expect(screen.getByRole("tablist")).toBeInTheDocument();
+    expect(screen.getByText(/token holdings/i)).toBeInTheDocument();
   });
 
   it("looks up an address and shows the overview with tabs", () => {
