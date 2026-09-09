@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-09 - version 6.4.1
+
+- **Fixed the slug-dashboards demo chart bleeding out of its card.** In the work-portfolio "Slug-driven Dashboards" exhibit, recharts' `ResponsiveContainer` was overshooting its box before layout settled, so the line spilled down across the card and over the config JSON below it. The chart wrapper now has a concrete min-height (so it measures a real size on mount) and clips overflow — the same fix already documented in the chart-library demo. Guarded by a test.
+
 ## 2026-09-08 - version 6.4.0
 
 - **A league commissioner manages ESPN leagues on the league page — additive, not restrictive.** The old create form let you "bind" a league to one ESPN league so members could *only* bet its matchups; that fieldset and its copy are gone. Instead the league page has an ESPN leagues section: everyone sees the added leagues, and the commissioner gets an add form (sport, id, season, optional label) and a remove button per league, gated on `detail.isCommissioner`. Added leagues' matchups show on the board to bet, and the league stays free to bet everything else. New BFF routes `POST/DELETE /api/zeroproof/leagues/:id/espn-leagues[/:espnId]` proxy the commissioner endpoints; the detail schema carries `espnLeagues`. Covered by tests: the list renders, the commissioner's add form posts, and a non-commissioner sees neither add nor remove.
