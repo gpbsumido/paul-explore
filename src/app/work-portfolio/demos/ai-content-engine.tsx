@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
@@ -120,20 +120,34 @@ export default function AiContentEngineDemo({
   const [posting, setPosting] = useState(false);
   const [postedVoice, setPostedVoice] = useState<string | null>(null);
 
-  const stream = (text: string) => {
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stream = useCallback((text: string) => {
+    if (timerRef.current) clearInterval(timerRef.current);
     setOutput("");
     setBusy(true);
     const words = text.split(" ");
     let i = 0;
-    const timer = setInterval(() => {
+    timerRef.current = setInterval(() => {
       i += 1;
       setOutput(words.slice(0, i).join(" "));
       if (i >= words.length) {
-        clearInterval(timer);
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = null;
         setBusy(false);
       }
     }, 40);
-  };
+  }, []);
+
+  // Land on real, streaming output — and re-stream whenever the template
+  // changes — so the demo is never a blank box waiting on a click.
+  useEffect(() => {
+    setPostedVoice(null);
+    stream(OUTPUT[template]);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [template, stream]);
 
   const generate = () => {
     if (busy) return;
