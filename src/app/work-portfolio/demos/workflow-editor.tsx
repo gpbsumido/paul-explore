@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import Modal from "@/components/ui/Modal";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #4a83c8)";
@@ -141,6 +142,47 @@ export default function WorkflowEditorDemo({
     drag.current = null;
   };
 
+  // Clicking a node opens an action menu anchored to it; "Configure" opens the
+  // editor modal, the others act on the graph directly.
+  const [menuNode, setMenuNode] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+
+  const openNode = (id: string) => {
+    setSelected(id);
+    setMenuNode(id);
+  };
+
+  const duplicateNode = (id: string) => {
+    const src = byId(id);
+    const copyId = `${src.id}-copy-${crypto.randomUUID().slice(0, 6)}`;
+    setNodes((ns) => [
+      ...ns,
+      {
+        ...src,
+        id: copyId,
+        label: `${src.label} copy`,
+        x: Math.min(VIEW_W - NODE_W, src.x + 24),
+        y: Math.min(VIEW_H - NODE_H, src.y + 24),
+      },
+    ]);
+    setSelected(copyId);
+    setMenuNode(null);
+  };
+
+  const deleteNode = (id: string) => {
+    if (nodes.length <= 1) return;
+    setEdges((es) => es.filter(([a, b]) => a !== id && b !== id));
+    setNodes((ns) => {
+      const remaining = ns.filter((n) => n.id !== id);
+      setSelected(remaining[0]?.id ?? "");
+      return remaining;
+    });
+    setMenuNode(null);
+  };
+
+  const menu = menuNode ? byId(menuNode) : null;
+  const editNode = editing ? byId(editing) : null;
+
   return (
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
@@ -161,7 +203,7 @@ export default function WorkflowEditorDemo({
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border bg-background/40">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-background/40">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -171,6 +213,7 @@ export default function WorkflowEditorDemo({
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
           onPointerLeave={endDrag}
+          onClick={() => setMenuNode(null)}
         >
           {edges.map(([f, t]) => {
             const a = byId(f);
@@ -195,7 +238,10 @@ export default function WorkflowEditorDemo({
                 key={n.id}
                 transform={`translate(${n.x}, ${n.y})`}
                 onPointerDown={(e) => onPointerDown(e, n.id)}
-                onClick={() => setSelected(n.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openNode(n.id);
+                }}
                 className="cursor-grab active:cursor-grabbing"
               >
                 <rect
@@ -220,7 +266,105 @@ export default function WorkflowEditorDemo({
             );
           })}
         </svg>
+
+        {menu && (
+          <div
+            role="menu"
+            aria-label={`Actions for ${menu.label}`}
+            className="absolute z-20 w-40 -translate-x-1/2 rounded-lg border border-border bg-surface-raised/95 p-1 shadow-xl backdrop-blur-sm"
+            style={{
+              left: `${((menu.x + NODE_W / 2) / VIEW_W) * 100}%`,
+              top: `${((menu.y + NODE_H) / VIEW_H) * 100}%`,
+            }}
+          >
+            <p className="px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted">
+              {menu.label}
+            </p>
+            {[
+              { label: "Configure step", act: () => setEditing(menu.id) },
+              { label: "Duplicate", act: () => duplicateNode(menu.id) },
+              { label: "Run once", act: () => setEditing(menu.id) },
+            ].map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuNode(null);
+                  item.act();
+                }}
+                className="block w-full rounded px-2 py-1.5 text-left text-[12px] text-foreground hover:bg-white/5"
+              >
+                {item.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => deleteNode(menu.id)}
+              disabled={nodes.length <= 1}
+              className="block w-full rounded px-2 py-1.5 text-left text-[12px] text-error-500 hover:bg-error-500/10 disabled:opacity-40"
+            >
+              Delete step
+            </button>
+          </div>
+        )}
       </div>
+
+      {editNode && (
+        <Modal
+          open
+          onClose={() => setEditing(null)}
+          aria-label={`Configure ${editNode.label}`}
+        >
+          <div className="flex flex-col gap-3">
+            <p className="font-display text-lg font-bold text-foreground">
+              Configure step
+            </p>
+            <label className="block text-[12px]">
+              <span className="mb-1 block font-medium text-muted">Name</span>
+              <input
+                aria-label="Step name"
+                value={editNode.label}
+                onChange={(e) =>
+                  setNodes((ns) =>
+                    ns.map((n) =>
+                      n.id === editNode.id ? { ...n, label: e.target.value } : n,
+                    ),
+                  )
+                }
+                className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[13px] font-medium text-foreground"
+              />
+            </label>
+            <label className="block text-[12px]">
+              <span className="mb-1 block font-medium text-muted">Config</span>
+              <textarea
+                aria-label="Step config"
+                value={editNode.code}
+                onChange={(e) =>
+                  setNodes((ns) =>
+                    ns.map((n) =>
+                      n.id === editNode.id ? { ...n, code: e.target.value } : n,
+                    ),
+                  )
+                }
+                rows={3}
+                className="w-full resize-none rounded-md border border-border bg-background p-2 font-mono text-[12px] text-foreground"
+              />
+            </label>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                className="rounded-md px-4 py-1.5 text-[12px] font-semibold text-white"
+                style={{ backgroundColor: ACCENT }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
