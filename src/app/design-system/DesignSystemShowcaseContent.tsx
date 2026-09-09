@@ -76,7 +76,8 @@ import {
   ToastDemo,
 } from "./GalleryDemos";
 import { ACCENT_BAND } from "@/lib/accentBand";
-import { FeatureTour, type TourStep } from "@/components/GuidedTour";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 
 /** A quick walk-through of the design-system gallery for a first-time visitor. */
 const TOUR_STEPS: TourStep[] = [

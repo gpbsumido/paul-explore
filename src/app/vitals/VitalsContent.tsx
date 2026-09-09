@@ -1,6 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import { FeatureTour, type TourStep } from "@/components/GuidedTour";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import VersionSelector from "./VersionSelector";
 import VitalsChart from "./VitalsChart";
 import {

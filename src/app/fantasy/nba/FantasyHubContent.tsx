@@ -4,7 +4,8 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import { ACCENT_BAND } from "@/lib/accentBand";
-import { FeatureTour, type TourStep } from "@/components/GuidedTour";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import FantasyNav from "./FantasyNav";
 
 /** A quick walk-through of the Fantasy NBA hub for a first-time visitor. */

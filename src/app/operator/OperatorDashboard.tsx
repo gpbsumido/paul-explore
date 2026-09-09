@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FeatureTour, type TourStep } from "@/components/GuidedTour";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { queryKeys } from "@/lib/queryKeys";
 import { fleetSummaryResponseSchema } from "@/lib/operator-schemas";
