@@ -16,10 +16,12 @@ const arcade = "font-mono uppercase";
 type Phase = "idle" | "loading" | "playing";
 type Target = { id: number; x: number; y: number };
 
+// Keep targets well inside the play area so a 28px dot never clips the edges,
+// even on a shorter cabinet.
 const spawn = (id: number): Target => ({
   id,
-  x: 8 + Math.random() * 84,
-  y: 14 + Math.random() * 72,
+  x: 10 + Math.random() * 80,
+  y: 20 + Math.random() * 60,
 });
 
 /**
@@ -81,7 +83,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
 
   return (
     <div
-      className="flex min-h-full flex-col gap-3 p-5"
+      className="flex h-full min-h-[26rem] flex-col gap-3 p-5"
       style={{ background: "hsl(30 16% 6%)" }}
     >
       <div className="flex items-center justify-between">
