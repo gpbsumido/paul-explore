@@ -158,6 +158,16 @@ function RowSelect({
  *  carry an assignment (org or user) set right here at creation. */
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+// Syntax colours for the styled-JSON config view. In-band accent hues rather
+// than stock Tailwind colour classes, so the palette sweep stays green while
+// keys, strings, numbers, and booleans each read distinctly.
+const JSON_SYNTAX = {
+  key: "#419cc5",
+  string: "#8fbf41",
+  number: "#cf9a3f",
+  bool: "#8f52cb",
+} as const;
+
 function CreateModal({
   tab,
   orgs,
@@ -515,20 +525,20 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
                     className="flex items-center justify-between gap-2 py-1 pl-4"
                   >
                     <span className="min-w-0 truncate">
-                      <span className="text-sky-600 dark:text-sky-300">
+                      <span style={{ color: JSON_SYNTAX.key }}>
                         &quot;{c.name}&quot;
                       </span>
                       <span className="text-muted">: </span>
                       {isBool ? (
-                        <span className="text-purple-600 dark:text-purple-300">
+                        <span style={{ color: JSON_SYNTAX.bool }}>
                           {c.value}
                         </span>
                       ) : isNum ? (
-                        <span className="text-amber-600 dark:text-amber-300">
+                        <span style={{ color: JSON_SYNTAX.number }}>
                           {c.value}
                         </span>
                       ) : (
-                        <span className="text-emerald-600 dark:text-emerald-300">
+                        <span style={{ color: JSON_SYNTAX.string }}>
                           &quot;{c.value}&quot;
                         </span>
                       )}

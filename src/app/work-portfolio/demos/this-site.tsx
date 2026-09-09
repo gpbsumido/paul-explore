@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #e08a3c)";
+const ACCENT = "var(--wp-accent, #cf9a3f)";
 
 /**
  * The marquee features of this site, each a live link to the real page. Unlike

@@ -154,8 +154,8 @@ export const PROJECTS: WorkProject[] = [
       "paul-explore itself: the personal playground and portfolio you're reading now. Not a past job -- the thing I build in the open, with a write-up behind every feature.",
     stack: "Next.js 16, TanStack Query, Tailwind, Auth0, Vitest",
     accent: {
-      accent: "#e08a3c",
-      surface: "rgba(224,138,60,0.08)",
+      accent: "#cf9a3f",
+      surface: "rgba(207,154,63,0.09)",
       font: "sans",
     },
     cutFeatures: [],
