@@ -32,7 +32,9 @@ describe("explainer window", () => {
   it("opens from a project chip with blurb, stack, and cut features", () => {
     render(<WorkPortfolioContent />);
     const top = screen.getByLabelText("Projects ticker");
-    const project = PROJECTS[PROJECTS.length - 1];
+    // Pick a project that actually has cut features -- the last one (This Site)
+    // is the live index and lists none.
+    const project = [...PROJECTS].reverse().find((p) => p.cutFeatures.length)!;
     fireEvent.click(
       within(top).getAllByRole("button", { name: `About ${project.name}` })[0],
     );

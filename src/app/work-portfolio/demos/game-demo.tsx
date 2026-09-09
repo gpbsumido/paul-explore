@@ -4,16 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #3daebf)";
+const ACCENT = "var(--wp-accent, hsl(186 54% 49%))";
 const ROUND_SECONDS = 20;
+
+// A CRT scanline overlay and a chunky cabinet glow give this project its own
+// retro-arcade look, distinct from every other demo.
+const SCANLINES =
+  "repeating-linear-gradient(rgba(0,0,0,0.32) 0 1px, transparent 1px 3px)";
+const arcade = "font-mono uppercase";
 
 type Phase = "idle" | "loading" | "playing";
 type Target = { id: number; x: number; y: number };
 
+// Keep targets well inside the play area so a 28px dot never clips the edges,
+// even on a shorter cabinet.
 const spawn = (id: number): Target => ({
   id,
-  x: 8 + Math.random() * 84,
-  y: 14 + Math.random() * 72,
+  x: 10 + Math.random() * 80,
+  y: 20 + Math.random() * 60,
 });
 
 /**
@@ -74,58 +82,100 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
   };
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className="flex h-full min-h-[26rem] flex-col gap-3 p-5"
+      style={{ background: "hsl(30 16% 6%)" }}
+    >
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+        <div>
+          <p
+            className={`${arcade} text-[10px] tracking-[0.35em]`}
+            style={{ color: ACCENT }}
+          >
+            ★ Insert coin
+          </p>
+          <p
+            className={`${arcade} text-lg font-bold tracking-[0.12em] text-foreground sm:text-xl`}
+            style={{ textShadow: `0 0 14px ${ACCENT}` }}
+          >
+            {feature.title}
+          </p>
+        </div>
         {phase === "playing" && !over && (
-          <span className="font-mono text-[12px] text-primary-300">
+          <span
+            className={`${arcade} rounded border px-2 py-1 text-[12px] tabular-nums`}
+            style={{ color: ACCENT, borderColor: ACCENT }}
+          >
             Score: {score} · {timeLeft}s
           </span>
         )}
       </div>
 
       <div
-        className="relative min-h-40 flex-1 overflow-hidden rounded-lg border border-border"
+        className="relative min-h-56 flex-1 overflow-hidden rounded-xl"
         style={{
           background:
-            "radial-gradient(120% 120% at 50% 20%, rgba(34,211,238,0.25), transparent 60%), #151310",
+            "radial-gradient(120% 120% at 50% 18%, color-mix(in srgb, var(--wp-accent, hsl(186 54% 49%)) 26%, transparent), transparent 60%), hsl(30 18% 4%)",
+          border: `2px solid ${ACCENT}`,
+          boxShadow: `inset 0 0 40px color-mix(in srgb, ${ACCENT} 30%, transparent), 0 0 24px color-mix(in srgb, ${ACCENT} 25%, transparent)`,
         }}
       >
+        {/* CRT scanlines */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-10 opacity-60"
+          style={{ backgroundImage: SCANLINES }}
+        />
         {phase === "idle" && (
-          <div className="flex h-full flex-col items-center justify-center gap-3">
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary-300/80">
+          <div className="relative z-20 flex h-full flex-col items-center justify-center gap-4">
+            <p
+              className={`${arcade} text-[11px] tracking-[0.3em]`}
+              style={{ color: ACCENT }}
+            >
               Booth Build v0.9
             </p>
             <button
               type="button"
               onClick={start}
-              className="rounded-full px-5 py-2 text-[13px] font-bold text-black"
-              style={{ backgroundColor: ACCENT }}
+              className={`${arcade} rounded-md border-2 px-6 py-2.5 text-[14px] font-bold tracking-[0.1em] transition-transform hover:scale-105 active:scale-95`}
+              style={{
+                color: ACCENT,
+                borderColor: ACCENT,
+                boxShadow: `0 0 18px color-mix(in srgb, ${ACCENT} 55%, transparent)`,
+              }}
             >
               ▶ Start demo
             </button>
+            <p className={`${arcade} motion-safe:animate-pulse text-[9px] tracking-[0.4em] text-muted`}>
+              Press start
+            </p>
           </div>
         )}
 
         {phase === "loading" && (
-          <div className="flex h-full flex-col items-center justify-center gap-3 px-8">
-            <p className="font-mono text-[11px] text-primary-200">
+          <div className="relative z-20 flex h-full flex-col items-center justify-center gap-3 px-8">
+            <p className={`${arcade} text-[11px] tracking-[0.15em]`} style={{ color: ACCENT }}>
               compiling booth build… {Math.round(progress)}%
             </p>
-            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+            <div className="h-2 w-full max-w-xs overflow-hidden rounded-sm border border-white/15 bg-black/40">
               <div
-                className="h-full rounded-full transition-[width] duration-150"
-                style={{ width: `${progress}%`, backgroundColor: ACCENT }}
+                className="h-full transition-[width] duration-150"
+                style={{
+                  width: `${progress}%`,
+                  background: ACCENT,
+                  boxShadow: `0 0 10px ${ACCENT}`,
+                }}
               />
             </div>
           </div>
         )}
 
         {phase === "playing" && !over && (
-          <div className="h-full w-full">
-            <p className="absolute left-2 top-2 font-mono text-[10px] text-primary-300/70">
+          <div className="relative z-20 h-full w-full">
+            <p
+              className={`${arcade} absolute top-2 left-2 text-[10px] tracking-[0.2em]`}
+              style={{ color: ACCENT }}
+            >
               tap the targets
             </p>
             {target && (
@@ -146,18 +196,25 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
         )}
 
         {over && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary-300/80">
+          <div className="relative z-20 flex h-full flex-col items-center justify-center gap-2 text-center">
+            <p
+              className={`${arcade} text-[12px] tracking-[0.4em]`}
+              style={{ color: ACCENT, textShadow: `0 0 14px ${ACCENT}` }}
+            >
               Time!
             </p>
-            <p className="text-[15px] font-bold text-primary-100">
+            <p className={`${arcade} text-[16px] font-bold tracking-[0.1em] text-foreground`}>
               Score {score} · Best {best}
             </p>
             <button
               type="button"
               onClick={start}
-              className="mt-1 rounded-full px-5 py-2 text-[13px] font-bold text-black"
-              style={{ backgroundColor: ACCENT }}
+              className={`${arcade} mt-1 rounded-md border-2 px-6 py-2.5 text-[13px] font-bold tracking-[0.1em] transition-transform hover:scale-105 active:scale-95`}
+              style={{
+                color: ACCENT,
+                borderColor: ACCENT,
+                boxShadow: `0 0 18px color-mix(in srgb, ${ACCENT} 55%, transparent)`,
+              }}
             >
               ▶ Play again
             </button>

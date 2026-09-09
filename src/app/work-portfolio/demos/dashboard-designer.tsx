@@ -20,6 +20,7 @@ import {
   Bar,
   Tooltip,
 } from "recharts";
+import { ChartTooltip } from "./_shared/ChartTooltip";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -90,7 +91,7 @@ function WidgetBody({ widget }: { widget: Widget }) {
       <ResponsiveContainer width="100%" height="100%">
         {widget.kind === "line" ? (
           <LineChart data={data}>
-            <Tooltip />
+            <Tooltip content={<ChartTooltip />} />
             <Line
               type="monotone"
               dataKey="v"
@@ -102,7 +103,7 @@ function WidgetBody({ widget }: { widget: Widget }) {
           </LineChart>
         ) : (
           <BarChart data={data}>
-            <Tooltip />
+            <Tooltip content={<ChartTooltip />} />
             <Bar
               dataKey="v"
               fill={ACCENT}
@@ -138,25 +139,27 @@ function WidgetCell({
     <div
       ref={setRefs}
       data-widget={widget.id}
+      {...drag.listeners}
+      {...drag.attributes}
       style={{
         transform: drag.transform
           ? `translate3d(${drag.transform.x}px, ${drag.transform.y}px, 0)`
           : undefined,
         opacity: drag.isDragging ? 0.4 : 1,
       }}
-      className={`flex flex-col gap-1 rounded-lg border bg-background/50 p-2 ${
+      className={`flex cursor-grab flex-col gap-1 rounded-lg border bg-background/50 p-2 active:cursor-grabbing ${
         widget.span === 2 ? "col-span-2" : "col-span-1"
       } ${drop.isOver ? "border-2" : "border border-border"}`}
     >
       <div className="flex items-center justify-between gap-1">
-        <span
-          {...drag.listeners}
-          {...drag.attributes}
-          className="cursor-grab truncate text-[11px] font-medium text-muted active:cursor-grabbing"
-        >
+        <span className="truncate text-[11px] font-medium text-muted">
           {widget.title}
         </span>
-        <span className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted">
+        {/* Controls are click targets, not drag handles — don't let a press here start a drag. */}
+        <span
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted"
+        >
           <IconButton
             size="sm"
             aria-label={`Move ${widget.title} left`}
@@ -216,9 +219,9 @@ function EndZone() {
 /**
  * Flagship demo for portal v2's dashboard designer. The original used a
  * gridstack drag-drop engine; this rebuilds the idea with a dnd-kit grid you
- * compose from a widget palette. Drag a widget by its title onto another to
- * drop it into that slot, or onto the trailing zone to send it to the end,
- * so empty cells fill reliably. Keyboard move and resize stay on the buttons.
+ * compose from a widget palette. Drag a widget (from anywhere on the card) onto
+ * another to drop it into that slot, or onto the trailing zone to send it to the
+ * end, so empty cells fill reliably. Keyboard move and resize stay on the buttons.
  */
 export default function DashboardDesignerDemo({
   feature,
@@ -262,11 +265,25 @@ export default function DashboardDesignerDemo({
   };
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
+    <div
+      className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
+      style={{
+        background: "hsl(192 46% 8%)",
+        backgroundImage:
+          "linear-gradient(hsl(190 88% 60% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(190 88% 60% / 0.06) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Analytics portal v2{" "}
+            <span style={{ color: "hsl(190 88% 66%)" }}>&#47;&#47;</span> designer
+          </p>
+          <p className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            {feature.title}
+          </p>
+        </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] text-muted">Add:</span>
           {PALETTE.map((p) => (

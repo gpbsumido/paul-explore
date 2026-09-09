@@ -55,7 +55,7 @@ function ChipShell({
         onClick={onInfo}
         onMouseEnter={() => onInfoHover?.(true)}
         onMouseLeave={() => onInfoHover?.(false)}
-        className="paul-touch-target mr-1 !h-5 !w-5 text-[10px] font-bold"
+        className="paul-touch-target info-glow mr-1 !h-5 !w-5 text-[10px] font-bold"
       >
         i
       </IconButton>

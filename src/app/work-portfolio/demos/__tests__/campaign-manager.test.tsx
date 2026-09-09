@@ -5,55 +5,85 @@ import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 
 const feature = FEATURES[featureIndexBySlug("campaign-manager")!];
 
-describe("campaign manager demo", () => {
-  it("creates a campaign through the stepped modal", () => {
+const list = () => screen.getByRole("list", { name: "Campaigns" });
+
+describe("campaign manager demo (season board)", () => {
+  it("opens with a campaign selected in the inspector", () => {
     render(<CampaignManagerDemo feature={feature} />);
-    fireEvent.click(screen.getByRole("button", { name: "New campaign" }));
+    expect(screen.getByLabelText("Campaign name")).toHaveValue(
+      "Launch week push",
+    );
+  });
 
+  it("editing the name in the inspector updates the list live", () => {
+    render(<CampaignManagerDemo feature={feature} />);
     fireEvent.change(screen.getByLabelText("Campaign name"), {
-      target: { value: "Holiday event" },
+      target: { value: "Renamed push" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(within(list()).getByText("Renamed push")).toBeInTheDocument();
+  });
 
-    fireEvent.change(screen.getByLabelText("Send date"), {
-      target: { value: "2026-12-20" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  it("selecting a list row drives the inspector", () => {
+    render(<CampaignManagerDemo feature={feature} />);
+    fireEvent.click(within(list()).getByText("Creator spotlight"));
+    expect(screen.getByLabelText("Campaign name")).toHaveValue(
+      "Creator spotlight",
+    );
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Create campaign" }));
-    // the new campaign lands in the list (scoped past the closing modal's
-    // review copy, which lingers during its exit animation)
+  it("toggles between the dial and the run of show", () => {
+    render(<CampaignManagerDemo feature={feature} />);
     expect(
-      within(screen.getByRole("list", { name: "Campaigns" })).getByText(
-        "Holiday event",
-      ),
+      screen.getByRole("img", { name: /Radial calendar/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Run of show" }));
+    expect(
+      screen.getByRole("button", {
+        name: /Launch week push, drag to reschedule/,
+      }),
     ).toBeInTheDocument();
   });
 
-  it("blocks advancing past basics until a name is entered", () => {
+  it("a goal filter hides that goal's campaigns from the run of show", () => {
+    render(<CampaignManagerDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "Run of show" }));
+    expect(
+      screen.getByRole("button", {
+        name: /Launch week push, drag to reschedule/,
+      }),
+    ).toBeInTheDocument();
+
+    // Launch week push is an Awareness campaign; hiding Awareness drops it.
+    fireEvent.click(screen.getByRole("button", { name: "Awareness" }));
+    expect(
+      screen.queryByRole("button", {
+        name: /Launch week push, drag to reschedule/,
+      }),
+    ).toBeNull();
+  });
+
+  it("adds a new campaign and selects it", () => {
     render(<CampaignManagerDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: "New campaign" }));
-    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
-  });
-
-  it("logs dispatched actions in the store inspector", () => {
-    render(<CampaignManagerDemo feature={feature} />);
-    expect(screen.getByText("@@INIT")).toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Toggle Creator spotlight" }),
+    expect(screen.getByLabelText("Campaign name")).toHaveValue(
+      "Untitled campaign",
     );
-    expect(screen.getByText("campaign/toggled")).toBeInTheDocument();
-    expect(screen.getByText(/Creator spotlight → Live/)).toBeInTheDocument();
+    expect(within(list()).getByText("Untitled campaign")).toBeInTheDocument();
   });
 
-  it("toggles a campaign's status", () => {
+  it("duplicates the selected campaign", () => {
     render(<CampaignManagerDemo feature={feature} />);
-    const toggle = screen.getByRole("button", {
-      name: "Toggle Creator spotlight",
-    });
-    expect(toggle).toHaveTextContent("Draft");
-    fireEvent.click(toggle);
-    expect(toggle).toHaveTextContent("Live");
+    fireEvent.click(screen.getByRole("button", { name: "Duplicate" }));
+    expect(
+      within(list()).getByText("Launch week push (copy)"),
+    ).toBeInTheDocument();
+  });
+
+  it("deletes the selected campaign and clears the inspector", () => {
+    render(<CampaignManagerDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(screen.getByText("Nothing selected")).toBeInTheDocument();
+    expect(within(list()).queryByText("Launch week push")).toBeNull();
   });
 });

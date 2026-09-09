@@ -322,8 +322,163 @@ export default function WorkPortfolioThoughtsContent({
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-09-polish"
+        date="September 9, 2026"
+        title="A polish pass, from the visitor's chair"
+      >
+        <p>
+          I went back through the demos the way someone landing cold would &mdash;
+          at a smaller laptop window, clicking everything. That framing surfaced a
+          run of small things that each made a demo read as a mock rather than the
+          product it came from.
+        </p>
+        <p>
+          <strong>A chart that escaped its card was a layout bug, and my first
+          fix for it was worse than the bug.</strong> The slug-dashboards line
+          spilled over the config JSON on a short window. The demo root was pinned
+          to <code>h-full</code>, so instead of the stage scrolling, the flex
+          column squeezed the card until the chart overflowed it. I switched the
+          root to <code>min-h-full</code> so the content could grow and the stage
+          scroll &mdash; and the line vanished entirely. It looked fixed on my
+          screen and broke on a smaller one, which is the exact trap I keep
+          falling into.
+        </p>
+        <p>
+          The chart was not hidden. It was never rendered. recharts&apos;
+          ResponsiveContainer only draws once it measures a definite box, and a
+          flex-grown height inside a <code>min-h-full</code> root never resolves to
+          one, so it measured nothing and returned nothing:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`{ wrapperH: 160, svgPresent: false, linePath: null }`}
+        </pre>
+        <p>
+          The real fix was to stop being clever about the height: a fixed{" "}
+          <code>h-44</code> on the chart wrapper, not a flex-grown one. It renders
+          at every window size, and the greedy fills that had been stretching short
+          demos into empty cards went with it.
+        </p>
+        <p>
+          <strong>The projects looked like one project.</strong> Each was the same
+          near-black stage with an eight-percent tint, so switching jobs barely
+          changed anything. Now the stage takes on the project&apos;s own accent as
+          a corner glow and a texture keyed to its type &mdash; graph-paper grid for
+          the mono/data products, a dot field for the sans ones &mdash; so the
+          surface re-skins the moment you move between them.
+        </p>
+        <p>
+          <strong>The campaign manager became a Season Board.</strong> The old
+          version was a stepped create-modal with a store inspector &mdash;
+          honest, but it read like a form. I rebuilt it so the same campaigns
+          show two ways: a radial dial for the shape of the year, and a
+          run-of-show gantt you can drag to reschedule. One inspector drives
+          both. The constraint that shaped it was the house rules, not the
+          design: no web fonts, so the poster type is the site&apos;s own
+          display face; and the palette sweep forbids raw neon hex on a live
+          surface, so the goal colours are hsl &mdash; the same escape hatch the
+          generative-art demos already use.
+        </p>
+        <p>
+          <strong>The last stop is this site.</strong> Every other demo is a
+          reconstruction of past work; the new final entry is the real thing &mdash;
+          a directory of live links to the features I built here, from the operator
+          dashboard to the calendar to these write-ups. It is the one demo where
+          nothing is mocked.
+        </p>
+        <p>
+          <strong>Adding that one entry set off a chain of guards, which is the
+          system working.</strong> A new project and feature tripped the catalog
+          counts, the flagship count, the prose that states the totals, and the
+          palette sweep &mdash; which caught that my amber accent sat outside the
+          tone band and that the styled-JSON config view had reached for stock
+          Tailwind colours:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`admin-suite.tsx:518 <span className="text-sky-600 dark:text-sky-300">
+this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
+        </pre>
+        <p>
+          Each one was a real thing to correct, not a test being fussy: a
+          retuned in-band amber, and inline accent hues in place of the stock
+          classes.
+        </p>
+        <p>
+          <strong>Most of the rest was making the demos honest.</strong> The
+          wallet lookup gained a net worth, a balance sparkline and a holdings
+          breakdown so it reads like an explorer; the campaign builder&apos;s every
+          field now moves the preview (a channel model drives reach, installs and
+          CPI), not just the name; the NFTs are deterministic generative art
+          instead of flat swatches; the AI content module opens on real output
+          rather than sitting blank; the wallet lookup opens on a sample already
+          resolved instead of one input on an empty stage. And a genuine bug
+          &mdash; a referral link created on the develop deploy pointed at
+          production, because the API builds the URL against its own host, so I now
+          rewrite it onto the current origin and, when there is no API to reach,
+          fall back to a local preview link rather than a red network error.
+        </p>
+        <p>
+          <strong>Validation and affordances, everywhere they were missing.</strong>{" "}
+          The auth and admin forms disable their action until the input is valid;
+          the config tab renders as syntax-coloured JSON; the info icons pulse so
+          it is obvious they open an explainer; and the recharts default tooltip is
+          gone, replaced by one that matches the rest of the site.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-10-review"
+        date="September 10, 2026"
+        title="A live review pass, one screenshot at a time"
+      >
+        <p>
+          I went back through every demo again, this time driving each one and
+          fixing whatever felt like a mock rather than the product. Most of the
+          changes were interaction, not paint: the NFT transfer now asks you to
+          confirm, waits a few seconds like a real settle, and shows a completion
+          modal before it disappears from your inventory; a workflow node opens an
+          action menu and an edit modal; the AI module wears its platform and
+          personality settings on its face instead of hiding them in a dialog.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A green typecheck is not a green build.
+        </h3>
+        <p className="text-muted">
+          Centering the community feed, I added a wrapper div, re-ran{" "}
+          <code>tsc</code> and the tests, and they passed. The dev server did not.
+          Turbopack&apos;s parser is stricter about JSX than the type checker, and
+          it caught a div I had balanced in the wrong order:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Build Error — Expected ',', got '{'
+./src/app/work-portfolio/demos/community-mode.tsx (368:7)
+  > 368 |       {composer && (`}
+        </pre>
+        <p className="text-muted">
+          The lesson I keep relearning: when a build tool and a type checker
+          disagree about whether code is valid, run the build. It renders 200s or
+          it doesn&apos;t.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The dots that were always at the top.
+        </h3>
+        <p className="text-muted">
+          A screenshot of the arcade demo showed the targets clipped at the top
+          edge. The cause was the same <code>min-h-full</code> reflex that broke
+          the slug chart: the play area collapsed instead of filling, so a
+          target at 14% landed under the frame. A definite height on the cabinet
+          and a wider spawn margin fixed it. The pattern is clear enough now that
+          I should stop reaching for <code>min-h-full</code> without asking what
+          it does to a flex child.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height, not a flex-grown one), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
+          "Each project now carries its own accent and texture on the stage, so the jobs stop blurring together, and a final This Site entry links out to the real features of this site — the one demo where nothing is mocked.",
           "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
           "Both drag bugs solved with a drag overlay: a dragged item rendered inside its source container gets clipped the moment it leaves, so it belongs in a layer above the layout.",
           "Side effects moved out of state updaters and into the mutation and event handlers where they belong.",

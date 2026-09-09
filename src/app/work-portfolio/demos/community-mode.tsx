@@ -6,7 +6,9 @@ import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #b951c9)";
+const ACCENT = "var(--wp-accent, hsl(300 66% 60%))";
+const HEART = "hsl(336 100% 62%)";
+const poster = "font-display font-bold uppercase tracking-tight";
 
 type Reply = { id: number; author: string; body: string };
 type Post = {
@@ -244,40 +246,70 @@ export default function CommunityModeDemo({
   const max = Math.max(1, ...posts.map((p) => p.likes));
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+    <div
+      className="flex min-h-full flex-col gap-4 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(54% 42% at 88% 0%, hsl(336 100% 62% / 0.2), transparent 60%), radial-gradient(48% 40% at 8% 10%, hsl(300 66% 55% / 0.22), transparent 62%)",
+      }}
+    >
+      <div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col gap-4">
+      <header className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[12px] font-semibold text-muted">
+            Content engine <span style={{ color: HEART }}>/</span> community feed
+          </p>
+          <h2 className={`${poster} mt-1 text-3xl leading-[0.9] sm:text-4xl`}>
+            {feature.title}
+          </h2>
+        </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted">
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] text-muted tabular-nums">
             {total.toLocaleString()} total likes
           </span>
           <button
             type="button"
             onClick={() => setComposer({ mode: "post" })}
-            className="rounded-md px-3 py-1.5 text-[12px] font-medium text-white"
-            style={{ backgroundColor: ACCENT }}
+            className={`${poster} rounded-xl px-4 py-2 text-[13px] text-background shadow-lg transition-transform hover:-translate-y-0.5`}
+            style={{
+              background: `linear-gradient(135deg, ${HEART}, hsl(300 66% 60%) 80%)`,
+            }}
           >
             New post
           </button>
         </div>
-      </div>
+      </header>
 
       <ul
         aria-label="Feed"
-        className="min-h-0 flex-1 space-y-2 overflow-y-auto"
+        className="min-h-0 flex-1 space-y-2.5 overflow-y-auto"
       >
         {posts.map((p) => (
-          <li key={p.id} className="rounded-lg border border-border p-2.5">
-            <p className="text-[11px] font-medium" style={{ color: ACCENT }}>
+          <li
+            key={p.id}
+            className="flex gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left backdrop-blur-sm"
+          >
+            <span
+              aria-hidden
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-background"
+              style={{
+                background: `hsl(${(p.author.charCodeAt(0) * 13) % 360} 60% 55%)`,
+              }}
+            >
+              {p.author[0]?.toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+            <p
+              className={`${poster} text-[12px]`}
+              style={{ color: ACCENT }}
+            >
               @{p.author}
             </p>
             <button
               type="button"
               aria-label={`Analytics for ${p.author}`}
               onClick={() => setAnalyticsId(p.id)}
-              className="text-left text-[12px] text-foreground hover:underline"
+              className="mt-0.5 text-left text-[13px] leading-snug text-foreground hover:underline"
             >
               {p.body}
             </button>
@@ -305,12 +337,12 @@ export default function CommunityModeDemo({
               >
                 💬 {p.replies.length}
               </button>
-              <span className="ml-auto h-1.5 w-24 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+              <span className="ml-auto h-1.5 w-24 overflow-hidden rounded-full bg-white/10">
                 <span
                   className="block h-full rounded-full"
                   style={{
                     width: `${(p.likes / max) * 100}%`,
-                    backgroundColor: ACCENT,
+                    background: `linear-gradient(90deg, hsl(300 66% 60%), ${HEART})`,
                   }}
                 />
               </span>
@@ -328,9 +360,11 @@ export default function CommunityModeDemo({
                 ))}
               </ul>
             )}
+            </div>
           </li>
         ))}
       </ul>
+      </div>
 
       {composer && (
         <ComposerModal

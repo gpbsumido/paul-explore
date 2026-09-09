@@ -11,6 +11,22 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-work-portfolio-polish",
+    date: "2026-09-09",
+    version: "6.6.0",
+    category: "improvement",
+    tags: ["work-portfolio"],
+    title: "The work-portfolio demos got a full polish pass",
+    summary:
+      "Each project now looks like itself, the demos open full of real data instead of empty, a new This Site stop links to the real features of this site, and a pile of small bugs — a vanishing chart, a referral link pointing at prod, forms that took bad input — are fixed.",
+    body: [
+      "Reviewed every demo the way someone landing cold would and made each read like the real product it came from. Each project's stage now carries its own accent and texture, so the jobs stop blurring into one near-black surface. Sparse demos open full — the wallet lookup lands on a resolved sample, the referral form is a focused card.",
+      "A new final stop, This Site, breaks the pattern: instead of a reconstruction it's a directory of live links to the real features of this site — the operator dashboard, the calendar, these write-ups, and more.",
+      "And the bugs: the slug-dashboards chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height), a referral link that pointed at production from the develop deploy, and forms that accepted invalid input.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-espn-health",
     date: "2026-09-09",
     version: "6.5.0",
