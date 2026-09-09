@@ -8,11 +8,12 @@ const feature = FEATURES[featureIndexBySlug("ai-content-engine")!];
 afterEach(() => vi.useRealTimers());
 
 describe("ai content engine demo", () => {
-  it("streams output for the chosen template", () => {
+  it("streams the chosen template's output when it is selected", () => {
     vi.useFakeTimers();
     render(<AiContentEngineDemo feature={feature} />);
+    // Selecting a template streams it on its own -- the demo never sits on a
+    // blank box waiting for a Generate click.
     fireEvent.click(screen.getByRole("button", { name: "Event teaser" }));
-    fireEvent.click(screen.getByRole("button", { name: "Generate" }));
     act(() => vi.advanceTimersByTime(3000));
     const out = screen.getByLabelText("Generated output");
     expect(out).toHaveTextContent(/northern reach/);
