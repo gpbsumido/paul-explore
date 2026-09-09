@@ -181,7 +181,10 @@ export default function SlugDashboardsDemo({
           ))}
         </div>
         <div
-          className="min-h-24 flex-1"
+          // Concrete min-height so recharts' ResponsiveContainer measures a real
+          // box on mount, and overflow-hidden so the SVG can never spill past the
+          // card onto the config below while layout settles.
+          className="min-h-[10rem] flex-1 overflow-hidden"
           data-testid="dashboard-chart"
           data-chart-type={config.chart}
         >
