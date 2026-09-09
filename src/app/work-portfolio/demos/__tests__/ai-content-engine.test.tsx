@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { render, screen, fireEvent, act, within } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import AiContentEngineDemo from "../ai-content-engine";
 import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 
@@ -19,21 +19,18 @@ describe("ai content engine demo", () => {
     expect(out).toHaveTextContent(/northern reach/);
   });
 
-  it("posts to social in a chosen character voice", () => {
+  it("posts to the chosen platform in the chosen personality", () => {
     vi.useFakeTimers();
     render(<AiContentEngineDemo feature={feature} />);
-    fireEvent.click(screen.getByRole("button", { name: "Post to social" }));
 
-    const dialog = screen.getByRole("dialog", { name: "Post to social" });
-    // pick a platform and a voice, then post
-    fireEvent.click(within(dialog).getByRole("button", { name: "Reddit" }));
-    fireEvent.click(within(dialog).getByRole("button", { name: "Meme Lord" }));
-    // preview restyles the copy in the chosen voice
-    expect(within(dialog).getByText(/no cap/i)).toBeInTheDocument();
+    // Platform and personality are picked inline on the surface, not in a modal.
+    fireEvent.click(screen.getByRole("button", { name: "Reddit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Meme Lord" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Post to / }));
 
-    fireEvent.click(within(dialog).getByRole("button", { name: /^Post to / }));
-    expect(screen.getByText(/Posted as Meme Lord/i)).toBeInTheDocument();
-    expect(screen.getByText(/Reddit/)).toBeInTheDocument();
+    expect(screen.getByText(/Posted as Meme Lord/i)).toHaveTextContent(
+      /Reddit/,
+    );
 
     act(() => vi.advanceTimersByTime(4000));
     expect(screen.getByLabelText("Generated output")).toHaveTextContent(

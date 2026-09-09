@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Modal from "@/components/ui/Modal";
-import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, hsl(324 52% 55%))";
@@ -57,92 +55,6 @@ const PLATFORMS = [
 ] as const;
 type Platform = (typeof PLATFORMS)[number];
 
-/** Confirm-post modal: pick a platform and character voice, preview, post. */
-function PostModal({
-  template,
-  onClose,
-  onPost,
-}: {
-  template: Template;
-  onClose: () => void;
-  onPost: (voice: Voice, platform: Platform) => void;
-}) {
-  const [voice, setVoice] = useState<Voice>(VOICES[0]);
-  const [platform, setPlatform] = useState<Platform>(PLATFORMS[0]);
-  return (
-    <Modal open onClose={onClose} aria-label="Post to social">
-      <div className="flex flex-col gap-3">
-        <p className={`${console_} text-[13px] text-foreground`}>
-          Post to social <span className="lowercase">(not really)</span>
-        </p>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium text-muted">Platform</span>
-          <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Platform">
-            {PLATFORMS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                aria-pressed={platform.id === p.id}
-                onClick={() => setPlatform(p)}
-                className={`flex flex-col items-center gap-0.5 rounded-lg border py-2 text-[11px] transition-colors ${
-                  platform.id === p.id
-                    ? "border-transparent text-white"
-                    : "border-border text-muted hover:bg-white/5"
-                }`}
-                style={
-                  platform.id === p.id ? { backgroundColor: ACCENT } : undefined
-                }
-              >
-                <span aria-hidden className="text-base leading-none">
-                  {p.icon}
-                </span>
-                {p.name}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium text-muted">
-            Character voice
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {VOICES.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                aria-pressed={voice.id === v.id}
-                onClick={() => setVoice(v)}
-                className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
-                  voice.id === v.id
-                    ? "border-transparent text-white"
-                    : "border-border text-muted hover:bg-white/5"
-                }`}
-                style={
-                  voice.id === v.id ? { backgroundColor: ACCENT } : undefined
-                }
-              >
-                {v.name}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-lg border border-border bg-background p-2.5 text-[12px] leading-relaxed text-foreground">
-          <span className="mr-1 text-muted">{platform.handle}</span>
-          {voice.style(OUTPUT[template])}
-        </div>
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button size="sm" onClick={() => onPost(voice, platform)}>
-            Post to {platform.name}
-          </Button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
 /**
  * Vignette: the platform console's AI content module. Pick a template and
  * generate canned copy that streams in; or post it to social in a chosen
@@ -158,9 +70,15 @@ export default function AiContentEngineDemo({
   // on arrival; interacting (pick a template, Generate, Post) streams live.
   const [output, setOutput] = useState(OUTPUT["Patch notes"]);
   const [busy, setBusy] = useState(false);
-  const [posting, setPosting] = useState(false);
+  const [platform, setPlatform] = useState<Platform>(PLATFORMS[0]);
+  const [voice, setVoice] = useState<Voice>(VOICES[0]);
+  const [hashtags, setHashtags] = useState(true);
   const [postedVoice, setPostedVoice] = useState<string | null>(null);
   const [postedTo, setPostedTo] = useState<string | null>(null);
+
+  // Compose the copy through the chosen personality and settings.
+  const compose = (t: Template) =>
+    voice.style(OUTPUT[t]) + (hashtags ? " #Season4 #gaming" : "");
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -193,20 +111,19 @@ export default function AiContentEngineDemo({
   const pick = (t: Template) => {
     setPostedVoice(null);
     setTemplate(t);
-    stream(OUTPUT[t]);
+    stream(compose(t));
   };
 
   const generate = () => {
     if (busy) return;
     setPostedVoice(null);
-    stream(OUTPUT[template]);
+    stream(compose(template));
   };
 
-  const post = (voice: Voice, platform: Platform) => {
-    setPosting(false);
+  const post = () => {
     setPostedVoice(voice.name);
     setPostedTo(`${platform.handle} on ${platform.name}`);
-    stream(voice.style(OUTPUT[template]));
+    stream(compose(template));
   };
 
   return (
@@ -253,10 +170,10 @@ export default function AiContentEngineDemo({
         <div className="ml-auto flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setPosting(true)}
+            onClick={post}
             className="paul-touch-min rounded-md border border-border px-3 py-1 text-[12px] text-foreground transition-colors hover:bg-foreground/5"
           >
-            Post to social
+            Post to {platform.name}
           </button>
           <button
             type="button"
@@ -268,6 +185,65 @@ export default function AiContentEngineDemo({
             {busy ? "Generating…" : "Generate"}
           </button>
         </div>
+      </div>
+
+      {/* Settings: where it posts, its personality, and extras */}
+      <div className="grid gap-2 rounded-lg border border-border bg-white/[0.03] p-2.5 sm:grid-cols-2">
+        <div>
+          <p className={`${console_} mb-1 text-[10px] text-muted`}>Post to</p>
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Platform">
+            {PLATFORMS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                aria-label={p.name}
+                aria-pressed={platform.id === p.id}
+                onClick={() => setPlatform(p)}
+                className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                  platform.id === p.id
+                    ? "border-transparent text-white"
+                    : "border-border text-muted hover:bg-white/5"
+                }`}
+                style={
+                  platform.id === p.id ? { backgroundColor: ACCENT } : undefined
+                }
+              >
+                {p.icon} {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className={`${console_} mb-1 text-[10px] text-muted`}>Personality</p>
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Personality">
+            {VOICES.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                aria-label={v.name}
+                aria-pressed={voice.id === v.id}
+                onClick={() => setVoice(v)}
+                className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+                  voice.id === v.id
+                    ? "border-transparent text-white"
+                    : "border-border text-muted hover:bg-white/5"
+                }`}
+                style={voice.id === v.id ? { backgroundColor: ACCENT } : undefined}
+              >
+                {v.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-[11px] text-muted sm:col-span-2">
+          <input
+            type="checkbox"
+            aria-label="Add hashtags"
+            checked={hashtags}
+            onChange={(e) => setHashtags(e.target.checked)}
+          />
+          Add hashtags to the post
+        </label>
       </div>
 
       {postedVoice && (
@@ -303,14 +279,6 @@ export default function AiContentEngineDemo({
           </span>
         )}
       </div>
-
-      {posting && (
-        <PostModal
-          template={template}
-          onClose={() => setPosting(false)}
-          onPost={post}
-        />
-      )}
     </div>
   );
 }
