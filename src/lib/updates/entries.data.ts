@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-league-espn-additive",
+    date: "2026-09-08",
+    version: "6.4.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Add ESPN leagues to your league — and still bet everything else",
+    summary:
+      "A league's commissioner can add public ESPN fantasy leagues on the league page. Their matchups show on the board to bet, and the league stays free to bet everything else.",
+    body: [
+      "Running a league, you can now add one or more public ESPN fantasy leagues to it — sport, id, season, an optional label — right on the league page, and remove them again. Everyone in the league sees which are added; only the commissioner manages the list.",
+      "This is additive, not a cage: the added leagues' weekly matchups start showing on the board, and members bet them alongside real-sports lines and anything else. It reuses the same wallet, ledger and settlement as the rest of ZeroProof.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-bet-line",
     date: "2026-09-08",
     version: "6.3.0",
@@ -31,12 +46,12 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
     version: "6.2.0",
     category: "feature",
     tags: ["zeroproof"],
-    title: "Bet ESPN fantasy matchups, and bind a league to one",
+    title: "Bet ESPN fantasy matchups",
     summary:
-      "Fantasy matchups show up on the board with a Fantasy badge, and you can create a league bound to one ESPN fantasy league so members only bet its weekly games.",
+      "Fantasy matchups show up on the board with a Fantasy badge, and bet like anything else.",
     body: [
       "The board now carries ESPN fantasy head-to-head matchups alongside the real-sports lines — each badged Fantasy Football or Fantasy Basketball so you know which is which — and they bet like anything else.",
-      "Creating a league, you can optionally bind it to a single ESPN fantasy league by sport, id and season. A bound league's members can only bet that league's matchups, and its page says so. It reuses the same wallet, ledger and settlement as the rest of ZeroProof — a fantasy matchup is just another event that settles on the weekly score.",
+      "It reuses the same wallet, ledger and settlement as the rest of ZeroProof — a fantasy matchup is just another event that settles on the weekly score. Adding ESPN leagues to a contest you run came next.",
     ],
     resolvedTicketIds: [],
   },

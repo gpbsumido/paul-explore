@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-08 - version 6.4.0
+
+- **A league commissioner manages ESPN leagues on the league page — additive, not restrictive.** The old create form let you "bind" a league to one ESPN league so members could *only* bet its matchups; that fieldset and its copy are gone. Instead the league page has an ESPN leagues section: everyone sees the added leagues, and the commissioner gets an add form (sport, id, season, optional label) and a remove button per league, gated on `detail.isCommissioner`. Added leagues' matchups show on the board to bet, and the league stays free to bet everything else. New BFF routes `POST/DELETE /api/zeroproof/leagues/:id/espn-leagues[/:espnId]` proxy the commissioner endpoints; the detail schema carries `espnLeagues`. Covered by tests: the list renders, the commissioner's add form posts, and a non-commissioner sees neither add nor remove.
+
 ## 2026-09-08 - version 6.3.0
 
 - **The board shows my bets on a fixture, not just a badge.** A card I've bet on now lists each bet — selection, market, stake, odds, and a coloured status once it grades — instead of only flagging that I'm in. It threads the bets the board already fetches into `EventCard` (no extra request) and reuses `BetHistory`'s formatting, so the figures match Your record. Moved `BET_STATUS_STYLE` above `EventCard` so both share it. Covered by a board test asserting the selection and stake render in a per-card "Your bets on this matchup" list; two existing tests that assumed a status label was unique now scope to their panel.
