@@ -7,10 +7,17 @@ import Button from "@/components/ui/Button";
 import IconButton from "@/components/ui/IconButton";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #b951c9)";
+const ACCENT = "var(--wp-accent, hsl(300 66% 60%))";
+const poster = "font-display font-bold uppercase tracking-tight";
 const STATS = ["STR", "AGI", "INT", "LCK"] as const;
 type Stat = (typeof STATS)[number];
 type Stats = Record<Stat, number>;
+const STAT_COLOR: Record<Stat, string> = {
+  STR: "hsl(336 100% 62%)",
+  AGI: "hsl(167 74% 56%)",
+  INT: "hsl(253 100% 71%)",
+  LCK: "hsl(42 100% 62%)",
+};
 const CLASSES = ["Ranger", "Warrior", "Mage", "Rogue"];
 const BUDGET = 30;
 
@@ -52,7 +59,10 @@ function StatRow({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-8 text-[11px] font-medium text-foreground">
+      <span
+        className={`${poster} w-8 text-[12px]`}
+        style={{ color: STAT_COLOR[stat] }}
+      >
         {stat}
       </span>
       <IconButton
@@ -63,10 +73,13 @@ function StatRow({
       >
         −
       </IconButton>
-      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/10">
         <span
           className="block h-full rounded-full"
-          style={{ width: `${value * 10}%`, backgroundColor: ACCENT }}
+          style={{
+            width: `${value * 10}%`,
+            background: `linear-gradient(90deg, color-mix(in srgb, ${STAT_COLOR[stat]} 60%, transparent), ${STAT_COLOR[stat]})`,
+          }}
         />
       </span>
       <span className="w-5 text-right text-[11px] tabular-nums text-foreground">
@@ -236,45 +249,67 @@ export default function CharacterSheetsDemo({
     );
 
   return (
-    <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">
-          {feature.title}
-        </p>
+    <div
+      className="flex min-h-full flex-col gap-4 p-5 text-foreground"
+      style={{
+        backgroundImage:
+          "radial-gradient(50% 42% at 6% 0%, hsl(253 100% 71% / 0.22), transparent 60%), radial-gradient(46% 40% at 94% 6%, hsl(336 100% 62% / 0.18), transparent 62%)",
+      }}
+    >
+      <header className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[12px] font-semibold text-muted">
+            Content engine <span style={{ color: STAT_COLOR.INT }}>/</span>{" "}
+            party roster
+          </p>
+          <h2 className={`${poster} mt-1 text-3xl leading-[0.9] sm:text-4xl`}>
+            {feature.title}
+          </h2>
+        </div>
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="rounded-md px-3 py-1.5 text-[12px] font-medium text-white"
-          style={{ backgroundColor: ACCENT }}
+          className={`${poster} rounded-xl px-4 py-2 text-[13px] text-background shadow-lg transition-transform hover:-translate-y-0.5`}
+          style={{
+            background: `linear-gradient(135deg, ${STAT_COLOR.LCK}, ${STAT_COLOR.STR} 80%)`,
+          }}
         >
           New character
         </button>
-      </div>
+      </header>
 
-      <div className="grid min-h-0 flex-1 gap-3 sm:grid-cols-[9rem_1fr]">
-        <ul aria-label="Roster" className="min-h-0 space-y-1 overflow-y-auto">
+      <div className="grid min-h-0 flex-1 gap-3 sm:grid-cols-[10rem_1fr]">
+        <ul
+          aria-label="Roster"
+          className="min-h-0 space-y-1.5 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-sm"
+        >
           {characters.map((c) => (
             <li key={c.id}>
               <button
                 type="button"
                 aria-pressed={c.id === selected.id}
                 onClick={() => setSelectedId(c.id)}
-                className={`w-full rounded-md border px-2.5 py-1.5 text-left transition-colors ${
+                className={`w-full rounded-lg border px-2.5 py-2 text-left transition-colors ${
                   c.id === selected.id
-                    ? "border-foreground/40 bg-foreground/[0.04]"
-                    : "border-border hover:bg-foreground/[0.02]"
+                    ? "border-white/25 bg-white/10"
+                    : "border-transparent hover:bg-white/5"
                 }`}
               >
-                <span className="block truncate text-[12px] text-foreground">
+                <span className={`${poster} block truncate text-[13px] text-foreground`}>
                   {c.name}
                 </span>
-                <span className="text-[10px] text-muted">{c.cls}</span>
+                <span
+                  className="text-[10px] font-semibold"
+                  style={{ color: ACCENT }}
+                >
+                  {c.cls}
+                </span>
               </button>
             </li>
           ))}
         </ul>
 
-        <div className="flex min-h-0 flex-col gap-2">
+        <div className="flex min-h-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
           <div className="grid grid-cols-2 gap-2">
             <Input
               label="Name"
@@ -290,14 +325,23 @@ export default function CharacterSheetsDemo({
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-muted">
-            <span>Stat points</span>
-            <span data-testid="stat-total">
+          <div className="flex items-center gap-2 text-[11px] text-muted">
+            <span className={`${poster} text-[11px]`}>Stat points</span>
+            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+              <span
+                className="block h-full rounded-full transition-[width]"
+                style={{
+                  width: `${(total / BUDGET) * 100}%`,
+                  background: `linear-gradient(90deg, ${STAT_COLOR.AGI}, ${STAT_COLOR.STR})`,
+                }}
+              />
+            </span>
+            <span data-testid="stat-total" className="tabular-nums">
               {total} / {BUDGET}
             </span>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-2">
+          <div className="min-h-0 flex-1 space-y-2.5">
             {STATS.map((s) => (
               <StatRow
                 key={s}
