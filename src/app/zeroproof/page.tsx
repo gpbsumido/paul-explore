@@ -31,6 +31,9 @@ export default function ZeroProofPage() {
     <PageShell>
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "ZeroProof" }]}
+        // Above the board's own sticky control bar (z-20), so the header's
+        // theme dropdown isn't painted over by it when it opens.
+        zIndex="z-30"
       />
       <main>
         <ZeroProofContent />

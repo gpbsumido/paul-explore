@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-tour",
+    date: "2026-09-09",
+    version: "6.7.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "A guided tour of the ZeroProof lobby",
+    summary:
+      "New to ZeroProof? The lobby now offers a quick click-through tour — it asks first, then walks you through the board, leagues, leaderboard and your record, one highlight at a time.",
+    body: [
+      "The ZeroProof lobby packs a lot into a few tabs, and it wasn't obvious where to start. A first visit now opens with a simple question — take a quick tour? — and only if you say yes does it walk you through the place, spotlighting each part and switching to its tab as it goes.",
+      "It never nags: decline it or finish it once and it stays gone, but a Take-the-tour button in the header brings it back whenever you want a refresher.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-work-portfolio-polish",
     date: "2026-09-09",
     version: "6.6.0",
