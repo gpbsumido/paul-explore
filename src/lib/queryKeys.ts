@@ -289,5 +289,8 @@ export const queryKeys = {
 
     /** The signed-in player's leagues. */
     myLeagues: () => ["zeroproof", "leagues", "mine"] as const,
+
+    /** The ESPN-league registry (admin). */
+    espnLeagues: () => ["zeroproof", "espn-leagues"] as const,
   },
 } as const;

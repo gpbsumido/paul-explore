@@ -3,6 +3,9 @@
 ## 2026-09-08 - version 6.3.0
 
 - **The board shows my bets on a fixture, not just a badge.** A card I've bet on now lists each bet — selection, market, stake, odds, and a coloured status once it grades — instead of only flagging that I'm in. It threads the bets the board already fetches into `EventCard` (no extra request) and reuses `BetHistory`'s formatting, so the figures match Your record. Moved `BET_STATUS_STYLE` above `EventCard` so both share it. Covered by a board test asserting the selection and stake render in a per-card "Your bets on this matchup" list; two existing tests that assumed a status label was unique now scope to their panel.
+## 2026-09-08 - version 6.2.1
+
+- **An admin page to manage which ESPN leagues get ingested.** `/zeroproof/admin/espn-leagues` lists the registered ESPN fantasy leagues, adds one (sport, id, season, optional label), and removes one — so a league is added in-app rather than by editing `ESPN_FANTASY_LEAGUES` and redeploying. It's admin-only: the route is session-protected and the page 404s anyone off the allowlist, like `/to-do`, and the BFF routes go through `withAdminBackend`. A patch, not a minor, because there's no change to the public product — this surface only exists for me. Covered by route tests (admin gate, add/validation/remove) and a component test with an axe check.
 
 ## 2026-09-08 - version 6.2.0
 
