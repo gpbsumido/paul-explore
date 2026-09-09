@@ -107,6 +107,9 @@ const renderPage = (
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  // These tests exercise the lobby, not the first-visit tour — mark it seen so
+  // the tour doesn't auto-open over them. Its own flow is covered separately.
+  window.localStorage.setItem("zeroproof-tour-seen", "true");
   return render(
     <QueryClientProvider client={client}>
       <ThemeProvider>
