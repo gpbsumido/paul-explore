@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import { ToastProvider } from "@/contexts/ToastContext";
-import ToastNotification from "@/components/operator/ToastNotification";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import ZeroProofContent from "./ZeroProofContent";
 
@@ -38,10 +36,7 @@ export default function ZeroProofPage() {
         zIndex="z-30"
       />
       <main>
-        <ToastProvider>
-          <ZeroProofContent />
-          <ToastNotification />
-        </ToastProvider>
+        <ZeroProofContent />
       </main>
     </PageShell>
   );

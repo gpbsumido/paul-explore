@@ -14,7 +14,6 @@ import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
-import { useToast } from "@/contexts/ToastContext";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -643,7 +642,6 @@ function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
 
 function useOpenWallet() {
   const queryClient = useQueryClient();
-  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (mode: "season" | "challenge") => {
       // A Season wallet needs a deposit ($20 minimum on the backend); default to
@@ -668,8 +666,6 @@ function useOpenWallet() {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() }),
-    onError: (err) =>
-      addToast({ message: (err as Error).message, variant: "error" }),
   });
 }
 
@@ -730,7 +726,6 @@ function centsFromDollars(input: string): number | null {
 
 function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
   const queryClient = useQueryClient();
-  const { addToast } = useToast();
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
     queryFn: fetchProfile,
@@ -779,8 +774,6 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
       setStake("");
     },
-    onError: (err) =>
-      addToast({ message: (err as Error).message, variant: "error" }),
   });
 
   return (

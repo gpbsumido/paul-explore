@@ -7,11 +7,15 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  MutationCache,
+} from "@tanstack/react-query";
+import { Toaster } from "@paul-portfolio/react";
 import { server } from "@/test/server";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { ToastProvider } from "@/contexts/ToastContext";
-import ToastNotification from "@/components/operator/ToastNotification";
+import { notifyMutationError } from "@/lib/mutationErrorToast";
 import { axe } from "@/test/a11y";
 import ZeroProofContent from "./ZeroProofContent";
 
@@ -849,8 +853,22 @@ describe("ZeroProofContent — error recovery", () => {
 });
 
 describe("ZeroProofContent — wallet error toast", () => {
+  // The Toaster store is a module-level singleton, so clear anything a test raised.
+  afterEach(() => {
+    document.querySelectorAll(".toast__dismiss").forEach((btn) => {
+      fireEvent.click(btn);
+    });
+  });
+
+  // A ZeroProof write error rides the app-wide handler (providers.tsx): a
+  // MutationCache whose onError toasts through the shared Toaster. The test
+  // wires the same pieces so it proves the real path, not a bespoke one.
   const renderWithToasts = () => {
     const client = new QueryClient({
+      mutationCache: new MutationCache({
+        onError: (error, _v, _c, mutation) =>
+          notifyMutationError(error, mutation.meta),
+      }),
       defaultOptions: {
         queries: { retry: false },
         mutations: { retry: false },
@@ -860,10 +878,8 @@ describe("ZeroProofContent — wallet error toast", () => {
     return render(
       <QueryClientProvider client={client}>
         <ThemeProvider>
-          <ToastProvider>
-            <ZeroProofContent />
-            <ToastNotification />
-          </ToastProvider>
+          <ZeroProofContent />
+          <Toaster />
         </ThemeProvider>
       </QueryClientProvider>,
     );
