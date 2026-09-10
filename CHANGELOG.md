@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-10 - version 6.8.2
+
+- **Disable "Open a Season wallet" once you already have an active one.** You can only hold one active season wallet, so a second request just 409s (`You already have an active season wallet`). The record tab now disables the button when an active season wallet is present — with a title and a short "You already have an active season wallet" note — instead of letting the click fail. The Challenge button is unaffected. Covered by a test on the record tab.
+
 ## 2026-09-10 - version 6.8.1
 
 - **Every feature tour now runs on the published design-system `GuidedTour`.** The tour engine I built here became a `@paul-portfolio/react` primitive; this consumes it back and deletes the local copy. `FeatureTour` renders `GuidedTour` from the package (react `^0.8.0`, css `^0.10.0`, whose `guided-tour.css` rides in through the `components.css` already imported in `globals.css`) for all of them — Fantasy, Pokémon TCG, operator, vitals, design-system, and ZeroProof. ZeroProof switches tabs as the tour walks them, which needed the per-step `onEnter` hook I added to the primitive in `@paul-portfolio/react@0.8.0`; the app just maps its steps across. The app's own `src/components/GuidedTour/GuidedTour.tsx` overlay is gone — one tour engine now, the design system's. The consent step uses the primitive's Skip / Next controls. Covered by the per-tour tests, updated for the primitive's controls; the `useGuidedTour` hook (auto-open on first visit) stays. The design-system showcase also gains a `GuidedTour` card, since its catalog integrity check requires every package export to be documented and previewed.
