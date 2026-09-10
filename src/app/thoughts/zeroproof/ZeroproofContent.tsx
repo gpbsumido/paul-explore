@@ -662,22 +662,27 @@ await disableTours(page);`}
           The lobby tour switches tabs as it walks them, and I&apos;d deliberately
           shipped the design-system primitive <em>without</em> a per-step side
           effect — a coach-mark library shouldn&apos;t assume its host has tabs.
-          So the published version literally can&apos;t drive ZeroProof&apos;s
-          tab-switching. Rather than regress it, <code className={code}>FeatureTour</code>{" "}
-          keeps any tour with an <code className={code}>onEnter</code> step on the
-          local engine and routes the rest to the package:
+          So the first published version literally couldn&apos;t drive
+          ZeroProof&apos;s tab-switching. As a stopgap while the primitive caught
+          up, <code className={code}>FeatureTour</code> kept any tour with an{" "}
+          <code className={code}>onEnter</code> step on the local engine and
+          routed the rest to the package:
         </p>
         <pre className={pre}>
           {`const needsLocalEngine = steps.some((step) => step.onEnter);
-// ZeroProof (onEnter) -> local engine; the rest -> @paul-portfolio/react`}
+// stopgap: ZeroProof -> local engine; the rest -> @paul-portfolio/react`}
         </pre>
         <p className="text-muted">
           Then I added the missing piece upstream — a per-step{" "}
           <code className={code}>onEnter</code> hook on the design-system{" "}
-          <code className={code}>GuidedTour</code>. Once that version publishes,
-          ZeroProof folds onto the package too and the local overlay goes away.
-          The right shape for the primitive turned out to be the one the hardest
-          consumer needed, which is exactly what dogfooding is for.
+          <code className={code}>GuidedTour</code>, shipped in{" "}
+          <code className={code}>@paul-portfolio/react@0.8.0</code>. With that
+          published, the stopgap branch came out: every tour, ZeroProof included,
+          now maps its steps straight onto the package and the local{" "}
+          <code className={code}>GuidedTour.tsx</code> overlay is deleted. One
+          tour engine, the design system&apos;s. The right shape for the
+          primitive turned out to be the one the hardest consumer needed, which
+          is exactly what dogfooding is for.
         </p>
       </Update>
 
