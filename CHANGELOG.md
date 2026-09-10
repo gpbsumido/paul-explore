@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-10 - version 6.9.1
+
+- **The ZeroProof lobby can recover from a failed load.** The board, leaderboard and profile each poll a backend that can blip, and a bare "unavailable" line stranded the reader — the only move was a full reload. Each failed load now uses a shared `QueryError`: it says what failed (announced as an `alert`) and offers a **Try again** button that refetches in place. This is the load-failure side, which the global error toast (6.9.0) deliberately doesn't touch. Covered by a component test and a board recovery test (fail → retry → the error clears once it answers).
+- **Friendlier messages when a wallet or bet action fails.** Opening a season or challenge wallet, or placing a bet, now throws a plain-language fallback ("Couldn't open the wallet — please try again.") when the server gives no reason, and the backend's own message ("You already have an active season wallet") where it does. Those messages surface through the app-wide error toast added in 6.9.0 — the lobby no longer wires its own toast provider, so there's one toast path, not two.
+
 ## 2026-09-10 - version 6.9.0
 
 - **Every failed API write now raises an error toast.** A write that fails used to be silent unless the one screen that made it happened to catch and render the error itself — most didn't. The app QueryClient now carries a `MutationCache` whose `onError` surfaces every mutation failure as a toast, app-wide, so no write can fail unseen. The toast shows the backend's own message where there is one (so "You already have an active season wallet" reaches you verbatim) and a plain "Something went wrong. Please try again." where there isn't. A screen that shows its own inline error opts out with `meta: { silent: true }` on the mutation, so nothing is double-reported.

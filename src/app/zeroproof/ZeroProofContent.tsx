@@ -13,6 +13,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import LeaguesPanel from "./LeaguesPanel";
+import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -359,9 +360,10 @@ function Slate({
       )}
 
       {eventsQuery.isError && (
-        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
-          The board is unavailable right now.
-        </p>
+        <QueryError
+          message="The board is unavailable right now."
+          onRetry={() => eventsQuery.refetch()}
+        />
       )}
 
       {eventsQuery.data && allEvents.length === 0 && (
@@ -538,9 +540,10 @@ function Leaderboard() {
       )}
 
       {boardQuery.isError && (
-        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
-          The leaderboard is unavailable right now.
-        </p>
+        <QueryError
+          message="The leaderboard is unavailable right now."
+          onRetry={() => boardQuery.refetch()}
+        />
       )}
 
       {boardQuery.data && boardQuery.data.entries.length === 0 && (
@@ -655,7 +658,9 @@ function useOpenWallet() {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? `Couldn't open a wallet (${res.status})`);
+        throw new Error(
+          body?.error ?? "Couldn't open the wallet — please try again.",
+        );
       }
       return res.json();
     },
@@ -706,11 +711,6 @@ function OpenWalletActions({
       {hasActiveSeason && (
         <p className="mt-2 text-xs text-muted">
           You already have an active season wallet.
-        </p>
-      )}
-      {open.isError && (
-        <p className="mt-2 text-xs text-error-600 dark:text-error-300">
-          {(open.error as Error).message}
         </p>
       )}
     </div>
@@ -764,7 +764,9 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? `Couldn't place the bet (${res.status})`);
+        throw new Error(
+          body?.error ?? "Couldn't place the bet — please try again.",
+        );
       }
       return res.json();
     },
@@ -850,11 +852,6 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
         </div>
       )}
 
-      {placeBet.isError && (
-        <p className="mt-2 text-xs text-error-600 dark:text-error-300">
-          {(placeBet.error as Error).message}
-        </p>
-      )}
       {placeBet.isSuccess && (
         <p className="mt-2 text-xs text-success-600 dark:text-success-300">
           Bet placed — your balance is updated below.
@@ -986,9 +983,10 @@ function Profile() {
       )}
 
       {profileQuery.isError && (
-        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
-          Couldn&apos;t load your profile right now.
-        </p>
+        <QueryError
+          message="Couldn't load your profile right now."
+          onRetry={() => profileQuery.refetch()}
+        />
       )}
 
       {profileQuery.data?.signedOut && (
