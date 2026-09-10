@@ -2,8 +2,14 @@
 
 import { createContext, useContext, useState } from "react";
 import { LazyMotion, useReducedMotion } from "framer-motion";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  MutationCache,
+} from "@tanstack/react-query";
+import { Toaster } from "@paul-portfolio/react";
 import dynamic from "next/dynamic";
+import { notifyMutationError } from "@/lib/mutationErrorToast";
 
 // Dev-only, and loaded through a dynamic import guarded by NODE_ENV so the
 // devtools module can never reach the production bundle (a static import leaves
@@ -55,6 +61,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
+        // Any failed write (mutation) raises an error toast, so no API failure
+        // is silent, wherever it happens. A screen that shows its own inline
+        // error opts out with `meta: { silent: true }` on the mutation.
+        mutationCache: new MutationCache({
+          onError: (error, _variables, _context, mutation) =>
+            notifyMutationError(error, mutation.meta),
+        }),
         defaultOptions: {
           queries: {
             // 1 minute is a reasonable default for most of the app. Individual
@@ -84,6 +97,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {children}
         </LazyMotion>
       </ReducedMotionProvider>
+      {/* One app-wide notification region. The global mutation-error handler
+          above raises error toasts here, and any screen can call toast.* too. */}
+      <Toaster />
       {process.env.NODE_ENV === "development" && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}

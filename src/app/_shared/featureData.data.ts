@@ -617,6 +617,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#8f52cb",
   },
   {
+    title: "Error Toasts",
+    href: "/thoughts/error-toasts",
+    preview:
+      "Catching every failed write at one layer: a React Query MutationCache onError that raises a toast app-wide, an imperative toast() built in the design system so it works outside React, an SSR-safe portal, and an accessible live region",
+    color: "#c0563f",
+  },
+  {
     title: "Command Palette",
     href: "/thoughts/command-palette",
     preview:

@@ -96,6 +96,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/fantasy-tcg",
   "/thoughts/design-system-showcase",
   "/thoughts/e2e",
+  "/thoughts/error-toasts",
   "/thoughts/feature-flags",
   "/thoughts/gallery-wall",
   "/thoughts/graphql",
