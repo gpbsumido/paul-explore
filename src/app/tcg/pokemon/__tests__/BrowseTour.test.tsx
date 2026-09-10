@@ -38,7 +38,7 @@ describe("Pokémon TCG guided tour", () => {
     fireEvent.click(screen.getByRole("button", { name: /^tour$/i }));
     const tour = () => screen.getByRole("dialog", { name: /tour/i });
     fireEvent.click(
-      within(tour()).getByRole("button", { name: /show me around/i }),
+      within(tour()).getByRole("button", { name: /^next$/i }),
     );
     expect(within(tour()).getByText(/browse the catalog/i)).toBeInTheDocument();
   });

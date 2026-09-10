@@ -41,10 +41,10 @@ describe("Fantasy hub guided tour", () => {
     fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
     const tour = () => screen.getByRole("dialog", { name: /tour/i });
     expect(
-      within(tour()).getByRole("button", { name: /show me around/i }),
+      within(tour()).getByRole("button", { name: /^next$/i }),
     ).toBeInTheDocument();
     fireEvent.click(
-      within(tour()).getByRole("button", { name: /show me around/i }),
+      within(tour()).getByRole("button", { name: /^next$/i }),
     );
     expect(within(tour()).getByText(/fantasy nba hub/i)).toBeInTheDocument();
   });
