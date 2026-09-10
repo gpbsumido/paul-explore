@@ -410,6 +410,42 @@
 }
 
 /* ========================================
+   ACCESSIBILITY OVERRIDES (apple-design audit, Tier 1)
+   The app is built on glass; these honour the OS-level
+   transparency and contrast preferences. The blur itself
+   is stripped in globals.css under the same query.
+   ======================================== */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: rgb(244 244 246);
+    --glass-bg-hover: rgb(236 236 239);
+    --modal-bg: rgb(255 255 255);
+    --modal-backdrop: rgba(0, 0, 0, 0.55);
+  }
+  [data-theme="dark"] {
+    --glass-bg: rgb(28 28 30);
+    --glass-bg-hover: rgb(38 38 41);
+    --modal-bg: rgb(20 20 22);
+    --modal-backdrop: rgba(0, 0, 0, 0.72);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --glass-border: rgba(0, 0, 0, 0.55);
+    --glass-border-strong: rgba(0, 0, 0, 0.75);
+    --modal-border: rgba(0, 0, 0, 0.6);
+    --color-border: rgb(70 70 74);
+  }
+  [data-theme="dark"] {
+    --glass-border: rgba(255, 255, 255, 0.55);
+    --glass-border-strong: rgba(255, 255, 255, 0.78);
+    --modal-border: rgba(255, 255, 255, 0.5);
+    --color-border: rgb(190 190 196);
+  }
+}
+
+/* ========================================
    ANIMATIONS
    ======================================== */
 @keyframes spin {

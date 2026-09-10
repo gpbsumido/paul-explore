@@ -533,7 +533,28 @@
      them without touching forty files. Body, UI and code stay Geist. */
   h1 {
     font-family: var(--font-display);
+    /* Tracking is size-specific: letters read too far apart as display type
+       grows, so tighten more the larger it gets. Body/UI stays near 0. */
     letter-spacing: -0.02em;
+    /* Bricolage is a variable face with an opsz axis; let large headings pick
+       up their display-optimized letterforms. */
+    font-optical-sizing: auto;
+  }
+
+  /* Genuinely large display headings want tighter tracking still. Keyed by the
+     rendered size so a 30px section header and a 72px hero don't share one
+     value. Applies to Tailwind's size utilities used across the landing. */
+  h1.text-5xl,
+  h1.text-6xl,
+  h1.text-7xl,
+  .text-5xl,
+  .text-6xl,
+  .text-7xl {
+    letter-spacing: -0.03em;
+  }
+  .text-8xl,
+  .text-9xl {
+    letter-spacing: -0.04em;
   }
 
   /* Color scheme hint for browser chrome */
@@ -643,5 +664,48 @@
   92%,
   100% {
     opacity: 0;
+  }
+}
+
+/* ============================================================
+   Accessibility — reduced motion, reduced transparency, contrast
+   (apple-design audit, Tier 1)
+   ============================================================ */
+
+/* The two CSS loops the audit found without a guard. Every other loop above
+   already carries this; these were the outstanding gaps. */
+@media (prefers-reduced-motion: reduce) {
+  .hotspot-ring {
+    animation: none;
+  }
+  .animate-scroll-hint {
+    animation: none;
+  }
+}
+
+/* Ease the theme change instead of snapping the whole viewport's brightness in
+   one frame. Gated on no-preference so it never adds motion for someone who
+   asked for less -- a brightness cross-fade is still motion. */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --theme-transition:
+      background-color 300ms ease, color 300ms ease, border-color 300ms ease;
+  }
+  html,
+  body {
+    transition: var(--theme-transition);
+  }
+}
+
+/* Reduced transparency: strip the blur so glass reads as a solid surface. The
+   token opacities go opaque in tokens.css; this removes the backdrop-filter
+   from both class-based glass and the inline-styled chrome (PageHeader, Modal),
+   where an !important author rule outranks a non-important inline declaration. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card,
+  [class*="backdrop-blur"],
+  [style*="backdrop-filter"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 }

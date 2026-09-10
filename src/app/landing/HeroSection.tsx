@@ -84,7 +84,7 @@ export default function HeroSection() {
             (initial={false}) so the H1 is in the LCP paint. On mount the
             client replays the entrance from hidden. */}
         <m.h1
-          className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl"
+          className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl md:tracking-[-0.03em]"
           style={isDark ? H1_STYLE_DARK : H1_STYLE_LIGHT}
           variants={staggerContainer(0.08, 0.1)}
           initial={mounted ? "hidden" : false}
