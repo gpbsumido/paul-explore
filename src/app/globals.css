@@ -709,3 +709,34 @@
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* ============================================================
+   Press feedback (apple-design audit, Tier 2, §1 Response)
+   Every design-system button gives feedback only on hover and release. Apple's
+   first rule is to respond on pointer-DOWN. Reuse the DS timing tokens so the
+   hover transition is unchanged; add an instant press-scale, dropped under
+   reduced motion.
+   ============================================================ */
+.btn {
+  transition:
+    background-color var(--paul-duration-fast) var(--paul-easing-default),
+    color var(--paul-duration-fast) var(--paul-easing-default),
+    border-color var(--paul-duration-fast) var(--paul-easing-default),
+    box-shadow var(--paul-duration-fast) var(--paul-easing-default),
+    transform 100ms ease-out;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition:
+      background-color var(--paul-duration-fast) var(--paul-easing-default),
+      color var(--paul-duration-fast) var(--paul-easing-default),
+      border-color var(--paul-duration-fast) var(--paul-easing-default),
+      box-shadow var(--paul-duration-fast) var(--paul-easing-default);
+  }
+  .btn:active {
+    transform: none;
+  }
+}

@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { m, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
+import { useHubReducedMotion } from "@/app/providers";
+import { spring } from "@/lib/animations";
 import {
   useWeatherContext,
   type EffectChoice,
@@ -148,6 +151,7 @@ export default function HeaderMenu({
   const weather = useWeatherContext();
   const [effectOpen, setEffectOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const reduced = useHubReducedMotion();
   const queryClient = useQueryClient();
   const pathname = usePathname();
 
@@ -232,8 +236,18 @@ export default function HeaderMenu({
       </button>
 
       {/* Dropdown panel */}
-      {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl border border-border bg-surface shadow-lg ring-1 ring-black/5 dark:ring-white/5 z-50">
+      <AnimatePresence>
+        {open && (
+          <m.div
+            className="absolute right-0 top-full mt-1.5 w-44 rounded-xl border border-border bg-surface shadow-lg ring-1 ring-black/5 dark:ring-white/5 z-50"
+            // Scale out of the trigger's corner, not the menu's center, so the
+            // spatial link between button and panel is obvious (apple-design §7).
+            style={{ transformOrigin: "top right" }}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -6 }}
+            animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -6 }}
+            transition={reduced ? { duration: 0.12 } : spring.settle}
+          >
           {/* Theme picker */}
           <div className="p-2">
             <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
@@ -575,8 +589,9 @@ export default function HeaderMenu({
               </div>
             </>
           )}
-        </div>
-      )}
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

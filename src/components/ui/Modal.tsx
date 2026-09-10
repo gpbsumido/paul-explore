@@ -207,8 +207,8 @@ export default function Modal({
             }}
             initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={spring.bounce}
+            exit={{ opacity: 0, scale: 0.94, y: 16 }}
+            transition={spring.settle}
           >
             {/* Iridescent hairline along the top edge — a subtle premium cue,
                 decorative and non-interactive so it stays out of the focus trap. */}

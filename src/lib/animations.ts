@@ -27,6 +27,11 @@ export const spring = {
   /** A little elastic, good for cards and list items popping in. */
   bounce: { type: "spring", stiffness: 300, damping: 18 } satisfies Transition,
 
+  /** Critically damped — reaches the target with no overshoot. For overlays and
+   *  menus that just appear, where there's no gesture momentum to preserve.
+   *  Apple: reserve overshoot for a flick or a throw, not a faded-in dialog. */
+  settle: { type: "spring", stiffness: 300, damping: 34 } satisfies Transition,
+
   /** Slow and easy, for large layout transitions that shouldn't feel rushed. */
   gentle: { type: "spring", stiffness: 120, damping: 22 } satisfies Transition,
 
