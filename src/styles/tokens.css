@@ -304,6 +304,24 @@
   --shadow-xl: var(--paul-shadow-xl);
   --shadow-2xl: var(--paul-shadow-2xl);
 
+  /* The highest-elevation surface (the modal) reads deeper than any card.
+     Tokenised so "bigger surface = deeper shadow" is a value, not an eyeball. */
+  --elevation-modal:
+    0 32px 80px -28px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  /* ========================================
+     BLUR SCALE
+     A material reads thicker the bigger it is, so blur steps up with surface
+     size: chip < floating bar < panel < modal. One scale instead of six ad hoc
+     px values scattered across the chrome.
+     ======================================== */
+  --blur-chip: 14px;
+  --blur-bar: 16px;
+  --blur-panel: 24px;
+  --blur-modal: 28px;
+
   /* ========================================
      Z-INDEX SCALE — from @paul-portfolio/tokens
      ======================================== */

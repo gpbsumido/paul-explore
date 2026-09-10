@@ -192,8 +192,8 @@
   padding: 8px 12px;
   border-radius: 8px;
   background: rgb(4 4 16 / 0.93);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--blur-chip));
+  -webkit-backdrop-filter: blur(var(--blur-chip));
   border: 1px solid rgb(255 255 255 / 0.18);
   pointer-events: none;
   white-space: normal;
@@ -490,8 +490,8 @@
     var(--glass-accent, var(--color-foreground)) 5%,
     color-mix(in srgb, var(--color-surface) 72%, transparent)
   );
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--blur-chip));
+  -webkit-backdrop-filter: blur(var(--blur-chip));
   border: 1px solid
     color-mix(
       in srgb,

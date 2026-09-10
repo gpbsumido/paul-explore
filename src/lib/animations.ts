@@ -13,6 +13,28 @@
 import type { Transition, Variants } from "framer-motion";
 
 // ---------------------------------------------------------------------------
+// Momentum projection
+// ---------------------------------------------------------------------------
+
+/**
+ * Where a flick would come to rest, given its release velocity — the same
+ * exponential-decay model iOS scroll uses (from Apple's "Designing Fluid
+ * Interfaces"). Add the result to the current position to get the projected
+ * endpoint, then decide snap/dismiss from there rather than from where the
+ * finger happened to let go. This is what makes a flick feel like it throws.
+ *
+ * Not the physics-textbook v²/(2·decel) — the exponential form below is what
+ * Apple actually ships.
+ *
+ * @param velocity release velocity in px/s
+ * @param decelerationRate 0.998 for normal scroll feel, ~0.99 for snappier
+ * @returns additional distance (px) the momentum carries past the release point
+ */
+export function project(velocity: number, decelerationRate = 0.998): number {
+  return ((velocity / 1000) * decelerationRate) / (1 - decelerationRate);
+}
+
+// ---------------------------------------------------------------------------
 // Spring presets
 // ---------------------------------------------------------------------------
 

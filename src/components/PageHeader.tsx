@@ -128,8 +128,8 @@ export default function PageHeader({
 }: PageHeaderProps) {
   const glassStyle = {
     background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
+    backdropFilter: "blur(var(--blur-bar))",
+    WebkitBackdropFilter: "blur(var(--blur-bar))",
   };
 
   const navClassName = `sticky top-0 ${zIndex} min-h-14 border-b border-border`;
