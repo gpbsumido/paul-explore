@@ -3,6 +3,7 @@
 ## 2026-09-10 - version 6.8.3
 
 - **The ZeroProof lobby can recover from a failed load.** The board, leaderboard and profile each poll a backend that can blip, and a bare "unavailable" line stranded the reader — the only move was a full reload. Each failed load now uses a shared `QueryError`: it says what failed (announced as an `alert`) and offers a **Try again** button that refetches in place. Covered by a component test and a board recovery test (fail → retry → the error clears once it answers).
+- **Failed wallet and bet actions now raise an error toast instead of a small inline line.** Opening a season or challenge wallet, or placing a bet, surfaces the backend's own message (e.g. "You already have an active season wallet") in a dismissible error toast — a `ToastProvider` now wraps the lobby — with friendlier fallbacks when the server gives no reason ("Couldn't open the wallet — please try again."). Covered by a test that a 409 on opening a wallet shows the server's message as a toast.
 
 ## 2026-09-10 - version 6.8.2
 

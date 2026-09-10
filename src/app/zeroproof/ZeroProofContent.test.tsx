@@ -10,6 +10,8 @@ import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/contexts/ToastContext";
+import ToastNotification from "@/components/operator/ToastNotification";
 import { axe } from "@/test/a11y";
 import ZeroProofContent from "./ZeroProofContent";
 
@@ -843,5 +845,56 @@ describe("ZeroProofContent — error recovery", () => {
       expect(screen.queryByText(/board is unavailable/i)).not.toBeInTheDocument(),
     );
     expect(calls).toBe(2);
+  });
+});
+
+describe("ZeroProofContent — wallet error toast", () => {
+  const renderWithToasts = () => {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    window.localStorage.setItem("zeroproof-tour-seen", "true");
+    return render(
+      <QueryClientProvider client={client}>
+        <ThemeProvider>
+          <ToastProvider>
+            <ZeroProofContent />
+            <ToastNotification />
+          </ToastProvider>
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+  };
+
+  it("surfaces a failed wallet open as an error toast with the server's message", async () => {
+    server.use(
+      http.get("/api/zeroproof/events", () => HttpResponse.json(EVENTS)),
+      http.get("/api/zeroproof/leaderboard", () => HttpResponse.json(LEADERBOARD)),
+      http.get("/api/zeroproof/me", () =>
+        HttpResponse.json({ ...PROFILE, wallets: [] }),
+      ),
+      http.get("/api/zeroproof/bets", () => HttpResponse.json({ bets: [] })),
+      http.get("/api/zeroproof/leagues/mine", () =>
+        HttpResponse.json({ leagues: [] }),
+      ),
+      http.get("/api/zeroproof/leagues", () => HttpResponse.json({ leagues: [] })),
+      http.post("/api/zeroproof/wallets", () =>
+        HttpResponse.json(
+          { error: "Deposits are closed for the season." },
+          { status: 409 },
+        ),
+      ),
+    );
+    renderWithToasts();
+    await goToTab(/your record/i);
+    fireEvent.click(
+      await screen.findByRole("button", { name: /open a season wallet/i }),
+    );
+    expect(
+      await screen.findByText(/deposits are closed for the season/i),
+    ).toBeInTheDocument();
   });
 });

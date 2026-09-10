@@ -14,6 +14,7 @@ import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
+import { useToast } from "@/contexts/ToastContext";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -642,6 +643,7 @@ function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
 
 function useOpenWallet() {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (mode: "season" | "challenge") => {
       // A Season wallet needs a deposit ($20 minimum on the backend); default to
@@ -658,12 +660,16 @@ function useOpenWallet() {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? `Couldn't open a wallet (${res.status})`);
+        throw new Error(
+          body?.error ?? "Couldn't open the wallet — please try again.",
+        );
       }
       return res.json();
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() }),
+    onError: (err) =>
+      addToast({ message: (err as Error).message, variant: "error" }),
   });
 }
 
@@ -711,11 +717,6 @@ function OpenWalletActions({
           You already have an active season wallet.
         </p>
       )}
-      {open.isError && (
-        <p className="mt-2 text-xs text-error-600 dark:text-error-300">
-          {(open.error as Error).message}
-        </p>
-      )}
     </div>
   );
 }
@@ -729,6 +730,7 @@ function centsFromDollars(input: string): number | null {
 
 function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
     queryFn: fetchProfile,
@@ -767,7 +769,9 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? `Couldn't place the bet (${res.status})`);
+        throw new Error(
+          body?.error ?? "Couldn't place the bet — please try again.",
+        );
       }
       return res.json();
     },
@@ -775,6 +779,8 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
       setStake("");
     },
+    onError: (err) =>
+      addToast({ message: (err as Error).message, variant: "error" }),
   });
 
   return (
@@ -853,11 +859,6 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
         </div>
       )}
 
-      {placeBet.isError && (
-        <p className="mt-2 text-xs text-error-600 dark:text-error-300">
-          {(placeBet.error as Error).message}
-        </p>
-      )}
       {placeBet.isSuccess && (
         <p className="mt-2 text-xs text-success-600 dark:text-success-300">
           Bet placed — your balance is updated below.
