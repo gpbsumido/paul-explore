@@ -594,6 +594,24 @@ describe("ZeroProofContent — profile", () => {
     await waitFor(() => expect(openedMode).toBe("season"));
     expect(openedDeposit).toBeGreaterThanOrEqual(2000);
   });
+
+  it("disables the Season wallet button when an active season wallet already exists", async () => {
+    // PROFILE ships with an active season wallet, so opening a second would 409.
+    renderPage(() => HttpResponse.json(PROFILE));
+    await goToTab(/your record/i);
+
+    const seasonButton = await screen.findByRole("button", {
+      name: /open a season wallet/i,
+    });
+    expect(seasonButton).toBeDisabled();
+    expect(
+      screen.getByText(/already have an active season wallet/i),
+    ).toBeInTheDocument();
+    // Challenge is a different wallet type and stays available.
+    expect(
+      screen.getByRole("button", { name: /open a challenge wallet/i }),
+    ).not.toBeDisabled();
+  });
 });
 
 describe("ZeroProofContent — bet slip", () => {
