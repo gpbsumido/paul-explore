@@ -1,7 +1,6 @@
 "use client";
 
-import { GuidedTour as DsGuidedTour, type GuidedTourStep } from "@paul-portfolio/react";
-import LocalGuidedTour from "./GuidedTour";
+import { GuidedTour, type GuidedTourStep } from "@paul-portfolio/react";
 import { useGuidedTour } from "./useGuidedTour";
 import type { TourStep } from "./types";
 
@@ -11,11 +10,9 @@ import type { TourStep } from "./types";
  * so each feature remembers its own "seen" state, and the page's real steps.
  *
  * The overlay is the design-system `GuidedTour` from `@paul-portfolio/react`.
- * A tour whose steps switch tabs (any step with an `onEnter`) still runs on the
- * app's local engine, because the published primitive can't drive per-step side
- * effects yet; that path folds into the design-system tour once the
- * onEnter-capable version ships. Pages with an `onEnter` step must render this
- * from a client component.
+ * Steps map straight across, including the per-step `onEnter` a tour uses to
+ * switch tabs (ZeroProof), so a page with `onEnter` steps must render this from
+ * a client component.
  */
 export default function FeatureTour({
   label,
@@ -31,7 +28,6 @@ export default function FeatureTour({
   buttonLabel?: string;
 }) {
   const { open, start, close } = useGuidedTour(storageKey);
-  const needsLocalEngine = steps.some((step) => step.onEnter);
 
   return (
     <>
@@ -45,23 +41,21 @@ export default function FeatureTour({
       >
         <span aria-hidden>🧭</span> {buttonLabel}
       </button>
-      {open &&
-        (needsLocalEngine ? (
-          <LocalGuidedTour label={label} steps={steps} onClose={close} />
-        ) : (
-          <DsGuidedTour
-            open
-            aria-label={`${label} tour`}
-            steps={steps.map(
-              (step): GuidedTourStep => ({
-                target: step.anchor,
-                title: step.title,
-                body: step.body,
-              }),
-            )}
-            onClose={close}
-          />
-        ))}
+      {open && (
+        <GuidedTour
+          open
+          aria-label={`${label} tour`}
+          steps={steps.map(
+            (step): GuidedTourStep => ({
+              target: step.anchor,
+              title: step.title,
+              body: step.body,
+              onEnter: step.onEnter,
+            }),
+          )}
+          onClose={close}
+        />
+      )}
     </>
   );
 }
