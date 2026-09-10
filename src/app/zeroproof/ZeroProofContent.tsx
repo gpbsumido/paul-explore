@@ -667,15 +667,29 @@ function useOpenWallet() {
 const openWalletButton =
   "inline-flex h-9 items-center rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
 
-function OpenWalletActions() {
+function OpenWalletActions({
+  wallets = [],
+}: {
+  wallets?: ZeroproofWallet[];
+}) {
   const open = useOpenWallet();
+  // Only one active season wallet is allowed, so opening a second just 409s.
+  // Disable the button instead of letting the click fail.
+  const hasActiveSeason = wallets.some(
+    (w) => w.mode === "season" && w.status === "active",
+  );
   return (
     <div>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => open.mutate("season")}
-          disabled={open.isPending}
+          disabled={open.isPending || hasActiveSeason}
+          title={
+            hasActiveSeason
+              ? "You already have an active season wallet"
+              : undefined
+          }
           className={openWalletButton}
         >
           Open a Season wallet
@@ -689,6 +703,11 @@ function OpenWalletActions() {
           Open a Challenge wallet
         </button>
       </div>
+      {hasActiveSeason && (
+        <p className="mt-2 text-xs text-muted">
+          You already have an active season wallet.
+        </p>
+      )}
       {open.isError && (
         <p className="mt-2 text-xs text-error-600 dark:text-error-300">
           {(open.error as Error).message}
@@ -1034,7 +1053,7 @@ function Profile() {
                   <WalletCard key={wallet.id} wallet={wallet} />
                 ))}
               </ul>
-              <OpenWalletActions />
+              <OpenWalletActions wallets={profileQuery.data.wallets} />
             </div>
           ) : (
             <div className="space-y-3">
