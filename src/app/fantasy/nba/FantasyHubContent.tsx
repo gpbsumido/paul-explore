@@ -4,7 +4,32 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import { ACCENT_BAND } from "@/lib/accentBand";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import FantasyNav from "./FantasyNav";
+
+/** A quick walk-through of the Fantasy NBA hub for a first-time visitor. */
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Take a quick tour?",
+    body: "New here? I'll show you what the Fantasy NBA hub does and how to get around — a few clicks, no commitment.",
+  },
+  {
+    anchor: "fx-hub-title",
+    title: "The Fantasy NBA hub",
+    body: "This is the single entry point to every NBA tool — brackets, matchups, player stats, and more.",
+  },
+  {
+    anchor: "fx-nav",
+    title: "Jump anywhere",
+    body: "The tab bar takes you straight to any section from any page — Matchups, Playoffs, Player Stats and the rest.",
+  },
+  {
+    anchor: "fx-page-grid",
+    title: "Pick a tool",
+    body: "Or start from a card here — each opens one tool and says what it does before you dive in.",
+  },
+];
 
 /** The fantasy NBA pages, surfaced as cards from the section hub. */
 const PAGES = [
@@ -66,16 +91,29 @@ export default function FantasyHubContent() {
       <FantasyNav />
 
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Fantasy NBA
-          </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted">
-            Everything NBA in one place — pick a page to jump in.
-          </p>
+        <header className="mb-8 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1
+              id="fx-hub-title"
+              className="text-2xl font-bold tracking-tight text-foreground"
+            >
+              Fantasy NBA
+            </h1>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              Everything NBA in one place — pick a page to jump in.
+            </p>
+          </div>
+          <FeatureTour
+            label="Fantasy"
+            storageKey="fantasy-tour-seen"
+            steps={TOUR_STEPS}
+          />
         </header>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          id="fx-page-grid"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {PAGES.map((p) => (
             <Link
               key={p.href}

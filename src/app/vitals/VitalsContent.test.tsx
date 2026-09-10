@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import VitalsContent from "./VitalsContent";
 import type { PageVitals, VersionMetrics } from "@/types/vitals";
@@ -72,5 +72,31 @@ describe("VitalsContent when the backend answers with no data", () => {
 
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.queryByText(/couldn't reach the vitals api/i)).toBeNull();
+  });
+});
+
+describe("VitalsContent guided tour", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it("exposes a Take the tour button and the anchors it points at", () => {
+    window.localStorage.setItem("vitals-tour-seen", "true");
+    render(<VitalsContent {...reachableProps()} />);
+    expect(
+      screen.getByRole("button", { name: /take the tour/i }),
+    ).toBeInTheDocument();
+    expect(document.getElementById("vitals-heading")).not.toBeNull();
+    expect(document.getElementById("vitals-summary-cards")).not.toBeNull();
+    expect(document.getElementById("vitals-improvements")).not.toBeNull();
+  });
+
+  it("opens the tour and walks into it", () => {
+    window.localStorage.setItem("vitals-tour-seen", "true");
+    render(<VitalsContent {...reachableProps()} />);
+    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    const tour = () => screen.getByRole("dialog", { name: /tour/i });
+    fireEvent.click(
+      within(tour()).getByRole("button", { name: /^next$/i }),
+    );
+    expect(within(tour()).getByText(/real-user vitals/i)).toBeInTheDocument();
   });
 });

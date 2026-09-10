@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { checkA11y } from "../helpers/axe";
+import { disableTours } from "../helpers/tours";
 
 test.describe("TCG card browser", () => {
   test.beforeEach(async ({ page }) => {
+    // The first-run tour would auto-open a modal over the browser this suite
+    // drives; its behaviour is covered by the unit tests.
+    await disableTours(page);
     // Serve the unfiltered first page from a fixture so this whole block stops
     // depending on TCGdex being reachable from CI. The search test already
     // mocked its own fetch for that reason; the beforeEach did not, so it

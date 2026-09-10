@@ -11,6 +11,36 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-guided-tours",
+    date: "2026-09-09",
+    version: "6.8.0",
+    category: "feature",
+    tags: ["design-system", "fantasy", "tcg", "operator", "vitals"],
+    title: "Guided tours across the main features",
+    summary:
+      "The ZeroProof tour was worth having everywhere. A first visit to Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, or the design-system gallery now offers the same quick click-through — it asks first, then walks you through the page one highlight at a time.",
+    body: [
+      "Landing cold on a feature you've never used, it isn't always obvious where to start. So the same tour that shipped on ZeroProof now runs on the main pages: it opens with a simple question, and only if you say yes does it spotlight each part of the page in turn, switching tabs where a page has them.",
+      "It never nags — decline or finish it once and it stays gone — and every page keeps a Take-the-tour button to bring it back. Under the hood it's now one reusable engine rather than a per-page rebuild, so more pages can pick it up cheaply.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-tour",
+    date: "2026-09-09",
+    version: "6.7.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "A guided tour of the ZeroProof lobby",
+    summary:
+      "New to ZeroProof? The lobby now offers a quick click-through tour — it asks first, then walks you through the board, leagues, leaderboard and your record, one highlight at a time.",
+    body: [
+      "The ZeroProof lobby packs a lot into a few tabs, and it wasn't obvious where to start. A first visit now opens with a simple question — take a quick tour? — and only if you say yes does it walk you through the place, spotlighting each part and switching to its tab as it goes.",
+      "It never nags: decline it or finish it once and it stays gone, but a Take-the-tour button in the header brings it back whenever you want a refresher.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-work-portfolio-polish",
     date: "2026-09-09",
     version: "6.6.0",

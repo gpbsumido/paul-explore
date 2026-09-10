@@ -10,6 +10,8 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import LeaguesPanel from "./LeaguesPanel";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
@@ -1084,6 +1086,44 @@ export default function ZeroProofContent() {
   const [tab, setTab] = useState<LobbyTab>("board");
   const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
 
+  // The first-run tour, built on the shared engine. Each coach-mark switches to
+  // the tab it describes so its panel shows behind the highlight.
+  const tourSteps: TourStep[] = [
+    {
+      title: "Take a quick tour?",
+      body: "New to ZeroProof? I'll walk you through what it is and how to use it — a few clicks, no commitment.",
+    },
+    {
+      anchor: "zp-intro",
+      title: "Betting, with the loss removed",
+      body: "Lock a simulated deposit, bet real lines, get the deposit back at term end whatever your record — and the record is yours to keep.",
+    },
+    {
+      anchor: "zp-tab-board",
+      onEnter: () => setTab("board"),
+      title: "The board",
+      body: "Browse upcoming games and their live lines. Tap an outcome and it drops onto your bet slip.",
+    },
+    {
+      anchor: "zp-tab-leagues",
+      onEnter: () => setTab("leagues"),
+      title: "Leagues",
+      body: "Start your own contest — create a league, set the rules, and invite friends to a private leaderboard.",
+    },
+    {
+      anchor: "zp-tab-leaderboard",
+      onEnter: () => setTab("leaderboard"),
+      title: "The leaderboard",
+      body: "See who's sharpest — ranked by a sharp score that rewards beating the market, or by raw ROI.",
+    },
+    {
+      anchor: "zp-tab-record",
+      onEnter: () => setTab("record"),
+      title: "Your record",
+      body: "Open a wallet, place bets, and watch your bankroll trend build — a record you can show off.",
+    },
+  ];
+
   const focusTab = (id: LobbyTab) => {
     setTab(id);
     tabRefs.current[id]?.focus();
@@ -1107,7 +1147,8 @@ export default function ZeroProofContent() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <header>
+      <header id="zp-intro" className="flex flex-wrap items-start justify-between gap-3">
+        <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           ZeroProof
         </h1>
@@ -1123,6 +1164,12 @@ export default function ZeroProofContent() {
           </Link>{" "}
           explains why the ledger is real and the money is a button.
         </p>
+        </div>
+        <FeatureTour
+          label="ZeroProof"
+          storageKey="zeroproof-tour-seen"
+          steps={tourSteps}
+        />
       </header>
 
       <div

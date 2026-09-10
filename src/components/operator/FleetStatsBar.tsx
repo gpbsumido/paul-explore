@@ -91,7 +91,10 @@ export default function FleetStatsBar({
   onFilterNeedsAttention,
 }: FleetStatsBarProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-border bg-surface divide-x divide-border">
+    <div
+      id="op-tour-stats"
+      className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-border bg-surface divide-x divide-border"
+    >
       {/* These two come from the store list, so they are known immediately. */}
       <StatItem label="Total Stores" value={stats.totalStores} />
       <StatItem

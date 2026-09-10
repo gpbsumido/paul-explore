@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { disableTours } from "../helpers/tours";
 
 /**
  * The restock flow, driven the way a restocker would.
@@ -93,6 +94,7 @@ test.describe("operator restock flow @operator-write", () => {
   let storeId: string;
 
   test.beforeEach(async ({ page }) => {
+    await disableTours(page);
     storeId = await resolveStoreId(page);
     // A leftover session id would send the flow to the resume prompt instead.
     await page.goto(`/operator/stores/${storeId}`);

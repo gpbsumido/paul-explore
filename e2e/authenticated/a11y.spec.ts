@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { checkA11y } from "../helpers/axe";
+import { disableTours } from "../helpers/tours";
 
 /**
  * Axe accessibility scans for authenticated routes.
@@ -13,10 +14,12 @@ function hasCredentials() {
 }
 
 test.describe("Authenticated route accessibility", () => {
-  test.beforeEach(({}, testInfo) => {
+  test.beforeEach(async ({ page }, testInfo) => {
     if (!hasCredentials()) {
       testInfo.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set");
     }
+    // Keep a first-run tour from auto-opening over the scanned page.
+    await disableTours(page);
   });
 
   test("calendar page has no axe violations", async ({ page }) => {

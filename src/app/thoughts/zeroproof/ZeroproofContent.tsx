@@ -506,6 +506,186 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-09-tour"
+        date="September 9, 2026"
+        title="The lobby made sense to me and to no one else"
+      >
+        <p>
+          I sat someone new in front of the ZeroProof lobby and watched them not
+          know where to start. Board, Leagues, Leaderboard, Your record — obvious
+          to me, who built it, and a wall of tabs to anyone else. So the lobby now
+          offers to walk you through itself, one coach-mark at a time.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Ask before you take over the screen
+        </h3>
+        <p className="text-muted">
+          A tour that just seizes the page on arrival is a tour you resent. The
+          first step is a plain question — take a quick tour, yes or no — and
+          &quot;No thanks&quot; closes it for good. Only &quot;Show me around&quot;
+          starts spotlighting things. It auto-opens on a first visit and never
+          again once you&apos;ve seen or dismissed it, and a &quot;Take the tour&quot;
+          button in the header brings it back whenever you want it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A spotlight the linter wouldn&apos;t let me measure
+        </h3>
+        <p className="text-muted">
+          Each step highlights a real element — a tab, the intro — by measuring its
+          box with <code className={code}>getBoundingClientRect()</code> and cutting a
+          hole in a dimmed backdrop over it. The obvious place to measure is an
+          effect, and the obvious place to store the result is state. That is exactly
+          the shape the hooks lint refuses:
+        </p>
+        <pre className={pre}>
+          {`error  Do not call setState synchronously in an effect
+       react-hooks/set-state-in-effect`}
+        </pre>
+        <p className="text-muted">
+          The fix is to measure inside a{" "}
+          <code className={code}>requestAnimationFrame</code> callback — which runs
+          after the tab switch has re-rendered the lobby, so the element is where it
+          will actually sit — and set the rect from there. Switching tabs happens in
+          the Next handler, an event, not an effect; and rendering the tour only while
+          it&apos;s open means it mounts fresh at the consent step every time, so there
+          is no reset effect to trip over either.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          While I was in there: the header dropdown was painted over
+        </h3>
+        <p className="text-muted">
+          The theme menu in the page header opened <em>behind</em> the board&apos;s
+          sticky &quot;Auto-load as I scroll&quot; bar. Both sat at{" "}
+          <code className={code}>z-20</code>, and the board bar comes later in the DOM,
+          so it won — the menu&apos;s own <code className={code}>z-50</code> meant
+          nothing, capped inside the header&apos;s stacking context. Lifting just the
+          ZeroProof header to <code className={code}>z-30</code> puts the dropdown back
+          on top.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-09-tour-engine"
+        date="September 9, 2026"
+        title="The tour was too good to leave on one page"
+      >
+        <p>
+          The ZeroProof tour did its job, and the obvious next thought was that
+          every dense page on the site has the same cold-start problem. So I
+          pulled the tour out of ZeroProof and made it a thing any page can wear.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One engine, five more pages
+        </h3>
+        <p className="text-muted">
+          The coach-mark overlay, the consent-first flow, the measure-in-a-frame
+          spotlight and the auto-open-once logic all moved into a shared{" "}
+          <code className={code}>GuidedTour</code> engine — a component, a{" "}
+          <code className={code}>useGuidedTour</code> hook, and a{" "}
+          <code className={code}>FeatureTour</code> drop-in that a page wires up
+          with a label, a storage key, and its own steps. ZeroProof now uses it
+          too, so there is one implementation, not two. Fantasy, the Pokémon TCG
+          browser, the operator and vitals dashboards, and the design-system
+          gallery each got a tour built from a few lines of step config.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The auto-open modal fought the test suite
+        </h3>
+        <p className="text-muted">
+          A tour that opens itself on a first visit is a modal that covers the
+          page — and the E2E suite lands on every page as a first-time visitor.
+          The operator dashboard&apos;s a11y scan started measuring the tour
+          instead of the page, and the restock and card-browser flows had a
+          backdrop over the thing they were trying to click.
+        </p>
+        <pre className={pre}>
+          {`// e2e/helpers/tours.ts — pin every tour "seen" before the page runs,
+// the same way the theme is pinned, so a coach-mark can't cover a scan.
+await disableTours(page);`}
+        </pre>
+        <p className="text-muted">
+          The fix was the same shape as the theme-pinning the a11y scans already
+          do: a shared helper that marks every tour seen before the page&apos;s
+          scripts run. The tours&apos; own behaviour — and the overlay&apos;s
+          accessibility — stay covered by the unit suite instead.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One page said no
+        </h3>
+        <p className="text-muted">
+          The 3D world is the exception. Its HUD is a set of corner panels, some
+          of them keyboard-only, over a WebGL canvas that doesn&apos;t render in
+          jsdom — so a coach-mark tour there wants more than a step config and a
+          couple of ids, and I left it for its own pass. The engine is ready when
+          the world&apos;s HUD is.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-10-tour-consume"
+        date="September 10, 2026"
+        title="The tour went to the design system and came back"
+      >
+        <p>
+          I&apos;d pulled the tour into a reusable{" "}
+          <code className={code}>GuidedTour</code> in{" "}
+          <code className={code}>@paul-portfolio/react</code>. The obvious next
+          step was to stop maintaining a second copy here and consume the
+          published one — dogfood my own primitive.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Most of the tours swapped over cleanly
+        </h3>
+        <p className="text-muted">
+          Fantasy, the Pokémon TCG browser, and the operator, vitals and
+          design-system tours are just coach-marks — spotlight a thing, describe
+          it, move on. Those now render the package&apos;s{" "}
+          <code className={code}>GuidedTour</code> straight off, with{" "}
+          <code className={code}>FeatureTour</code> mapping the app&apos;s step
+          shape to the package&apos;s. The tour&apos;s CSS rode in for free — it
+          lives in the same <code className={code}>components.css</code> the app
+          already imports.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ZeroProof is the one that didn&apos;t
+        </h3>
+        <p className="text-muted">
+          The lobby tour switches tabs as it walks them, and I&apos;d deliberately
+          shipped the design-system primitive <em>without</em> a per-step side
+          effect — a coach-mark library shouldn&apos;t assume its host has tabs.
+          So the first published version literally couldn&apos;t drive
+          ZeroProof&apos;s tab-switching. As a stopgap while the primitive caught
+          up, <code className={code}>FeatureTour</code> kept any tour with an{" "}
+          <code className={code}>onEnter</code> step on the local engine and
+          routed the rest to the package:
+        </p>
+        <pre className={pre}>
+          {`const needsLocalEngine = steps.some((step) => step.onEnter);
+// stopgap: ZeroProof -> local engine; the rest -> @paul-portfolio/react`}
+        </pre>
+        <p className="text-muted">
+          Then I added the missing piece upstream — a per-step{" "}
+          <code className={code}>onEnter</code> hook on the design-system{" "}
+          <code className={code}>GuidedTour</code>, shipped in{" "}
+          <code className={code}>@paul-portfolio/react@0.8.0</code>. With that
+          published, the stopgap branch came out: every tour, ZeroProof included,
+          now maps its steps straight onto the package and the local{" "}
+          <code className={code}>GuidedTour.tsx</code> overlay is deleted. One
+          tour engine, the design system&apos;s. The right shape for the
+          primitive turned out to be the one the hardest consumer needed, which
+          is exactly what dogfooding is for.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
@@ -527,6 +707,8 @@ CREATE UNIQUE INDEX ... ON (user_sub, league_id) WHERE status='active' AND mode=
           "Tabs: Board, Leaderboard and Your record are separate tabs now — a proper ARIA tablist with arrow-key navigation, panels kept mounted so their data preloads and inactive ones out of the a11y tree.",
           "The board groups fixtures by day, and a fixture you've already bet on is badged and always shown — even past the day-horizon.",
           "A bankroll trend on Your record: cumulative profit and loss over your settled bets, a line for the season and a line for everything, with the figures printed in text under the chart.",
+          "A guided tour: a first visit opens with a consent step, then walks the lobby a coach-mark at a time — what ZeroProof is, then the board, leagues, leaderboard and record — spotlighting each real surface and switching to its tab. It asks before it starts, never nags twice, and a Take-the-tour button in the header reopens it any time.",
+          "That tour is now a shared engine: the same consent-first coach-mark runs on Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, and the design-system gallery, each built from a small per-page step config.",
         ]}
         couldImprove={[
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
