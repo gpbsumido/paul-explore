@@ -544,6 +544,24 @@ export const COMPONENTS: ComponentDoc[] = [
     ],
   },
   {
+    id: "guided-tour",
+    name: "Guided tour",
+    importName: "GuidedTour",
+    tagline: "A click-through coach-mark tour.",
+    usage:
+      "Walk a newcomer through a page. Pass open/onClose and steps; each step spotlights a target element by id or shows a centred card, with Back, Next and Skip controls.",
+    a11y: [
+      "role=dialog with a required label",
+      "Focus moves into the card; Escape closes it",
+      "Spotlight and scrim honour prefers-reduced-motion",
+    ],
+    usedOn: [
+      { label: "Fantasy", href: "/fantasy/nba" },
+      { label: "Vitals", href: "/vitals" },
+      { label: "Operator dashboard", href: "/operator" },
+    ],
+  },
+  {
     id: "tooltip",
     name: "Tooltip",
     importName: "Tooltip",

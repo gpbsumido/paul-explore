@@ -137,7 +137,7 @@ describe("DesignSystemShowcaseContent guided tour", () => {
     fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
     const tour = () => screen.getByRole("dialog", { name: /tour/i });
     fireEvent.click(
-      within(tour()).getByRole("button", { name: /show me around/i }),
+      within(tour()).getByRole("button", { name: /^next$/i }),
     );
     expect(
       within(tour()).getByText(/the design system, live/i),

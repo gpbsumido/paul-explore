@@ -1,6 +1,6 @@
 "use client";
 
-import GuidedTour from "./GuidedTour";
+import { GuidedTour, type GuidedTourStep } from "@paul-portfolio/react";
 import { useGuidedTour } from "./useGuidedTour";
 import type { TourStep } from "./types";
 
@@ -9,8 +9,10 @@ import type { TourStep } from "./types";
  * overlay, wired to auto-open on a first visit. Give it a unique `storageKey`
  * so each feature remembers its own "seen" state, and the page's real steps.
  *
- * `steps` may close over the page's state setters (for `onEnter` view switches),
- * so a page that needs those must render this from a client component.
+ * The overlay is the design-system `GuidedTour` from `@paul-portfolio/react`.
+ * Steps map straight across, including the per-step `onEnter` a tour uses to
+ * switch tabs (ZeroProof), so a page with `onEnter` steps must render this from
+ * a client component.
  */
 export default function FeatureTour({
   label,
@@ -39,7 +41,21 @@ export default function FeatureTour({
       >
         <span aria-hidden>🧭</span> {buttonLabel}
       </button>
-      {open && <GuidedTour label={label} steps={steps} onClose={close} />}
+      {open && (
+        <GuidedTour
+          open
+          aria-label={`${label} tour`}
+          steps={steps.map(
+            (step): GuidedTourStep => ({
+              target: step.anchor,
+              title: step.title,
+              body: step.body,
+              onEnter: step.onEnter,
+            }),
+          )}
+          onClose={close}
+        />
+      )}
     </>
   );
 }

@@ -67,6 +67,7 @@ import {
   ComboboxDemo,
   CommandPaletteDemo,
   ModalDemo,
+  GuidedTourDemo,
   RichTextEditorDemo,
   SpotlightPreview,
   StreamingTextPreview,
@@ -418,6 +419,7 @@ const PREVIEWS: Record<string, ReactNode> = {
   ),
   chip: <ChipDemo />,
   modal: <ModalDemo />,
+  "guided-tour": <GuidedTourDemo />,
   tooltip: (
     <Tooltip content="Fixed-position, keyboard reachable" delay={120}>
       <Button variant="outline" size="sm">

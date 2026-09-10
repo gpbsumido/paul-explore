@@ -11,7 +11,12 @@ import { usePersistentState } from "@/hooks/usePersistentState";
  */
 export function useGuidedTour(storageKey: string) {
   const [seen, setSeen] = usePersistentState(storageKey, false);
-  const [open, setOpen] = useState(() => !seen);
+  // Never auto-open during SSR: the overlay portals to document.body, which
+  // doesn't exist on the server. It opens on the client's first render instead,
+  // where the portal (and the persisted flag) are real.
+  const [open, setOpen] = useState(
+    () => typeof window !== "undefined" && !seen,
+  );
 
   const start = () => setOpen(true);
   const close = () => {

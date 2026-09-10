@@ -13,6 +13,7 @@ import {
   CodeBlock,
   Combobox,
   CommandPalette,
+  GuidedTour,
   RichTextEditor,
   Spotlight,
   StreamingText,
@@ -59,6 +60,35 @@ export function ModalDemo() {
         </div>
       </Modal>
     </>
+  );
+}
+
+export function GuidedTourDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col gap-3">
+      <div id="ds-tour-target" className="inline-flex">
+        <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+          Start the tour
+        </Button>
+      </div>
+      <GuidedTour
+        open={open}
+        aria-label="Example tour"
+        steps={[
+          {
+            title: "A guided tour",
+            body: "It walks a page one coach-mark at a time — ask first, then spotlight each part.",
+          },
+          {
+            target: "ds-tour-target",
+            title: "Spotlight a real element",
+            body: "Each step highlights an element on the page by its id.",
+          },
+        ]}
+        onClose={() => setOpen(false)}
+      />
+    </div>
   );
 }
 
