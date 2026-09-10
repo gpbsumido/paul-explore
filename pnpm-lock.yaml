@@ -21,8 +21,8 @@ dependencies:
     specifier: ^0.10.0
     version: 0.10.0(@paul-portfolio/tokens@0.4.0)
   '@paul-portfolio/react':
-    specifier: ^0.8.1
-    version: 0.8.1(@paul-portfolio/css@0.10.0)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3)
+    specifier: ^0.9.0
+    version: 0.9.0(@paul-portfolio/css@0.10.0)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
     specifier: ^0.4.0
     version: 0.4.0
@@ -1971,8 +1971,8 @@ packages:
       '@paul-portfolio/tokens': 0.4.0
     dev: false
 
-  /@paul-portfolio/react@0.8.1(@paul-portfolio/css@0.10.0)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-IOAKUfr+e2jbeMF//jjuOeV4mBuuyP6RyJEtWdu8ZMmPKiX3s2tKM/LZdWLA5JytouDfHtf205cw7RdV1ddRZA==}
+  /@paul-portfolio/react@0.9.0(@paul-portfolio/css@0.10.0)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-UnnEZhFfSUVtwWDv7gkHk4HVLZ8JZiqpKAuPR13S5jnUKbO2f+lDb+GG7+34ZAFs0IfqIP7hPFB+QaUIWiS/aA==}
     peerDependencies:
       '@paul-portfolio/css': '>=0.1.0'
       '@paul-portfolio/tokens': '>=0.1.0'

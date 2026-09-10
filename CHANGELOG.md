@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-10 - version 6.9.0
+
+- **Every failed API write now raises an error toast.** A write that fails used to be silent unless the one screen that made it happened to catch and render the error itself — most didn't. The app QueryClient now carries a `MutationCache` whose `onError` surfaces every mutation failure as a toast, app-wide, so no write can fail unseen. The toast shows the backend's own message where there is one (so "You already have an active season wallet" reaches you verbatim) and a plain "Something went wrong. Please try again." where there isn't. A screen that shows its own inline error opts out with `meta: { silent: true }` on the mutation, so nothing is double-reported.
+- **The toast surface is a design-system component.** I built it in `@paul-portfolio/react` first (bumped to `^0.9.0`): `Toaster`, one app-wide portal region, driven by an imperative `toast.error/success/warning/info` you can call from anywhere — including a query-client handler that runs outside React. `<Toaster />` mounts once at the app root in `providers.tsx`. The design-system gallery documents it with a live preview. Covered by a behavior test on `notifyMutationError` (surfaces the message, honours the silent opt-out, falls back for a non-Error).
+
 ## 2026-09-10 - version 6.8.2
 
 - **Disable "Open a Season wallet" once you already have an active one.** You can only hold one active season wallet, so a second request just 409s (`You already have an active season wallet`). The record tab now disables the button when an active season wallet is present — with a title and a short "You already have an active season wallet" note — instead of letting the click fail. The Challenge button is unaffected. Covered by a test on the record tab.
