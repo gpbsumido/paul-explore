@@ -13,6 +13,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import LeaguesPanel from "./LeaguesPanel";
+import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
   eventsResponseSchema,
@@ -359,9 +360,10 @@ function Slate({
       )}
 
       {eventsQuery.isError && (
-        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
-          The board is unavailable right now.
-        </p>
+        <QueryError
+          message="The board is unavailable right now."
+          onRetry={() => eventsQuery.refetch()}
+        />
       )}
 
       {eventsQuery.data && allEvents.length === 0 && (
@@ -538,9 +540,10 @@ function Leaderboard() {
       )}
 
       {boardQuery.isError && (
-        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
-          The leaderboard is unavailable right now.
-        </p>
+        <QueryError
+          message="The leaderboard is unavailable right now."
+          onRetry={() => boardQuery.refetch()}
+        />
       )}
 
       {boardQuery.data && boardQuery.data.entries.length === 0 && (
@@ -986,9 +989,10 @@ function Profile() {
       )}
 
       {profileQuery.isError && (
-        <p className="mt-6 text-sm text-error-600 dark:text-error-300">
-          Couldn&apos;t load your profile right now.
-        </p>
+        <QueryError
+          message="Couldn't load your profile right now."
+          onRetry={() => profileQuery.refetch()}
+        />
       )}
 
       {profileQuery.data?.signedOut && (

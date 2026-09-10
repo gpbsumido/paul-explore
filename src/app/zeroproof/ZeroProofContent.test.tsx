@@ -821,3 +821,27 @@ describe("ZeroProofContent — ESPN fantasy", () => {
     expect(await screen.findByText("Fantasy Football")).toBeInTheDocument();
   });
 });
+
+describe("ZeroProofContent — error recovery", () => {
+  it("recovers the board with Try again after a transient failure", async () => {
+    let calls = 0;
+    renderPage(undefined, undefined, () => {
+      calls += 1;
+      return calls === 1
+        ? new HttpResponse(null, { status: 503 })
+        : HttpResponse.json(EVENTS);
+    });
+
+    // The failed board says so and offers a way back.
+    expect(
+      await screen.findByText(/board is unavailable/i),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+
+    // Retry refetches and clears the error once the board answers.
+    await waitFor(() =>
+      expect(screen.queryByText(/board is unavailable/i)).not.toBeInTheDocument(),
+    );
+    expect(calls).toBe(2);
+  });
+});
