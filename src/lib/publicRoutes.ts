@@ -94,6 +94,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/design-system",
   "/thoughts/design-system-charts",
   "/thoughts/fantasy-tcg",
+  "/thoughts/apple-design",
   "/thoughts/design-system-showcase",
   "/thoughts/e2e",
   "/thoughts/error-toasts",

@@ -38,6 +38,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "design-system-charts",
       "design-system-showcase",
       "motion-components",
+      "apple-design",
       "error-toasts",
       "styling",
       "landing-page",
