@@ -139,17 +139,31 @@ export default function AppleDesignContent() {
         </p>
       </Section>
 
-      <Section title="What I chose not to do">
+      <Section title="The two I deferred, then built with guards">
         <p>
-          Two of the audit&rsquo;s ideas I left on the table on purpose. A global
-          route-transition fade fights the LCP work I did on the landing page
-          &mdash; the hero is painted in the server frame, and wrapping every
-          page in an opacity fade would delay exactly that. And a proper
-          drag-to-dismiss bottom sheet with Apple-style momentum projection is a
-          whole new mechanism with no existing sheet to attach it to, when the
-          animation library already hands off release velocity natively. Neither
-          was worth regressing a tuned metric or adding a bespoke component
-          blind.
+          Two of the audit&rsquo;s ideas I first left on the table &mdash; a
+          route transition and a drag-to-dismiss sheet &mdash; because the naive
+          versions each break something. A global fade fights the LCP work on
+          the landing page (the hero paints in the server frame; starting it at
+          opacity 0 delays exactly that), and a transform on a page wrapper turns
+          every <C>position: sticky</C> header into something relative to the
+          wrapper. So the route transition I shipped is opacity-only (sticky
+          stays intact) and skips the very first paint of a session (LCP stays
+          intact), fading only on later navigations, and not at all under reduced
+          motion.
+        </p>
+        <p className="mt-3">
+          The sheet became a real primitive. It slides up, pairs with a scrim,
+          and can be flicked away &mdash; and the dismiss decision uses Apple&rsquo;s
+          momentum-projection function, the same exponential-decay model iOS
+          scroll uses: it projects where the flick <em>would</em> come to rest and
+          lets go if that&rsquo;s past the threshold, so a fast flick closes it
+          even if it barely moved, while a gentle tug springs back. The{" "}
+          <C>project()</C> helper is unit-tested and there&rsquo;s a live demo in
+          the motion lab. The lesson both share: the reason to defer wasn&rsquo;t
+          &ldquo;too hard,&rdquo; it was &ldquo;the obvious version regresses
+          something&rdquo; &mdash; and once the guard is clear, they&rsquo;re
+          cheap.
         </p>
       </Section>
 
@@ -158,13 +172,14 @@ export default function AppleDesignContent() {
           "The three accessibility media queries the glass was ignoring — reduced transparency, more contrast, eased theme change — with a guard test so they can't be dropped.",
           "Press-down feedback on buttons and toggles, a critically-damped modal, and a menu that springs from its trigger.",
           "Size-specific display tracking, optical sizing on the variable face, and rem type that honours the user's text-size setting.",
+          "An opacity-only route transition that protects LCP and sticky headers, a formal blur/shadow scale adopted across the chrome, and a drag-to-dismiss Sheet with momentum projection.",
         ]}
         couldImprove={[
-          "The blur and shadow values are directionally right but not a formal scale yet — bigger surfaces blur more by eyeball, not by token.",
           "The command palette keeps focus on its input via aria-activedescendant, but doesn't trap Tab the way the modal does.",
+          "The Sheet is a primitive with one demo home; the natural next step is adopting it for the mobile version of a real surface, not just the lab.",
         ]}
         upcoming={[
-          "A drag-to-dismiss sheet with real momentum projection, if a surface comes along that genuinely wants one.",
+          "Roll the Sheet into a real mobile flow where a bottom sheet beats a centered modal.",
         ]}
       />
     </ThoughtLayout>
