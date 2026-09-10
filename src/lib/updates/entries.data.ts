@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-error-toasts",
+    date: "2026-09-10",
+    version: "6.9.0",
+    category: "improvement",
+    tags: ["design-system", "zeroproof"],
+    title: "When something fails to save, the site now tells you",
+    summary:
+      "Actions that couldn't go through used to fail quietly — you'd click and nothing would happen. Now any failed save pops a short message explaining what went wrong, everywhere on the site.",
+    body: [
+      "It's a frustrating kind of bug: you do something, it silently doesn't work, and you're left guessing whether it saved. Under the hood every write now runs through one place that catches a failure and shows it as a small notification — with the real reason where there is one, like being told you already have an active season wallet, and a plain apology where there isn't.",
+      "The little notification itself is a piece I added to my own design system first and then wired in here, so it looks and behaves the same wherever it shows up.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-guided-tours",
     date: "2026-09-09",
     version: "6.8.0",

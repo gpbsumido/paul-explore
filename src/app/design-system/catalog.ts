@@ -158,6 +158,20 @@ export const COMPONENTS: ComponentDoc[] = [
     elsewhere: AI_ELSEWHERE,
   },
   {
+    id: "toaster",
+    name: "Toaster",
+    importName: "Toaster",
+    tagline: "One app-wide notification region driven by an imperative toast().",
+    usage:
+      "Mount <Toaster /> once near the app root, then call toast.error(msg) (or success/warning/info) from anywhere — even outside React, like a query-client error handler. This app wires it to a global mutation-error handler so no failed write is silent.",
+    a11y: [
+      "Toasts stack in a labelled live region so screen readers announce them as they arrive",
+      "Errors announce assertively, everything else politely, matching urgency to tone",
+      "Renders nothing on the server, so it never trips SSR before the portal has a document",
+    ],
+    usedOn: [{ label: "ZeroProof", href: "/zeroproof" }],
+  },
+  {
     id: "token-usage-meter",
     name: "TokenUsageMeter",
     importName: "TokenUsageMeter",

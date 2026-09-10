@@ -7,9 +7,15 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  MutationCache,
+} from "@tanstack/react-query";
+import { Toaster } from "@paul-portfolio/react";
 import { server } from "@/test/server";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { notifyMutationError } from "@/lib/mutationErrorToast";
 import { axe } from "@/test/a11y";
 import ZeroProofContent from "./ZeroProofContent";
 
@@ -594,6 +600,24 @@ describe("ZeroProofContent — profile", () => {
     await waitFor(() => expect(openedMode).toBe("season"));
     expect(openedDeposit).toBeGreaterThanOrEqual(2000);
   });
+
+  it("disables the Season wallet button when an active season wallet already exists", async () => {
+    // PROFILE ships with an active season wallet, so opening a second would 409.
+    renderPage(() => HttpResponse.json(PROFILE));
+    await goToTab(/your record/i);
+
+    const seasonButton = await screen.findByRole("button", {
+      name: /open a season wallet/i,
+    });
+    expect(seasonButton).toBeDisabled();
+    expect(
+      screen.getByText(/already have an active season wallet/i),
+    ).toBeInTheDocument();
+    // Challenge is a different wallet type and stays available.
+    expect(
+      screen.getByRole("button", { name: /open a challenge wallet/i }),
+    ).not.toBeDisabled();
+  });
 });
 
 describe("ZeroProofContent — bet slip", () => {
@@ -801,5 +825,92 @@ describe("ZeroProofContent — ESPN fantasy", () => {
   it("badges a fantasy matchup on the board", async () => {
     renderPage(undefined, undefined, () => HttpResponse.json(FANTASY));
     expect(await screen.findByText("Fantasy Football")).toBeInTheDocument();
+  });
+});
+
+describe("ZeroProofContent — error recovery", () => {
+  it("recovers the board with Try again after a transient failure", async () => {
+    let calls = 0;
+    renderPage(undefined, undefined, () => {
+      calls += 1;
+      return calls === 1
+        ? new HttpResponse(null, { status: 503 })
+        : HttpResponse.json(EVENTS);
+    });
+
+    // The failed board says so and offers a way back.
+    expect(
+      await screen.findByText(/board is unavailable/i),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+
+    // Retry refetches and clears the error once the board answers.
+    await waitFor(() =>
+      expect(screen.queryByText(/board is unavailable/i)).not.toBeInTheDocument(),
+    );
+    expect(calls).toBe(2);
+  });
+});
+
+describe("ZeroProofContent — wallet error toast", () => {
+  // The Toaster store is a module-level singleton, so clear anything a test raised.
+  afterEach(() => {
+    document.querySelectorAll(".toast__dismiss").forEach((btn) => {
+      fireEvent.click(btn);
+    });
+  });
+
+  // A ZeroProof write error rides the app-wide handler (providers.tsx): a
+  // MutationCache whose onError toasts through the shared Toaster. The test
+  // wires the same pieces so it proves the real path, not a bespoke one.
+  const renderWithToasts = () => {
+    const client = new QueryClient({
+      mutationCache: new MutationCache({
+        onError: (error, _v, _c, mutation) =>
+          notifyMutationError(error, mutation.meta),
+      }),
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    window.localStorage.setItem("zeroproof-tour-seen", "true");
+    return render(
+      <QueryClientProvider client={client}>
+        <ThemeProvider>
+          <ZeroProofContent />
+          <Toaster />
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+  };
+
+  it("surfaces a failed wallet open as an error toast with the server's message", async () => {
+    server.use(
+      http.get("/api/zeroproof/events", () => HttpResponse.json(EVENTS)),
+      http.get("/api/zeroproof/leaderboard", () => HttpResponse.json(LEADERBOARD)),
+      http.get("/api/zeroproof/me", () =>
+        HttpResponse.json({ ...PROFILE, wallets: [] }),
+      ),
+      http.get("/api/zeroproof/bets", () => HttpResponse.json({ bets: [] })),
+      http.get("/api/zeroproof/leagues/mine", () =>
+        HttpResponse.json({ leagues: [] }),
+      ),
+      http.get("/api/zeroproof/leagues", () => HttpResponse.json({ leagues: [] })),
+      http.post("/api/zeroproof/wallets", () =>
+        HttpResponse.json(
+          { error: "Deposits are closed for the season." },
+          { status: 409 },
+        ),
+      ),
+    );
+    renderWithToasts();
+    await goToTab(/your record/i);
+    fireEvent.click(
+      await screen.findByRole("button", { name: /open a season wallet/i }),
+    );
+    expect(
+      await screen.findByText(/deposits are closed for the season/i),
+    ).toBeInTheDocument();
   });
 });
