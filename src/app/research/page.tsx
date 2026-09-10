@@ -30,7 +30,7 @@ export default function ResearchPage() {
   return (
     <PageShell>
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Research" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Research" }]}
       />
       <main>
         <ResearchContent />

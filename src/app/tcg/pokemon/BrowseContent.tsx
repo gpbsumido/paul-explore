@@ -184,7 +184,7 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
       {/* Sticky filter bar — sits directly below the nav (top-14 = 56px) */}
       <div
         id="tcg-filter-bar"
-        className="sticky top-14 z-10 border-b border-border bg-background/95 backdrop-blur-xl"
+        className="sticky top-14 z-10 border-b border-border bg-background/80 backdrop-blur-xl"
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <div id="tcg-search" className="shrink-0">

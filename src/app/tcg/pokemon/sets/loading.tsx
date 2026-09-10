@@ -11,7 +11,7 @@ function SetCardSkeleton() {
 export default function SetsLoading() {
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
+      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
           <Bone className="h-4 w-16" />
           <div className="h-4 w-px bg-border" />

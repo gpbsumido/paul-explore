@@ -85,7 +85,7 @@ export default function ThoughtLayout({
   return (
     <PageShell>
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: breadcrumb }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: breadcrumb }]}
         maxWidth="max-w-3xl"
       />
 

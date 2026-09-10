@@ -374,7 +374,7 @@ export default function GalleryWallContent({ initialState }: Props) {
   return (
     <PageShell colorA={ACCENT} colorB="var(--color-primary-500)">
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Gallery Wall" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Gallery Wall" }]}
         maxWidth="max-w-5xl"
       />
 
