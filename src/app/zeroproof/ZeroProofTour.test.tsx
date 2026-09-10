@@ -26,10 +26,10 @@ describe("ZeroProof guided tour", () => {
     const tour = screen.getByRole("dialog", { name: /tour/i });
     expect(within(tour).getByText(/tour/i)).toBeInTheDocument();
     expect(
-      within(tour).getByRole("button", { name: /show me around/i }),
+      within(tour).getByRole("button", { name: /^next$/i }),
     ).toBeInTheDocument();
     expect(
-      within(tour).getByRole("button", { name: /no thanks/i }),
+      within(tour).getByRole("button", { name: /^skip$/i }),
     ).toBeInTheDocument();
   });
 
@@ -49,7 +49,7 @@ describe("ZeroProof guided tour", () => {
 
     const tour = () => screen.getByRole("dialog", { name: /tour/i });
     fireEvent.click(
-      within(tour()).getByRole("button", { name: /show me around/i }),
+      within(tour()).getByRole("button", { name: /^next$/i }),
     );
 
     // Intro
@@ -71,7 +71,7 @@ describe("ZeroProof guided tour", () => {
 
   it("closes immediately when the visitor declines", () => {
     renderLobby(<ZeroProofContent />);
-    fireEvent.click(screen.getByRole("button", { name: /no thanks/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^skip$/i }));
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
   });
 });
