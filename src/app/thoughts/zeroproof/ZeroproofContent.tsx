@@ -628,6 +628,59 @@ await disableTours(page);`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-10-tour-consume"
+        date="September 10, 2026"
+        title="The tour went to the design system and came back"
+      >
+        <p>
+          I&apos;d pulled the tour into a reusable{" "}
+          <code className={code}>GuidedTour</code> in{" "}
+          <code className={code}>@paul-portfolio/react</code>. The obvious next
+          step was to stop maintaining a second copy here and consume the
+          published one — dogfood my own primitive.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Most of the tours swapped over cleanly
+        </h3>
+        <p className="text-muted">
+          Fantasy, the Pokémon TCG browser, and the operator, vitals and
+          design-system tours are just coach-marks — spotlight a thing, describe
+          it, move on. Those now render the package&apos;s{" "}
+          <code className={code}>GuidedTour</code> straight off, with{" "}
+          <code className={code}>FeatureTour</code> mapping the app&apos;s step
+          shape to the package&apos;s. The tour&apos;s CSS rode in for free — it
+          lives in the same <code className={code}>components.css</code> the app
+          already imports.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ZeroProof is the one that didn&apos;t
+        </h3>
+        <p className="text-muted">
+          The lobby tour switches tabs as it walks them, and I&apos;d deliberately
+          shipped the design-system primitive <em>without</em> a per-step side
+          effect — a coach-mark library shouldn&apos;t assume its host has tabs.
+          So the published version literally can&apos;t drive ZeroProof&apos;s
+          tab-switching. Rather than regress it, <code className={code}>FeatureTour</code>{" "}
+          keeps any tour with an <code className={code}>onEnter</code> step on the
+          local engine and routes the rest to the package:
+        </p>
+        <pre className={pre}>
+          {`const needsLocalEngine = steps.some((step) => step.onEnter);
+// ZeroProof (onEnter) -> local engine; the rest -> @paul-portfolio/react`}
+        </pre>
+        <p className="text-muted">
+          Then I added the missing piece upstream — a per-step{" "}
+          <code className={code}>onEnter</code> hook on the design-system{" "}
+          <code className={code}>GuidedTour</code>. Once that version publishes,
+          ZeroProof folds onto the package too and the local overlay goes away.
+          The right shape for the primitive turned out to be the one the hardest
+          consumer needed, which is exactly what dogfooding is for.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
