@@ -22,6 +22,9 @@ const NON_COMPONENT_EXPORTS = [
   // Toast ships its runtime surface as ToastProvider plus this hook; the
   // provider is the primitive we document, so the hook isn't a component.
   "useToast",
+  // The Toaster's companion: an imperative function you call to raise a toast,
+  // not a renderable primitive. Toaster is the component we document.
+  "toast",
 ];
 
 describe("design system catalog integrity", () => {

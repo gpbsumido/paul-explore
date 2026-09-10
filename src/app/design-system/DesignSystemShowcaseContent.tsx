@@ -75,6 +75,7 @@ import {
   TickerPreview,
   TiltCardPreview,
   ToastDemo,
+  ToasterDemo,
 } from "./GalleryDemos";
 import { ACCENT_BAND } from "@/lib/accentBand";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
@@ -261,6 +262,7 @@ const PREVIEWS: Record<string, ReactNode> = {
   "rich-text-editor": <RichTextEditorDemo />,
   "streaming-text": <StreamingTextPreview />,
   toast: <ToastDemo />,
+  toaster: <ToasterDemo />,
   "token-usage-meter": (
     <div className="w-full">
       <TokenUsageMeter

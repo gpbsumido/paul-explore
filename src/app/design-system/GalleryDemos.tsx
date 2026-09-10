@@ -20,7 +20,9 @@ import {
   Switch,
   Ticker,
   TiltCard,
+  Toaster,
   ToastProvider,
+  toast,
   useToast,
   type Command,
 } from "@paul-portfolio/react";
@@ -281,5 +283,20 @@ export function ToastDemo() {
     <ToastProvider>
       <ToastTrigger />
     </ToastProvider>
+  );
+}
+
+export function ToasterDemo() {
+  return (
+    <>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => toast.error("Couldn't save", "Please try again.")}
+      >
+        Raise an error toast
+      </Button>
+      <Toaster />
+    </>
   );
 }
