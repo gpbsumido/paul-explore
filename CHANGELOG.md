@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-10 - version 6.8.3
+
+- **The ZeroProof lobby can recover from a failed load.** The board, leaderboard and profile each poll a backend that can blip, and a bare "unavailable" line stranded the reader — the only move was a full reload. Each failed load now uses a shared `QueryError`: it says what failed (announced as an `alert`) and offers a **Try again** button that refetches in place. Covered by a component test and a board recovery test (fail → retry → the error clears once it answers).
+
 ## 2026-09-10 - version 6.8.2
 
 - **Disable "Open a Season wallet" once you already have an active one.** You can only hold one active season wallet, so a second request just 409s (`You already have an active season wallet`). The record tab now disables the button when an active season wallet is present — with a title and a short "You already have an active season wallet" note — instead of letting the click fail. The Challenge button is unaffected. Covered by a test on the record tab.
