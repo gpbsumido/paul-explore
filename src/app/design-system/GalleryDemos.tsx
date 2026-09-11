@@ -251,11 +251,26 @@ export function RichTextEditorDemo() {
 }
 
 export function StreamingTextPreview() {
+  // It streams once on mount and finishes fast, so scroll down late and you miss
+  // it entirely. Remounting via key replays the stream. (The charts and meter
+  // render statically, so they don't need this — this is the only one-shot
+  // animation in the gallery.)
+  const [runId, setRunId] = useState(0);
   return (
-    <StreamingText
-      className="text-sm text-foreground"
-      text="Streaming a reply the way a model sends it, a few characters at a time."
-    />
+    <div className="flex flex-col items-start gap-2">
+      <StreamingText
+        key={runId}
+        className="text-sm text-foreground"
+        text="Streaming a reply the way a model sends it, a few characters at a time."
+      />
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => setRunId((n) => n + 1)}
+      >
+        Replay
+      </Button>
+    </div>
   );
 }
 

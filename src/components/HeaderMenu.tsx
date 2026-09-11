@@ -170,7 +170,7 @@ export default function HeaderMenu({
   // logged in. Only fetch when the auth section will be rendered.
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null }> =>
+    queryFn: (): Promise<{ sub: string | null; name: string | null }> =>
       fetch("/api/me").then((r) => {
         if (!r.ok) throw new Error("Failed to load user");
         return r.json();
@@ -180,6 +180,9 @@ export default function HeaderMenu({
     enabled: showLogout,
   });
   const isLoggedIn = meQuery.data?.sub != null;
+  // First name for the trigger greeting, so a signed-in visitor can see it at a
+  // glance without opening the menu. Falls back to nothing when the name is absent.
+  const firstName = meQuery.data?.name?.trim().split(/\s+/)[0] || null;
   const ref = useRef<HTMLDivElement>(null);
 
   // Close on outside click or Escape
@@ -217,6 +220,11 @@ export default function HeaderMenu({
         }
       >
         <ActiveThemeIcon preference={preference} />
+        {isLoggedIn && firstName && (
+          <span className="hidden max-w-[12ch] truncate font-medium sm:inline">
+            Hi, {firstName}
+          </span>
+        )}
         <svg
           width="10"
           height="10"
