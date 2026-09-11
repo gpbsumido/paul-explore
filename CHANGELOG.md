@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.2
+
+- **The header greets you when you're signed in.** The menu button in the header showed the same theme icon whether or not you were logged in, so there was no at-a-glance sign you had a session. When signed in it now reads "Hi, &lt;first name&gt;" next to the icon (pulled from the name already returned by `/api/me`, hidden on the narrowest screens to keep the bar tidy). Covered by a test that the greeting shows for a signed-in user and stays absent when signed out.
+
 ## 2026-09-11 - version 6.10.1
 
 - **Replay the StreamingText demo.** In the design-system gallery, StreamingText streams once on mount and finishes fast — scroll down late and you'd miss it and just see static text. It now has a Replay button that re-runs the stream. (The charts and token meter render statically, and the typing dots / ticker / spinner loop, so this is the only demo that could be missed.)
