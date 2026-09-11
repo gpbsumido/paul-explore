@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -49,5 +49,31 @@ describe("HeaderMenu trigger styling", () => {
     expect(trigger.className).toContain("rounded-full");
     expect(trigger.className).toContain("custom-pill");
     expect(trigger.className).not.toContain("rounded-lg");
+  });
+});
+
+describe("HeaderMenu logged-in greeting", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("greets the signed-in user by first name on the trigger", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({ sub: "auth0|1", name: "Paul Sumido", email: "p@x.com" }),
+        { status: 200 },
+      ),
+    );
+    renderMenu();
+    expect(await screen.findByText("Hi, Paul")).toBeInTheDocument();
+  });
+
+  it("shows no greeting when signed out", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ sub: null, name: null, email: null }), {
+        status: 200,
+      }),
+    );
+    renderMenu();
+    await screen.findByRole("button", { name: /open menu/i });
+    expect(screen.queryByText(/^Hi, /)).not.toBeInTheDocument();
   });
 });

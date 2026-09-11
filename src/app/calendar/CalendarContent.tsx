@@ -266,6 +266,12 @@ export default function CalendarContent({
     setView("month");
   }, []);
 
+  // "+N more" in a packed month cell: open that day in full so every event shows.
+  const handleShowMore = useCallback((date: Date) => {
+    setCurrentDate(normalizePeriod("day", date));
+    setView("day");
+  }, []);
+
   // ---------------------------------------------------------------------------
   // Modal handlers
   // ---------------------------------------------------------------------------
@@ -360,6 +366,7 @@ export default function CalendarContent({
                 onDayClick={openCreateModal}
                 onChipClick={openEditModal}
                 onCountdownClick={openCountdownModal}
+                onShowMore={handleShowMore}
               />
             </div>
           );
