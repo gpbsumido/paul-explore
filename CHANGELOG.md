@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.4
+
+- **Pick up the ChatMessage dark-mode contrast fix.** Bumped `@paul-portfolio/css` to `^0.11.1`, which fixes the design-system ChatMessage assistant bubble: it used a fixed light background with themed (near-white in dark) text, so the bubble was unreadable in dark mode. It now uses the theme-aware surface token. This is the consume side of paul-design-system's 0.6.1 release; no app code changed, just the dependency.
+
 ## 2026-09-11 - version 6.10.3
 
 - **"+N more" on a packed calendar day now shows the events instead of a barely-visible line that made a new one.** In the month view, a day with more events than fit showed a faint "+N more" that wasn't a real control — clicking it fell through to the cell and opened the create-event modal, so you could never actually see the hidden events. It's now a proper button (readable, keyboard-accessible, and it stops the create click) that opens that day in the day view, where every event is listed. Covered by a test that clicking the overflow opens the day rather than the create modal.
