@@ -40,7 +40,7 @@ export default function SegmentedControl<T extends string>({
             type="button"
             aria-pressed={isActive}
             onClick={() => onChange(option.id)}
-            className={`paul-touch-min rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 ${
+            className={`paul-touch-min rounded-md px-2.5 py-1 text-xs font-medium transition-[color,background-color,transform] duration-150 motion-safe:active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 ${
               isActive
                 ? "bg-primary-600 text-white"
                 : "text-muted hover:text-foreground"

@@ -304,6 +304,24 @@
   --shadow-xl: var(--paul-shadow-xl);
   --shadow-2xl: var(--paul-shadow-2xl);
 
+  /* The highest-elevation surface (the modal) reads deeper than any card.
+     Tokenised so "bigger surface = deeper shadow" is a value, not an eyeball. */
+  --elevation-modal:
+    0 32px 80px -28px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  /* ========================================
+     BLUR SCALE
+     A material reads thicker the bigger it is, so blur steps up with surface
+     size: chip < floating bar < panel < modal. One scale instead of six ad hoc
+     px values scattered across the chrome.
+     ======================================== */
+  --blur-chip: 14px;
+  --blur-bar: 16px;
+  --blur-panel: 24px;
+  --blur-modal: 28px;
+
   /* ========================================
      Z-INDEX SCALE — from @paul-portfolio/tokens
      ======================================== */
@@ -407,6 +425,42 @@
   --modal-backdrop: rgba(0, 0, 0, 0.6);
   --modal-bg: rgba(15, 15, 15, 0.88);
   --modal-border: rgba(255, 255, 255, 0.12);
+}
+
+/* ========================================
+   ACCESSIBILITY OVERRIDES (apple-design audit, Tier 1)
+   The app is built on glass; these honour the OS-level
+   transparency and contrast preferences. The blur itself
+   is stripped in globals.css under the same query.
+   ======================================== */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: rgb(244 244 246);
+    --glass-bg-hover: rgb(236 236 239);
+    --modal-bg: rgb(255 255 255);
+    --modal-backdrop: rgba(0, 0, 0, 0.55);
+  }
+  [data-theme="dark"] {
+    --glass-bg: rgb(28 28 30);
+    --glass-bg-hover: rgb(38 38 41);
+    --modal-bg: rgb(20 20 22);
+    --modal-backdrop: rgba(0, 0, 0, 0.72);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --glass-border: rgba(0, 0, 0, 0.55);
+    --glass-border-strong: rgba(0, 0, 0, 0.75);
+    --modal-border: rgba(0, 0, 0, 0.6);
+    --color-border: rgb(70 70 74);
+  }
+  [data-theme="dark"] {
+    --glass-border: rgba(255, 255, 255, 0.55);
+    --glass-border-strong: rgba(255, 255, 255, 0.78);
+    --modal-border: rgba(255, 255, 255, 0.5);
+    --color-border: rgb(190 190 196);
+  }
 }
 
 /* ========================================

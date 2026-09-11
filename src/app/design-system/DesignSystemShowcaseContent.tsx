@@ -670,7 +670,7 @@ export default function DesignSystemShowcaseContent() {
   return (
     <PageShell colorA={ACCENT} colorB="var(--color-secondary-500)">
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Design System" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Design System" }]}
       />
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">

@@ -36,7 +36,7 @@ export default async function LeaguePage({
     <PageShell>
       <PageHeader
         breadcrumbs={[
-          { label: "Hub", href: "/" },
+          { label: "Dashboard", href: "/" },
           { label: "ZeroProof", href: "/zeroproof" },
           { label: "League" },
         ]}

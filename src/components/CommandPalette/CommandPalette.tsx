@@ -160,8 +160,8 @@ export default function CommandPalette({
             className="w-full max-w-xl overflow-hidden rounded-2xl shadow-xl"
             style={{
               background: "var(--modal-bg)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
+              backdropFilter: "blur(var(--blur-panel))",
+              WebkitBackdropFilter: "blur(var(--blur-panel))",
               border: "1px solid var(--modal-border)",
             }}
             initial={

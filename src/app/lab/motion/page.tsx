@@ -11,6 +11,7 @@ import {
 } from "framer-motion";
 import { spring } from "@/lib/animations";
 import { ACCENT_BAND } from "@/lib/accentBand";
+import Sheet from "@/components/ui/Sheet";
 
 // ---------------------------------------------------------------------------
 // Shared glass card style — dark bg, all demos on neutral-950
@@ -579,6 +580,33 @@ function SharedLayout() {
 // Page
 // ===========================================================================
 
+function SheetDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <DemoSection
+      title="Drag-to-dismiss sheet"
+      tag="Sheet"
+      description="Slides up, flicks away. The dismiss uses momentum projection — a fast flick down closes it even if it barely moved; a small tug springs back."
+    >
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="rounded-lg bg-white/10 px-4 py-2 text-[13px] font-semibold text-white transition-transform hover:bg-white/15 motion-safe:active:scale-95"
+      >
+        Open sheet
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} label="Demo sheet">
+        <h3 className="text-lg font-bold text-foreground">Drag me down</h3>
+        <p className="mt-2 text-sm text-muted">
+          Flick this downward and it throws itself closed. A gentle tug that
+          doesn&apos;t clear the threshold springs back into place. The scrim
+          and Escape dismiss it too.
+        </p>
+      </Sheet>
+    </DemoSection>
+  );
+}
+
 export default function MotionPage() {
   return (
     <div className="min-h-dvh bg-neutral-950 text-neutral-50">
@@ -586,9 +614,9 @@ export default function MotionPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Motion Lab</h1>
           <p className="mt-1.5 text-[14px] text-neutral-400">
-            Six interactive Framer Motion demos — spring physics, stagger,
-            layout reorder, scroll parallax, gesture tracking, and shared layout
-            transitions.
+            Seven interactive Framer Motion demos — spring physics, stagger,
+            layout reorder, scroll parallax, gesture tracking, shared layout
+            transitions, and a drag-to-dismiss sheet.
           </p>
         </div>
 
@@ -598,6 +626,7 @@ export default function MotionPage() {
         <ScrollParallax />
         <GestureCard />
         <SharedLayout />
+        <SheetDemo />
       </main>
     </div>
   );

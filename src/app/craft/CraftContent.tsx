@@ -146,7 +146,7 @@ export default function CraftContent() {
   return (
     <PageShell colorA="var(--color-feature-craft)" colorB="var(--color-secondary-500)">
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Craft" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Craft" }]}
         maxWidth="max-w-3xl"
       />
 

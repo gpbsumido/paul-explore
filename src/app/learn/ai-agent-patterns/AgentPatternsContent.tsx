@@ -13,7 +13,7 @@ import { StopButton } from "@/components/agent/StopButton";
 import type { Scenario } from "@/lib/agent/types";
 
 const BREADCRUMBS = [
-  { label: "Hub", href: "/" },
+  { label: "Dashboard", href: "/" },
   { label: "Learn", href: "/learn" },
   { label: "AI Agent Patterns" },
 ];

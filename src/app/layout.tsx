@@ -47,6 +47,9 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-display-face",
   subsets: ["latin"],
   display: "swap",
+  // Request the optical-size axis so large headings get Bricolage's
+  // display-tuned letterforms (paired with font-optical-sizing:auto on h1).
+  axes: ["opsz"],
 });
 
 // Fallback metadata for any page that doesn't define its own.

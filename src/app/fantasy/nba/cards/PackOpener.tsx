@@ -116,7 +116,11 @@ export default function PackOpener({
               dragConstraints={{ top: 0, bottom: TEAR_THRESHOLD + 40 }}
               dragElastic={0.2}
               onDragEnd={(_e, info) => {
-                if (info.offset.y > TEAR_THRESHOLD) setPhase("reveal");
+                // Open on a big-enough pull OR a fast downward flick. Momentum
+                // should count, so a quick flick that didn't travel far still
+                // tears it (apple-design §6, velocity-aware commit).
+                if (info.offset.y > TEAR_THRESHOLD || info.velocity.y > 500)
+                  setPhase("reveal");
               }}
               onClick={() => setPhase("reveal")}
               aria-label="Rip the pack open"

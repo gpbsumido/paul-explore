@@ -33,7 +33,7 @@ export default function ThoughtChatShell({
   return (
     <>
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: breadcrumb }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: breadcrumb }]}
         right={<ViewToggle view={view} setView={setView} />}
         maxWidth="max-w-3xl"
       />

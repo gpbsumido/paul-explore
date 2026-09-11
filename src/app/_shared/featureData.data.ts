@@ -617,6 +617,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#8f52cb",
   },
   {
+    title: "Apple Design",
+    href: "/thoughts/apple-design",
+    preview:
+      "Auditing the whole app against Apple's fluid-interface principles and fixing the gaps: the accessibility settings a glass-heavy UI ignored (reduced transparency, contrast, eased theme change), press-down feedback, a critically-damped modal, menus that spring from their trigger, and size-specific typography",
+    color: "#5b7fc9",
+  },
+  {
     title: "Error Toasts",
     href: "/thoughts/error-toasts",
     preview:

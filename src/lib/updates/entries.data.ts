@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-apple-design",
+    date: "2026-09-10",
+    version: "6.10.0",
+    category: "improvement",
+    tags: ["design-system", "accessibility"],
+    title: "A polish pass on how the whole site feels",
+    summary:
+      "The site now honours your system settings for reduced transparency, higher contrast, and less motion; buttons respond the instant you press them; menus and dialogs move more naturally; and switching light/dark eases instead of snapping.",
+    body: [
+      "I went through the app against Apple's design principles for how an interface should feel — responsive, physical, calm — and fixed a long list of small things. If you've turned on Reduce Transparency, Increase Contrast, or Reduce Motion in your OS, the site respects all three now: the frosted-glass surfaces turn solid, faint borders get stronger, and the brightness change when you flip light/dark fades instead of jumping.",
+      "The rest is feel. Buttons and toggles react on the press, not when you let go. Menus grow out of the button you tapped rather than blinking into place, and dialogs settle in without a bounce. Headings are set a little tighter at large sizes, and text scales properly if you've bumped up your browser's font size.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-error-toasts",
     date: "2026-09-10",
     version: "6.9.0",

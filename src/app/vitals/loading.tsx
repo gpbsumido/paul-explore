@@ -92,7 +92,7 @@ export default function VitalsLoading() {
       `}</style>
 
       {/* Sticky nav — same h-14 and structure as VitalsContent */}
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
+      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4">
           <Bone style={{ height: 14, width: 72 }} />
           <div className="h-4 w-px bg-border" />

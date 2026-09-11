@@ -92,7 +92,7 @@ function BackChevron() {
  * @example Thoughts page (narrow container, view toggle)
  * ```tsx
  * <PageHeader
- *   breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Calendar" }]}
+ *   breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Calendar" }]}
  *   right={<ViewToggle view={view} setView={setView} />}
  *   maxWidth="max-w-3xl"
  * />
@@ -128,17 +128,17 @@ export default function PageHeader({
 }: PageHeaderProps) {
   const glassStyle = {
     background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
+    backdropFilter: "blur(var(--blur-bar))",
+    WebkitBackdropFilter: "blur(var(--blur-bar))",
   };
 
-  const navClassName = `sticky top-0 ${zIndex} h-14 border-b border-border`;
+  const navClassName = `sticky top-0 ${zIndex} min-h-14 border-b border-border`;
 
   const content = (
     <>
       {overlay}
       <div
-        className={`relative mx-auto ${maxWidth} px-4 sm:px-6 h-full flex items-center gap-4`}
+        className={`relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4`}
       >
         {/* Left: breadcrumb trail or custom node */}
         {left ??
