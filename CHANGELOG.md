@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.1
+
+- **Replay the StreamingText demo.** In the design-system gallery, StreamingText streams once on mount and finishes fast — scroll down late and you'd miss it and just see static text. It now has a Replay button that re-runs the stream. (The charts and token meter render statically, and the typing dots / ticker / spinner loop, so this is the only demo that could be missed.)
+
 ## 2026-09-10 - version 6.10.0
 
 - **An Apple-design pass across the whole app.** I audited the app against Apple's fluid-interface principles (WWDC design talks, translated to the web) and fixed the gaps.
