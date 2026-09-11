@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.4
+
+- **Pick up the ChatMessage dark-mode contrast fix.** Bumped `@paul-portfolio/css` to `^0.11.1`, which fixes the design-system ChatMessage assistant bubble: it used a fixed light background with themed (near-white in dark) text, so the bubble was unreadable in dark mode. It now uses the theme-aware surface token. This is the consume side of paul-design-system's 0.6.1 release; no app code changed, just the dependency.
+
 ## 2026-09-11 - version 6.10.1
 
 - **Replay the StreamingText demo.** In the design-system gallery, StreamingText streams once on mount and finishes fast — scroll down late and you'd miss it and just see static text. It now has a Replay button that re-runs the stream. (The charts and token meter render statically, and the typing dots / ticker / spinner loop, so this is the only demo that could be missed.)
