@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.5
+
+- **The "Trend across versions" sparklines have a readable x-axis.** Each little per-metric card forced every version label to render (`interval={0}`), so a dozen versions crammed into a narrow card overlapped into an unreadable smear. It now shows the first and last version plus whatever intermediate labels actually fit (`interval="preserveStartEnd"` with a min gap), so the axis stays legible at any width while the line still plots every point.
+
 ## 2026-09-11 - version 6.10.4
 
 - **Pick up the ChatMessage dark-mode contrast fix.** Bumped `@paul-portfolio/css` to `^0.11.1`, which fixes the design-system ChatMessage assistant bubble: it used a fixed light background with themed (near-white in dark) text, so the bubble was unreadable in dark mode. It now uses the theme-aware surface token. This is the consume side of paul-design-system's 0.6.1 release; no app code changed, just the dependency.
