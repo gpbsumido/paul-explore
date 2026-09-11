@@ -18,11 +18,11 @@ dependencies:
     specifier: ^6.3.1
     version: 6.3.1(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/css':
-    specifier: ^0.10.0
-    version: 0.10.0(@paul-portfolio/tokens@0.4.0)
+    specifier: ^0.11.1
+    version: 0.11.1(@paul-portfolio/tokens@0.4.0)
   '@paul-portfolio/react':
     specifier: ^0.9.0
-    version: 0.9.0(@paul-portfolio/css@0.10.0)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3)
+    version: 0.9.0(@paul-portfolio/css@0.11.1)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
     specifier: ^0.4.0
     version: 0.4.0
@@ -1963,15 +1963,15 @@ packages:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
     dev: false
 
-  /@paul-portfolio/css@0.10.0(@paul-portfolio/tokens@0.4.0):
-    resolution: {integrity: sha512-PAxkKw67pPUbNK7Qit1dHtWhbAbkpmMrZwPO9S1D2vUoDMMbTPNvoWh5g1bvU0/GkkphohsLpt4soMyFOGZDXg==}
+  /@paul-portfolio/css@0.11.1(@paul-portfolio/tokens@0.4.0):
+    resolution: {integrity: sha512-pJCsLJddDQ70bMKdji0olL+WXXhZ4ZKmSJS6mUdlEs3pEoG32PDcOuXrh9ZQigmDqLoYOHXUaEFb5w+kqxLfBg==}
     peerDependencies:
       '@paul-portfolio/tokens': '>=0.1.0'
     dependencies:
       '@paul-portfolio/tokens': 0.4.0
     dev: false
 
-  /@paul-portfolio/react@0.9.0(@paul-portfolio/css@0.10.0)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3):
+  /@paul-portfolio/react@0.9.0(@paul-portfolio/css@0.11.1)(@paul-portfolio/tokens@0.4.0)(react-dom@19.2.3)(react@19.2.3):
     resolution: {integrity: sha512-UnnEZhFfSUVtwWDv7gkHk4HVLZ8JZiqpKAuPR13S5jnUKbO2f+lDb+GG7+34ZAFs0IfqIP7hPFB+QaUIWiS/aA==}
     peerDependencies:
       '@paul-portfolio/css': '>=0.1.0'
@@ -1979,7 +1979,7 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@paul-portfolio/css': 0.10.0(@paul-portfolio/tokens@0.4.0)
+      '@paul-portfolio/css': 0.11.1(@paul-portfolio/tokens@0.4.0)
       '@paul-portfolio/tokens': 0.4.0
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)

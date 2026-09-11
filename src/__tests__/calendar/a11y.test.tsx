@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import CountdownModal from "@/components/calendar/CountdownModal";
@@ -201,7 +201,28 @@ describe("CalendarGrid accessibility", () => {
     events: [] as CalendarEvent[],
     onDayClick: vi.fn(),
     onChipClick: vi.fn(),
+    onShowMore: vi.fn(),
   };
+
+  it("opens the day (not the create modal) when the overflow line is clicked", () => {
+    const onShowMore = vi.fn();
+    const onDayClick = vi.fn();
+    // Enough events on one day to overflow the cell's visible-chip cap.
+    const events = Array.from({ length: 8 }, (_, i) =>
+      makeEvent({ id: `e${i}`, title: `Event ${i}` }),
+    );
+    render(
+      <CalendarGrid
+        {...defaultProps}
+        events={events}
+        onShowMore={onShowMore}
+        onDayClick={onDayClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /\+\d+ more/ }));
+    expect(onShowMore).toHaveBeenCalledTimes(1);
+    expect(onDayClick).not.toHaveBeenCalled();
+  });
 
   it("has no axe violations", async () => {
     const { container } = render(<CalendarGrid {...defaultProps} />);
