@@ -22,12 +22,12 @@ describe("RiskScoringApiContent", () => {
   it("explains the rules engine behind one interface", () => {
     render(<RiskScoringApiContent />);
     expect(screen.getAllByText(/Rule/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/velocity/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/velocity/i).length).toBeGreaterThan(0);
   });
 
   it("documents the score bands and the live flagged feed", () => {
     render(<RiskScoringApiContent />);
-    expect(screen.getByText(/amber/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/amber/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/server-sent events|SSE/i).length).toBeGreaterThan(
       0,
     );
