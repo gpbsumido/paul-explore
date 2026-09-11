@@ -14,7 +14,7 @@ export default function CheckInSitesPage() {
     <PageShell>
       <PageHeader
         breadcrumbs={[
-          { label: "Hub", href: "/" },
+          { label: "Dashboard", href: "/" },
           { label: "Check-in", href: "/check-in" },
           { label: "Sites" },
         ]}

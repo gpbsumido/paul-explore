@@ -13,6 +13,28 @@
 import type { Transition, Variants } from "framer-motion";
 
 // ---------------------------------------------------------------------------
+// Momentum projection
+// ---------------------------------------------------------------------------
+
+/**
+ * Where a flick would come to rest, given its release velocity — the same
+ * exponential-decay model iOS scroll uses (from Apple's "Designing Fluid
+ * Interfaces"). Add the result to the current position to get the projected
+ * endpoint, then decide snap/dismiss from there rather than from where the
+ * finger happened to let go. This is what makes a flick feel like it throws.
+ *
+ * Not the physics-textbook v²/(2·decel) — the exponential form below is what
+ * Apple actually ships.
+ *
+ * @param velocity release velocity in px/s
+ * @param decelerationRate 0.998 for normal scroll feel, ~0.99 for snappier
+ * @returns additional distance (px) the momentum carries past the release point
+ */
+export function project(velocity: number, decelerationRate = 0.998): number {
+  return ((velocity / 1000) * decelerationRate) / (1 - decelerationRate);
+}
+
+// ---------------------------------------------------------------------------
 // Spring presets
 // ---------------------------------------------------------------------------
 
@@ -26,6 +48,11 @@ export const spring = {
 
   /** A little elastic, good for cards and list items popping in. */
   bounce: { type: "spring", stiffness: 300, damping: 18 } satisfies Transition,
+
+  /** Critically damped — reaches the target with no overshoot. For overlays and
+   *  menus that just appear, where there's no gesture momentum to preserve.
+   *  Apple: reserve overshoot for a flick or a throw, not a faded-in dialog. */
+  settle: { type: "spring", stiffness: 300, damping: 34 } satisfies Transition,
 
   /** Slow and easy, for large layout transitions that shouldn't feel rushed. */
   gentle: { type: "spring", stiffness: 120, damping: 22 } satisfies Transition,

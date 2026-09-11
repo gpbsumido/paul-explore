@@ -31,7 +31,7 @@ export default function CheckInPage() {
   return (
     <PageShell>
       <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Check-in" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Check-in" }]}
       />
       <main className="mx-auto max-w-xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold text-foreground">Check in</h1>

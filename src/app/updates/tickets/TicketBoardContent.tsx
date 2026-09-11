@@ -202,7 +202,7 @@ export default function TicketBoardContent() {
     <PageShell colorA="var(--color-feature-updates)">
       <PageHeader
         breadcrumbs={[
-          { label: "Hub", href: "/" },
+          { label: "Dashboard", href: "/" },
           { label: "Updates", href: "/updates" },
           { label: "Board" },
         ]}

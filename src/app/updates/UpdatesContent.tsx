@@ -149,7 +149,7 @@ export default function UpdatesContent() {
     <PageShell colorA="var(--color-feature-updates)">
       <PageHeader
         breadcrumbs={[
-          { label: "Hub", href: "/" },
+          { label: "Dashboard", href: "/" },
           { label: "Updates" },
         ]}
         maxWidth="max-w-3xl"

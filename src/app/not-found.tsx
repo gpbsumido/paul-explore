@@ -445,7 +445,7 @@ export default function NotFound() {
               </m.h1>
 
               <m.p
-                className="mt-2 text-[14px] leading-relaxed text-muted"
+                className="mt-2 text-sm leading-relaxed text-muted"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...spring, delay: 0.3 }}
@@ -462,7 +462,7 @@ export default function NotFound() {
                 <button
                   type="button"
                   onClick={goBack}
-                  className="paul-touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
+                  className="paul-touch-min inline-flex items-center font-mono text-[0.8125rem] transition-colors hover:brightness-110"
                   style={{ color: variant.color }}
                 >
                   ← Go back
@@ -470,7 +470,7 @@ export default function NotFound() {
                 <span className="text-muted">|</span>
                 <Link
                   href="/"
-                  className="paul-touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
+                  className="paul-touch-min inline-flex items-center font-mono text-[0.8125rem] transition-colors hover:brightness-110"
                   style={{ color: variant.color }}
                 >
                   Home

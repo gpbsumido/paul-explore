@@ -199,16 +199,15 @@ export default function Modal({
               .join(" ")}
             style={{
               background: "var(--modal-bg)",
-              backdropFilter: "blur(28px)",
-              WebkitBackdropFilter: "blur(28px)",
+              backdropFilter: "blur(var(--blur-modal))",
+              WebkitBackdropFilter: "blur(var(--blur-modal))",
               border: "1px solid var(--modal-border)",
-              boxShadow:
-                "0 32px 80px -28px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.12)",
+              boxShadow: "var(--elevation-modal)",
             }}
             initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={spring.bounce}
+            exit={{ opacity: 0, scale: 0.94, y: 16 }}
+            transition={spring.settle}
           >
             {/* Iridescent hairline along the top edge — a subtle premium cue,
                 decorative and non-interactive so it stays out of the focus trap. */}
