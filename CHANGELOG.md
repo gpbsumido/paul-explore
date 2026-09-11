@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.3
+
+- **"+N more" on a packed calendar day now shows the events instead of a barely-visible line that made a new one.** In the month view, a day with more events than fit showed a faint "+N more" that wasn't a real control — clicking it fell through to the cell and opened the create-event modal, so you could never actually see the hidden events. It's now a proper button (readable, keyboard-accessible, and it stops the create click) that opens that day in the day view, where every event is listed. Covered by a test that clicking the overflow opens the day rather than the create modal.
+
 ## 2026-09-10 - version 6.10.0
 
 - **An Apple-design pass across the whole app.** I audited the app against Apple's fluid-interface principles (WWDC design talks, translated to the web) and fixed the gaps.
