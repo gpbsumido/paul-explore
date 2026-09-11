@@ -30,6 +30,8 @@ interface CalendarGridProps {
   onDayClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
   onCountdownClick?: (countdown: Countdown) => void;
+  /** Clicking the "+N more" overflow line opens that day in full (day view). */
+  onShowMore: (date: Date) => void;
 }
 
 /** True for Saturday (6) and Sunday (0). */
@@ -56,6 +58,7 @@ function CalendarGrid({
   onDayClick,
   onChipClick,
   onCountdownClick,
+  onShowMore,
 }: CalendarGridProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -179,9 +182,18 @@ function CalendarGrid({
                       />
                     ))}
                     {overflowCount > 0 && (
-                      <div className="text-[10px] text-foreground/80 px-1 leading-tight">
+                      <button
+                        type="button"
+                        // Stop the cell's create-event handler; open the day in
+                        // full instead so every event is visible.
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShowMore(day);
+                        }}
+                        className="w-full rounded px-1 py-0.5 text-left text-[11px] font-semibold text-primary-600 hover:bg-primary-500/10 dark:text-primary-400 leading-tight transition-colors"
+                      >
                         +{overflowCount} more
-                      </div>
+                      </button>
                     )}
                   </div>
                 )}
