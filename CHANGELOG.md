@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.6
+
+- **Fixed the calendar "+N more" disappearing.** The 6.10.3 change made it a taller button (`text-[11px]`, vertical padding, a rounded hover background), and with three event chips already in the fixed-height day cell (`overflow-hidden`), that extra height pushed the "+N more" past the cell's bottom edge, so it was clipped out of sight entirely. It's back to the compact footprint of the old line — `text-[10px]`, no vertical padding — so it fits, while staying a bold, primary-coloured, keyboard-accessible button that opens the day (not the create modal).
+
 ## 2026-09-11 - version 6.10.5
 
 - **The "Trend across versions" sparklines have a readable x-axis.** Each little per-metric card forced every version label to render (`interval={0}`), so a dozen versions crammed into a narrow card overlapped into an unreadable smear. It now shows the first and last version plus whatever intermediate labels actually fit (`interval="preserveStartEnd"` with a min gap), so the axis stays legible at any width while the line still plots every point.
