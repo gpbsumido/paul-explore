@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.7
+
+- **A dev-notes write-up for the risk-scoring API I built.** Documents the separate Go project: a `net/http` service that scores payment transactions in milliseconds through a rules engine behind one `Rule` interface (amount, new-device, geo-mismatch, and a mutex-guarded velocity window), sums the weights into a green/amber/red band, and streams flagged transactions over server-sent events. Filed under Architecture & Backend, with the in-memory `Store` called out as the seam a Postgres store drops in behind.
+
 ## 2026-09-11 - version 6.10.6
 
 - **Fixed the calendar "+N more" disappearing.** The 6.10.3 change made it a taller button (`text-[11px]`, vertical padding, a rounded hover background), and with three event chips already in the fixed-height day cell (`overflow-hidden`), that extra height pushed the "+N more" past the cell's bottom edge, so it was clipped out of sight entirely. It's back to the compact footprint of the old line — `text-[10px]`, no vertical padding — so it fits, while staying a bold, primary-coloured, keyboard-accessible button that opens the day (not the create modal).
