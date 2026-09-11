@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.2
+
+- **The header greets you when you're signed in.** The menu button in the header showed the same theme icon whether or not you were logged in, so there was no at-a-glance sign you had a session. When signed in it now reads "Hi, &lt;first name&gt;" next to the icon (pulled from the name already returned by `/api/me`, hidden on the narrowest screens to keep the bar tidy). Covered by a test that the greeting shows for a signed-in user and stays absent when signed out.
+
 ## 2026-09-10 - version 6.10.0
 
 - **An Apple-design pass across the whole app.** I audited the app against Apple's fluid-interface principles (WWDC design talks, translated to the web) and fixed the gaps.
