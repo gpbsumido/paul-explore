@@ -185,12 +185,15 @@ function CalendarGrid({
                       <button
                         type="button"
                         // Stop the cell's create-event handler; open the day in
-                        // full instead so every event is visible.
+                        // full instead so every event is visible. Kept as compact
+                        // as the old plain line (text-[10px], no vertical padding)
+                        // so it isn't pushed past the fixed-height cell's
+                        // overflow-hidden edge and clipped out of sight.
                         onClick={(e) => {
                           e.stopPropagation();
                           onShowMore(day);
                         }}
-                        className="w-full rounded px-1 py-0.5 text-left text-[11px] font-semibold text-primary-600 hover:bg-primary-500/10 dark:text-primary-400 leading-tight transition-colors"
+                        className="block w-full truncate px-1 text-left text-[10px] font-bold leading-tight text-primary-600 hover:underline dark:text-primary-400"
                       >
                         +{overflowCount} more
                       </button>
