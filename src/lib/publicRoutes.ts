@@ -125,6 +125,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/refactor-pass",
   "/thoughts/render-perf",
   "/thoughts/research-explorer",
+  "/thoughts/risk-scoring-api",
   "/thoughts/routing",
   "/thoughts/search-bar",
   "/thoughts/security",

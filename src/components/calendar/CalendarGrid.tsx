@@ -30,6 +30,8 @@ interface CalendarGridProps {
   onDayClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
   onCountdownClick?: (countdown: Countdown) => void;
+  /** Clicking the "+N more" overflow line opens that day in full (day view). */
+  onShowMore: (date: Date) => void;
 }
 
 /** True for Saturday (6) and Sunday (0). */
@@ -56,6 +58,7 @@ function CalendarGrid({
   onDayClick,
   onChipClick,
   onCountdownClick,
+  onShowMore,
 }: CalendarGridProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -98,14 +101,20 @@ function CalendarGrid({
             ? countdowns.filter((c) => isSameDay(parseISO(c.targetDate), day))
             : [];
 
+          // The cell is a fixed height with overflow-hidden, so the "+N more"
+          // line can't be an extra row on top of a full set of chips or it gets
+          // clipped past the bottom edge. When a day overflows it takes a chip
+          // slot: show one fewer chip and let the line fill the row instead.
+          const totalItems = allDisplay.length + dayCountdowns.length;
+          const chipBudget =
+            totalItems > VISIBLE_CHIPS ? VISIBLE_CHIPS - 1 : VISIBLE_CHIPS;
+
           // events claim the first slots; countdowns fill whatever's left
-          const eventSlots = allDisplay.slice(0, VISIBLE_CHIPS);
-          const remainingSlots = VISIBLE_CHIPS - eventSlots.length;
+          const eventSlots = allDisplay.slice(0, chipBudget);
+          const remainingSlots = chipBudget - eventSlots.length;
           const countdownSlots = dayCountdowns.slice(0, remainingSlots);
           const overflowCount =
-            allDisplay.length -
-            eventSlots.length +
-            (dayCountdowns.length - countdownSlots.length);
+            totalItems - eventSlots.length - countdownSlots.length;
 
           return (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -179,9 +188,21 @@ function CalendarGrid({
                       />
                     ))}
                     {overflowCount > 0 && (
-                      <div className="text-[10px] text-foreground/80 px-1 leading-tight">
+                      <button
+                        type="button"
+                        // Stop the cell's create-event handler; open the day in
+                        // full instead so every event is visible. Kept as compact
+                        // as the old plain line (text-[10px], no vertical padding)
+                        // so it isn't pushed past the fixed-height cell's
+                        // overflow-hidden edge and clipped out of sight.
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShowMore(day);
+                        }}
+                        className="block w-full truncate px-1 text-left text-[10px] font-bold leading-tight text-primary-600 hover:underline dark:text-primary-400"
+                      >
                         +{overflowCount} more
-                      </div>
+                      </button>
                     )}
                   </div>
                 )}

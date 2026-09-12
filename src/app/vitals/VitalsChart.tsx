@@ -71,7 +71,11 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(version: string) => `v${version}`}
-                interval={0}
+                // Show the first and last version, plus any intermediate ones
+                // that actually fit — so a dozen versions in a narrow card don't
+                // overlap into an unreadable smear (was interval={0}, all ticks).
+                interval="preserveStartEnd"
+                minTickGap={28}
               />
               <Tooltip
                 contentStyle={{

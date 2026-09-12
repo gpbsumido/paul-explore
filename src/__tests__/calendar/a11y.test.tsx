@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import CountdownModal from "@/components/calendar/CountdownModal";
@@ -201,7 +201,48 @@ describe("CalendarGrid accessibility", () => {
     events: [] as CalendarEvent[],
     onDayClick: vi.fn(),
     onChipClick: vi.fn(),
+    onShowMore: vi.fn(),
   };
+
+  it("opens the day (not the create modal) when the overflow line is clicked", () => {
+    const onShowMore = vi.fn();
+    const onDayClick = vi.fn();
+    // Enough events on one day to overflow the cell's visible-chip cap.
+    const events = Array.from({ length: 8 }, (_, i) =>
+      makeEvent({ id: `e${i}`, title: `Event ${i}` }),
+    );
+    render(
+      <CalendarGrid
+        {...defaultProps}
+        events={events}
+        onShowMore={onShowMore}
+        onDayClick={onDayClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /\+\d+ more/ }));
+    expect(onShowMore).toHaveBeenCalledTimes(1);
+    expect(onDayClick).not.toHaveBeenCalled();
+  });
+
+  it("reserves a row for the overflow line so it is never clipped", () => {
+    // The cell is a fixed height with overflow-hidden. If the "+N more" line is
+    // an extra row on top of a full set of chips, it gets pushed past the clip
+    // edge and vanishes. So on an overflowing day the more line must take a chip
+    // slot: at most two event chips render, leaving room for it inside the cell.
+    const events = Array.from({ length: 8 }, (_, i) =>
+      makeEvent({ id: `e${i}`, title: `Event ${i}` }),
+    );
+    render(<CalendarGrid {...defaultProps} events={events} />);
+
+    const chips = screen.getAllByRole("button", { name: /^Event \d+$/ });
+    expect(chips.length).toBeLessThanOrEqual(2);
+    // The count on the line accounts for every hidden event.
+    expect(
+      screen.getByRole("button", {
+        name: `+${8 - chips.length} more`,
+      }),
+    ).toBeInTheDocument();
+  });
 
   it("has no axe violations", async () => {
     const { container } = render(<CalendarGrid {...defaultProps} />);

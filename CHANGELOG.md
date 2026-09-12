@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.8
+
+- **The calendar "+N more" line no longer gets clipped out of a packed day.** The month-view day cell is a fixed height with `overflow-hidden`, and the "+N more" line was an extra row on top of three full event chips — so it overflowed the cell by a few pixels and was clipped past the bottom edge, invisible. It now takes a chip slot instead of adding a row: an overflowing day shows one fewer chip so the line always fits inside the cell. Covered by a test that an overflowing day reserves that row.
+
+## 2026-09-11 - version 6.10.7
+
+- **A dev-notes write-up for the risk-scoring API I built.** Documents the separate Go project: a `net/http` service that scores payment transactions in milliseconds through a rules engine behind one `Rule` interface (amount, new-device, geo-mismatch, and a mutex-guarded velocity window), sums the weights into a green/amber/red band, and streams flagged transactions over server-sent events. Filed under Architecture & Backend, with the in-memory `Store` called out as the seam a Postgres store drops in behind.
+
+## 2026-09-11 - version 6.10.6
+
+- **Fixed the calendar "+N more" disappearing.** The 6.10.3 change made it a taller button (`text-[11px]`, vertical padding, a rounded hover background), and with three event chips already in the fixed-height day cell (`overflow-hidden`), that extra height pushed the "+N more" past the cell's bottom edge, so it was clipped out of sight entirely. It's back to the compact footprint of the old line — `text-[10px]`, no vertical padding — so it fits, while staying a bold, primary-coloured, keyboard-accessible button that opens the day (not the create modal).
+
+## 2026-09-11 - version 6.10.5
+
+- **The "Trend across versions" sparklines have a readable x-axis.** Each little per-metric card forced every version label to render (`interval={0}`), so a dozen versions crammed into a narrow card overlapped into an unreadable smear. It now shows the first and last version plus whatever intermediate labels actually fit (`interval="preserveStartEnd"` with a min gap), so the axis stays legible at any width while the line still plots every point.
+
+## 2026-09-11 - version 6.10.4
+
+- **Pick up the ChatMessage dark-mode contrast fix.** Bumped `@paul-portfolio/css` to `^0.11.1`, which fixes the design-system ChatMessage assistant bubble: it used a fixed light background with themed (near-white in dark) text, so the bubble was unreadable in dark mode. It now uses the theme-aware surface token. This is the consume side of paul-design-system's 0.6.1 release; no app code changed, just the dependency.
+
+## 2026-09-11 - version 6.10.3
+
+- **"+N more" on a packed calendar day now shows the events instead of a barely-visible line that made a new one.** In the month view, a day with more events than fit showed a faint "+N more" that wasn't a real control — clicking it fell through to the cell and opened the create-event modal, so you could never actually see the hidden events. It's now a proper button (readable, keyboard-accessible, and it stops the create click) that opens that day in the day view, where every event is listed. Covered by a test that clicking the overflow opens the day rather than the create modal.
+
+## 2026-09-11 - version 6.10.2
+
+- **The header greets you when you're signed in.** The menu button in the header showed the same theme icon whether or not you were logged in, so there was no at-a-glance sign you had a session. When signed in it now reads "Hi, &lt;first name&gt;" next to the icon (pulled from the name already returned by `/api/me`, hidden on the narrowest screens to keep the bar tidy). Covered by a test that the greeting shows for a signed-in user and stays absent when signed out.
+
+## 2026-09-11 - version 6.10.1
+
+- **Replay the StreamingText demo.** In the design-system gallery, StreamingText streams once on mount and finishes fast — scroll down late and you'd miss it and just see static text. It now has a Replay button that re-runs the stream. (The charts and token meter render statically, and the typing dots / ticker / spinner loop, so this is the only demo that could be missed.)
+
 ## 2026-09-10 - version 6.10.0
 
 - **An Apple-design pass across the whole app.** I audited the app against Apple's fluid-interface principles (WWDC design talks, translated to the web) and fixed the gaps.
