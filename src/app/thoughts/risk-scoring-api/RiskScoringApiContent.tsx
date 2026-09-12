@@ -10,31 +10,46 @@ export default function RiskScoringApiContent() {
   return (
     <ThoughtLayout
       breadcrumb="Risk-scoring API"
-      title="A real-time transaction risk-scoring API"
+      title="Learning Go by building a risk-scoring API"
       intro={
         <>
-          I wanted to build the thing a fraud or AML platform actually sells: a
-          service that takes a payment transaction and hands back a risk score in
-          milliseconds, with the reasons attached. So this is a small Go API that
-          runs each transaction through a set of rules, adds up a weighted score,
-          drops it into a green / amber / red band, and pushes anything flagged
-          out to a live feed. The whole thing is the Go standard library —{" "}
-          <code className={code}>net/http</code> for routing, no framework — because
-          the interesting decisions here are about shape, not dependencies.
+          I&apos;m new to Go. I write TypeScript all day, and I&apos;ve learned
+          the hard way that I don&apos;t absorb a language from tutorials — I
+          need a project with real decisions in it. So I picked one where the
+          domain would teach me something too: the thing a fraud or AML platform
+          actually sells, a service that takes a payment transaction and hands
+          back a risk score in milliseconds, with the reasons attached. This
+          write-up is two sets of notes interleaved — the Go I learned and the
+          risk-assessment concepts I learned — in the order the project taught
+          me them. It&apos;s all standard library,{" "}
+          <code className={code}>net/http</code> and no framework, partly
+          because that&apos;s what every Go person told me to do and partly
+          because I came to learn the language, not a framework&apos;s opinion
+          of it.
         </>
       }
     >
       <section>
         <h2 className="mb-3 text-lg font-bold">
-          The rules are the only thing that changes, so they&apos;re the only
-          thing you add
+          What a rule is, and what a Go interface is — learned in the same hour
         </h2>
         <p className="text-muted">
-          A risk engine lives or dies on how cheaply you can add the next rule.
-          The one guarantee I wanted was that adding a rule is a new type and
-          nothing else — the engine that runs them never gets edited, never grows
-          a switch statement, never learns the name of a rule. So a rule is a tiny
-          interface, and the engine only knows the interface.
+          First domain lesson: a risk engine doesn&apos;t detect fraud, it
+          accumulates suspicion. A <em>rule</em> is one codified suspicion — a
+          single question asked of every transaction, like &quot;is this amount
+          unusually large?&quot; or &quot;have we seen this device before?&quot;
+          No rule proves anything on its own; each is a weak signal, and the{" "}
+          <em>weight</em> attached to it says how much you trust that signal
+          relative to the others. The engine&apos;s job is to run all of them
+          and add up what fired.
+        </p>
+        <p className="mt-3 text-muted">
+          My TypeScript instinct was a base class, or a union type with a
+          switch. Go&apos;s answer is a small interface — and Go interfaces are
+          structural, which surprised me: a type implements{" "}
+          <code className={code}>Rule</code> just by having these methods.
+          There&apos;s no <code className={code}>implements</code> keyword, so
+          the engine and the rules never have to know about each other.
         </p>
         <pre className={pre}>
           {`type Rule interface {
@@ -44,11 +59,14 @@ export default function RiskScoringApiContent() {
 }`}
         </pre>
         <p className="mt-3 text-muted">
-          The engine holds a slice of rules and a map of which ones are enabled,
-          walks the enabled ones, collects the hits, and hands them to the scorer.
-          A rule that fires returns a <code className={code}>RuleHit</code> with a
+          The <code className={code}>*model.RuleHit</code> return taught me
+          another idiom: Go has no <code className={code}>Option</code> type, so
+          a pointer doubles as one. A rule that fires returns a hit with a
           reason and its weight; a rule that doesn&apos;t returns{" "}
-          <code className={code}>nil</code>. That&apos;s the entire contract.
+          <code className={code}>nil</code>. The engine walks the enabled rules,
+          collects the hits, and hands them to the scorer — it never learns a
+          rule&apos;s name, so adding the next rule is a new type and nothing
+          else.
         </p>
         <pre className={pre}>
           {`func (e *Engine) Score(ctx, txn) model.Score {
@@ -65,27 +83,29 @@ export default function RiskScoringApiContent() {
 }`}
         </pre>
         <p className="mt-3 text-muted">
-          The four rules I shipped are amount-over-threshold (weight 30),
-          new-device for a user (20), country-differs-from-last-seen (25), and
-          velocity — too many transactions from one device in a window (40).
-          Because enablement is a map the engine already owns, toggling a rule at
-          runtime is a one-liner, which is what backs the{" "}
-          <code className={code}>PUT /v1/rules/{"{id}"}</code> endpoint. You can
-          turn the velocity rule off on a live service and watch the scores move.
+          The four rules I shipped are the beginner set every fraud primer
+          starts with: amount-over-threshold (weight 30), new-device for a user
+          (20), country-differs-from-last-seen (25), and velocity — too many
+          transactions from one device in a window (40). Enablement is a map the
+          engine owns, so toggling a rule at runtime backs the{" "}
+          <code className={code}>PUT /v1/rules/{"{id}"}</code> endpoint: turn
+          the velocity rule off on a live service and watch the scores move.
         </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">
-          Velocity is the one with memory, so it&apos;s the one with a mutex
+          Velocity is where the domain got stateful and Go made me say mutex
         </h2>
         <p className="text-muted">
-          Three of the four rules are pure functions of a single transaction —
-          look at the amount, compare a country, done. Velocity is the odd one
-          out: it has to remember what a device did recently. It keeps a per-device
-          sliding window of timestamps, and on every transaction it drops the ones
-          that have aged out of the window, records the new one, and fires if the
-          count crossed the limit.
+          Second domain lesson: the highest-weight signals in fraud are about{" "}
+          <em>behaviour over time</em>, not any single transaction. Velocity —
+          one device firing many transactions in a short window — is the classic
+          card-testing pattern, where someone validates a batch of stolen card
+          numbers with rapid small charges. Three of my four rules are pure
+          functions of one transaction. Velocity has to remember, so it keeps a
+          per-device sliding window of timestamps: age out the old ones, record
+          the new one, fire if the count crossed the limit.
         </p>
         <pre className={pre}>
           {`recent := r.seen[txn.DeviceID][:0]
@@ -98,28 +118,36 @@ recent = append(recent, now)
 r.seen[txn.DeviceID] = recent`}
         </pre>
         <p className="mt-3 text-muted">
-          The moment a rule has mutable state, it&apos;s a concurrency question,
-          because an HTTP server evaluates it from many goroutines at once. So the
-          map is guarded by a mutex, and the clock is injected (a{" "}
-          <code className={code}>now func() time.Time</code>) so the sliding-window
-          behaviour is testable without sleeping. There&apos;s a{" "}
-          <code className={code}>go test -race</code> test that fires the rule from
-          a pack of goroutines specifically to prove the locking holds — the kind
-          of test that&apos;s worthless until the day it isn&apos;t.
+          (That <code className={code}>[:0]</code> is a Go trick I had to look
+          up: reslicing to zero length keeps the backing array, so filtering in
+          place doesn&apos;t allocate.)
+        </p>
+        <p className="mt-3 text-muted">
+          The Go lesson hiding in this rule is that concurrency isn&apos;t
+          opt-in. Go&apos;s HTTP server runs every request in its own
+          goroutine, so the moment a rule holds a map, that map is being read
+          and written from many goroutines at once — which in Go is not
+          &quot;probably fine&quot;, it&apos;s a data race. So the map is
+          guarded by a mutex, and the clock is injected (a{" "}
+          <code className={code}>now func() time.Time</code> field — no DI
+          framework, just a function) so the sliding window is testable without
+          sleeping. Then I found <code className={code}>go test -race</code>,
+          which felt like cheating: a test fires the rule from a pack of
+          goroutines and the runtime itself proves the locking holds.
         </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">
-          A score is a sum; a band is a decision
+          A score is arithmetic; a band is your risk appetite written down
         </h2>
         <p className="text-muted">
-          The scorer is deliberately boring, and that&apos;s the point. It sums
-          the weights of the hits, clamps the total to 100 so no pile-up of rules
-          can overflow the scale, and maps the number to a band: green under 30,
-          amber 30 to 69, red at 70 and up. Keeping the thresholds as named
-          constants in one place means the policy — where the lines sit — is one
-          edit, not a hunt through conditionals.
+          The scorer is the least Go-interesting code in the project and the
+          most domain-interesting. Weighted additive scoring is the simplest
+          model there is — sum the weights of the hits, clamp to 100 so a
+          pile-up of rules can&apos;t overflow the scale — and it&apos;s what
+          real platforms start with before anyone says machine learning,
+          because you can explain it to an analyst and a regulator.
         </p>
         <pre className={pre}>
           {`total := 0
@@ -132,26 +160,38 @@ if total > maxScore {
 // band: green < 30, amber 30-69, red >= 70`}
         </pre>
         <p className="mt-3 text-muted">
-          The score that comes back carries the hits with it, so the caller never
-          gets a bare number they have to trust. A red transaction says{" "}
-          <em>why</em> it&apos;s red — which rules fired, each with its own reason
-          string — which is the difference between a score you can action and a
-          score you can only argue with.
+          The band is where the number becomes a decision: green flows through,
+          amber queues for human review, red gets blocked. And the thresholds
+          are not a technical choice at all — they are the <em>risk appetite</em>{" "}
+          of whoever runs the service. Slide the lines down and you block more
+          fraud but generate more false positives, which means declining real
+          customers; slide them up and good customers sail through alongside
+          the fraud you missed. That trade-off is the entire business, which is
+          why the thresholds live as named constants in one place — policy
+          should be one edit, not a hunt through conditionals.
+        </p>
+        <p className="mt-3 text-muted">
+          The other domain rule I picked up: never return a bare number. The
+          score carries its hits, so a red transaction says <em>why</em>{" "}
+          it&apos;s red — which rules fired, each with a reason string. An
+          analyst can action that; a bare 85 they can only argue with.
         </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">
-          A score nobody sees in time is worthless, so it streams
+          Channels, and why a flag that arrives late is just a log line
         </h2>
         <p className="text-muted">
           Scoring in milliseconds only matters if the flag reaches a human or a
-          system while it still means something. So flagged transactions —
-          anything amber or red — go out over a server-sent-events feed at{" "}
-          <code className={code}>GET /v1/stream</code>. Behind it is a broker that
-          fans one event out to every current subscriber, and the rule that keeps
-          it honest is that a publisher must never block: a subscriber whose
-          buffer is full gets skipped, not waited on.
+          downstream system while it can still stop something — a fraud alert
+          an hour later is forensics, not prevention. So anything amber or red
+          goes out live over server-sent events at{" "}
+          <code className={code}>GET /v1/stream</code>, and building the SSE
+          broker behind it is where I finally understood channels: a channel is
+          how goroutines hand values to each other, and{" "}
+          <code className={code}>select</code> with a{" "}
+          <code className={code}>default</code> arm is how you refuse to wait.
         </p>
         <pre className={pre}>
           {`func (b *Broker) Publish(ev Event) {
@@ -166,34 +206,42 @@ if total > maxScore {
 }`}
         </pre>
         <p className="mt-3 text-muted">
-          Subscribe hands back the channel and an idempotent unsubscribe closure,
-          so a client that disconnects cleans itself out of the fan-out exactly
-          once. One slow consumer can&apos;t hold up the firehose for everyone
-          else, which is the property you actually want from a monitoring feed —
-          liveness over completeness.
+          That <code className={code}>default</code> arm encodes the one rule
+          that keeps a monitoring feed honest: a publisher must never block. A
+          subscriber whose buffer is full gets skipped, not waited on, so one
+          slow consumer can&apos;t hold up the firehose for everyone else —
+          liveness over completeness, which I&apos;d have gotten wrong without
+          reading about the pattern first, because dropping events feels wrong
+          until you realise stalling the stream is worse. Subscribe hands back
+          the channel and an idempotent unsubscribe closure, so a client that
+          disconnects cleans itself out of the fan-out exactly once.
         </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">
-          The in-memory store is a seam, not a shortcut
+          The in-memory store is where interfaces clicked as seams
         </h2>
         <p className="text-muted">
           Persistence is an in-memory <code className={code}>Store</code> today,
-          but it sits behind an interface on purpose. The rules and handlers only
-          know the interface, so a Postgres implementation (with{" "}
-          <code className={code}>pgx</code>) drops in behind it without touching a
-          line of the scoring or the HTTP layer. That&apos;s the same discipline as
-          the rules: the thing most likely to change — where the data lives — is
-          isolated so that changing it is additive.
+          sitting behind an interface — and having just learned interfaces on
+          the rules, I could see this is the same move one level up. The rules
+          and handlers only know the interface, so a Postgres implementation
+          (with <code className={code}>pgx</code>) drops in later without
+          touching a line of scoring or HTTP. The thing most likely to change —
+          where the data lives — is isolated so changing it is additive. In
+          TypeScript I&apos;d have reached for the same shape with more
+          ceremony; in Go it&apos;s the default way to hold a dependency.
         </p>
         <p className="mt-3 text-muted">
-          To prove any of this under something like real traffic there&apos;s a{" "}
-          <code className={code}>cmd/simulator</code> load CLI that fires synthetic
-          transactions with a configurable fraud rate, so you can watch the bands
-          shift and the stream light up. And the whole service is one small
-          multi-stage <code className={code}>Dockerfile</code> — a static Go
-          binary, nothing else in the image.
+          To watch it behave under something like real traffic there&apos;s a{" "}
+          <code className={code}>cmd/simulator</code> load CLI that fires
+          synthetic transactions with a configurable fraud rate — bands
+          shifting and the stream lighting up is the closest thing this project
+          has to a demo. And the deploy story was my favourite Go surprise: the
+          whole service compiles to one static binary, so the multi-stage{" "}
+          <code className={code}>Dockerfile</code> is a few lines with nothing
+          else in the image.
         </p>
       </section>
 
@@ -203,18 +251,18 @@ if total > maxScore {
           "A rules engine behind a single Rule interface: amount threshold, new-device, geo-mismatch, and velocity — the last a per-device sliding window, mutex-guarded and proven safe under a -race test.",
           "A scorer that sums rule weights, clamps at 100, and maps the total to a band with the thresholds in one place.",
           "GET /v1/rules and PUT /v1/rules/{id} to list and toggle rules at runtime, so you can turn a rule off on a live service.",
-          "GET /v1/stream: a server-sent-events feed that fans flagged transactions out to every subscriber, skipping a full buffer rather than stalling the stream.",
+          "GET /v1/stream: a server-sent events feed that fans flagged transactions out to every subscriber, skipping a full buffer rather than stalling the stream.",
           "A Store behind an interface with an in-memory implementation, a cmd/simulator load CLI with a configurable fraud rate, table-driven tests, and a Dockerfile that ships a static binary.",
         ]}
         couldImprove={[
           "The in-memory store grows unbounded — fine for a demo, wrong for anything that runs for a week. It's the first thing the Postgres store fixes.",
-          "Velocity state is per-process, so it's only correct on a single instance. Horizontal scale needs that window in a shared store (Redis) behind the same rule.",
+          "Velocity state is per-process, so it's only correct on a single instance. Horizontal scale needs that window in a shared store (Redis) behind the same rule — a distributed-state lesson I haven't earned yet.",
           "There's no auth on the endpoints. It's a demo service, but a scoring API that anyone can toggle rules on is not one you'd expose.",
         ]}
         upcoming={[
-          "A Postgres store behind the existing Store interface, which is the whole reason the interface came first.",
+          "A Postgres store behind the existing Store interface, which is the whole reason the interface came first — and my excuse to learn pgx.",
           "Moving the velocity window into Redis so the rule stays correct across instances.",
-          "Rules with configurable weights and thresholds as data rather than constants, so tuning the policy doesn't need a redeploy.",
+          "Rules with configurable weights and thresholds as data rather than constants, so tuning the risk appetite doesn't need a redeploy.",
         ]}
       />
     </ThoughtLayout>
