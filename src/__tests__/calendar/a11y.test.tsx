@@ -224,6 +224,26 @@ describe("CalendarGrid accessibility", () => {
     expect(onDayClick).not.toHaveBeenCalled();
   });
 
+  it("reserves a row for the overflow line so it is never clipped", () => {
+    // The cell is a fixed height with overflow-hidden. If the "+N more" line is
+    // an extra row on top of a full set of chips, it gets pushed past the clip
+    // edge and vanishes. So on an overflowing day the more line must take a chip
+    // slot: at most two event chips render, leaving room for it inside the cell.
+    const events = Array.from({ length: 8 }, (_, i) =>
+      makeEvent({ id: `e${i}`, title: `Event ${i}` }),
+    );
+    render(<CalendarGrid {...defaultProps} events={events} />);
+
+    const chips = screen.getAllByRole("button", { name: /^Event \d+$/ });
+    expect(chips.length).toBeLessThanOrEqual(2);
+    // The count on the line accounts for every hidden event.
+    expect(
+      screen.getByRole("button", {
+        name: `+${8 - chips.length} more`,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(<CalendarGrid {...defaultProps} />);
     const results = await axe(container);

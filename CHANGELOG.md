@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.8
+
+- **The calendar "+N more" line no longer gets clipped out of a packed day.** The month-view day cell is a fixed height with `overflow-hidden`, and the "+N more" line was an extra row on top of three full event chips — so it overflowed the cell by a few pixels and was clipped past the bottom edge, invisible. It now takes a chip slot instead of adding a row: an overflowing day shows one fewer chip so the line always fits inside the cell. Covered by a test that an overflowing day reserves that row.
+
 ## 2026-09-11 - version 6.10.7
 
 - **A dev-notes write-up for the risk-scoring API I built.** Documents the separate Go project: a `net/http` service that scores payment transactions in milliseconds through a rules engine behind one `Rule` interface (amount, new-device, geo-mismatch, and a mutex-guarded velocity window), sums the weights into a green/amber/red band, and streams flagged transactions over server-sent events. Filed under Architecture & Backend, with the in-memory `Store` called out as the seam a Postgres store drops in behind.
