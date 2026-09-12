@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.8
+
+- **The calendar "+N more" line no longer gets clipped out of a packed day.** The month-view day cell is a fixed height with `overflow-hidden`, and the "+N more" line was an extra row on top of three full event chips — so it overflowed the cell by a few pixels and was clipped past the bottom edge, invisible. It now takes a chip slot instead of adding a row: an overflowing day shows one fewer chip so the line always fits inside the cell. Covered by a test that an overflowing day reserves that row.
+
 ## 2026-09-11 - version 6.10.6
 
 - **Fixed the calendar "+N more" disappearing.** The 6.10.3 change made it a taller button (`text-[11px]`, vertical padding, a rounded hover background), and with three event chips already in the fixed-height day cell (`overflow-hidden`), that extra height pushed the "+N more" past the cell's bottom edge, so it was clipped out of sight entirely. It's back to the compact footprint of the old line — `text-[10px]`, no vertical padding — so it fits, while staying a bold, primary-coloured, keyboard-accessible button that opens the day (not the create modal).
