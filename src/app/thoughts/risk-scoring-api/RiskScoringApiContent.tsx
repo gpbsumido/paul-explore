@@ -37,6 +37,11 @@ export default function RiskScoringApiContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-12-nil-slice",
+            date: "Sep 12, 2026",
+            title: "The first green transaction crashed the demo",
+          },
+          {
             id: "update-2026-09-11-learner-lens",
             date: "Sep 11, 2026",
             title: "Rewritten as the beginner I actually am, plus a live demo",
@@ -347,6 +352,83 @@ AssertionError: expected 0 to be greater than 0`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-12-nil-slice"
+        date="September 12, 2026"
+        title="The first green transaction crashed the demo"
+      >
+        <p>
+          The service is deployed now — Railway builds the repo&apos;s
+          Dockerfile, <code className={code}>RISK_API_URL</code> points at it,
+          and the demo above scores against the real engine. It survived about
+          four transactions before the page went down, and the one that killed
+          it was the most innocent input the form can produce.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The safest transaction was the one that broke it
+        </h3>
+        <p className="text-muted">
+          A $1 payment from a user and device the service had already seen
+          trips nothing: no threshold, no new device, no geo mismatch, no
+          velocity. Score zero, band green — the exact case the demo renders as
+          &quot;no rules fired — this one sails through.&quot; Instead the
+          console said:
+        </p>
+        <pre className={pre}>
+          {`Uncaught TypeError: can't access property "length", m.score.hits is null`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          In Go, a slice you never appended to isn&apos;t empty — it&apos;s nil
+        </h3>
+        <p className="text-muted">
+          The engine collects hits with{" "}
+          <code className={code}>var hits []model.RuleHit</code> and appends as
+          rules fire. When none fire, nothing appends, and the slice stays{" "}
+          <code className={code}>nil</code> — which{" "}
+          <code className={code}>encoding/json</code> marshals as{" "}
+          <code className={code}>null</code>, not <code className={code}>[]</code>.
+          So the same endpoint that returned an array all through testing
+          quietly changed shape on the first all-clear transaction:
+        </p>
+        <pre className={pre}>
+          {`{"score":{"transaction_id":"","value":20,"band":"green","hits":[
+  {"rule_id":"new_device","reason":"device not seen for this user","weight":20}]}}
+
+{"score":{"transaction_id":"","value":0,"band":"green","hits":null}}`}
+        </pre>
+        <p className="mt-3 text-muted">
+          I never hit it locally because every test transaction was designed to
+          make rules fire — that was the whole point of the demo. The one
+          script nobody wrote was &quot;boring payment, nothing happens,&quot;
+          and it took a stranger&apos;s idle click about a minute to find it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Fixed at both ends, because the page can&apos;t pick the backend&apos;s
+          version
+        </h3>
+        <p className="text-muted">
+          The real fix is in the Go service:{" "}
+          <code className={code}>scoring.Score</code> now turns a nil slice of
+          hits into an empty one, so <code className={code}>hits</code> is
+          always a JSON array — the contract the write-up promised all along.
+          But the demo also learned to tolerate{" "}
+          <code className={code}>null</code> (<code className={code}>
+            hits ?? []
+          </code>{" "}
+          at the one place the response enters the page), because a redeploy
+          lag on the backend shouldn&apos;t take the write-up down with it.
+          Both sides went in test-first; the failing frontend test is just the
+          crash, replayed on purpose:
+        </p>
+        <pre className={pre}>
+          {`stubFetch(200, scoreResponse({ value: 0, band: "green", hits: null }));
+// before the fix: TypeError. after: "No rules fired — this one sails through."`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "POST /v1/transactions scores a transaction and returns the score, its band (green/amber/red), and every rule it tripped with a reason.",
@@ -356,6 +438,7 @@ AssertionError: expected 0 to be greater than 0`}
           "GET /v1/stream: a server-sent events feed that fans flagged transactions out to every subscriber, skipping a full buffer rather than stalling the stream.",
           "A Store behind an interface with an in-memory implementation, a cmd/simulator load CLI with a configurable fraud rate, table-driven tests, and a Dockerfile that ships a static binary.",
           "A live demo on this page: fill in a transaction and get the band and every reason back, through a proxy at /api/risk/transactions that keeps the backend URL server-side.",
+          "The Go service deployed on Railway with RISK_API_URL pointing at it, so the demo scores against the live engine — and as of 0.1.1 a zero-hit score serializes hits as [], never null.",
         ]}
         couldImprove={[
           "The in-memory store grows unbounded — fine for a demo, wrong for anything that runs for a week. It's the first thing the Postgres store fixes.",
@@ -364,7 +447,6 @@ AssertionError: expected 0 to be greater than 0`}
           "The demo only exercises POST /v1/transactions — the SSE stream and the rule toggles aren't surfaced on the page yet.",
         ]}
         upcoming={[
-          "Deploy the Go service to Railway and point RISK_API_URL at it, so the demo above scores against the real thing.",
           "A Postgres store behind the existing Store interface, which is the whole reason the interface came first — and my excuse to learn pgx.",
           "Moving the velocity window into Redis so the rule stays correct across instances.",
           "Rules with configurable weights and thresholds as data rather than constants, so tuning the risk appetite doesn't need a redeploy.",

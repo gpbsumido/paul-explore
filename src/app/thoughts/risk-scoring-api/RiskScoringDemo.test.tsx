@@ -83,6 +83,16 @@ describe("RiskScoringDemo", () => {
     expect(screen.getByText(/no rules fired/i)).toBeInTheDocument();
   });
 
+  it("treats a backend that sends hits as null like an empty hit list instead of crashing", async () => {
+    stubFetch(200, scoreResponse({ value: 0, band: "green", hits: null }));
+    render(<RiskScoringDemo />);
+
+    await submitDefaults();
+
+    expect(await screen.findByText(/green/i)).toBeInTheDocument();
+    expect(screen.getByText(/no rules fired/i)).toBeInTheDocument();
+  });
+
   it("surfaces the backend-not-configured answer instead of looking broken", async () => {
     stubFetch(503, { error: "RISK_API_URL is not configured" });
     render(<RiskScoringDemo />);
