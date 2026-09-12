@@ -564,7 +564,7 @@ export const THOUGHTS: ThoughtItem[] = [
     title: "Risk-scoring API",
     href: "/thoughts/risk-scoring-api",
     preview:
-      "A real-time transaction risk-scoring API in Go: a rules engine behind one interface, a weighted score and band, and a live SSE feed of flagged transactions",
+      "Learning Go by building a real-time transaction risk-scoring API: a rules engine, a weighted score and band, and a live SSE feed, with the language and the risk concepts learned side by side",
     color: "#3b93ba",
   },
   {

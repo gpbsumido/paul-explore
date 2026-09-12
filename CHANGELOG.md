@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-11 - version 6.10.9
+
+- **The Toaster console error on every page load is gone.** Hydration logged React's "getServerSnapshot should be cached" warning because `@paul-portfolio/react` 0.9.0's Toaster returned a fresh array from its server snapshot. Fixed upstream in the design system (react 0.9.1); bumped to `^0.9.1` here.
+- **The risk-scoring write-up now reads as the Go beginner I am, and it scores live.** The page was written in the voice of someone who'd been shipping Go for years; it's recast as learner's notes — the language (structural interfaces, goroutines, mutexes, channels, `nil` as an Option) and the risk semantics (rules as codified suspicion, weights, bands as risk appetite, velocity, false positives) taught side by side, in the order the project taught them. A live demo on the page posts a transaction through a new `/api/risk/transactions` proxy to the Go service (`RISK_API_URL`, 503 with a plain message when unset) and renders the score, band, and every rule that fired. A dated update on the page documents the reframe, the demo, and the Railway deploy story.
+
 ## 2026-09-11 - version 6.10.8
 
 - **The calendar "+N more" line no longer gets clipped out of a packed day.** The month-view day cell is a fixed height with `overflow-hidden`, and the "+N more" line was an extra row on top of three full event chips — so it overflowed the cell by a few pixels and was clipped past the bottom edge, invisible. It now takes a chip slot instead of adding a row: an overflowing day shows one fewer chip so the line always fits inside the cell. Covered by a test that an overflowing day reserves that row.

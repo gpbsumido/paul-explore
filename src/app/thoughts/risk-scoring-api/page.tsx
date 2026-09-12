@@ -4,7 +4,7 @@ import RiskScoringApiContent from "./RiskScoringApiContent";
 
 const TITLE = "Risk-scoring API | Thoughts";
 const DESCRIPTION =
-  "A real-time transaction risk-scoring API in Go: a rules engine behind one interface, a weighted score and band, and a live server-sent-events feed of flagged transactions.";
+  "Learning Go by building a real-time transaction risk-scoring API: interfaces, goroutines, mutexes, and channels on one side; rules, weights, bands, and risk appetite on the other.";
 
 export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
