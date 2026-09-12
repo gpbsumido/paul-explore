@@ -1,3 +1,4 @@
+import { AgentDecisionCard, RiskScore } from "@paul-portfolio/react";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import {
   Update,
@@ -478,12 +479,31 @@ AssertionError: expected 0 to be greater than 0`}
         </p>
         <pre className={pre}>
           {`const { value, hits } = await scoreTransaction(txn);
-// value → RiskScore derives the tier; hits → AgentDecisionCard's rationale
-<RiskScore value={value} label="Transaction risk" />`}
+// value → RiskScore derives the tier; hits → AgentDecisionCard's rationale`}
         </pre>
         <p className="mt-3 text-muted">
-          It isn&apos;t wired into the live demo yet — that stays a follow-up —
-          but the pieces now exist in the system and are catalogued in the{" "}
+          Here is a scored transaction from this engine rendered through the real
+          components — the score in a <code className={code}>RiskScore</code>, the
+          rules that fired as the <code className={code}>AgentDecisionCard</code>
+          &rsquo;s rationale:
+        </p>
+        <div className="my-4 flex flex-col gap-3">
+          <RiskScore value={82} label="Transaction risk" />
+          <AgentDecisionCard
+            decision="review"
+            agentName="Risk engine"
+            title="$4,200 to a new payee"
+            confidence={0.82}
+            rationale={[
+              "Amount 6× the account median",
+              "Payee added 4 minutes before the transfer",
+              "New device for this account",
+            ]}
+          />
+        </div>
+        <p className="mt-3 text-muted">
+          The live demo above still renders its own band pill; swapping it for
+          these is the follow-up. Both are catalogued in the{" "}
           <a href="/design-system" className="underline">
             design-system gallery
           </a>
