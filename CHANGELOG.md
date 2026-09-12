@@ -2,6 +2,7 @@
 
 ## 2026-09-12 - version 6.10.10
 
+- **`RISK_API_URL` is documented in `.env.example`** now that the demo scores against a real deployment.
 - **A zero-hit score no longer crashes the live risk demo.** The first all-clear transaction through the deployed Go service returned `"hits": null` (Go marshals a nil slice as `null`, not `[]`) and the demo threw on `hits.length`. The demo now normalizes `hits ?? []` where the response enters the page, the Go service fixes the contract at the source (risk-assesment 0.1.1 serializes `hits` as `[]`), and the write-up carries a dated update telling the story — the nil-slice lesson included.
 
 ## 2026-09-11 - version 6.10.9
