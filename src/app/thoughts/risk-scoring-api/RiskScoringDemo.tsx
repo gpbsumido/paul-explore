@@ -21,6 +21,11 @@ type Score = {
   hits: RuleHit[];
 };
 
+// What the Go service actually sends. Versions before 0.1.1 marshal a
+// zero-hit score as hits: null (Go nil slice), so null is part of the wire
+// contract this demo has to survive.
+type WireScore = Omit<Score, "hits"> & { hits: RuleHit[] | null };
+
 type DemoState =
   | { kind: "idle" }
   | { kind: "loading" }
@@ -69,7 +74,11 @@ export default function RiskScoringDemo() {
         });
         return;
       }
-      setState({ kind: "scored", score: data.score as Score });
+      const wire = data.score as WireScore;
+      setState({
+        kind: "scored",
+        score: { ...wire, hits: wire.hits ?? [] },
+      });
     } catch {
       setState({ kind: "error", message: "could not reach the proxy" });
     }
