@@ -37,4 +37,22 @@ describe("RiskScoringApiContent", () => {
     render(<RiskScoringApiContent />);
     expect(screen.getAllByText(/Postgres/i).length).toBeGreaterThan(0);
   });
+
+  it("is written as someone new to Go, not as a Go veteran", () => {
+    render(<RiskScoringApiContent />);
+    expect(screen.queryAllByText(/new to Go/i).length).toBeGreaterThan(0);
+  });
+
+  it("names the Go concepts it teaches along the way", () => {
+    render(<RiskScoringApiContent />);
+    expect(screen.queryAllByText(/goroutine/i).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/mutex/i).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/channel/i).length).toBeGreaterThan(0);
+  });
+
+  it("teaches the risk vocabulary, not just the implementation", () => {
+    render(<RiskScoringApiContent />);
+    expect(screen.queryAllByText(/false positive/i).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/risk appetite/i).length).toBeGreaterThan(0);
+  });
 });
