@@ -1,5 +1,10 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  Update,
+  UpdateTimeline,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
+import RiskScoringDemo from "./RiskScoringDemo";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -29,6 +34,16 @@ export default function RiskScoringApiContent() {
         </>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-09-11-learner-lens",
+            date: "Sep 11, 2026",
+            title: "Rewritten as the beginner I actually am, plus a live demo",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">
           What a rule is, and what a Go interface is — learned in the same hour
@@ -245,6 +260,92 @@ if total > maxScore {
         </p>
       </section>
 
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Score one yourself</h2>
+        <p className="mb-3 text-muted">
+          Reading about a scoring engine is one thing; feeding it a transaction
+          is better. This form posts to the real Go service through a small
+          proxy on this site (<code className={code}>/api/risk/transactions</code>
+          ), so what comes back is the actual engine&apos;s answer: the score,
+          the band, and every rule that fired with its reason. The defaults are
+          tuned to trip the amount rule — drop the amount under 5000 and watch
+          it go green. If the backend isn&apos;t deployed right now, the demo
+          says so rather than pretending.
+        </p>
+        <RiskScoringDemo />
+      </section>
+
+      <Update
+        id="update-2026-09-11-learner-lens"
+        date="September 11, 2026"
+        title="Rewritten as the beginner I actually am, plus a live demo"
+      >
+        <p>
+          This page got two changes in one sitting: the whole write-up was
+          recast from the voice of someone who already knew Go into the voice I
+          actually wrote the code in — a Go beginner taking notes on the
+          language and the fraud domain at once — and it grew the demo above,
+          so the service can be poked instead of just described.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The first draft was written by someone I&apos;m not yet
+        </h3>
+        <p className="text-muted">
+          The original version read like a staff Go engineer explaining design
+          decisions they&apos;d made a hundred times. I haven&apos;t. Every one
+          of those decisions was something I learned the week I made it — that
+          interfaces are structural, that a pointer stands in for an Option
+          type, that an HTTP server puts every request on its own goroutine
+          whether you asked or not. Flattening that into expert prose threw
+          away the most useful thing the page had. The reframe went in
+          test-first like everything else here, which produced the slightly
+          absurd artifact of a failing test demanding humility:
+        </p>
+        <pre className={pre}>
+          {`FAIL  RiskScoringApiContent > is written as someone new to Go,
+      not as a Go veteran
+AssertionError: expected 0 to be greater than 0`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A write-up about an API shouldn&apos;t ask you to take my word for it
+        </h3>
+        <p className="text-muted">
+          The demo posts a transaction and renders the engine&apos;s real
+          answer. The browser never talks to the Go service directly — a Next
+          route at <code className={code}>/api/risk/transactions</code>{" "}
+          forwards to it server-side, which keeps the backend URL in one env
+          var and means the Go service never needs to learn CORS for the sake
+          of one page. What comes back is the same JSON the write-up describes:
+        </p>
+        <pre className={pre}>
+          {`{"score": {"value": 55, "band": "amber", "hits": [
+  {"rule_id": "amount_threshold",
+   "reason": "amount 6000.00 exceeds limit 5000.00",
+   "weight": 30}]}}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The demo shipped before the deployment, and it admits that
+        </h3>
+        <p className="text-muted">
+          The Go service compiles to a static binary in a distroless image, so
+          the deploy target is Railway with nothing but the repo&apos;s
+          Dockerfile. Until <code className={code}>RISK_API_URL</code> points
+          at that deployment, the proxy answers with the truth instead of a
+          spinner, and the demo shows it verbatim:
+        </p>
+        <pre className={pre}>
+          {`{"error": "RISK_API_URL is not configured on this deployment"}`}
+        </pre>
+        <p className="text-muted">
+          I&apos;d rather ship the page in that state than hold it for the
+          deploy — a demo that names its missing dependency is documentation; a
+          spinner that never resolves is a bug report.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "POST /v1/transactions scores a transaction and returns the score, its band (green/amber/red), and every rule it tripped with a reason.",
@@ -253,13 +354,16 @@ if total > maxScore {
           "GET /v1/rules and PUT /v1/rules/{id} to list and toggle rules at runtime, so you can turn a rule off on a live service.",
           "GET /v1/stream: a server-sent events feed that fans flagged transactions out to every subscriber, skipping a full buffer rather than stalling the stream.",
           "A Store behind an interface with an in-memory implementation, a cmd/simulator load CLI with a configurable fraud rate, table-driven tests, and a Dockerfile that ships a static binary.",
+          "A live demo on this page: fill in a transaction and get the band and every reason back, through a proxy at /api/risk/transactions that keeps the backend URL server-side.",
         ]}
         couldImprove={[
           "The in-memory store grows unbounded — fine for a demo, wrong for anything that runs for a week. It's the first thing the Postgres store fixes.",
           "Velocity state is per-process, so it's only correct on a single instance. Horizontal scale needs that window in a shared store (Redis) behind the same rule — a distributed-state lesson I haven't earned yet.",
           "There's no auth on the endpoints. It's a demo service, but a scoring API that anyone can toggle rules on is not one you'd expose.",
+          "The demo only exercises POST /v1/transactions — the SSE stream and the rule toggles aren't surfaced on the page yet.",
         ]}
         upcoming={[
+          "Deploy the Go service to Railway and point RISK_API_URL at it, so the demo above scores against the real thing.",
           "A Postgres store behind the existing Store interface, which is the whole reason the interface came first — and my excuse to learn pgx.",
           "Moving the velocity window into Redis so the rule stays correct across instances.",
           "Rules with configurable weights and thresholds as data rather than constants, so tuning the risk appetite doesn't need a redeploy.",

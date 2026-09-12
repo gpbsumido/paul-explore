@@ -50,6 +50,20 @@ describe("RiskScoringApiContent", () => {
     expect(screen.queryAllByText(/channel/i).length).toBeGreaterThan(0);
   });
 
+  it("lets the reader score a transaction from the page", () => {
+    render(<RiskScoringApiContent />);
+    expect(
+      screen.getByRole("button", { name: /score this transaction/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("carries the dated update documenting the reframe and the demo", () => {
+    render(<RiskScoringApiContent />);
+    expect(screen.queryAllByText(/September 11, 2026/).length).toBeGreaterThan(
+      0,
+    );
+  });
+
   it("teaches the risk vocabulary, not just the implementation", () => {
     render(<RiskScoringApiContent />);
     expect(screen.queryAllByText(/false positive/i).length).toBeGreaterThan(0);
