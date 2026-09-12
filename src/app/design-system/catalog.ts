@@ -202,6 +202,66 @@ export const COMPONENTS: ComponentDoc[] = [
     elsewhere: AI_ELSEWHERE,
   },
   {
+    id: "risk-score",
+    name: "RiskScore",
+    importName: "RiskScore",
+    tagline: "A 0–100 risk score with tiered bands.",
+    usage:
+      "Use to show a fraud or risk score at a glance. Pass value (0–max); the band — low, medium, high, critical — is derived from the value unless you set level. detailed adds a proportional track; compact is the inline pill for a table cell or header.",
+    a11y: [
+      'Renders as role="meter" with the value exposed to assistive tech via aria-valuenow and a spelled-out aria-valuetext',
+      "The number and the band word both show, so the tier never rides on colour alone",
+      "Band tints reuse the Badge ramp/label token pairs, which are checked for contrast",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "agent-decision-card",
+    name: "AgentDecisionCard",
+    importName: "AgentDecisionCard",
+    tagline: "The shell for an AI-made risk decision.",
+    usage:
+      "Use to surface an agent's verdict — approve, decline, or review — with its confidence, the signals it fired on, and the actions a reviewer can take. Composes Card, Badge, and Button.",
+    a11y: [
+      "Exposed as a region landmark whose accessible name carries the decision, so a screen reader can jump between verdicts",
+      "The decision is a Badge word, not a bare colour, and the rationale is a real list",
+      "Confidence is spelled out as text, not implied by a bar alone",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "timeline",
+    name: "Timeline",
+    importName: "Timeline",
+    tagline: "A vertical audit rail of events.",
+    usage:
+      "Use for a session or case history read top to bottom. Pass items with a title, time, status, and description; a status-coloured marker sits on the connecting rail.",
+    a11y: [
+      "Renders an ordered list, so the sequence is real to assistive tech rather than implied by layout",
+      "Any non-default status also emits a screen-reader word, so the state is never carried by colour alone",
+      "The marker is decorative and hidden; the title and time carry the content",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
+    id: "stat-card",
+    name: "StatCard",
+    importName: "StatCard",
+    tagline: "A dashboard KPI tile with a delta and trend.",
+    usage:
+      "Use for a headline metric. Pass value and an optional delta with a direction (up/down/flat); the intent colour defaults from the direction but can be set for cases where down is good. Pass trend for an inline Sparkline.",
+    a11y: [
+      "The delta pairs an arrow glyph and a screen-reader direction word with the colour, so up/down survives without it",
+      'The trend reuses Sparkline\'s role="img" with a required label',
+      "The value and label are real text on a neutral surface, not colour-coded",
+    ],
+    usedOn: [],
+    elsewhere: AI_ELSEWHERE,
+  },
+  {
     id: "sparkline",
     name: "Sparkline",
     importName: "Sparkline",
