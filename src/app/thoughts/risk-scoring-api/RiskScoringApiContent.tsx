@@ -320,10 +320,11 @@ AssertionError: expected 0 to be greater than 0`}
           of one page. What comes back is the same JSON the write-up describes:
         </p>
         <pre className={pre}>
-          {`{"score": {"value": 55, "band": "amber", "hits": [
+          {`{"score": {"value": 50, "band": "amber", "hits": [
   {"rule_id": "amount_threshold",
-   "reason": "amount 6000.00 exceeds limit 5000.00",
-   "weight": 30}]}}`}
+   "reason": "amount exceeds threshold", "weight": 30},
+  {"rule_id": "new_device",
+   "reason": "device not seen for this user", "weight": 20}]}}`}
         </pre>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
