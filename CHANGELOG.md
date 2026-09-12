@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-12 - version 6.10.10
+
+- **A zero-hit score no longer crashes the live risk demo.** The first all-clear transaction through the deployed Go service returned `"hits": null` (Go marshals a nil slice as `null`, not `[]`) and the demo threw on `hits.length`. The demo now normalizes `hits ?? []` where the response enters the page, the Go service fixes the contract at the source (risk-assesment 0.1.1 serializes `hits` as `[]`), and the write-up carries a dated update telling the story — the nil-slice lesson included.
+
 ## 2026-09-11 - version 6.10.9
 
 - **The Toaster console error on every page load is gone.** Hydration logged React's "getServerSnapshot should be cached" warning because `@paul-portfolio/react` 0.9.0's Toaster returned a fresh array from its server snapshot. Fixed upstream in the design system (react 0.9.1); bumped to `^0.9.1` here.
