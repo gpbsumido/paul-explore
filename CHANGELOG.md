@@ -4,6 +4,7 @@
 
 - **The risk-scoring-API write-up now renders the components instead of only naming them.** The dated update showed a code snippet and a sentence; it now renders a scored transaction through a live `RiskScore` and `AgentDecisionCard`, so the score and the rules that fired appear in the real components on the page.
 - **The gallery's RiskScore preview no longer reads as a contradiction.** It showed an `87` (detailed) beside a `23` (compact) on one line, which looked like one score claiming Critical and Low at once. It now shows a single score — `72` — in both shapes, stacked, so the two rows are plainly the same number.
+- **Bumped `@paul-portfolio/css` to `^0.12.1`**, which styles the AgentDecisionCard decision spine and makes the detailed RiskScore track fill its width — so the gallery and the risk-scoring page render both fixes instead of the un-banded, collapsed-track versions from 0.12.0.
 
 ## 2026-09-12 - version 6.10.11
 
