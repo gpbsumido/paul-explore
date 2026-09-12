@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-12 - version 6.10.11
+
+- **The four fraud-ops components from design system 0.10.0 are in the gallery.** Bumped `@paul-portfolio/react` to `^0.10.0` and `@paul-portfolio/css` to `^0.12.0`, which shipped RiskScore, AgentDecisionCard, Timeline, and StatCard — the risk/decision/audit vocabulary for a fraud case-review dashboard. The `/design-system` showcase now catalogs and previews all four live; the catalog integrity test forced it, since bumping the dependency reds it until the new exports are documented. Dated updates on the design-system-showcase and risk-scoring-API write-ups tie them in — the latter noting the Go service's score and reasons now have a `RiskScore` meter and an `AgentDecisionCard` to render them.
+
 ## 2026-09-12 - version 6.10.10
 
 - **`RISK_API_URL` is documented in `.env.example`** now that the demo scores against a real deployment.
