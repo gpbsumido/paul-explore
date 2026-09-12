@@ -64,6 +64,14 @@ describe("RiskScoringApiContent", () => {
     );
   });
 
+  it("carries the dated update on the nil-slice bug the live demo found", () => {
+    render(<RiskScoringApiContent />);
+    expect(screen.queryAllByText(/September 12, 2026/).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.queryAllByText(/nil slice/i).length).toBeGreaterThan(0);
+  });
+
   it("teaches the risk vocabulary, not just the implementation", () => {
     render(<RiskScoringApiContent />);
     expect(screen.queryAllByText(/false positive/i).length).toBeGreaterThan(0);
