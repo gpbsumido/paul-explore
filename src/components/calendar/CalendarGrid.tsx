@@ -101,14 +101,20 @@ function CalendarGrid({
             ? countdowns.filter((c) => isSameDay(parseISO(c.targetDate), day))
             : [];
 
+          // The cell is a fixed height with overflow-hidden, so the "+N more"
+          // line can't be an extra row on top of a full set of chips or it gets
+          // clipped past the bottom edge. When a day overflows it takes a chip
+          // slot: show one fewer chip and let the line fill the row instead.
+          const totalItems = allDisplay.length + dayCountdowns.length;
+          const chipBudget =
+            totalItems > VISIBLE_CHIPS ? VISIBLE_CHIPS - 1 : VISIBLE_CHIPS;
+
           // events claim the first slots; countdowns fill whatever's left
-          const eventSlots = allDisplay.slice(0, VISIBLE_CHIPS);
-          const remainingSlots = VISIBLE_CHIPS - eventSlots.length;
+          const eventSlots = allDisplay.slice(0, chipBudget);
+          const remainingSlots = chipBudget - eventSlots.length;
           const countdownSlots = dayCountdowns.slice(0, remainingSlots);
           const overflowCount =
-            allDisplay.length -
-            eventSlots.length +
-            (dayCountdowns.length - countdownSlots.length);
+            totalItems - eventSlots.length - countdownSlots.length;
 
           return (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
