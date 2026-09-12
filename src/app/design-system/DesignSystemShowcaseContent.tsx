@@ -280,9 +280,11 @@ const PREVIEWS: Record<string, ReactNode> = {
   ),
   "typing-dots": <TypingDots label="Assistant is typing" />,
   "risk-score": (
-    <div className="w-full space-y-2">
-      <RiskScore value={87} label="Session risk" />
-      <RiskScore value={23} variant="compact" label="Payment risk" />
+    // One score, shown detailed then compact, so the two rows read as the same
+    // number in two shapes rather than two contradictory scores.
+    <div className="flex w-full flex-col gap-2">
+      <RiskScore value={72} label="Session risk" />
+      <RiskScore value={72} variant="compact" label="Session risk, compact" />
     </div>
   ),
   "agent-decision-card": (
