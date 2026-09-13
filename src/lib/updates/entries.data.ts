@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-showcase-navigation",
+    date: "2026-09-12",
+    version: "6.11.0",
+    category: "feature",
+    tags: ["design-system"],
+    title: "The design-system gallery is now searchable",
+    summary:
+      "The component gallery grew categories, live search, sorting, and shareable links, plus a component of the day featured at the top — no more scrolling a flat grid of 49 cards to find one.",
+    body: [
+      "The showcase listed every primitive in one long grid, in catalog order. Fine at 20 components; at 49 it meant scanning. Each component now files under one of six categories — AI & chat, charts, forms, overlays, content, and motion effects — and the gallery has a search box, category chips, and a sort control (curated, name, category, or how widely adopted a component is).",
+      "Whatever view you end up with lands in the address bar, so a filtered, sorted slice of the gallery is a link you can send. Every card is an anchor too. And each day the page features a different component at the top, picked deterministically from the date, so returning visitors get a reason to notice something they'd scrolled past.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-apple-design",
     date: "2026-09-10",
     version: "6.10.0",

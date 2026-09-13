@@ -28,7 +28,8 @@ export const metadata: Metadata = {
 // data, so it's baked at build and served as a pure CDN document. This matters
 // for a low-traffic page -- under plain ISR it gets evicted and the next visitor
 // pays a cold regeneration of the whole tree in TTFB (which lands inside FCP);
-// force-static removes that cold-render path entirely.
+// force-static removes that cold-render path entirely. The daily revalidate
+// is also what rotates the component-of-the-day pick (spotlightFor).
 export const dynamic = "force-static";
 export const revalidate = 86400;
 

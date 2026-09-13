@@ -1,3 +1,4 @@
+import { AgentDecisionCard, RiskScore } from "@paul-portfolio/react";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import {
   Update,
@@ -36,6 +37,11 @@ export default function RiskScoringApiContent() {
     >
       <UpdateTimeline
         entries={[
+          {
+            id: "update-2026-09-12-design-system-ui",
+            date: "Sep 12, 2026",
+            title: "The score and its reasons finally have a UI",
+          },
           {
             id: "update-2026-09-12-nil-slice",
             date: "Sep 12, 2026",
@@ -429,6 +435,82 @@ AssertionError: expected 0 to be greater than 0`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-12-design-system-ui"
+        date="September 12, 2026"
+        title="The score and its reasons finally have a UI"
+      >
+        <p>
+          This service hands back three things: a number, a band, and a list of
+          reasons. On this page the only thing rendering them is the demo&apos;s
+          own hand-rolled form. Meanwhile the design system just grew the exact
+          primitives for this shape in 0.10.0 — a{" "}
+          <code className={code}>RiskScore</code> meter and an{" "}
+          <code className={code}>AgentDecisionCard</code> — so the two halves of
+          this project I built separately turn out to fit together.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The API had the data; the system now has the shape
+        </h3>
+        <p className="text-muted">
+          <code className={code}>RiskScore</code> takes a 0–100 value and shows
+          it as a <code className={code}>role=&quot;meter&quot;</code> with a
+          tier word — which is precisely what{" "}
+          <code className={code}>POST /v1/transactions</code> returns.{" "}
+          <code className={code}>AgentDecisionCard</code> takes a verdict, a
+          confidence, and a <em>rationale</em> list — and the reasons this engine
+          attaches to every score are that rationale, already written for a human
+          to read. I didn&apos;t design one for the other; they met in the
+          middle.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Three bands on the wire, four in the component
+        </h3>
+        <p className="text-muted">
+          The one seam worth naming: the engine returns{" "}
+          <code className={code}>green/amber/red</code>, and RiskScore models
+          four tiers — <code className={code}>low/medium/high/critical</code>.
+          Rather than force the component to mirror the wire, I&apos;d pass the
+          numeric score and let RiskScore derive the band, keeping the API&apos;s
+          three-band policy and the component&apos;s display scale independent —
+          the same reason the scorer keeps its thresholds in one place.
+        </p>
+        <pre className={pre}>
+          {`const { value, hits } = await scoreTransaction(txn);
+// value → RiskScore derives the tier; hits → AgentDecisionCard's rationale`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Here is a scored transaction from this engine rendered through the real
+          components — the score in a <code className={code}>RiskScore</code>, the
+          rules that fired as the <code className={code}>AgentDecisionCard</code>
+          &rsquo;s rationale:
+        </p>
+        <div className="my-4 flex flex-col gap-3">
+          <RiskScore value={82} label="Transaction risk" />
+          <AgentDecisionCard
+            decision="review"
+            agentName="Risk engine"
+            title="$4,200 to a new payee"
+            confidence={0.82}
+            rationale={[
+              "Amount 6× the account median",
+              "Payee added 4 minutes before the transfer",
+              "New device for this account",
+            ]}
+          />
+        </div>
+        <p className="mt-3 text-muted">
+          The live demo above still renders its own band pill; swapping it for
+          these is the follow-up. Both are catalogued in the{" "}
+          <a href="/design-system" className="underline">
+            design-system gallery
+          </a>
+          .
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "POST /v1/transactions scores a transaction and returns the score, its band (green/amber/red), and every rule it tripped with a reason.",
@@ -450,6 +532,7 @@ AssertionError: expected 0 to be greater than 0`}
           "A Postgres store behind the existing Store interface, which is the whole reason the interface came first — and my excuse to learn pgx.",
           "Moving the velocity window into Redis so the rule stays correct across instances.",
           "Rules with configurable weights and thresholds as data rather than constants, so tuning the risk appetite doesn't need a redeploy.",
+          "Render the demo's result through the design system's RiskScore and AgentDecisionCard instead of the hand-rolled band pill, now that both ship in 0.10.0.",
         ]}
       />
     </ThoughtLayout>
