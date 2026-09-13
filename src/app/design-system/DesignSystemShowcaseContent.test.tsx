@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import DesignSystemShowcaseContent from "./DesignSystemShowcaseContent";
-import { COMPONENTS } from "./catalog";
+import { COMPONENTS, spotlightFor } from "./catalog";
 import { MOTION_PRIMITIVES } from "./motionPrimitives";
 
 // PageHeader pulls in HeaderMenu which fetches /api/me; the showcase itself is
@@ -106,6 +106,114 @@ describe("DesignSystemShowcaseContent", () => {
       expect(screen.getAllByText(/ships on/i).length).toBeGreaterThanOrEqual(
         MOTION_PRIMITIVES.length,
       );
+    });
+  });
+
+  describe("Component of the day", () => {
+    const day = new Date("2026-09-12T12:00:00Z");
+
+    it("features the deterministic daily pick with a jump link to its card", () => {
+      render(<DesignSystemShowcaseContent today={day} />);
+      const pick = spotlightFor(day);
+      const section = screen
+        .getByRole("heading", { name: /component of the day/i })
+        .closest("section");
+      expect(section).not.toBeNull();
+      expect(within(section as HTMLElement).getByText(pick.name)).toBeInTheDocument();
+      expect(
+        within(section as HTMLElement).getByRole("link", { name: /jump to/i }),
+      ).toHaveAttribute("href", `#${pick.id}`);
+    });
+  });
+
+  describe("Component explorer", () => {
+    const grid = () => document.getElementById("components") as HTMLElement;
+
+    beforeEach(() => window.history.replaceState(null, "", "/design-system"));
+
+    it("narrows the grid live as the visitor searches", async () => {
+      const user = userEvent.setup();
+      render(<DesignSystemShowcaseContent />);
+
+      await user.type(
+        screen.getByRole("searchbox", { name: /search components/i }),
+        "gauge",
+      );
+      expect(
+        within(grid()).getByRole("heading", { level: 3, name: "GaugeChart" }),
+      ).toBeInTheDocument();
+      expect(
+        within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
+      ).not.toBeInTheDocument();
+      expect(within(grid()).getByText(/1 of 45/)).toBeInTheDocument();
+    });
+
+    it("filters by category chip and marks it pressed", async () => {
+      const user = userEvent.setup();
+      render(<DesignSystemShowcaseContent />);
+
+      const chip = screen.getByRole("button", { name: /charts & data/i });
+      await user.click(chip);
+      expect(chip).toHaveAttribute("aria-pressed", "true");
+      expect(
+        within(grid()).getByRole("heading", { level: 3, name: "BarChart" }),
+      ).toBeInTheDocument();
+      expect(
+        within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
+      ).not.toBeInTheDocument();
+      expect(within(grid()).getByText(/12 of 45/)).toBeInTheDocument();
+    });
+
+    it("offers to clear filters instead of a blank grid when nothing matches", async () => {
+      const user = userEvent.setup();
+      render(<DesignSystemShowcaseContent />);
+
+      await user.type(
+        screen.getByRole("searchbox", { name: /search components/i }),
+        "zzzzzz",
+      );
+      expect(
+        within(grid()).getByText(/no components match/i),
+      ).toBeInTheDocument();
+
+      await user.click(
+        within(grid()).getByRole("button", { name: /clear filters/i }),
+      );
+      expect(
+        within(grid()).getByRole("heading", { level: 3, name: "Avatar" }),
+      ).toBeInTheDocument();
+      expect(within(grid()).getByText(/45 of 45/)).toBeInTheDocument();
+    });
+
+    it("sorts the grid alphabetically on request", async () => {
+      const user = userEvent.setup();
+      render(<DesignSystemShowcaseContent />);
+
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: /sort/i }),
+        "name",
+      );
+      const headings = within(grid()).getAllByRole("heading", { level: 3 });
+      expect(headings[0]).toHaveTextContent("Avatar");
+    });
+
+    it("lands the active filters in the URL so the view is shareable", async () => {
+      const user = userEvent.setup();
+      render(<DesignSystemShowcaseContent />);
+
+      await user.type(
+        screen.getByRole("searchbox", { name: /search components/i }),
+        "chart",
+      );
+      await user.click(screen.getByRole("button", { name: /charts & data/i }));
+      expect(window.location.search).toContain("q=chart");
+      expect(window.location.search).toContain("category=charts");
+    });
+
+    it("gives every card an anchor a shared link can land on", () => {
+      render(<DesignSystemShowcaseContent />);
+      expect(document.getElementById("gauge-chart")).not.toBeNull();
+      expect(document.getElementById("visually-hidden")).not.toBeNull();
     });
   });
 
