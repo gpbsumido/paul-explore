@@ -27,6 +27,11 @@ export default function DesignSystemShowcaseThoughtsContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-12-fraud-ops",
+            date: "Sep 12, 2026",
+            title: "Four fraud-ops primitives, and the same test that added the last ten",
+          },
+          {
             id: "update-2026-09-02-ai-components",
             date: "Sep 2, 2026",
             title: "Ten AI-app primitives, and the test that made me add them",
@@ -257,10 +262,63 @@ to deeply equal []`}
           for the keyboard and the scanner alike.
         </p>
       </Update>
+      <Update
+        id="update-2026-09-12-fraud-ops"
+        date="September 12, 2026"
+        title="Four fraud-ops primitives, and the same test that added the last ten"
+      >
+        <p>
+          0.10.0 of the package added four components aimed at a fraud
+          case-review dashboard — a <code className={code}>RiskScore</code>{" "}
+          meter, an <code className={code}>AgentDecisionCard</code>, a{" "}
+          <code className={code}>Timeline</code> audit rail, and a{" "}
+          <code className={code}>StatCard</code> KPI tile. I built them in the
+          system so I could show them off, and the gallery is where they land.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The integrity test named the gap again
+        </h3>
+        <p className="text-muted">
+          The pattern held: I didn&rsquo;t go looking for what to document, I
+          bumped the dependency and let the catalog test tell me. Same failure
+          as the AI-app batch, four exports later:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`AssertionError: expected [ Array(45) ] to deeply equal [ Array(49) ]
+-   "AgentDecisionCard",
+-   "RiskScore",
+-   "StatCard",
+-   "Timeline",`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Documenting the four and rendering a live preview for each turned it
+          back green. That is the whole point of anchoring the manifest to the
+          package&rsquo;s runtime exports: an upgrade can&rsquo;t quietly leave
+          the gallery a release behind.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Composition over reinvention
+        </h3>
+        <p className="text-muted">
+          None of the four is built from scratch. RiskScore&rsquo;s band pill
+          reuses the same tint/label token pairs as{" "}
+          <code className={code}>Badge</code> — the ones the design
+          system&rsquo;s contrast guard already measures — AgentDecisionCard is
+          a <code className={code}>Card</code> with a{" "}
+          <code className={code}>Badge</code> verdict and{" "}
+          <code className={code}>Button</code> actions, and StatCard drops a{" "}
+          <code className={code}>Sparkline</code> in for its trend. Semantic
+          colour is only ever an accent here, paired with a word or a number, so
+          a tier or a decision never rides on colour alone.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "The gallery renders the published package rather than a local reimplementation, so it cannot drift from what actually ships.",
           "All ten of the 0.6.0 AI-app primitives are catalogued and rendered live, the hook-free ones inline and the stateful ones as client islands.",
+          "The four 0.10.0 fraud-ops primitives — RiskScore, AgentDecisionCard, Timeline, StatCard — are catalogued and previewed live too.",
           "A props playground per primitive, since the question is usually what a component does under a prop rather than how it looks at rest.",
           "Design tokens shown alongside the components that consume them.",
         ]}

@@ -25,6 +25,7 @@ import {
 // the package has no "use client" banners, so Spotlight, TiltCard, and Ticker
 // live in the GalleryDemos island instead.
 import {
+  AgentDecisionCard,
   Avatar,
   Badge,
   BarChart,
@@ -38,11 +39,14 @@ import {
   HeatmapChart,
   ParetoChart,
   RadarChart,
+  RiskScore,
   ScatterPlot,
   Skeleton,
   Sparkline,
   Spinner,
   StackedLineChart,
+  StatCard,
+  Timeline,
   TokenUsageMeter,
   TypingDots,
   VisuallyHidden,
@@ -275,6 +279,50 @@ const PREVIEWS: Record<string, ReactNode> = {
     </div>
   ),
   "typing-dots": <TypingDots label="Assistant is typing" />,
+  "risk-score": (
+    // One score, shown detailed then compact, so the two rows read as the same
+    // number in two shapes rather than two contradictory scores.
+    <div className="flex w-full flex-col gap-2">
+      <RiskScore value={72} label="Session risk" />
+      <RiskScore value={72} variant="compact" label="Session risk, compact" />
+    </div>
+  ),
+  "agent-decision-card": (
+    <AgentDecisionCard
+      decision="decline"
+      title="Payment $4,200 to a new payee"
+      confidence={0.92}
+      rationale={[
+        "Payee added minutes before the transfer",
+        "Device seen with 3 unrelated accounts",
+      ]}
+      actions={
+        <Button variant="danger" size="sm">
+          Confirm decline
+        </Button>
+      }
+    />
+  ),
+  timeline: (
+    <Timeline
+      label="Case activity"
+      items={[
+        { id: "1", title: "Session started", time: "10:02" },
+        { id: "2", title: "Device flagged", time: "10:03", status: "warning" },
+        { id: "3", title: "Payment declined", time: "10:05", status: "error" },
+      ]}
+    />
+  ),
+  "stat-card": (
+    <StatCard
+      label="Approval rate"
+      value="98.2%"
+      delta={{ value: "+1.4pt", direction: "up" }}
+      trend={[95, 96, 95, 97, 98, 97, 98]}
+      trendLabel="Approval rate trend"
+      footnote="Last 24h"
+    />
+  ),
   sparkline: (
     <Sparkline data={[4, 9, 6, 12, 10, 16, 14]} label="Weekly signups" />
   ),
