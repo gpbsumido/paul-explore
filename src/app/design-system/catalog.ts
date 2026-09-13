@@ -8,10 +8,33 @@
 /** A link to a live page in the app where a component actually ships. */
 export type UsedOnLink = { label: string; href: string };
 
+/** Stable public ids: they appear in shared URLs (?category=charts). */
+export type CategoryId =
+  | "ai"
+  | "charts"
+  | "forms"
+  | "feedback"
+  | "content"
+  | "effects";
+
+export type Category = { id: CategoryId; label: string };
+
+/** Display order for the explorer's category chips. */
+export const CATEGORIES: Category[] = [
+  { id: "ai", label: "AI & chat" },
+  { id: "charts", label: "Charts & data" },
+  { id: "forms", label: "Forms & inputs" },
+  { id: "feedback", label: "Overlays & feedback" },
+  { id: "content", label: "Content & identity" },
+  { id: "effects", label: "Motion & effects" },
+];
+
 /** One documented primitive from the shared design system. */
 export type ComponentDoc = {
   /** Stable kebab id used for anchors and preview lookup. */
   id: string;
+  /** Which explorer category the component files under. */
+  category: CategoryId;
   /** Display name, e.g. "Button". */
   name: string;
   /** Must match the identifier exported from `@paul-portfolio/react`. */
@@ -39,6 +62,7 @@ const AI_ELSEWHERE =
 export const COMPONENTS: ComponentDoc[] = [
   {
     id: "chat-composer",
+    category: "ai",
     name: "ChatComposer",
     importName: "ChatComposer",
     tagline: "An auto-growing prompt box that sends on Enter.",
@@ -54,6 +78,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "chat-message",
+    category: "ai",
     name: "ChatMessage",
     importName: "ChatMessage",
     tagline: "A chat bubble aligned and coloured by role.",
@@ -69,6 +94,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "code-block",
+    category: "ai",
     name: "CodeBlock",
     importName: "CodeBlock",
     tagline: "A read-only code panel with a copy button.",
@@ -84,6 +110,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "combobox",
+    category: "forms",
     name: "Combobox",
     importName: "Combobox",
     tagline: "An accessible autocomplete over a list of options.",
@@ -99,6 +126,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "command-palette",
+    category: "ai",
     name: "CommandPalette",
     importName: "CommandPalette",
     tagline: "A ⌘K-style command menu, filtered as you type.",
@@ -114,6 +142,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "rich-text-editor",
+    category: "ai",
     name: "RichTextEditor",
     importName: "RichTextEditor",
     tagline: "A small formatting editor with a keyboard-driven toolbar.",
@@ -129,6 +158,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "streaming-text",
+    category: "ai",
     name: "StreamingText",
     importName: "StreamingText",
     tagline: "Text revealed a few characters at a time, the way a model streams.",
@@ -144,6 +174,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "toast",
+    category: "feedback",
     name: "Toast",
     importName: "ToastProvider",
     tagline: "Stacking notifications raised from anywhere via a hook.",
@@ -159,6 +190,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "toaster",
+    category: "feedback",
     name: "Toaster",
     importName: "Toaster",
     tagline: "One app-wide notification region driven by an imperative toast().",
@@ -173,6 +205,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "token-usage-meter",
+    category: "ai",
     name: "TokenUsageMeter",
     importName: "TokenUsageMeter",
     tagline: "A budget bar for LLM token usage, prompt and completion split out.",
@@ -188,6 +221,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "typing-dots",
+    category: "ai",
     name: "TypingDots",
     importName: "TypingDots",
     tagline: "A three-dot typing indicator for chat surfaces.",
@@ -203,6 +237,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "risk-score",
+    category: "charts",
     name: "RiskScore",
     importName: "RiskScore",
     tagline: "A 0–100 risk score with tiered bands.",
@@ -218,6 +253,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "agent-decision-card",
+    category: "ai",
     name: "AgentDecisionCard",
     importName: "AgentDecisionCard",
     tagline: "The shell for an AI-made risk decision.",
@@ -233,6 +269,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "timeline",
+    category: "content",
     name: "Timeline",
     importName: "Timeline",
     tagline: "A vertical audit rail of events.",
@@ -248,6 +285,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "stat-card",
+    category: "charts",
     name: "StatCard",
     importName: "StatCard",
     tagline: "A dashboard KPI tile with a delta and trend.",
@@ -263,6 +301,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "sparkline",
+    category: "charts",
     name: "Sparkline",
     importName: "Sparkline",
     tagline: "A compact trend line with no axes, sized to sit inline.",
@@ -279,6 +318,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "bar-chart",
+    category: "charts",
     name: "BarChart",
     importName: "BarChart",
     tagline: "Categorical bars, vertical or horizontal.",
@@ -295,6 +335,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "donut-chart",
+    category: "charts",
     name: "DonutChart",
     importName: "DonutChart",
     tagline: "Parts of a whole, with an optional legend.",
@@ -311,6 +352,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "funnel-chart",
+    category: "charts",
     name: "FunnelChart",
     importName: "FunnelChart",
     tagline: "Stage-by-stage drop-off through a sequence.",
@@ -327,6 +369,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "radar-chart",
+    category: "charts",
     name: "RadarChart",
     importName: "RadarChart",
     tagline: "Several measures on a shared scale, one shape per series.",
@@ -343,6 +386,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "scatter-plot",
+    category: "charts",
     name: "ScatterPlot",
     importName: "ScatterPlot",
     tagline: "Points in two dimensions, grouped into series.",
@@ -359,6 +403,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "heatmap-chart",
+    category: "charts",
     name: "HeatmapChart",
     importName: "HeatmapChart",
     tagline: "A grid of values shaded by magnitude.",
@@ -375,6 +420,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "pareto-chart",
+    category: "charts",
     name: "ParetoChart",
     importName: "ParetoChart",
     tagline: "Ranked bars with a cumulative line and a threshold.",
@@ -391,6 +437,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "gauge-chart",
+    category: "charts",
     name: "GaugeChart",
     importName: "GaugeChart",
     tagline: "A single value against a range.",
@@ -407,6 +454,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "word-cloud",
+    category: "charts",
     name: "WordCloud",
     importName: "WordCloud",
     tagline: "Terms sized by weight.",
@@ -423,6 +471,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "stacked-line-chart",
+    category: "charts",
     name: "StackedLineChart",
     importName: "StackedLineChart",
     tagline: "Several series over the same axis, plain or stacked.",
@@ -439,6 +488,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "tilt-card",
+    category: "effects",
     name: "TiltCard",
     importName: "TiltCard",
     tagline: "A surface that tilts toward the pointer.",
@@ -455,6 +505,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "spotlight",
+    category: "effects",
     name: "Spotlight",
     importName: "Spotlight",
     tagline: "A soft light that follows the pointer across a surface.",
@@ -471,6 +522,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "gradient-background",
+    category: "effects",
     name: "GradientBackground",
     importName: "GradientBackground",
     tagline: "An animated multi-stop gradient behind its children.",
@@ -487,6 +539,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "button",
+    category: "forms",
     name: "Button",
     importName: "Button",
     tagline: "The primary action primitive — five variants, four sizes.",
@@ -506,6 +559,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "icon-button",
+    category: "forms",
     name: "IconButton",
     importName: "IconButton",
     tagline: "A square, icon-only button that still names itself.",
@@ -522,6 +576,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "input",
+    category: "forms",
     name: "Input",
     importName: "Input",
     tagline: "Labelled text field with error and helper text baked in.",
@@ -540,6 +595,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "textarea",
+    category: "forms",
     name: "Textarea",
     importName: "Textarea",
     tagline: "Multi-line field with a live character counter.",
@@ -556,6 +612,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "select",
+    category: "forms",
     name: "Select",
     importName: "Select",
     tagline: "Labelled native select tuned for filter rows.",
@@ -572,6 +629,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "filter-bar",
+    category: "forms",
     name: "FilterBar",
     importName: "FilterBar",
     tagline: "A labelled landmark region that holds a row of filters.",
@@ -588,6 +646,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "chip",
+    category: "forms",
     name: "Chip",
     importName: "Chip",
     tagline: "A compact tag or badge, optionally clickable or removable.",
@@ -601,6 +660,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "modal",
+    category: "feedback",
     name: "Modal",
     importName: "Modal",
     tagline: "A portalled dialog with a full focus trap.",
@@ -619,6 +679,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "guided-tour",
+    category: "feedback",
     name: "Guided tour",
     importName: "GuidedTour",
     tagline: "A click-through coach-mark tour.",
@@ -637,6 +698,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "tooltip",
+    category: "feedback",
     name: "Tooltip",
     importName: "Tooltip",
     tagline: "A hover and focus label that escapes clipping containers.",
@@ -650,6 +712,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "info-tip",
+    category: "feedback",
     name: "InfoTip",
     importName: "InfoTip",
     tagline: "A small ⓘ badge with a rich multi-line popover.",
@@ -663,6 +726,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "ticker",
+    category: "charts",
     name: "Ticker",
     importName: "Ticker",
     tagline: "A looping horizontal strip, as a real scroller or a marquee.",
@@ -677,6 +741,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "card",
+    category: "content",
     name: "Card",
     importName: "Card",
     tagline: "A surface container with Header, Body, and Footer slots.",
@@ -692,6 +757,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "badge",
+    category: "content",
     name: "Badge",
     importName: "Badge",
     tagline: "A small status marker — dot, pill, or starburst seal.",
@@ -707,6 +773,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "avatar",
+    category: "content",
     name: "Avatar",
     importName: "Avatar",
     tagline: "A user image with sizes and an initials fallback.",
@@ -722,6 +789,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "switch",
+    category: "forms",
     name: "Switch",
     importName: "Switch",
     tagline: "An on/off toggle with a real switch role.",
@@ -736,6 +804,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "spinner",
+    category: "feedback",
     name: "Spinner",
     importName: "Spinner",
     tagline: "An indeterminate loading spinner that announces itself.",
@@ -750,6 +819,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "skeleton",
+    category: "feedback",
     name: "Skeleton",
     importName: "Skeleton",
     tagline: "A shimmering placeholder in text, circle, or rect shapes.",
@@ -765,6 +835,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "divider",
+    category: "content",
     name: "Divider",
     importName: "Divider",
     tagline: "A thin rule that separates content, either axis.",
@@ -779,6 +850,7 @@ export const COMPONENTS: ComponentDoc[] = [
   },
   {
     id: "visually-hidden",
+    category: "content",
     name: "VisuallyHidden",
     importName: "VisuallyHidden",
     tagline: "Text that's off-screen for sight but read by screen readers.",
@@ -794,6 +866,17 @@ export const COMPONENTS: ComponentDoc[] = [
 ];
 
 /** A single design token surfaced in the tokens gallery. */
+/**
+ * The component of the day. Seeded from the UTC day number so every render
+ * within one day agrees (static HTML included), and multiplied by a prime
+ * coprime to any realistic catalog length so consecutive days hop around the
+ * catalog instead of walking it in order.
+ */
+export function spotlightFor(date: Date): ComponentDoc {
+  const dayNumber = Math.floor(date.getTime() / 86_400_000);
+  return COMPONENTS[(dayNumber * 31) % COMPONENTS.length];
+}
+
 export type TokenSwatch = { var: string; label: string };
 
 /** A named color ramp expressed as css custom property names. */
