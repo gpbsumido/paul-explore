@@ -54,12 +54,15 @@ import {
 } from "@paul-portfolio/react";
 import {
   COMPONENTS,
+  CATEGORIES,
+  spotlightFor,
   COLOR_SCALES,
   RADIUS_TOKENS,
   SHADOW_TOKENS,
   TYPOGRAPHY_TOKENS,
   type ComponentDoc,
 } from "./catalog";
+import ComponentExplorer from "./ComponentExplorer";
 import { MOTION_PRIMITIVES, type MotionPrimitiveDoc } from "./motionPrimitives";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import ButtonPlayground from "./ButtonPlayground";
@@ -104,7 +107,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     anchor: "components",
     title: "Browse the catalogue",
-    body: "Every primitive is listed with usage notes, an accessibility summary, and where it ships.",
+    body: "Search, filter by category, or re-sort the gallery. Every primitive is listed with usage notes, an accessibility summary, and where it ships.",
   },
   {
     anchor: "ds-tokens",
@@ -551,7 +554,10 @@ const PREVIEWS: Record<string, ReactNode> = {
 
 function ComponentCard({ component }: { component: ComponentDoc }) {
   return (
-    <article className="glass-card flex flex-col gap-4 rounded-2xl p-5">
+    <article
+      id={component.id}
+      className="glass-card flex scroll-mt-24 flex-col gap-4 rounded-2xl p-5"
+    >
       <div>
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-foreground">
@@ -714,7 +720,14 @@ function TokenGallery() {
 // Page
 // ---------------------------------------------------------------------------
 
-export default function DesignSystemShowcaseContent() {
+export default function DesignSystemShowcaseContent({
+  // Server-rendered, so this resolves at build/revalidate time and the whole
+  // day serves one stable pick. Tests pass a fixed date.
+  today = new Date(),
+}: {
+  today?: Date;
+} = {}) {
+  const daily = spotlightFor(today);
   return (
     <PageShell colorA={ACCENT} colorB="var(--color-secondary-500)">
       <PageHeader
@@ -782,6 +795,28 @@ export default function DesignSystemShowcaseContent() {
           </dl>
         </Reveal>
 
+        {/* Component of the day — deterministic per UTC day, see spotlightFor */}
+        <Reveal className="mb-16">
+          <SectionHeading>Component of the day</SectionHeading>
+          <div className="mt-5 glass-card rounded-2xl p-5 sm:p-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+              {CATEGORIES.find((c) => c.id === daily.category)?.label}
+            </p>
+            <p className="mt-1 text-xl font-bold text-foreground">
+              {daily.name}
+            </p>
+            <p className="mt-1 max-w-2xl text-sm text-muted">{daily.tagline}</p>
+            <div className="mt-4 flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4">
+              {PREVIEWS[daily.id]}
+            </div>
+            <div className="mt-4">
+              <Button href={`#${daily.id}`} variant="outline">
+                Jump to {daily.name} in the gallery
+              </Button>
+            </div>
+          </div>
+        </Reveal>
+
         {/* Why adopt it */}
         <Reveal className="mb-16">
           <SectionHeading>Why adopt it</SectionHeading>
@@ -815,14 +850,25 @@ export default function DesignSystemShowcaseContent() {
         <Reveal id="components" className="mb-16 scroll-mt-20">
           <SectionHeading>Components</SectionHeading>
           <p className="mb-5 mt-2 max-w-2xl text-sm text-muted">
-            Hover the ⓘ for how to use each one, hover the preview for a quick
-            hint, and follow a chip to see it in production.
+            Search, filter by category, or re-sort to find the one you need.
+            Hover the ⓘ for how to use each one, and follow a chip to see it in
+            production.
           </p>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {COMPONENTS.map((component) => (
-              <ComponentCard key={component.id} component={component} />
-            ))}
-          </div>
+          <ComponentExplorer
+            categories={CATEGORIES.map((cat) => ({
+              ...cat,
+              count: COMPONENTS.filter((c) => c.category === cat.id).length,
+            }))}
+            items={COMPONENTS.map((component) => ({
+              id: component.id,
+              name: component.name,
+              category: component.category,
+              adoption: component.usedOn.length,
+              haystack:
+                `${component.name} ${component.tagline} ${component.usage}`.toLowerCase(),
+              card: <ComponentCard key={component.id} component={component} />,
+            }))}
+          />
         </Reveal>
 
         {/* Motion primitives — app-local, so they are not in the catalog */}
