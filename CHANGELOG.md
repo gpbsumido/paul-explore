@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-12 - version 6.11.0
+
+- **The design-system gallery is navigable.** Every catalog entry now carries one of six categories (AI & chat, Charts & data, Forms & inputs, Overlays & feedback, Content & identity, Motion & effects); the gallery grew a `ComponentExplorer` client island with live search, category chips, and four sort orders (curated/name/category/adoption) over the server-rendered cards, so `catalog.ts` stays out of the client bundle. The active view lands in the URL (`?q=&category=&sort=`) and every card is an anchor (`#gauge-chart`). A deterministic component-of-the-day (UTC-date-seeded `spotlightFor`, rotated by the page's existing daily revalidate) is featured under the hero. Skeleton, tour copy, and the showcase thoughts page's dated update included. Test-first throughout.
+
 ## 2026-09-12 - version 6.10.12
 
 - **The risk-scoring-API write-up now renders the components instead of only naming them.** The dated update showed a code snippet and a sentence; it now renders a scored transaction through a live `RiskScore` and `AgentDecisionCard`, so the score and the rules that fired appear in the real components on the page.

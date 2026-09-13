@@ -27,6 +27,11 @@ export default function DesignSystemShowcaseThoughtsContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-12-navigation",
+            date: "Sep 12, 2026",
+            title: "49 cards stopped being browsable, so the gallery learned to answer questions",
+          },
+          {
             id: "update-2026-09-12-fraud-ops",
             date: "Sep 12, 2026",
             title: "Four fraud-ops primitives, and the same test that added the last ten",
@@ -314,8 +319,74 @@ to deeply equal []`}
           a tier or a decision never rides on colour alone.
         </p>
       </Update>
+      <Update
+        id="update-2026-09-12-navigation"
+        date="September 12, 2026"
+        title="49 cards stopped being browsable, so the gallery learned to answer questions"
+      >
+        <p>
+          The gallery grew by batches — ten AI primitives, then four fraud-ops
+          ones — and each batch made the flat grid a little worse at its one
+          job: letting someone find a component. At 49 cards in catalog order,
+          finding StatCard meant knowing it was near the bottom.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Categories are catalog data, so the integrity tests police them too
+        </h3>
+        <p className="text-muted">
+          Every entry now carries one of six categories, and the gallery has
+          category chips, a live search over name and usage text, and a sort
+          control. The categories live in <code className={code}>catalog.ts</code>{" "}
+          next to everything else the tests already anchor to the package, so a
+          future component can&rsquo;t land uncategorised — the same suite that
+          refuses an undocumented export refuses a category the page
+          doesn&rsquo;t know how to label.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The cards never left the server
+        </h3>
+        <p className="text-muted">
+          The tempting version was making the grid a client component and
+          filtering the catalog in the browser. That ships the 27KB catalog as
+          hydration payload and re-renders 49 previews client-side. Instead the
+          cards stay server-rendered exactly as before, and a small island
+          receives them as already-built nodes plus a flat manifest of ids,
+          names, and search text — it only decides visibility and order. The
+          view lands in the URL, so a filtered slice of the gallery is a link:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`/design-system?q=chart&category=charts&sort=adoption
+/design-system#gauge-chart`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The component of the day is random the way a calendar is random
+        </h3>
+        <p className="text-muted">
+          The page now features one component above the fold, different each
+          day. No stored state and no client randomness — the pick hashes the
+          UTC day number, and multiplying by a prime that&rsquo;s coprime to the
+          catalog length makes consecutive days hop around the catalog instead
+          of walking it in order:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const dayNumber = Math.floor(date.getTime() / 86_400_000);
+return COMPONENTS[(dayNumber * 31) % COMPONENTS.length];`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The page was already statically rendered with a daily revalidate, so
+          the rotation costs nothing new — though honestly: it switches on the
+          first visit after the UTC day boundary, not at midnight sharp. For a
+          gallery, that&rsquo;s the right trade.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "The gallery is navigable: six categories as filter chips, live search, four sort orders, per-card anchors, and a shareable URL for any filtered view.",
+          "A component of the day featured above the fold, picked deterministically from the UTC date and rotated by the page's daily revalidate.",
           "The gallery renders the published package rather than a local reimplementation, so it cannot drift from what actually ships.",
           "All ten of the 0.6.0 AI-app primitives are catalogued and rendered live, the hook-free ones inline and the stateful ones as client islands.",
           "The four 0.10.0 fraud-ops primitives — RiskScore, AgentDecisionCard, Timeline, StatCard — are catalogued and previewed live too.",
