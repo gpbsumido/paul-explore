@@ -121,6 +121,23 @@ export const betsResponseSchema = z.object({
   bets: z.array(betSchema),
 });
 
+// The admin god's view: every user's bet with who placed it. `handle` is the
+// display name (falling back to the username), `email` the account email, `mode`
+// the wallet mode — the leaderboard stays anonymous, this de-anonymizes on the
+// admin-only page. handle/email are nullable for a bettor with no profile/user row.
+export const adminBetSchema = betSchema.extend({
+  userSub: z.string(),
+  email: z.string().nullable(),
+  handle: z.string().nullable(),
+  mode: z.string(), // 'season' | 'challenge' | 'league'
+});
+
+export const adminBetsResponseSchema = z.object({
+  bets: z.array(adminBetSchema),
+});
+
+export type ZeroproofAdminBet = z.infer<typeof adminBetSchema>;
+
 export type ProfileStats = z.infer<typeof profileStatsSchema>;
 export type ZeroproofWallet = z.infer<typeof walletSchema>;
 export type Accolade = z.infer<typeof accoladeSchema>;
