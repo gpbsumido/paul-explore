@@ -7,6 +7,7 @@ import {
   type EspnLeague,
   espnLeaguesResponseSchema,
 } from "@/lib/zeroproof/schemas";
+import AdminBackLink from "../AdminBackLink";
 
 async function fetchEspnLeagues(): Promise<EspnLeague[]> {
   const res = await fetch("/api/zeroproof/espn-leagues");
@@ -163,6 +164,7 @@ export default function AdminEspnLeaguesContent() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <AdminBackLink current="ESPN leagues" />
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           ESPN leagues

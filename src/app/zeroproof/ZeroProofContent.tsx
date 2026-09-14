@@ -13,6 +13,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import AdminBetsLink from "./AdminBetsLink";
+import OpenWalletActions from "./OpenWalletActions";
 import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
@@ -486,7 +487,10 @@ function LeaderboardRow({
 }
 
 function Leaderboard() {
-  const [board, setBoard] = useState<"sharp" | "roi">("sharp");
+  // Default to ROI, not Sharp: the sharp board withholds anyone below its volume
+  // floor, so at low volume it reads empty even when settled bets exist. ROI
+  // ranks everyone with a graded bet, so the board isn't blank on arrival.
+  const [board, setBoard] = useState<"sharp" | "roi">("roi");
   const boardQuery = useQuery({
     queryKey: queryKeys.zeroproof.leaderboard(board),
     queryFn: () => getJson(`/api/zeroproof/leaderboard?board=${board}`),
@@ -549,7 +553,9 @@ function Leaderboard() {
 
       {boardQuery.data && boardQuery.data.entries.length === 0 && (
         <p className="mt-6 text-sm text-muted">
-          No ranked players yet — the board fills once enough bets are graded.
+          {board === "sharp"
+            ? "No sharp-ranked players yet — the Sharp board needs a minimum graded-bet volume before it ranks anyone. Try the ROI board."
+            : "No ranked players yet — the board fills once bets are graded."}
         </p>
       )}
 
@@ -641,82 +647,6 @@ function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
   );
 }
 
-function useOpenWallet() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (mode: "season" | "challenge") => {
-      // A Season wallet needs a deposit ($20 minimum on the backend); default to
-      // $500 to match the lobby wireframe until a deposit-amount input lands.
-      // Challenge is a fixed $100, so it sends no amount.
-      const body =
-        mode === "season" ? { mode, depositCents: 50_000 } : { mode };
-      const res = await fetch("/api/zeroproof/wallets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(
-          body?.error ?? "Couldn't open the wallet — please try again.",
-        );
-      }
-      return res.json();
-    },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() }),
-  });
-}
-
-const openWalletButton =
-  "inline-flex h-9 items-center rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
-
-function OpenWalletActions({
-  wallets = [],
-}: {
-  wallets?: ZeroproofWallet[];
-}) {
-  const open = useOpenWallet();
-  // Only one active season wallet is allowed, so opening a second just 409s.
-  // Disable the button instead of letting the click fail.
-  const hasActiveSeason = wallets.some(
-    (w) => w.mode === "season" && w.status === "active",
-  );
-  return (
-    <div>
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => open.mutate("season")}
-          disabled={open.isPending || hasActiveSeason}
-          title={
-            hasActiveSeason
-              ? "You already have an active season wallet"
-              : undefined
-          }
-          className={openWalletButton}
-        >
-          Open a Season wallet
-        </button>
-        <button
-          type="button"
-          onClick={() => open.mutate("challenge")}
-          disabled={open.isPending}
-          className={openWalletButton}
-        >
-          Open a Challenge wallet
-        </button>
-      </div>
-      {hasActiveSeason && (
-        <p className="mt-2 text-xs text-muted">
-          You already have an active season wallet.
-        </p>
-      )}
-    </div>
-  );
-}
 
 /** Dollars typed by a person to positive integer cents, or null if not valid. */
 function centsFromDollars(input: string): number | null {

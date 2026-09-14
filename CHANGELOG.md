@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-14 - version 6.12.3
+
+- **The ZeroProof admin panels have a way out.** The god's view, ESPN-leagues, and ingest-health pages rendered bare with no header — once you were in, there was no link back. Each now shows a breadcrumb (← ZeroProof / <panel>) that returns to the lobby. It lives inside the admin-only content, so it never renders around the 404 a non-admin is shown.
+- **The wallet copy no longer describes a deposit we don't take.** The Season explainer said "a deposit you choose ($20 minimum)", but a Season wallet currently opens with a hardcoded, simulated $500 and no deposit step. It now says what actually happens — a simulated $500, no deposit needed — and notes that choosing your own amount is still to come.
+
+## 2026-09-14 - version 6.12.2
+
+- **The ZeroProof leaderboard no longer opens empty.** It defaulted to the Sharp board, which withholds anyone below a minimum graded-bet volume — so with a handful of bets each, every player was withheld and the board read "No ranked players yet" even though settled bets existed for several users. It now opens on the **ROI board** (which ranks everyone with a graded bet), and the Sharp empty state explains the volume floor and points to ROI.
+- **Season vs Challenge is explained where you open a wallet.** The record page now spells out, for each mode, what you can do, what you get, and the limits — deposit-sized Season bankrolls that refund at term end vs. the fixed-$100 Challenge sprint with milestone badges that can bust to zero — so nobody opens one blind.
+- **The "Open a Challenge wallet" button disables when a challenge wallet is already active**, matching the existing Season guard (one active wallet per mode). `OpenWalletActions` was extracted to its own file for isolated tests.
+
 ## 2026-09-14 - version 6.12.1
 
 - **Admin-only shortcuts in the UI.** When I'm signed in as an admin, the ZeroProof header now shows a "God's view" link straight to the admin bets page (`/zeroproof/admin/bets`) — previously that route was reachable by typing the URL only — and Settings gains an "About" section showing the running app version. Both render nothing for everyone else. They share a `useIsFlagAdmin()` hook that reads `/api/me`'s `isFlagAdmin` (the same client-side hint the flags console uses), so the static ZeroProof and Settings pages stay static instead of being deopted to read the session server-side. The version is threaded from the server page so `package.json` never ships to the client.
