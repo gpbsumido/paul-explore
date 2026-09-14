@@ -10,7 +10,12 @@ import {
   setActivePerson,
   setCycleStartDay,
   joinBudget,
+  setVisibility,
+  requestToJoin,
+  approveJoinRequest,
+  denyJoinRequest,
   type NewExpense,
+  type JoinRequestInput,
 } from "@/lib/budget/budgetStore";
 
 /**
@@ -76,6 +81,34 @@ export function useBudget() {
       commit(joinBudget(token, name, window.localStorage)),
     [],
   );
+  const setVisible = useCallback(
+    (visibility: Budget["visibility"], ownerEmail?: string) =>
+      commit(setVisibility(visibility, window.localStorage, { ownerEmail })),
+    [],
+  );
+  const requestJoin = useCallback(
+    (input: JoinRequestInput) => commit(requestToJoin(input, window.localStorage)),
+    [],
+  );
+  const approveRequest = useCallback(
+    (id: string) => commit(approveJoinRequest(id, window.localStorage)),
+    [],
+  );
+  const denyRequest = useCallback(
+    (id: string) => commit(denyJoinRequest(id, window.localStorage)),
+    [],
+  );
 
-  return { budget, add, addPersonNamed, selectPerson, setCycleDay, join };
+  return {
+    budget,
+    add,
+    addPersonNamed,
+    selectPerson,
+    setCycleDay,
+    join,
+    setVisible,
+    requestJoin,
+    approveRequest,
+    denyRequest,
+  };
 }

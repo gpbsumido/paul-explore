@@ -6,8 +6,11 @@ import Input from "@/components/ui/Input";
 import Sheet from "@/components/ui/Sheet";
 import AddExpenseFlow from "./AddExpenseFlow";
 import Analytics from "./Analytics";
+import HistoryPanel from "./HistoryPanel";
+import Sharing from "./Sharing";
 import { useBudget } from "./useBudget";
 import { buildInviteLink, decodeInvite, parseJoinToken } from "@/lib/budget/share";
+import type { Budget } from "@/lib/budget/types";
 
 /**
  * The budget page: the fast-add flow up top, who the budget is shared with, and
@@ -16,11 +19,22 @@ import { buildInviteLink, decodeInvite, parseJoinToken } from "@/lib/budget/shar
  * can land on the same one before a real backend exists.
  */
 export default function BudgetContent() {
-  const { budget, add, addPersonNamed, selectPerson, join } = useBudget();
+  const {
+    budget,
+    add,
+    addPersonNamed,
+    selectPerson,
+    join,
+    setVisible,
+    requestJoin,
+    approveRequest,
+    denyRequest,
+  } = useBudget();
   const [addingPerson, setAddingPerson] = useState(false);
   const [personName, setPersonName] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [meEmail, setMeEmail] = useState<string | undefined>(undefined);
   const [joinToken] = useState(() =>
     typeof window === "undefined" ? null : parseJoinToken(window.location.search),
   );
@@ -48,6 +62,23 @@ export default function BudgetContent() {
   const copyLink = () => {
     navigator.clipboard?.writeText(inviteLink);
     setCopied(true);
+  };
+
+  // Making a budget public records the account email others request with. Fetch
+  // it on the click rather than in an effect, so the page stays static until
+  // someone actually shares. Falls back to public with no email if signed out.
+  const handleSetVisibility = (visibility: Budget["visibility"]) => {
+    if (visibility === "public" && !meEmail) {
+      fetch("/api/me")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data: { email?: string } | null) => {
+          setMeEmail(data?.email);
+          setVisible("public", data?.email);
+        })
+        .catch(() => setVisible("public"));
+      return;
+    }
+    setVisible(visibility, meEmail);
   };
 
   return (
@@ -111,7 +142,7 @@ export default function BudgetContent() {
           {addingPerson ? (
             <span className="flex items-end gap-2">
               <Input
-                label="Name"
+                label="New person name"
                 hideLabel
                 placeholder="Name"
                 value={personName}
@@ -134,8 +165,22 @@ export default function BudgetContent() {
           Nothing logged yet. Tap &ldquo;Add expense&rdquo; to log your first spend.
         </p>
       ) : (
-        <Analytics budget={budget} />
+        <>
+          <Analytics budget={budget} />
+          <HistoryPanel budget={budget} />
+        </>
       )}
+
+      <Sharing
+        visibility={budget.visibility}
+        ownerEmail={budget.ownerEmail}
+        joinRequests={budget.joinRequests}
+        meEmail={meEmail}
+        onSetVisibility={handleSetVisibility}
+        onRequestJoin={requestJoin}
+        onApprove={approveRequest}
+        onDeny={denyRequest}
+      />
 
       <Sheet open={inviteOpen} onClose={() => setInviteOpen(false)} label="Invite to share">
         <h2 className="text-base font-semibold text-foreground">Invite to share</h2>

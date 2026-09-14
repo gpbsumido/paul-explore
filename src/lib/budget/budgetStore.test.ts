@@ -208,6 +208,8 @@ describe("joinBudget", () => {
     people: [{ id: "p-owner", name: "Paul" }],
     activePersonId: "p-owner",
     cycleStartDay: 1,
+    visibility: "private",
+    joinRequests: [],
     expenses: [
       {
         id: "e-1",

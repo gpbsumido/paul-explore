@@ -83,23 +83,39 @@ export default function BudgetThoughtsContent() {
 
       <section>
         <h2 className="mb-2 text-xl font-bold text-foreground">
-          Inviting someone, without a server to invite them to
+          A history that compares this period to the last
         </h2>
         <p className="text-muted">
-          The budget lives in the browser, so &ldquo;invite someone to
-          share&rdquo; had to mean something honest. The invite link carries the
-          budget itself — base64url-encoded into the query string — and opening it
-          loads that budget and adds you to it as a new person. It is a
-          point-in-time share, not live sync, and the page says so rather than
-          implying a shared ledger that updates on its own. That is the one piece
-          genuinely waiting on a backend.
+          The 30-day and billing-cycle totals answer &ldquo;where am I now&rdquo;;
+          the history answers &ldquo;am I trending up&rdquo;. The same expenses
+          roll up by week, month, or year into a small bar chart, and the current
+          period is compared to the one before it — this month against last, and
+          the same for weeks and years. It is all pure bucketing over the injected
+          clock, so &ldquo;what does September look like standing in October&rdquo;
+          is a unit test, not a wait.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-xl font-bold text-foreground">
+          Sharing, in honest steps
+        </h2>
+        <p className="text-muted">
+          The budget lives in the browser, so every level of sharing had to mean
+          something true. The invite link carries the budget itself —
+          base64url-encoded into the query string — and opening it loads that
+          budget and adds you as a person. Making a budget public records the
+          account email others use to ask to join, and the owner sees each request
+          and approves or denies it. What none of it does yet is deliver a request
+          across accounts on its own — that needs the backend, and the page says
+          so instead of implying a shared ledger that updates itself.
         </p>
         <p className="mt-3 text-muted">
           Which is why the persistence sits behind pure reducers that take their{" "}
           <code className={code}>Storage</code> as an argument, exactly like the
           updates ticket board. Swapping the browser for a real API later is a
-          change in one file, and the invite link becomes a real invitation
-          rather than a snapshot.
+          change in one file, and the invite link and the join request both become
+          real rather than local stand-ins.
         </p>
       </section>
 
@@ -107,15 +123,16 @@ export default function BudgetThoughtsContent() {
         nowShipped={[
           "A three-step add flow — category, amount, optional date/time and tags — in a spring-loaded bottom sheet.",
           "A budget shared by several people with an active-person selector; each expense is attributed to whoever is active.",
-          "Analytics: last-30-day total, current billing cycle with a list, and splits by category and by person.",
-          "Invite links that carry the budget so two people can land on the same one before a backend exists.",
+          "Analytics: last-30-day total, current billing cycle with a list, splits by category and by person, and a week/month/year history that compares this period to the last.",
+          "Invite links that carry the budget, plus public budgets where people ask to join with your email and you approve.",
         ]}
         couldImprove={[
           "Editing a logged item, and re-tagging it after the fact — marked as later in the brief, deferred to a follow-up.",
           "Splitting a single expense across people, rather than attributing it to one — the data shape leaves room for it.",
+          "A join request can't reach another person's browser — cross-account delivery is honestly a local stand-in until the backend lands.",
         ]}
         upcoming={[
-          "Real persistence in portfolio_api behind the BFF, dropped in where the localStorage reducers sit now, turning the invite link into live shared sync.",
+          "Real persistence in portfolio_api behind the BFF, dropped in where the localStorage reducers sit now, turning the invite link and the join request into live shared sync.",
         ]}
       />
     </ThoughtLayout>

@@ -54,7 +54,9 @@ describe("BudgetContent", () => {
   it("adds a person and attributes a new expense to them", () => {
     fresh();
     fireEvent.click(screen.getByRole("button", { name: /add person/i }));
-    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: "Sam" } });
+    fireEvent.change(screen.getByLabelText(/new person name/i), {
+      target: { value: "Sam" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /save person/i }));
 
     fireEvent.click(screen.getByRole("radio", { name: "Sam" }));
