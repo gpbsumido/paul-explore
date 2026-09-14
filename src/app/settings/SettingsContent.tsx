@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
 import { queryKeys } from "@/lib/queryKeys";
+import AdminAboutSection from "./AdminAboutSection";
 
 // ---- Google Calendar icon ----
 // Simplified version of the Google Calendar mark — just enough to be recognizable
@@ -70,7 +71,7 @@ function ConnectionRowSkeleton() {
  * status on mount and lets the user connect or disconnect. Reads the ?gcal query
  * param on load to show a banner when the OAuth callback redirects back here.
  */
-export default function SettingsContent() {
+export default function SettingsContent({ version }: { version: string }) {
   const searchParams = useSearchParams();
   const gcalParam = searchParams.get("gcal");
   const queryClient = useQueryClient();
@@ -268,6 +269,7 @@ export default function SettingsContent() {
             </div>
           )}
         </section>
+        <AdminAboutSection version={version} />
       </main>
     </div>
   );
