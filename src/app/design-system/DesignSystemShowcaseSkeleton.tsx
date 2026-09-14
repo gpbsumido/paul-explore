@@ -33,6 +33,23 @@ export default function DesignSystemShowcaseSkeleton() {
           </div>
         </div>
 
+        {/* Component of the day */}
+        <div className="mb-16 h-48 animate-pulse rounded-2xl border border-border bg-surface" />
+
+        {/* Explorer controls: search + sort row, then category chips */}
+        <div className="mb-4 flex gap-3">
+          <div className="h-8 w-56 animate-pulse rounded-lg bg-border" />
+          <div className="h-8 w-36 animate-pulse rounded-lg bg-border" />
+        </div>
+        <div className="mb-6 flex flex-wrap gap-2">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-8 w-28 animate-pulse rounded-full bg-border"
+            />
+          ))}
+        </div>
+
         {/* Component grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
