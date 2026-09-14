@@ -1,5 +1,6 @@
 import { budgetSchema, type Budget, type Expense } from "./types";
 import { STARTER_BUDGET } from "./categories.data";
+import { decodeInvite } from "./share";
 
 /**
  * The persistence layer for the budget. Like the ticket board, there is no
@@ -98,4 +99,29 @@ export function setCycleStartDay(day: number, storage: StorageLike): Budget {
   const budget = loadBudget(storage);
   const clamped = Math.min(28, Math.max(1, Math.round(day)));
   return write(storage, { ...budget, cycleStartDay: clamped });
+}
+
+/**
+ * Accept an invite: replace the local budget with the shared one the token
+ * carries, adding the joiner as a new person and making them active so their
+ * spend is attributed to them. A junk token leaves the current budget untouched.
+ */
+export function joinBudget(
+  token: string,
+  name: string,
+  storage: StorageLike,
+  meta: { id?: string } = {},
+): Budget {
+  const shared = decodeInvite(token);
+  if (!shared) return loadBudget(storage);
+  const trimmed = name.trim();
+  if (!trimmed || shared.people.some((p) => p.name === trimmed)) {
+    return write(storage, shared);
+  }
+  const person = { id: meta.id ?? `p-${Date.now()}`, name: trimmed };
+  return write(storage, {
+    ...shared,
+    people: [...shared.people, person],
+    activePersonId: person.id,
+  });
 }

@@ -5,8 +5,11 @@ import {
   addPerson,
   setActivePerson,
   setCycleStartDay,
+  joinBudget,
   BUDGET_KEY,
 } from "./budgetStore";
+import { encodeInvite } from "./share";
+import type { Budget } from "./types";
 
 /** A tiny in-memory Storage stand-in, so the store never touches a real DOM. */
 const makeStorage = (): Storage => {
@@ -133,5 +136,41 @@ describe("setCycleStartDay", () => {
     const after = setCycleStartDay(15, storage);
     expect(after.cycleStartDay).toBe(15);
     expect(loadBudget(storage).cycleStartDay).toBe(15);
+  });
+});
+
+describe("joinBudget", () => {
+  const shared: Budget = {
+    people: [{ id: "p-owner", name: "Paul" }],
+    activePersonId: "p-owner",
+    cycleStartDay: 1,
+    expenses: [
+      {
+        id: "e-1",
+        categoryId: "rent",
+        amountCents: 9000,
+        occurredAt: NOW,
+        personId: "p-owner",
+        tags: [],
+      },
+    ],
+  };
+
+  it("imports the shared budget and joins as the active person", () => {
+    const storage = makeStorage();
+    const after = joinBudget(encodeInvite(shared), "Sam", storage, {
+      id: "p-sam",
+    });
+    expect(after.expenses).toHaveLength(1);
+    expect(after.people.map((p) => p.name)).toEqual(["Paul", "Sam"]);
+    expect(after.activePersonId).toBe("p-sam");
+    expect(loadBudget(storage).activePersonId).toBe("p-sam");
+  });
+
+  it("leaves the current budget untouched for a junk token", () => {
+    const storage = makeStorage();
+    const before = loadBudget(storage);
+    const after = joinBudget("garbage", "Sam", storage);
+    expect(after).toEqual(before);
   });
 });
