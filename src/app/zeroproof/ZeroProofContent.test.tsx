@@ -130,6 +130,19 @@ const renderPage = (
 const goToTab = async (name: RegExp) =>
   fireEvent.click(await screen.findByRole("tab", { name }));
 
+describe("ZeroProofContent — leaderboard default", () => {
+  it("opens on the ROI board so it isn't empty while players are below the sharp volume floor", async () => {
+    renderPage();
+    await goToTab(/leaderboard/i);
+    const roiTab = await screen.findByRole("tab", { name: "ROI" });
+    expect(roiTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Sharp" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+});
+
 describe("ZeroProofContent — slate", () => {
   // The board windows events to the next few days off "now"; pin it so the
   // fixture's dated event stays inside the default 3-day window.
