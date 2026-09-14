@@ -22,8 +22,10 @@ describe("OpenWalletActions", () => {
     renderActions();
     expect(screen.getByRole("heading", { name: /season/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /challenge/i })).toBeInTheDocument();
-    // Season is deposit-based and refunded; Challenge is a fixed $100 that can bust.
-    expect(screen.getByText(/\$20 minimum/i)).toBeInTheDocument();
+    // Season opens with a simulated $500 and no deposit today; Challenge is a
+    // fixed $100 that can bust.
+    expect(screen.getByText(/no deposit needed/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/\$500/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/\$100/).length).toBeGreaterThan(0);
     expect(screen.getByText(/hit \$0 and it busts/i)).toBeInTheDocument();
     // Both note the 3-month term.

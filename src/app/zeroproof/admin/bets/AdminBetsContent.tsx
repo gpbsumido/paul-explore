@@ -14,6 +14,7 @@ import {
   marketLabel,
   playerHandle,
 } from "@/lib/zeroproof/format";
+import AdminBackLink from "../AdminBackLink";
 
 async function fetchAdminBets(q: string): Promise<ZeroproofAdminBet[]> {
   const suffix = q ? `?q=${encodeURIComponent(q)}` : "";
@@ -182,6 +183,7 @@ export default function AdminBetsContent() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <AdminBackLink current="Bets" />
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Bets</h1>
         <p className="mt-1 text-sm text-muted">
