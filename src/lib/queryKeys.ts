@@ -293,5 +293,8 @@ export const queryKeys = {
     /** The ESPN-league registry (admin). */
     espnLeagues: () => ["zeroproof", "espn-leagues"] as const,
     ingestHealth: () => ["zeroproof", "ingest-health"] as const,
+
+    /** Every user's bets for the admin god's view, filtered by a search term. */
+    adminBets: (q?: string) => ["zeroproof", "admin", "bets", q ?? ""] as const,
   },
 } as const;
