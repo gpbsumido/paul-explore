@@ -51,6 +51,10 @@ describe("world exhibits", () => {
       // to do on it yet. An exhibit would walk someone to a page they can only
       // watch. It earns a landmark once the bet slip gives the block a reason.
       "zeroproof",
+      // A personal tool over the visitor's own browser storage. An exhibit
+      // would walk someone to their own empty ledger, with nothing shared to
+      // look at until they start logging.
+      "budget",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));

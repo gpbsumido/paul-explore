@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-budget-tracker",
+    date: "2026-09-14",
+    version: "6.13.0",
+    category: "feature",
+    tags: ["budget"],
+    title: "A budget tracker where logging a spend takes three taps",
+    summary:
+      "A new budget app at /budget built around one thing: how fast it is to add an expense. Tap Add, pick a category, type the amount, done — the date and time default to now. Share a budget with the people you split with, and see the last 30 days, the current billing cycle, and where it went by category and by person.",
+    body: [
+      "Most budgeting apps lose me in the first week because logging a coffee is a chore. So this one makes the add flow the whole point: a bottom sheet slides up and asks three things in order — which category, how much, and only if you care, when and how to tag it. The common case is a category tap and a number.",
+      "A budget can be shared. You add the people you split with, switch who's active, and each expense is attributed to them, which feeds a by-person breakdown alongside the by-category one and the running 30-day and billing-cycle totals. It lives in your browser for now, so 'invite someone' is a link that carries the budget itself — open it and you're on the same one. Editing an item and splitting a single expense across people are coming next.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-gods-view",
     date: "2026-09-14",
     version: "6.12.0",
