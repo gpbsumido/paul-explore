@@ -7,6 +7,7 @@ import {
   type IngestHealthRow,
   ingestHealthResponseSchema,
 } from "@/lib/zeroproof/schemas";
+import AdminBackLink from "../AdminBackLink";
 
 type Health = { sports: IngestHealthRow[]; espnLeagues: IngestEspnHealthRow[] };
 
@@ -63,6 +64,7 @@ export default function AdminIngestHealthContent() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <AdminBackLink current="Ingest health" />
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Ingest health

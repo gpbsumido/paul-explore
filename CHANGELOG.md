@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-14 - version 6.12.3
+
+- **The ZeroProof admin panels have a way out.** The god's view, ESPN-leagues, and ingest-health pages rendered bare with no header — once you were in, there was no link back. Each now shows a breadcrumb (← ZeroProof / <panel>) that returns to the lobby. It lives inside the admin-only content, so it never renders around the 404 a non-admin is shown.
+- **The wallet copy no longer describes a deposit we don't take.** The Season explainer said "a deposit you choose ($20 minimum)", but a Season wallet currently opens with a hardcoded, simulated $500 and no deposit step. It now says what actually happens — a simulated $500, no deposit needed — and notes that choosing your own amount is still to come.
+
 ## 2026-09-14 - version 6.12.2
 
 - **The ZeroProof leaderboard no longer opens empty.** It defaulted to the Sharp board, which withholds anyone below a minimum graded-bet volume — so with a handful of bets each, every player was withheld and the board read "No ranked players yet" even though settled bets existed for several users. It now opens on the **ROI board** (which ranks everyone with a graded bet), and the Sharp empty state explains the volume floor and points to ROI.

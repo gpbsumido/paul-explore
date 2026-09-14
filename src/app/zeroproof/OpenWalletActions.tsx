@@ -95,10 +95,10 @@ export default function OpenWalletActions({
       <div className="grid gap-3 sm:grid-cols-2">
         <WalletExplainer
           name="Season"
-          tagline="Your own bankroll for the term."
-          can="Open it with a deposit you choose ($20 minimum) and bet the live board all term."
-          get="Your whole deposit back at term end — three months out, whatever your record."
-          limits="One active Season wallet at a time; it can't bust, but you only ever play with what you put in."
+          tagline="Your bankroll for the term."
+          can="Open one and bet the live board all term — no deposit needed; it starts you with a simulated $500 to play."
+          get="That $500 back at term end — three months out, whatever your record."
+          limits="One active Season wallet at a time; it can't bust. Choosing your own deposit amount is coming; for now the $500 is fixed and simulated."
         />
         <WalletExplainer
           name="Challenge"
