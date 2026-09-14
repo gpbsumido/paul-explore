@@ -6,6 +6,10 @@ import {
   setActivePerson,
   setCycleStartDay,
   joinBudget,
+  setVisibility,
+  requestToJoin,
+  approveJoinRequest,
+  denyJoinRequest,
   BUDGET_KEY,
 } from "./budgetStore";
 import { encodeInvite } from "./share";
@@ -44,6 +48,66 @@ describe("loadBudget", () => {
     const storage = makeStorage();
     storage.setItem(BUDGET_KEY, "{not json");
     expect(loadBudget(storage).expenses).toEqual([]);
+  });
+
+  it("starts private with no pending join requests", () => {
+    const budget = loadBudget(makeStorage());
+    expect(budget.visibility).toBe("private");
+    expect(budget.joinRequests).toEqual([]);
+  });
+
+  it("loads an older stored budget that predates the sharing fields", () => {
+    const storage = makeStorage();
+    storage.setItem(
+      BUDGET_KEY,
+      JSON.stringify({
+        people: [{ id: "p-1", name: "You" }],
+        activePersonId: "p-1",
+        cycleStartDay: 1,
+        expenses: [],
+      }),
+    );
+    const budget = loadBudget(storage);
+    expect(budget.visibility).toBe("private");
+    expect(budget.joinRequests).toEqual([]);
+  });
+});
+
+describe("sharing", () => {
+  it("makes a budget public and records the owner email others request with", () => {
+    const storage = makeStorage();
+    const after = setVisibility("public", storage, { ownerEmail: "me@example.com" });
+    expect(after.visibility).toBe("public");
+    expect(after.ownerEmail).toBe("me@example.com");
+    expect(loadBudget(storage).visibility).toBe("public");
+  });
+
+  it("records a request to join", () => {
+    const storage = makeStorage();
+    const after = requestToJoin(
+      { name: "Sam", email: "sam@example.com" },
+      storage,
+      { id: "r-1", now: NOW },
+    );
+    expect(after.joinRequests).toEqual([
+      { id: "r-1", name: "Sam", email: "sam@example.com", createdAt: NOW },
+    ]);
+  });
+
+  it("approving a request turns the requester into a person and clears it", () => {
+    const storage = makeStorage();
+    requestToJoin({ name: "Sam", email: "sam@example.com" }, storage, { id: "r-1", now: NOW });
+    const after = approveJoinRequest("r-1", storage, { id: "p-sam" });
+    expect(after.joinRequests).toEqual([]);
+    expect(after.people.map((p) => p.name)).toContain("Sam");
+  });
+
+  it("denying a request just removes it", () => {
+    const storage = makeStorage();
+    requestToJoin({ name: "Sam", email: "sam@example.com" }, storage, { id: "r-1", now: NOW });
+    const after = denyJoinRequest("r-1", storage);
+    expect(after.joinRequests).toEqual([]);
+    expect(after.people.map((p) => p.name)).not.toContain("Sam");
   });
 });
 

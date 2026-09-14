@@ -102,6 +102,74 @@ export function setCycleStartDay(day: number, storage: StorageLike): Budget {
 }
 
 /**
+ * Set whether the budget is public. Going public records the owner's email —
+ * the address others use to ask to join it.
+ */
+export function setVisibility(
+  visibility: Budget["visibility"],
+  storage: StorageLike,
+  meta: { ownerEmail?: string } = {},
+): Budget {
+  const budget = loadBudget(storage);
+  return write(storage, {
+    ...budget,
+    visibility,
+    ...(meta.ownerEmail ? { ownerEmail: meta.ownerEmail } : {}),
+  });
+}
+
+/** What someone supplies when asking to join a budget. */
+export type JoinRequestInput = { name: string; email: string };
+
+/**
+ * Record an ask to join. Across accounts this needs the backend to deliver;
+ * for now it lands in the same store the owner reads, and the UI says so.
+ */
+export function requestToJoin(
+  input: JoinRequestInput,
+  storage: StorageLike,
+  meta: { id?: string; now?: string } = {},
+): Budget {
+  const budget = loadBudget(storage);
+  const request = {
+    id: meta.id ?? `r-${Date.now()}`,
+    name: input.name.trim(),
+    email: input.email.trim(),
+    createdAt: meta.now ?? new Date().toISOString(),
+  };
+  return write(storage, {
+    ...budget,
+    joinRequests: [...budget.joinRequests, request],
+  });
+}
+
+/** Approve a pending request: add the requester as a person and clear it. */
+export function approveJoinRequest(
+  requestId: string,
+  storage: StorageLike,
+  meta: { id?: string } = {},
+): Budget {
+  const budget = loadBudget(storage);
+  const request = budget.joinRequests.find((r) => r.id === requestId);
+  if (!request) return budget;
+  const person = { id: meta.id ?? `p-${Date.now()}`, name: request.name };
+  return write(storage, {
+    ...budget,
+    people: [...budget.people, person],
+    joinRequests: budget.joinRequests.filter((r) => r.id !== requestId),
+  });
+}
+
+/** Deny a pending request: just drop it. */
+export function denyJoinRequest(requestId: string, storage: StorageLike): Budget {
+  const budget = loadBudget(storage);
+  return write(storage, {
+    ...budget,
+    joinRequests: budget.joinRequests.filter((r) => r.id !== requestId),
+  });
+}
+
+/**
  * Accept an invite: replace the local budget with the shared one the token
  * carries, adding the joiner as a new person and making them active so their
  * spend is attributed to them. A junk token leaves the current budget untouched.

@@ -28,11 +28,28 @@ export const expenseSchema = z.object({
 });
 export type Expense = z.infer<typeof expenseSchema>;
 
-/** The whole shared budget as it lives in one storage key. */
+/** A pending ask to join a budget. Delivered across accounts once there is a
+ * backend; for now it lives in the same store the owner reads. */
+export const joinRequestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  createdAt: z.string(),
+});
+export type JoinRequest = z.infer<typeof joinRequestSchema>;
+
+/**
+ * The whole shared budget as it lives in one storage key. The sharing fields
+ * carry `.default()` so a budget stored before they existed still loads instead
+ * of being thrown away and reset.
+ */
 export const budgetSchema = z.object({
   people: z.array(personSchema).min(1),
   activePersonId: z.string(),
   cycleStartDay: z.number().int().min(1).max(28),
   expenses: z.array(expenseSchema),
+  visibility: z.enum(["private", "public"]).default("private"),
+  ownerEmail: z.string().optional(),
+  joinRequests: z.array(joinRequestSchema).default([]),
 });
 export type Budget = z.infer<typeof budgetSchema>;

@@ -38,4 +38,6 @@ export const STARTER_BUDGET: Budget = {
   activePersonId: STARTER_PERSON.id,
   cycleStartDay: 1,
   expenses: [],
+  visibility: "private",
+  joinRequests: [],
 };

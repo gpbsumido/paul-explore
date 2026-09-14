@@ -6,6 +6,8 @@ const budget: Budget = {
   people: [{ id: "p-1", name: "Paul" }],
   activePersonId: "p-1",
   cycleStartDay: 1,
+  visibility: "private",
+  joinRequests: [],
   expenses: [
     {
       id: "e-1",
