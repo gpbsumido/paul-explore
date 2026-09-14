@@ -686,8 +686,76 @@ await disableTours(page);`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-14-gods-view"
+        date="September 14, 2026"
+        title="A god's view, and reaching around my own anonymity to build it"
+      >
+        <p>
+          The leaderboard names players by an opaque handle on purpose — nobody
+          browsing the board sees who&apos;s who. But I&apos;m the one running
+          this, and I wanted to see the whole book: who bet what, which bets are
+          still live, how everyone&apos;s record actually shakes out. So
+          there&apos;s now an admin-only page that does exactly what the rest of
+          the site refuses to.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One endpoint that de-anonymizes, and only one
+        </h3>
+        <p className="text-muted">
+          Every other bet query is scoped to the caller&apos;s own wallets. The
+          god&apos;s view needs the opposite — all wallets, joined back to the
+          person — so it&apos;s a single new endpoint that leaves the anonymized
+          ones alone. It joins bets to wallets to the user, left-joining the
+          profile so a bet never drops out just because its bettor hasn&apos;t
+          set a display name yet:
+        </p>
+        <pre className={pre}>
+          {`select bet.*, wallet.user_sub, wallet.mode,
+       users.email, up.username, up.display_name
+  from zeroproof_bets bet
+  join zeroproof_wallets wallet on wallet.id = bet.wallet_id
+  left join users         on users.sub    = wallet.user_sub
+  left join user_profiles up on up.user_sub = wallet.user_sub
+ where q ilike any(email, username, display_name, selection, market)
+ order by bet.placed_at desc`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The records fell out of the bets, so I didn&apos;t build them twice
+        </h3>
+        <p className="text-muted">
+          &quot;Everyone&apos;s record&quot; sounds like a second endpoint — a
+          de-anonymized leaderboard. But a win-loss-push record is just a count
+          over the bets I&apos;m already returning, so the page groups them by
+          player on the client and tallies wins, losses, pushes and how many are
+          still open. Search is server-side, so it can key off the database; the
+          live/resolved split is a client toggle over what&apos;s loaded. ROI and
+          the sharp score still live on the anonymized leaderboard — de-anonymizing
+          those is a later problem I didn&apos;t need to solve to answer &quot;how
+          is everyone doing.&quot;
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It 404s, it doesn&apos;t 403
+        </h3>
+        <p className="text-muted">
+          The page and its API sit behind the same allowlist gate the other admin
+          surfaces use, and a signed-in non-admin gets a 404, not a 403 — the page
+          reads as absent rather than as a locked door with something behind it.
+          The public leaderboard&apos;s anonymity is intact for everyone; this is
+          the one door only I have.
+        </p>
+        <pre className={pre}>
+          {`const isAdmin = isAllowedEmail({ email, emailVerified, allowlist });
+if (!isAdmin) notFound(); // reads as absent, not forbidden`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "An admin god's view: signed in as the owner, one page lists and searches every player's bets — live and resolved — with a per-player win-loss-push record derived from those bets. The public leaderboard stays anonymous; this is the only surface that attaches an email and a name to a bet, and it 404s anyone else.",
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
           "Resilient ingestion with health you can see: one unreachable ESPN league — or one failing sport on the odds vendor — is skipped and logged instead of sinking the whole sync or settle, and a league page shows which of its ESPN leagues can't be reached, why, and when it last worked.",
           "Leagues: run your own contest with its own rules — starting bankroll, size, and a first-to-a-target or highest-by-a-date win condition. Public leagues are searchable, invite ones share a code, and each has its own bankroll-ranked board and a winner. You bet from a league-scoped wallet, so league play stays out of the global record.",
