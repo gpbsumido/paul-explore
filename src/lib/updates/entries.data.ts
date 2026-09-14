@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-gods-view",
+    date: "2026-09-14",
+    version: "6.12.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "An admin's-eye view of every ZeroProof bet",
+    summary:
+      "Signed in as the owner, there's now one page that shows and searches everyone's ZeroProof bets — live and resolved — and each player's win-loss-push record. The public leaderboard stays anonymous; this is the only place that names names, and it's invisible to anyone else.",
+    body: [
+      "The public board shows players by an opaque handle on purpose — no one browsing the leaderboard sees who's who. But I wanted a way to look across the whole book myself: who's betting what, which bets are still open, how everyone's record actually shakes out. So there's a new admin-only page that puts every player's bets in one searchable table, with a per-player record summary above it (wins-losses-pushes, total bets, and how many are still live).",
+      "Search matches on email, name, selection, or market, and a simple All / Live / Resolved filter narrows the ledger. It's gated to my account the same way the rest of the admin tools are — to anyone else the page simply doesn't exist.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-showcase-navigation",
     date: "2026-09-12",
     version: "6.11.0",
