@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { APP_VERSION } from "@/lib/appVersion";
 import SettingsContent from "./SettingsContent";
 
 export const metadata: Metadata = {
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function SettingsPage() {
-  return <SettingsContent />;
+  return <SettingsContent version={APP_VERSION} />;
 }

@@ -12,6 +12,7 @@ import { StackedLineChart } from "@paul-portfolio/react";
 import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
+import AdminBetsLink from "./AdminBetsLink";
 import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
@@ -1182,11 +1183,14 @@ export default function ZeroProofContent() {
           explains why the ledger is real and the money is a button.
         </p>
         </div>
-        <FeatureTour
-          label="ZeroProof"
-          storageKey="zeroproof-tour-seen"
-          steps={tourSteps}
-        />
+        <div className="flex items-center gap-2">
+          <AdminBetsLink />
+          <FeatureTour
+            label="ZeroProof"
+            storageKey="zeroproof-tour-seen"
+            steps={tourSteps}
+          />
+        </div>
       </header>
 
       <div
