@@ -73,6 +73,34 @@ export function addExpense(
   });
 }
 
+/** The fields of an expense that can be changed after it is logged. */
+export type ExpensePatch = Partial<
+  Pick<Expense, "categoryId" | "amountCents" | "occurredAt" | "personId" | "tags" | "note" | "splits">
+>;
+
+/** Edit a logged expense in place. An unknown id leaves the budget untouched. */
+export function updateExpense(
+  id: string,
+  patch: ExpensePatch,
+  storage: StorageLike,
+): Budget {
+  const budget = loadBudget(storage);
+  if (!budget.expenses.some((e) => e.id === id)) return budget;
+  return write(storage, {
+    ...budget,
+    expenses: budget.expenses.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+  });
+}
+
+/** Remove a logged expense. */
+export function deleteExpense(id: string, storage: StorageLike): Budget {
+  const budget = loadBudget(storage);
+  return write(storage, {
+    ...budget,
+    expenses: budget.expenses.filter((e) => e.id !== id),
+  });
+}
+
 /** Add someone to share the budget, without changing who is active. */
 export function addPerson(
   name: string,

@@ -16,7 +16,19 @@ export const personSchema = z.object({
 });
 export type Person = z.infer<typeof personSchema>;
 
-/** A single logged spend. */
+/** A share of one expense assigned to a person. */
+export const splitSchema = z.object({
+  personId: z.string(),
+  amountCents: z.number().int().nonnegative(),
+});
+export type Split = z.infer<typeof splitSchema>;
+
+/**
+ * A single logged spend. `personId` is who it is attributed to by default;
+ * `splits` (optional) divides it across people instead. Absent splits means the
+ * whole amount belongs to `personId`, which is what every item logged before
+ * splitting existed still means.
+ */
 export const expenseSchema = z.object({
   id: z.string(),
   categoryId: z.string(),
@@ -25,6 +37,7 @@ export const expenseSchema = z.object({
   personId: z.string(),
   tags: z.array(z.string()),
   note: z.string().optional(),
+  splits: z.array(splitSchema).optional(),
 });
 export type Expense = z.infer<typeof expenseSchema>;
 
