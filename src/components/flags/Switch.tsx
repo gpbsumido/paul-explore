@@ -1,5 +1,7 @@
 "use client";
 
+import { Switch as PaulSwitch } from "@paul-portfolio/react";
+
 interface SwitchProps {
   checked: boolean;
   onChange: (next: boolean) => void;
@@ -9,10 +11,10 @@ interface SwitchProps {
 }
 
 /**
- * An accessible on/off switch built on a native button with role="switch". The
- * button is fully keyboard operable, exposes aria-checked, and shows a visible
- * focus ring. The label is passed as aria-label so callers can place their own
- * visible text next to it.
+ * App-level Switch backed by @paul-portfolio/react. Preserves the existing
+ * `{ checked, onChange, label }` API so the flags console keeps working, mapping
+ * onChange to the DS `onCheckedChange` and the label to an aria-label (the DS
+ * switch has no text of its own, same as the local one it replaces).
  */
 export default function Switch({
   checked,
@@ -21,27 +23,11 @@ export default function Switch({
   disabled = false,
 }: SwitchProps) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
+    <PaulSwitch
+      checked={checked}
+      onCheckedChange={onChange}
       disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={[
-        "paul-touch-target relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-success-500" : "bg-neutral-300 dark:bg-neutral-700",
-      ].join(" ")}
-    >
-      <span
-        aria-hidden
-        className={[
-          "inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform motion-reduce:transition-none",
-          checked ? "translate-x-6" : "translate-x-1",
-        ].join(" ")}
-      />
-    </button>
+      aria-label={label}
+    />
   );
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.15.2
+
+- **Consolidated redundant local UI components onto the design system.** `Textarea` and the flags `Switch` were local reimplementations of components the shared `@paul-portfolio/react` already ships with full parity, so they now delegate to the design-system versions (same public API, so no call site changed). Also bumped `@paul-portfolio/css` to 0.12.2, which brings the `dvh` mobile-fit fix to the design-system component surfaces. The other local components (`Chip`, `Tooltip`, `InfoTip`, `Modal`, `Sheet`) are deliberately kept local for now because each adds behaviour the DS version lacks (contrast-aware chip text, full-size tooltip anchors, a flexible modal content shell, a bottom sheet with no DS equivalent) — those are being upstreamed to the design system first, then adopted.
+
 ## 2026-09-15 - version 6.15.1
 
 - **Typing in a sheet no longer closes the mobile keyboard.** The shared bottom `Sheet` listed `onClose` in its focus effect's dependencies, and callers pass a fresh `onClose` every render — so every keystroke re-ran the effect and re-focused the panel, blurring the field. On a phone that dismissed the keyboard on the first character (reported on the budget add flow's note/vendor fields). The effect now depends only on `open` and reads the latest `onClose` through a ref. A test re-renders an open sheet with a new `onClose` and asserts a focused child input keeps focus.

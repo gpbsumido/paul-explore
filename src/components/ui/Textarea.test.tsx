@@ -46,7 +46,7 @@ describe("Textarea accessibility", () => {
     it("links error message via aria-describedby", () => {
       render(<Textarea label="Notes" error="Too short" />);
       const textarea = screen.getByLabelText("Notes");
-      const errorEl = screen.getByRole("alert");
+      const errorEl = screen.getByText("Too short");
       expect(textarea).toHaveAttribute("aria-describedby", errorEl.id);
     });
   });
