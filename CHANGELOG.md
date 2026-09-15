@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.15.4
+
+- **Chip, Tooltip, and InfoTip now delegate to the design system.** These were the last local UI components that had a genuine reason to be local — each has been upstreamed to `@paul-portfolio/react` (0.10.2) and adopted here, so nothing is lost: the Chip's contrast-aware label colour (readable on any accent, not just white) now lives in the DS Chip; the Tooltip's full-size anchor (so it doesn't collapse a calendar cell) is the DS Tooltip's new `fill`; and the InfoTip keeps its "More information" accessible name and fixed-position, never-clipped popover. The one `href` use — a chip that links to a PR — renders as a DS-styled `.chip` anchor. With this, the local `useHoverPopover` hook is gone (the DS components carry their own hover/focus handling), and the app's UI primitives all sit on the shared design system. Bumps `@paul-portfolio/react` to 0.10.2. The full 3240-test suite stays green; the Tooltip/InfoTip axe scans and keyboard/Escape behaviour are preserved.
+
 ## 2026-09-15 - version 6.15.3
 
 - **The Modal now delegates to the design-system Modal.** The local Modal (a framer-motion panel with a hand-rolled focus trap) had the same public API as the DS one — `open`/`onClose`, the `aria-*` trio, `className` passthrough, and children rendered directly — so it now delegates, and all ~20 call sites (calendar, operator, research, the work-portfolio demos, the design-system showcase) keep working unchanged. Nothing was lost in the move: the Modal test suite that pins focus-to-first, focus-trap-on-Tab, Escape-to-close, inert background, and an axe scan all pass against the DS Modal, which additionally preserves a pre-existing `aria-hidden` on background nodes and carries the `dvh` mobile-fit and focus-retention fixes. The full 3240-test suite stays green.
