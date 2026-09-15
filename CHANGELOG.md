@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.15.5
+
+- **Wrote up the ZeroProof pre-season fantasy fix.** A dated update on the ZeroProof thoughts page tells the story of the fantasy board taking bets on games that hadn't been drafted yet: why ESPN's pre-season schedule fooled the "earliest undecided week" logic, gating a league on its draft and real season start, pricing matchups off ESPN's win probability instead of a flat pick'em, voiding and refunding the invalid pre-season bets, and finally capturing every bettor's email into the god's view. Updated "What's next" — projection-based odds moved from upcoming to shipped, and the new gating, refunds and email capture are listed.
+
 ## 2026-09-15 - version 6.15.4
 
 - **Chip, Tooltip, and InfoTip now delegate to the design system.** These were the last local UI components that had a genuine reason to be local — each has been upstreamed to `@paul-portfolio/react` (0.10.2) and adopted here, so nothing is lost: the Chip's contrast-aware label colour (readable on any accent, not just white) now lives in the DS Chip; the Tooltip's full-size anchor (so it doesn't collapse a calendar cell) is the DS Tooltip's new `fill`; and the InfoTip keeps its "More information" accessible name and fixed-position, never-clipped popover. The one `href` use — a chip that links to a PR — renders as a DS-styled `.chip` anchor. With this, the local `useHoverPopover` hook is gone (the DS components carry their own hover/focus handling), and the app's UI primitives all sit on the shared design system. Bumps `@paul-portfolio/react` to 0.10.2. The full 3240-test suite stays green; the Tooltip/InfoTip axe scans and keyboard/Escape behaviour are preserved.

@@ -753,8 +753,107 @@ if (!isAdmin) notFound(); // reads as absent, not forbidden`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-15-preseason-matchups"
+        date="September 15, 2026"
+        title="The fantasy board was taking bets on games that hadn't been drafted yet"
+      >
+        <p>
+          Someone put money on a basketball matchup a month before the season.
+          The board was offering week-1 fantasy matchups the moment a league
+          existed — before the draft, before anyone had a roster, a coin-flip
+          nobody could handicap. Three things were wrong at once: the matchups
+          showed too early, they were priced as flat pick&apos;ems, and real
+          stakes had already gone down on them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ESPN hands you the whole schedule in August
+        </h3>
+        <p className="text-muted">
+          The sync bet the earliest undecided week. Reasonable, until you learn
+          ESPN publishes the entire season pre-season — every matchup undecided,
+          every side on zero points. So &quot;earliest undecided week&quot; was
+          week 1, in August, with no draft done.
+        </p>
+        <pre className={pre}>
+          {`// before: the earliest undecided week, whenever that happens to be
+const week = currentBettableWeek(league); // → 1, in the preseason`}
+        </pre>
+        <p className="text-muted">
+          A league opens now only once it has drafted AND its season is within a
+          week of starting. And &quot;season start&quot; isn&apos;t ESPN&apos;s
+          fantasy calendar — I read the pro schedule and take the earliest real
+          game across the league&apos;s teams, so a week out means a week from a
+          ball actually being tipped.
+        </p>
+        <pre className={pre}>
+          {`if (!league.draftDetail?.drafted) return false;
+if (seasonStart) return now >= seasonStart - ONE_WEEK;
+return (league.status?.latestScoringPeriod ?? 0) >= 1; // fallback if the schedule won't load`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A pick&apos;em is a lie when one side projects forty points higher
+        </h3>
+        <p className="text-muted">
+          Every matchup shipped as both sides -110. But ESPN publishes a per-side
+          win probability, and a projected score — so a matchup is priced off the
+          probability when it has one, and off the projection gap otherwise (a
+          logistic on the margin). A real favourite and a real underdog, still no
+          vig.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The bets already placed had to come back
+        </h3>
+        <p className="text-muted">
+          The gate stops new bad bets, but people had already staked the
+          pre-season ones. I didn&apos;t want to grade them when the games
+          eventually played — the bet was invalid at placement, on a roster that
+          didn&apos;t exist yet. The settler already had a void grade that
+          refunds the stake and keeps the bet out of the win-loss record, so the
+          job was to apply it. The realization that made it safe: a league only
+          ever goes closed → open, never back, so an open bet on a
+          currently-closed league is always a pre-open one. The sync voids them
+          as it runs.
+        </p>
+        <pre className={pre}>
+          {`// a closed league shouldn't carry open bets — refund the ones it does
+for (const spec of closedLeagues) {
+  for (const bet of await openBetsFor(spec)) {
+    await settleBet({ bet, grade: "void" }); // stake back, record untouched
+  }
+}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          And the god&apos;s view finally has everyone&apos;s email
+        </h3>
+        <p className="text-muted">
+          Building the god&apos;s view last week, I said it joined a bet to a name
+          and an email. It did — but only for people who&apos;d used the parts of
+          the site that capture your email into the users table. A
+          ZeroProof-only bettor never had. Every other module runs an upsertUser
+          middleware after auth; ZeroProof didn&apos;t, so betting never wrote the
+          row, and those players showed a P-XXXXX handle and a blank email.
+        </p>
+        <pre className={pre}>
+          {`router.post("/bets", checkJwt, upsertUser, ...) // the middleware that was missing`}
+        </pre>
+        <p className="text-muted">
+          Wired in now. The catch is there&apos;s no backfill: a verified email
+          only reaches the server inside that person&apos;s own token, so it fills
+          in the next time they place a bet, not retroactively.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Fantasy matchups only open for betting once a league has drafted and its season is within a week of a real game — read from ESPN's pro schedule — so the board stops offering undrafted pre-season coin-flips a month early.",
+          "Fantasy matchups are priced off ESPN's per-side win probability, or the projected-points gap when there's no probability yet, instead of a flat -110 pick'em — a real favourite and underdog, no vig.",
+          "Bets placed on those invalid pre-season matchups are voided and refunded automatically as the sync runs: the stake comes back and the bet stays out of everyone's win-loss record.",
+          "The god's view attaches an email to every bettor now, not only the ones who'd used the rest of the site — the ZeroProof routes capture the caller into the users table when they act, so a bets-only player stops showing a blank email.",
           "An admin god's view: signed in as the owner, one page lists and searches every player's bets — live and resolved — with a per-player win-loss-push record derived from those bets. The public leaderboard stays anonymous; this is the only surface that attaches an email and a name to a bet, and it 404s anyone else.",
           "ESPN fantasy matchup betting: a provider ingests a league's weekly head-to-head matchups as pick'em events — badged Fantasy on the board — settled by the weekly score. A league's commissioner adds public ESPN leagues to their contest on the league page; their matchups show on the board and members bet them alongside everything else.",
           "Resilient ingestion with health you can see: one unreachable ESPN league — or one failing sport on the odds vendor — is skipped and logged instead of sinking the whole sync or settle, and a league page shows which of its ESPN leagues can't be reached, why, and when it last worked.",
@@ -789,7 +888,6 @@ if (!isAdmin) notFound(); // reads as absent, not forbidden`}
         upcoming={[
           "Real money, which is the whole reason the ledger came first: custody and money transmission are a licensing-and-counsel problem, not a code one. The simulated version is complete; the real one waits on lawyers.",
           "Accolades — the milestone and speed badges — surfaced on the profile once it ships, so there's something to show off besides the numbers.",
-          "Pricing fantasy matchups off ESPN's projected scores instead of the -110 pick'em they ship as now — a real favourite and underdog, derived from each side's projected starters.",
           "Adding ESPN leagues without a redeploy: the sync reads its league list from env today, so a small registry (and an admin endpoint) would let a league be added as data, not a config change.",
         ]}
       />
