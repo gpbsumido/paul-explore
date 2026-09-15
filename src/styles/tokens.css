@@ -166,6 +166,7 @@
   --color-feature-gallery-wall: #ab4380;
   --color-feature-world: #286f9e;
   --color-feature-updates: #2b7d8c;
+  --color-feature-budget: #2d7d46;
 
   /* Updates feed category accents + ticket type accents. Darker here for the
      light surface; the [data-theme="dark"] block lightens them. */
@@ -399,6 +400,7 @@
   --color-feature-gallery-wall: #f3bedd;
   --color-feature-world: #a6d6f0;
   --color-feature-updates: #a3d5de;
+  --color-feature-budget: #a8e6b8;
   --color-update-feature: #b79af0;
   --color-update-improvement: #9cc2ee;
   --color-update-fix: #e6b566;

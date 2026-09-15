@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-14 - version 6.13.0
+
+- **A fast-add budget tracker at `/budget`.** The whole feature is built around how little it takes to log a spend: open, tap Add, and a bottom sheet springs up asking three things in order — category, amount, then an optional date/time and tags. Date and time default to now, so the common path is a category tap, a number, and done.
+- **Shared budgets with people and splits.** A budget is shared by several people with an active-person selector; each expense is attributed to whoever is active. Analytics show the last-30-day total, the current billing cycle as a list, and where the money went by category and by person.
+- **Invite links that carry the budget.** Since it is browser-only for now, "invite someone to share" means a link that encodes the budget itself — opening it loads that budget and adds you as a person. It is a point-in-time share, said out loud on the page, not live sync.
+- **Public budgets and ask-to-join.** A budget can be made public, which records the account email others use to ask to join it; the owner sees pending requests and approves or denies each. Cross-account delivery still needs the backend — the page says so — but the model, the request flow, and the owner's approvals view all ship behind the same storage seam.
+- **Historical analytics and period comparison.** Alongside the 30-day and current-cycle views, spending now rolls up by week, month, and year as a small bar history, with the current period compared to the one before it (this month vs last, and the same for weeks and years). Money is kept in integer cents (the `1.005 * 100` rounding trap is pinned by a test), and every analytic takes the clock as an argument so it is testable. Persistence sits behind pure reducers that take their storage as an argument, so a real backend drops in without a UI rewrite. Editing an item, splitting one expense across people, and re-tagging after the fact are deferred follow-ups.
+
 ## 2026-09-14 - version 6.12.3
 
 - **The ZeroProof admin panels have a way out.** The god's view, ESPN-leagues, and ingest-health pages rendered bare with no header — once you were in, there was no link back. Each now shows a breadcrumb (← ZeroProof / <panel>) that returns to the lobby. It lives inside the admin-only content, so it never renders around the 404 a non-admin is shown.
