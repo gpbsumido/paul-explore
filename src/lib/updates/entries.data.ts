@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-board-date-range",
+    date: "2026-09-15",
+    version: "6.18.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "Filter the board by a date range, with a calendar",
+    summary:
+      "The board's date filter is now a From/To calendar range instead of a single-day dropdown — pick two dates and see just the games in that window. Leave one side open for everything before or after a date.",
+    body: [
+      "The first cut of the board filters let you pick one day at a time from a list. Now it's a pair of calendar date pickers — From and To — so you can scope the board to a whole range: this weekend, the next two weeks, whatever. Either side can be left blank for an open-ended 'from here on' or 'up to then', and picking the dates in either order still does the sensible thing.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-budget-sign-in",
     date: "2026-09-15",
     version: "6.17.0",
