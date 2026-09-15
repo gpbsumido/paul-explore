@@ -11,6 +11,51 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-budget-backend",
+    date: "2026-09-15",
+    version: "6.15.0",
+    category: "feature",
+    tags: ["budget"],
+    title: "Budgets now sync to your account, and share for real",
+    summary:
+      "Sign in and your budget lives on the server and follows you across devices; sharing a budget by email actually pulls the other person onto it now, instead of being a local stand-in. Signed out, it still works entirely in your browser with no account. Every expense also gained an optional note and vendor, and the whole page got an iPhone-app makeover.",
+    body: [
+      "The budget tracker started life entirely in your browser, which was honest but couldn't really be shared. Now, when you're signed in, it's backed by a real database and syncs everywhere you log in — and making a budget public and approving someone's request to join actually gives them access to the same budget. Signed out, nothing changes: it stays in your browser and needs no account.",
+      "Two small things I kept wanting: an optional note (what the spend was for) and a vendor (where it went) on each item. And since I mostly open this on my phone, the page now feels like an app — a big title, a segmented week/month/year switch, a full-width Add button, taps that respond the instant you press, and spacing that clears the home indicator.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-budget-editing",
+    date: "2026-09-14",
+    version: "6.14.0",
+    category: "feature",
+    tags: ["budget"],
+    title: "Edit budget items, and split them across people",
+    summary:
+      "You can now open any expense you've logged and change it — category, amount, date, tags — or delete it. And instead of pinning a spend on one person, you can split it across several, with a one-tap even split. The by-person totals count each share.",
+    body: [
+      "The budget tracker shipped able to add fast but not to fix a mistake. Now every item in the cycle list has an edit control: open it and change the category, amount, when it happened, or its tags, or delete it outright.",
+      "Splitting is the bigger one. A dinner that two people share no longer has to land entirely on whoever logged it — tick the people in on it, tap 'Split evenly', and the amount divides across them (the odd cent goes to the first person so it always adds up). The by-person breakdown counts each share rather than the whole ticket.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-budget-tracker",
+    date: "2026-09-14",
+    version: "6.13.0",
+    category: "feature",
+    tags: ["budget"],
+    title: "A budget tracker where logging a spend takes three taps",
+    summary:
+      "A new budget app at /budget built around one thing: how fast it is to add an expense. Tap Add, pick a category, type the amount, done — the date and time default to now. Share a budget with the people you split with, and see the last 30 days, the current billing cycle, and where it went by category and by person.",
+    body: [
+      "Most budgeting apps lose me in the first week because logging a coffee is a chore. So this one makes the add flow the whole point: a bottom sheet slides up and asks three things in order — which category, how much, and only if you care, when and how to tag it. The common case is a category tap and a number.",
+      "A budget can be shared. You add the people you split with, switch who's active, and each expense is attributed to them, which feeds a by-person breakdown alongside the by-category one, the running 30-day and billing-cycle totals, and a week/month/year history that compares this period to the last. It lives in your browser for now, so sharing is honest about it: 'invite someone' is a link that carries the budget, and a public budget lets people ask to join with your email for you to approve — full cross-device sync arrives with the backend. Editing an item and splitting a single expense across people are coming next.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-gods-view",
     date: "2026-09-14",
     version: "6.12.0",

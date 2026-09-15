@@ -1,95 +1,74 @@
 "use client";
 
-import { type ComponentPropsWithRef, useId, useState } from "react";
-import { LABEL_CLASS, fieldClass, buildDescribedBy } from "./styles";
+import { type ComponentPropsWithRef, useId } from "react";
+import { Textarea as PaulTextarea } from "@paul-portfolio/react";
 
-interface TextareaProps extends Omit<ComponentPropsWithRef<"textarea">, "id"> {
+interface TextareaProps extends Omit<
+  ComponentPropsWithRef<"textarea">,
+  "id"
+> {
+  /** Visible label text */
   label: string;
+  /** Visually hide the label while keeping it accessible */
   hideLabel?: boolean;
+  /** Error message (renders in error state when provided) */
   error?: string;
+  /** Helper text shown below the field */
   helperText?: string;
 }
 
+/**
+ * App-level Textarea backed by @paul-portfolio/react.
+ * Preserves the existing API (label, hideLabel, helperText, error) and keeps the
+ * live character counter by turning on the DS `showCount` whenever maxLength is
+ * set — the behaviour the local version had automatically.
+ */
 export default function Textarea({
   label,
   hideLabel = false,
   error,
   helperText,
   required,
-  className,
   maxLength,
-  onChange,
-  defaultValue,
-  value,
+  className,
+  ref,
   ...rest
 }: TextareaProps) {
   const id = useId();
-  const errorId = `${id}-error`;
-  const helperId = `${id}-helper`;
-  const countId = `${id}-count`;
 
-  const [charCount, setCharCount] = useState(
-    () => String(value ?? defaultValue ?? "").length,
-  );
-
-  const describedBy = buildDescribedBy(
-    error ? errorId : null,
-    helperText ? helperId : null,
-    maxLength ? countId : null,
-  );
+  if (hideLabel) {
+    return (
+      <div className={className}>
+        <label htmlFor={id} className="sr-only">
+          {label}
+        </label>
+        <PaulTextarea
+          ref={ref}
+          label={undefined}
+          error={error}
+          helper={helperText}
+          maxLength={maxLength}
+          showCount={maxLength != null}
+          aria-label={label}
+          required={required}
+          {...rest}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
-      <label htmlFor={id} className={hideLabel ? "sr-only" : LABEL_CLASS}>
-        {label}
-        {required && (
-          <span className="text-error-500 ml-0.5" aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-
-      <textarea
-        {...rest}
-        id={id}
-        required={required}
+      <PaulTextarea
+        ref={ref}
+        label={required ? `${label} *` : label}
+        error={error}
+        helper={helperText}
         maxLength={maxLength}
-        value={value}
-        defaultValue={defaultValue}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        onChange={(e) => {
-          setCharCount(e.target.value.length);
-          onChange?.(e);
-        }}
-        className={fieldClass(error, "py-2 resize-none")}
+        showCount={maxLength != null}
+        required={required}
+        {...rest}
       />
-
-      {maxLength != null && (
-        <p
-          id={countId}
-          className="mt-1.5 text-right text-xs text-muted"
-          aria-live="polite"
-        >
-          {charCount} / {maxLength}
-        </p>
-      )}
-
-      {error && (
-        <p
-          id={errorId}
-          className="mt-1.5 text-sm text-error-600 dark:text-error-500"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      {helperText && !error && (
-        <p id={helperId} className="mt-1.5 text-sm text-muted">
-          {helperText}
-        </p>
-      )}
     </div>
   );
 }

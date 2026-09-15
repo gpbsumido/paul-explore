@@ -191,9 +191,25 @@ export const FEATURES: FeatureItem[] = [
     color: "#6451ba",
     thoughtsHref: "/thoughts/zeroproof",
   },
+  {
+    id: "budget",
+    title: "Budget",
+    description:
+      "A budget tracker whose whole point is how little friction it takes to log a spend: open, tap Add, pick a category, type the amount, done. Date and time default to now. Share a budget with the people you split with, and see the last 30 days, the current billing cycle, and where it went by category and by person.",
+    href: "/budget",
+    color: "#2d7d46",
+    thoughtsHref: "/thoughts/budget",
+  },
 ];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "Budget",
+    href: "/thoughts/budget",
+    preview:
+      "A budget tracker built around the add flow: a three-tap bottom sheet, money kept in integer cents, analytics that take the clock as an argument, and an invite link that carries the whole budget because there is no server yet",
+    color: "#2d7d46",
+  },
   {
     title: "ZeroProof: A No-Loss Sportsbook",
     href: "/thoughts/zeroproof",

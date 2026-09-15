@@ -1,132 +1,51 @@
 "use client";
 
-import { type CSSProperties, type MouseEvent } from "react";
-import { chipColors } from "./readableOn";
+import { type MouseEvent } from "react";
+import { Chip as PaulChip } from "@paul-portfolio/react";
 
 interface ChipProps {
   label: string;
-  /** Hex/CSS background color. When set, text is automatically white. */
+  /** Hex/CSS background color. The DS measures a readable label colour for it. */
   color?: string;
   /** sm = compact (calendar cells), md = display (type badges) */
   size?: "sm" | "md";
   /** Renders full-width as a block — useful inside calendar cells */
   fullWidth?: boolean;
-  /**
-   * When provided the chip renders as a <button>.
-   * Receives the MouseEvent so callers can stopPropagation if needed.
-   */
+  /** When provided the chip renders as a <button>. */
   onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   /** When provided, renders a remove button with an accessible name. */
   onRemove?: () => void;
-  /**
-   * When provided the chip renders as a link. An absolute URL opens in a new
-   * tab, because following one is leaving the app rather than moving inside it.
-   */
+  /** When provided, the chip renders as a link. External URLs open in a new tab. */
   href?: string;
   className?: string;
   title?: string;
 }
 
-export default function Chip({
-  label,
-  color,
-  size = "sm",
-  fullWidth = false,
-  onClick,
-  onRemove,
-  href,
-  className,
-  title,
-}: ChipProps) {
-  const classes = [
-    "text-xs truncate",
-    size === "sm" ? "px-1.5 py-0.5 rounded" : "px-3 py-1 rounded-md",
-    // No hardcoded label: chipColors decides, because a caller's accent can be
-    // too light for white and too dark for ink at the same time.
-    "",
-    fullWidth ? "w-full text-left block" : "inline-block",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const pair = color ? chipColors(color) : undefined;
-  const style: CSSProperties | undefined = pair
-    ? { backgroundColor: pair.background, color: pair.color }
-    : color
-      ? { backgroundColor: color, color: "#ffffff" }
-      : undefined;
-
-  const removeButton = onRemove ? (
-    <button
-      type="button"
-      onClick={onRemove}
-      className="paul-touch-target ml-1 inline-flex items-center opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-      aria-label={`Remove ${label}`}
-    >
-      <svg
-        className="h-3 w-3"
-        viewBox="0 0 12 12"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path d="M3.17 3.17a.75.75 0 011.06 0L6 4.94l1.77-1.77a.75.75 0 111.06 1.06L7.06 6l1.77 1.77a.75.75 0 11-1.06 1.06L6 7.06 4.23 8.83a.75.75 0 01-1.06-1.06L4.94 6 3.17 4.23a.75.75 0 010-1.06z" />
-      </svg>
-    </button>
-  ) : null;
-
+/**
+ * App-level Chip backed by @paul-portfolio/react. Preserves the existing API so
+ * every call site keeps working. The contrast-aware label colour the local Chip
+ * used to compute now lives in the DS Chip itself, so no accessibility is lost.
+ *
+ * The DS Chip renders a span/button, not a link, so the one `href` use (a chip
+ * that links to a PR) is rendered here as an anchor carrying the DS `.chip`
+ * class — DS styling, link semantics. Everything else delegates to the DS Chip.
+ */
+export default function Chip({ href, size, className, title, label, ...rest }: ChipProps) {
   if (href) {
     const external = /^https?:\/\//.test(href);
+    const classes = ["chip", size === "sm" && "chip--sm", "underline underline-offset-2", className]
+      .filter(Boolean)
+      .join(" ");
     return (
-      <span
-        className={onRemove ? "inline-flex items-center" : undefined}
-        style={style}
+      <a
+        href={href}
         title={title ?? label}
+        className={classes}
+        {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})}
       >
-        <a
-          href={href}
-          className={`${classes} underline underline-offset-2`}
-          {...(external
-            ? { target: "_blank", rel: "noreferrer noopener" }
-            : {})}
-        >
-          {label}
-        </a>
-        {removeButton}
-      </span>
+        {label}
+      </a>
     );
   }
-
-  if (onClick) {
-    return (
-      <span
-        className="inline-flex items-center"
-        style={style}
-        title={title ?? label}
-      >
-        <button
-          type="button"
-          onClick={onClick}
-          className={classes}
-          style={undefined}
-        >
-          {label}
-        </button>
-        {removeButton}
-      </span>
-    );
-  }
-
-  return (
-    <span
-      className={[classes, onRemove ? "inline-flex items-center" : ""]
-        .filter(Boolean)
-        .join(" ")}
-      style={style}
-      title={title ?? label}
-    >
-      {label}
-      {removeButton}
-    </span>
-  );
+  return <PaulChip label={label} size={size} className={className} title={title} {...rest} />;
 }

@@ -15,6 +15,10 @@ export const queryKeys = {
   /** Admin to-do list from /api/todos. */
   todos: () => ["todos"] as const,
 
+  /** The signed-in user's accessible budgets, and one budget's detail. */
+  budgetList: () => ["budget", "list"] as const,
+  budgetDetail: (id: string) => ["budget", id] as const,
+
   /**
    * One item's timeline and notes. Keyed under the same root as the list so
    * invalidating "todos" after a revert clears the panel too — a revert that

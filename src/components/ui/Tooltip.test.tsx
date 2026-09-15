@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import Tooltip from "./Tooltip";
@@ -25,7 +25,8 @@ describe("Tooltip accessibility", () => {
 
     await user.tab();
     expect(screen.getByRole("button", { name: "Trigger" })).toHaveFocus();
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    // The DS tooltip shows after a (here zero) delay via setTimeout, so await it.
+    expect(await screen.findByRole("tooltip")).toBeInTheDocument();
   });
 
   it("hides on blur", async () => {
@@ -33,10 +34,12 @@ describe("Tooltip accessibility", () => {
     renderTooltip();
 
     await user.tab();
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    expect(await screen.findByRole("tooltip")).toBeInTheDocument();
 
     await user.tab();
-    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole("tooltip")).not.toBeInTheDocument(),
+    );
   });
 
   it("dismisses on Escape", async () => {
@@ -44,10 +47,12 @@ describe("Tooltip accessibility", () => {
     renderTooltip();
 
     await user.tab();
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    expect(await screen.findByRole("tooltip")).toBeInTheDocument();
 
     await user.keyboard("{Escape}");
-    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole("tooltip")).not.toBeInTheDocument(),
+    );
   });
 
   it("links tooltip content to the trigger via aria-describedby", async () => {
@@ -56,7 +61,7 @@ describe("Tooltip accessibility", () => {
 
     await user.tab();
     const trigger = screen.getByRole("button", { name: "Trigger" });
-    const tooltip = screen.getByRole("tooltip");
+    const tooltip = await screen.findByRole("tooltip");
     expect(trigger.closest("[aria-describedby]")).toHaveAttribute(
       "aria-describedby",
       tooltip.id,
