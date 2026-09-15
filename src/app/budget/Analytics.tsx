@@ -86,7 +86,7 @@ export default function Analytics({
                         type="button"
                         onClick={() => onEditExpense(e.id)}
                         aria-label={`Edit ${category.label} ${formatCents(e.amountCents)}`}
-                        className="rounded px-1.5 py-0.5 text-xs text-muted transition hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-[var(--color-feature-budget)]"
+                        className="rounded px-1.5 py-0.5 text-xs text-muted transition active:scale-95 hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-[var(--color-feature-budget)]"
                       >
                         Edit
                       </button>

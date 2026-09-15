@@ -49,17 +49,23 @@ export default function HistoryPanel({
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           History
         </p>
-        <div role="group" aria-label="Group spending by" className="flex gap-1">
+        {/* iOS-style segmented control: a track with a raised pill on the
+            selected segment, rather than three separate buttons. */}
+        <div
+          role="group"
+          aria-label="Group spending by"
+          className="flex gap-0.5 rounded-[10px] bg-background p-0.5"
+        >
           {GRANULARITIES.map((g) => (
             <button
               key={g}
               type="button"
               aria-pressed={granularity === g}
               onClick={() => setGranularity(g)}
-              className={`rounded-lg px-3 py-1 text-sm transition ${
+              className={`rounded-lg px-3 py-1 text-[13px] font-medium transition active:scale-[0.97] ${
                 granularity === g
-                  ? "bg-[var(--color-feature-budget)] text-background"
-                  : "border border-border text-foreground hover:bg-background"
+                  ? "bg-surface text-foreground shadow-sm"
+                  : "text-muted hover:text-foreground"
               }`}
             >
               {SPAN[g].label}

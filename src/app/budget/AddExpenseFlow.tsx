@@ -83,7 +83,11 @@ export default function AddExpenseFlow({
 
   return (
     <>
-      <Button size="lg" onClick={() => setOpen(true)}>
+      <Button
+        size="lg"
+        onClick={() => setOpen(true)}
+        className="w-full justify-center active:scale-[0.98] sm:w-auto"
+      >
         <span aria-hidden>+ </span>Add expense
       </Button>
 

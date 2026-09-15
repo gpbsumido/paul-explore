@@ -87,9 +87,9 @@ export default function BudgetContent() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-3xl space-y-5 px-4 pt-6 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.5rem))] sm:px-6">
       <header>
-        <h1 className="text-2xl font-semibold text-foreground">Budget</h1>
+        <h1 className="text-[28px] font-bold tracking-tight text-foreground">Budget</h1>
         <p className="mt-1 text-sm text-muted">
           Log a spend in a few taps, share it with the people you split with, and
           see where the money goes.
