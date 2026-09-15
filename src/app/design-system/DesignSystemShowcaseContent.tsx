@@ -7,6 +7,7 @@
 
 import { type ReactNode } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
 import {
@@ -28,30 +29,39 @@ import {
   AgentDecisionCard,
   Avatar,
   Badge,
-  BarChart,
   Card,
   ChatMessage,
   Divider,
-  DonutChart,
-  FunnelChart,
-  GaugeChart,
   GradientBackground,
-  HeatmapChart,
-  ParetoChart,
-  RadarChart,
   RiskScore,
-  ScatterPlot,
   Skeleton,
-  Sparkline,
   Spinner,
-  StackedLineChart,
   StatCard,
   Timeline,
   TokenUsageMeter,
   TypingDots,
   VisuallyHidden,
-  WordCloud,
 } from "@paul-portfolio/react";
+
+// The chart/viz family all pull in the heavy chart-geometry core. The gallery
+// only previews them (below the fold), so load them lazily to keep that core out
+// of the showcase's initial bundle — the single biggest bundle win on this page.
+// A skeleton holds each preview's box so the gallery cards don't shift.
+const vizSkeleton = () => (
+  <div className="h-full min-h-[7rem] w-full animate-pulse rounded-lg bg-surface" aria-hidden />
+);
+const viz = { ssr: false, loading: vizSkeleton } as const;
+const BarChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.BarChart })), viz);
+const DonutChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.DonutChart })), viz);
+const FunnelChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.FunnelChart })), viz);
+const GaugeChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.GaugeChart })), viz);
+const HeatmapChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.HeatmapChart })), viz);
+const ParetoChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.ParetoChart })), viz);
+const RadarChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.RadarChart })), viz);
+const ScatterPlot = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.ScatterPlot })), viz);
+const Sparkline = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.Sparkline })), viz);
+const StackedLineChart = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.StackedLineChart })), viz);
+const WordCloud = dynamic(() => import("@paul-portfolio/react").then((m) => ({ default: m.WordCloud })), viz);
 import {
   COMPONENTS,
   CATEGORIES,
