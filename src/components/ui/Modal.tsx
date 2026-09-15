@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useCallback,
-  type ReactNode,
-  type MouseEvent,
-} from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, m } from "framer-motion";
-import { spring } from "@/lib/animations";
+import { type ReactNode } from "react";
+import { Modal as PaulModal } from "@paul-portfolio/react";
 
 interface ModalProps {
   /** Whether the modal is open */
@@ -26,207 +18,16 @@ interface ModalProps {
   className?: string;
 }
 
-const FOCUSABLE_SELECTOR = [
-  "a[href]",
-  "button:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-].join(", ");
-
-export default function Modal({
-  open,
-  onClose,
-  children,
-  className,
-  ...ariaProps
-}: ModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-
-  const getFocusableElements = useCallback((): HTMLElement[] => {
-    if (!dialogRef.current) return [];
-    return Array.from(
-      dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-    );
-  }, []);
-
-  const trapFocus = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
-
-      const focusable = getFocusableElements();
-      if (focusable.length === 0) {
-        e.preventDefault();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    },
-    [getFocusableElements],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        onClose();
-      }
-      trapFocus(e);
-    },
-    [onClose, trapFocus],
-  );
-
-  const handleBackdropClick = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose],
-  );
-
-  // Keep a stable ref to the latest handleKeyDown so the keydown listener
-  // doesn't need to be torn down and re-added when onClose changes. Without
-  // this, every parent re-render (e.g. from TanStack Query polling) recreates
-  // onClose → handleKeyDown → re-runs the useEffect → steals focus from the
-  // active input via the requestAnimationFrame focus call.
-  const handleKeyDownRef = useRef(handleKeyDown);
-  useEffect(() => {
-    handleKeyDownRef.current = handleKeyDown;
-  }, [handleKeyDown]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    // Store previously focused element
-    previousFocusRef.current = document.activeElement as HTMLElement;
-
-    // Lock body scroll
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.overflow = "hidden";
-    document.body.style.paddingRight = `${scrollbarWidth}px`;
-
-    // Mark sibling content as inert so screen readers ignore background
-    const root = document.getElementById("__next") ?? document.body;
-    const siblings = Array.from(root.children).filter(
-      (el) => !el.contains(dialogRef.current) && el !== dialogRef.current,
-    );
-    for (const el of siblings) {
-      el.setAttribute("aria-hidden", "true");
-    }
-
-    // Stable listener that delegates to the latest handler via ref
-    function onKeyDown(e: KeyboardEvent) {
-      handleKeyDownRef.current(e);
-    }
-    document.addEventListener("keydown", onKeyDown);
-
-    // Focus the first focusable element in the dialog
-    requestAnimationFrame(() => {
-      const focusable = getFocusableElements();
-      if (focusable.length > 0) {
-        focusable[0].focus();
-      } else {
-        dialogRef.current?.focus();
-      }
-    });
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-      document.removeEventListener("keydown", onKeyDown);
-      for (const el of siblings) {
-        el.removeAttribute("aria-hidden");
-      }
-      previousFocusRef.current?.focus();
-    };
-  }, [open, getFocusableElements]);
-
-  // During SSR there is no document — bail out before createPortal touches it.
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <m.div
-          key="modal-backdrop"
-          className="fixed inset-0 flex items-center justify-center"
-          style={{
-            zIndex: "var(--z-modal)",
-            background: "var(--modal-backdrop)",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          onClick={handleBackdropClick}
-        >
-          <m.div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={ariaProps["aria-label"]}
-            aria-labelledby={ariaProps["aria-labelledby"]}
-            aria-describedby={ariaProps["aria-describedby"]}
-            tabIndex={-1}
-            className={[
-              // overflow-y-auto (not overflow-hidden) + a dvh cap so a modal
-              // taller than the phone scrolls its own content instead of
-              // overflowing the screen. dvh shrinks when the keyboard is up.
-              "relative overflow-y-auto overflow-x-hidden rounded-2xl",
-              "max-h-[calc(100dvh-2rem)] w-full max-w-lg mx-4 p-6",
-              "focus:outline-none",
-              className,
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            style={{
-              background: "var(--modal-bg)",
-              backdropFilter: "blur(var(--blur-modal))",
-              WebkitBackdropFilter: "blur(var(--blur-modal))",
-              border: "1px solid var(--modal-border)",
-              boxShadow: "var(--elevation-modal)",
-            }}
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: 16 }}
-            transition={spring.settle}
-          >
-            {/* Iridescent hairline along the top edge — a subtle premium cue,
-                decorative and non-interactive so it stays out of the focus trap. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-px"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent, hsl(210 90% 66% / 0.9), hsl(280 90% 72% / 0.9), transparent)",
-              }}
-            />
-            {children}
-          </m.div>
-        </m.div>
-      )}
-    </AnimatePresence>,
-    document.body,
-  );
+/**
+ * App-level Modal backed by @paul-portfolio/react.
+ *
+ * This was a local implementation (framer-motion panel, hand-rolled focus trap,
+ * scroll lock). The design-system Modal has the same public API — open/onClose,
+ * the aria-* trio, className passthrough to the panel, and children rendered
+ * directly when no title is given — plus its own focus trap, scroll lock, and
+ * the dvh mobile-fit fix. So this now delegates, and every existing call site
+ * keeps working unchanged.
+ */
+export default function Modal(props: ModalProps) {
+  return <PaulModal {...props} />;
 }
