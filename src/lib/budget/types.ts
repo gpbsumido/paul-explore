@@ -36,7 +36,10 @@ export const expenseSchema = z.object({
   occurredAt: z.string(),
   personId: z.string(),
   tags: z.array(z.string()),
+  // `note` is the name/reason for the spend, `vendor` is where it went. Both
+  // optional, shown on the item.
   note: z.string().optional(),
+  vendor: z.string().optional(),
   splits: z.array(splitSchema).optional(),
 });
 export type Expense = z.infer<typeof expenseSchema>;

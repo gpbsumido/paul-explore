@@ -162,6 +162,16 @@ describe("addExpense", () => {
     expect(after.expenses[0].tags).toEqual(["necessary"]);
   });
 
+  it("carries an optional note and vendor", () => {
+    const storage = makeStorage();
+    const after = addExpense(
+      { categoryId: "food", amountCents: 500, note: "team lunch", vendor: "Cafe" },
+      storage,
+      { id: "e-1", now: NOW },
+    );
+    expect(after.expenses[0]).toMatchObject({ note: "team lunch", vendor: "Cafe" });
+  });
+
   it("persists across a reload", () => {
     const storage = makeStorage();
     addExpense({ categoryId: "food", amountCents: 700 }, storage, {

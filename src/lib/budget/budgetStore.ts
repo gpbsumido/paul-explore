@@ -45,6 +45,7 @@ export type NewExpense = {
   occurredAt?: string;
   tags?: string[];
   note?: string;
+  vendor?: string;
 };
 
 /** Deterministic overrides, so a test can pin the id and clock. */
@@ -66,6 +67,7 @@ export function addExpense(
     personId: budget.activePersonId,
     tags: input.tags ?? [],
     ...(input.note ? { note: input.note } : {}),
+    ...(input.vendor ? { vendor: input.vendor } : {}),
   };
   return write(storage, {
     ...budget,
@@ -75,7 +77,10 @@ export function addExpense(
 
 /** The fields of an expense that can be changed after it is logged. */
 export type ExpensePatch = Partial<
-  Pick<Expense, "categoryId" | "amountCents" | "occurredAt" | "personId" | "tags" | "note" | "splits">
+  Pick<
+    Expense,
+    "categoryId" | "amountCents" | "occurredAt" | "personId" | "tags" | "note" | "vendor" | "splits"
+  >
 >;
 
 /** Edit a logged expense in place. An unknown id leaves the budget untouched. */

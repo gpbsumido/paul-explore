@@ -63,13 +63,19 @@ export default function Analytics({
               const category = categoryById(e.categoryId);
               return (
                 <li key={e.id} className="flex items-center justify-between gap-3 py-2">
-                  <span className="flex items-center gap-2 text-sm text-foreground">
-                    <span aria-hidden>{category.emoji}</span>
-                    {category.label}
-                    {e.tags.length > 0 && (
-                      <span className="text-xs text-muted">{e.tags.join(", ")}</span>
-                    )}
-                    <span className="text-xs text-muted">{nameOf.get(e.personId)}</span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="flex items-center gap-2 text-sm text-foreground">
+                      <span aria-hidden>{category.emoji}</span>
+                      {e.vendor ? e.vendor : category.label}
+                      {e.tags.length > 0 && (
+                        <span className="text-xs text-muted">{e.tags.join(", ")}</span>
+                      )}
+                    </span>
+                    <span className="truncate text-xs text-muted">
+                      {[e.note, e.vendor ? category.label : null, nameOf.get(e.personId)]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums text-sm font-medium text-foreground">
