@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.15.3
+
+- **The Modal now delegates to the design-system Modal.** The local Modal (a framer-motion panel with a hand-rolled focus trap) had the same public API as the DS one — `open`/`onClose`, the `aria-*` trio, `className` passthrough, and children rendered directly — so it now delegates, and all ~20 call sites (calendar, operator, research, the work-portfolio demos, the design-system showcase) keep working unchanged. Nothing was lost in the move: the Modal test suite that pins focus-to-first, focus-trap-on-Tab, Escape-to-close, inert background, and an axe scan all pass against the DS Modal, which additionally preserves a pre-existing `aria-hidden` on background nodes and carries the `dvh` mobile-fit and focus-retention fixes. The full 3240-test suite stays green.
+
 ## 2026-09-15 - version 6.15.2
 
 - **Consolidated redundant local UI components onto the design system.** `Textarea` and the flags `Switch` were local reimplementations of components the shared `@paul-portfolio/react` already ships with full parity, so they now delegate to the design-system versions (same public API, so no call site changed). Also bumped `@paul-portfolio/css` to 0.12.2, which brings the `dvh` mobile-fit fix to the design-system component surfaces. The other local components (`Chip`, `Tooltip`, `InfoTip`, `Modal`, `Sheet`) are deliberately kept local for now because each adds behaviour the DS version lacks (contrast-aware chip text, full-size tooltip anchors, a flexible modal content shell, a bottom sheet with no DS equivalent) — those are being upstreamed to the design system first, then adopted.
