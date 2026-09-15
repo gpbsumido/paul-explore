@@ -1,6 +1,9 @@
 # Changelog
 
-## 2026-09-15 - version 6.15.0
+## 2026-09-15 - version 6.15.1
+
+- **Typing in a sheet no longer closes the mobile keyboard.** The shared bottom `Sheet` listed `onClose` in its focus effect's dependencies, and callers pass a fresh `onClose` every render — so every keystroke re-ran the effect and re-focused the panel, blurring the field. On a phone that dismissed the keyboard on the first character (reported on the budget add flow's note/vendor fields). The effect now depends only on `open` and reads the latest `onClose` through a ref. A test re-renders an open sheet with a new `onClose` and asserts a focused child input keeps focus.
+- **Overlays fit the phone instead of spilling into scrollbars.** The `Sheet`, the shared `Modal`, and the command palette had no height cap, so a tall one (worse with the keyboard up) overflowed the screen. Each is now capped in `dvh` units (which shrink when the keyboard is open) and scrolls its own content: the sheet at `90dvh` with `touch-action: pan-y`, the modal at `100dvh − 2rem`, and the command palette as a flex column at `85dvh` with the results list taking the remaining space. The palette also drops its top offset on small screens.
 
 - **The budget goes to the backend when you're signed in.** The tracker shipped browser-only behind a storage seam; that seam now has a server behind it. A signed-in visitor's budget lives in Postgres (via the new `portfolio_api` budgets domain) and syncs across devices; a signed-out visitor keeps the localStorage budget, which needs no account. The page picks the source from `/api/me`, and a single `/api/budget/[[...path]]` BFF proxies every call to the backend with the caller's own token. This makes sharing real: making a budget public and approving a join request by email now actually pulls another account onto the same budget, rather than being a local stand-in.
 - **An optional note and vendor on every expense.** The add flow and the edit sheet each gained two optional fields — a note (the name/reason for the spend) and a vendor (where it went) — shown on the item in the cycle list.

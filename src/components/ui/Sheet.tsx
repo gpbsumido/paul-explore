@@ -33,6 +33,16 @@ export default function Sheet({ open, onClose, label, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const reduced = useHubReducedMotion();
 
+  // The latest onClose, kept in a ref so it isn't an effect dependency. Callers
+  // pass a fresh onClose every render, and when it was in the deps the effect
+  // re-ran on every keystroke and re-focused the panel — which on mobile
+  // dismissed the keyboard the moment you typed into a field inside the sheet.
+  // The ref is synced in its own effect (not during render) to match Modal.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -40,7 +50,7 @@ export default function Sheet({ open, onClose, label, children }: SheetProps) {
     const prevFocus = document.activeElement as HTMLElement | null;
     panelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
     };
     document.addEventListener("keydown", onKey);
     return () => {
@@ -48,7 +58,7 @@ export default function Sheet({ open, onClose, label, children }: SheetProps) {
       document.removeEventListener("keydown", onKey);
       prevFocus?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (typeof document === "undefined") return null;
 
@@ -76,14 +86,17 @@ export default function Sheet({ open, onClose, label, children }: SheetProps) {
             aria-modal="true"
             aria-label={label}
             tabIndex={-1}
-            className="w-full max-w-lg rounded-t-2xl border border-border p-6 pb-8 focus:outline-none"
+            className="max-h-[90dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl border border-border p-6 pb-[max(2rem,env(safe-area-inset-bottom))] focus:outline-none"
             style={{
               background: "var(--modal-bg)",
               backdropFilter: "blur(var(--blur-modal))",
               WebkitBackdropFilter: "blur(var(--blur-modal))",
               border: "1px solid var(--modal-border)",
               boxShadow: "var(--elevation-modal)",
-              touchAction: "none",
+              // pan-y so a tall sheet scrolls its own content on touch; the flick
+              // -to-dismiss still works because framer drives it through pointer
+              // capture. Was "none", which blocked scrolling entirely.
+              touchAction: "pan-y",
             }}
             initial={reduced ? { opacity: 0 } : { y: "100%" }}
             animate={reduced ? { opacity: 1 } : { y: 0 }}
