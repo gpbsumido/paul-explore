@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.18.0
+
+- **The ZeroProof board date filter is a calendar range now.** The single-day dropdown became a From/To pair of native `<input type="date">` calendar pickers, so you can filter the board to a date range instead of one day. `BoardFilters.day` became inclusive `from`/`to` local-day bounds (either open-ended; an inverted range is normalized so the two dates work in any order), the range overrides the rolling horizon as before, and the status line echoes the chosen range. Dropped the now-unused `availableDays`; covered by `boardFilters.test.ts` (`dateRangeActive`/`inDateRange` bounds, inclusivity, normalization) and board integration tests that drive the date inputs.
+
 ## 2026-09-15 - version 6.17.0
 
 - **The budget now requires signing in.** A budget lives on your account, so `/budget` is gated: a signed-in visitor gets the server-backed tracker as before, and a signed-out one gets a new `BudgetSignedOut` explainer — what the tracker does (fast add, share and split, the analytics) and a Sign in button back to it — with no data and no controls. `BudgetView` picks between the two on `/api/me`; the localStorage-only tracker (`BudgetContent` and its `useBudget` hook) is retired, since a browser-only budget can't be the shared, synced thing it's meant to be. The shared building blocks and `budgetStore` helpers stay (the server path uses them). Note: a visitor who had a browser-only budget won't see it here anymore — the account budget is separate. Covered by `BudgetView.test.tsx` (gate shown signed-out with a returnTo sign-in link and none of the budget controls, server tracker shown signed-in, axe clean).

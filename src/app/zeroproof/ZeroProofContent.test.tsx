@@ -18,6 +18,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { notifyMutationError } from "@/lib/mutationErrorToast";
 import { axe } from "@/test/a11y";
 import ZeroProofContent from "./ZeroProofContent";
+import { localDayKey } from "@/lib/zeroproof/boardFilters";
 
 const EVENTS = {
   events: [
@@ -421,13 +422,26 @@ describe("ZeroProofContent — board filters", () => {
     expect(shows(/Team Alpha/)).toBeInTheDocument();
   });
 
-  it("filters by a specific date", async () => {
+  it("filters to a single day via the from/to date range", async () => {
     renderBoard();
     await screen.findByRole("heading", { name: /Suns/ });
-    const dateSelect = screen.getByRole("combobox", { name: "Date" }) as HTMLSelectElement;
-    // The second day option is Sep 10 (the fantasy game); pick it by its value.
-    const sep10 = Array.from(dateSelect.options).find((o) => o.value !== "all" && o.textContent?.includes("10"));
-    fireEvent.change(dateSelect, { target: { value: sep10?.value } });
+    // The fantasy game's local day; the NBA game (a full day earlier) is excluded.
+    const fantasyDay = localDayKey("2026-09-10T18:00:00.000Z")!;
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: fantasyDay } });
+    fireEvent.change(screen.getByLabelText("To date"), { target: { value: fantasyDay } });
+    await waitFor(() => expect(shows(/Suns/)).toBeNull());
+    expect(shows(/Team Alpha/)).toBeInTheDocument();
+  });
+
+  it("filters to a multi-day range with just the From bound", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    // From the NBA/NFL day onward keeps everything; from the day after drops them.
+    const nbaDay = localDayKey("2026-09-09T18:00:00.000Z")!;
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: nbaDay } });
+    expect(await screen.findByRole("heading", { name: /Suns/ })).toBeInTheDocument();
+    const fantasyDay = localDayKey("2026-09-10T18:00:00.000Z")!;
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: fantasyDay } });
     await waitFor(() => expect(shows(/Suns/)).toBeNull());
     expect(shows(/Team Alpha/)).toBeInTheDocument();
   });
