@@ -205,11 +205,58 @@ if (!budget) throw new NotFoundError('No public budget found for that email');`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-15-sign-in-gate"
+        date="September 15, 2026"
+        title="I took the signed-out budget away, on purpose"
+      >
+        <p>
+          The update right above this one is already half-wrong. I said a
+          signed-out view wires the same components to the localStorage store. It
+          did — and then I deleted it. Once a budget really lived on your account,
+          the browser-only copy stopped being a friendly fallback and started
+          being a second, confusing source of truth that couldn&apos;t share or
+          sync.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The switch got simpler, not more complex
+        </h3>
+        <p className="text-muted">
+          The one query against <code className={code}>/api/me</code> used to
+          choose between two real budgets. Now it chooses between the real budget
+          and an explanation of it — signed in you get the tracker, signed out you
+          get a page that says what it does and a button to sign in. No data and no
+          controls until you are.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`if (me.isPending) return <BudgetLoading />;
+if (me.data?.sub) return <ServerBudgetContent />;
+return <BudgetSignedOut />; // was <BudgetContent /> — the localStorage tracker`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Deleting the local tracker, and what I kept
+        </h3>
+        <p className="text-muted">
+          Out went <code className={code}>BudgetContent</code> and its{" "}
+          <code className={code}>useBudget</code> hook — the whole browser-only
+          orchestration. What stayed is everything the signed-in path also uses:
+          the add sheet, the analytics, the history and sharing panels, and the{" "}
+          <code className={code}>budgetStore</code> helpers underneath them. The
+          seam that let one set of components render either source is exactly why
+          removing one source was a small, safe cut. The honest cost: a budget
+          someone built in their browser doesn&apos;t follow them here — the
+          account budget is a separate thing.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A three-step add flow — category, amount, optional date/time, tags, note and vendor — in a spring-loaded bottom sheet.",
           "Editing any logged item, deleting it, re-tagging it, and splitting one expense across several people.",
           "A server-backed budget for signed-in visitors: expenses, people, splits, and settings persisted in Postgres and synced across devices.",
+          "Sign-in gate: /budget now shows the tracker to signed-in visitors and an explainer with a way in to everyone else — the browser-only budget is retired, since a budget belongs to your account now.",
           "Real sharing: a public budget others ask to join by your email, and approval that pulls their account onto the budget.",
           "Analytics: last-30-day total, current billing cycle with a list, splits by category and by person, and a week/month/year history that compares this period to the last.",
           "An iPhone-app pass: segmented control, large title, full-width action, press feedback, safe-area padding.",
