@@ -1,80 +1,31 @@
 "use client";
 
-import { useId, type ReactNode, type CSSProperties } from "react";
-import { useHoverPopover } from "@/hooks/useHoverPopover";
+import { type ReactNode } from "react";
+import { InfoTip as PaulInfoTip } from "@paul-portfolio/react";
 
 interface InfoTipProps {
   children: ReactNode;
-  /** Max width of the popover. Defaults to 220px. */
+  /** Max width of the popover. Defaults to the DS default. */
   maxWidth?: number;
   /** Which side to show the popover. Defaults to "top". */
   side?: "top" | "bottom";
-  /** Hover/focus delay in ms before showing. Defaults to 200. */
+  /** Hover/focus delay in ms before showing. */
   delay?: number;
 }
 
 /**
- * A small ⓘ badge that shows a rich multi-line popover on hover/focus.
- * Uses position:fixed + getBoundingClientRect so it punches through
- * overflow:hidden containers the same way Tooltip does.
+ * App-level InfoTip backed by @paul-portfolio/react. Preserves the existing API
+ * (children = the popover content). The DS InfoTip is built on the DS Tooltip,
+ * so it still renders at a fixed position (never clipped), keeps the "More
+ * information" accessible name, and is keyboard-focusable — no accessibility
+ * lost. The trigger glyph moves from a <button> to a focusable role="img", which
+ * is more honest: it reveals info, it doesn't perform an action.
  */
 export default function InfoTip({
   children,
-  maxWidth = 220,
+  maxWidth,
   side = "top",
-  delay = 200,
+  delay,
 }: InfoTipProps) {
-  const tooltipId = useId();
-  const { visible, pos, triggerHandlers } = useHoverPopover({
-    delay,
-    anchor: (rect) => ({
-      x: rect.left + rect.width / 2,
-      y: side === "top" ? rect.top : rect.bottom,
-    }),
-  });
-
-  const style: CSSProperties = {
-    position: "fixed",
-    left: pos?.x ?? 0,
-    top: side === "top" ? (pos?.y ?? 0) - 8 : (pos?.y ?? 0) + 8,
-    transform: side === "top" ? "translate(-50%, -100%)" : "translate(-50%, 0)",
-    zIndex: 9999,
-    pointerEvents: "none",
-    maxWidth,
-    width: "max-content",
-  };
-
-  return (
-    <button
-      type="button"
-      className="paul-touch-target inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-border text-muted text-[9px] font-semibold cursor-help select-none shrink-0 hover:border-foreground hover:text-foreground transition-colors bg-transparent p-0"
-      {...triggerHandlers}
-      aria-label="More information"
-      aria-describedby={visible ? tooltipId : undefined}
-    >
-      i
-      {visible && pos && (
-        <span
-          id={tooltipId}
-          role="tooltip"
-          style={style}
-          className="rounded-lg bg-neutral-900 dark:bg-neutral-800 text-white text-[11px] leading-relaxed px-3 py-2 shadow-lg"
-        >
-          {side === "bottom" && (
-            <span
-              className="absolute left-1/2 bottom-full -translate-x-1/2 border-[5px] border-transparent border-b-neutral-900 dark:border-b-neutral-800"
-              aria-hidden="true"
-            />
-          )}
-          {children}
-          {side === "top" && (
-            <span
-              className="absolute left-1/2 top-full -translate-x-1/2 border-[5px] border-transparent border-t-neutral-900 dark:border-t-neutral-800"
-              aria-hidden="true"
-            />
-          )}
-        </span>
-      )}
-    </button>
-  );
+  return <PaulInfoTip content={children} side={side} maxWidth={maxWidth} delay={delay} />;
 }

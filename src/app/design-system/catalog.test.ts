@@ -27,6 +27,11 @@ const NON_COMPONENT_EXPORTS = [
   // The Toaster's companion: an imperative function you call to raise a toast,
   // not a renderable primitive. Toaster is the component we document.
   "toast",
+  // Colour-contrast utilities the Chip uses internally (measure a readable label
+  // colour for a fill). Pure functions, not renderable primitives.
+  "readableOn",
+  "chipColors",
+  "contrastRatio",
 ];
 
 describe("design system catalog integrity", () => {
