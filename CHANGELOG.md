@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.17.1
+
+- **The session-timeout toast clears after the first time.** It was a pure function of the `?authError` in the URL, which nothing ever removed — so after it showed once, navigating away and back (or the back button) re-raised it every time, because dismissing was only local state. It now captures the message into state on mount and strips `authError` from the URL with `router.replace` (no new history entry, other params kept), so it shows exactly once per timeout and returning to the page is silent.
+
 ## 2026-09-15 - version 6.17.0
 
 - **The budget now requires signing in.** A budget lives on your account, so `/budget` is gated: a signed-in visitor gets the server-backed tracker as before, and a signed-out one gets a new `BudgetSignedOut` explainer — what the tracker does (fast add, share and split, the analytics) and a Sign in button back to it — with no data and no controls. `BudgetView` picks between the two on `/api/me`; the localStorage-only tracker (`BudgetContent` and its `useBudget` hook) is retired, since a browser-only budget can't be the shared, synced thing it's meant to be. The shared building blocks and `budgetStore` helpers stay (the server path uses them). Note: a visitor who had a browser-only budget won't see it here anymore — the account budget is separate. Covered by `BudgetView.test.tsx` (gate shown signed-out with a returnTo sign-in link and none of the budget controls, server tracker shown signed-in, axe clean).
