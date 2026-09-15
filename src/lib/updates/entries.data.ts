@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-budget-backend",
+    date: "2026-09-15",
+    version: "6.15.0",
+    category: "feature",
+    tags: ["budget"],
+    title: "Budgets now sync to your account, and share for real",
+    summary:
+      "Sign in and your budget lives on the server and follows you across devices; sharing a budget by email actually pulls the other person onto it now, instead of being a local stand-in. Signed out, it still works entirely in your browser with no account. Every expense also gained an optional note and vendor, and the whole page got an iPhone-app makeover.",
+    body: [
+      "The budget tracker started life entirely in your browser, which was honest but couldn't really be shared. Now, when you're signed in, it's backed by a real database and syncs everywhere you log in — and making a budget public and approving someone's request to join actually gives them access to the same budget. Signed out, nothing changes: it stays in your browser and needs no account.",
+      "Two small things I kept wanting: an optional note (what the spend was for) and a vendor (where it went) on each item. And since I mostly open this on my phone, the page now feels like an app — a big title, a segmented week/month/year switch, a full-width Add button, taps that respond the instant you press, and spacing that clears the home indicator.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-budget-editing",
     date: "2026-09-14",
     version: "6.14.0",

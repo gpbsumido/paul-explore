@@ -162,19 +162,64 @@ return ids.map((personId) => {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-15-backend"
+        date="September 15, 2026"
+        title="The seam had a server behind it all along"
+      >
+        <p>
+          Every version so far said the same thing: sharing is a local stand-in
+          until the backend lands. It landed. A signed-in budget now lives in
+          Postgres behind a new <code className={code}>/api/budgets</code> domain,
+          and the join request that used to sit in one browser actually pulls
+          another account onto the budget.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Two data sources, one set of components
+        </h3>
+        <p className="text-muted">
+          The reward for keeping the reducers behind an injected store was that the
+          UI didn&apos;t care where the data came from. The presentational pieces —
+          the add sheet, the analytics, the history, the sharing panel — already
+          took a budget and some callbacks. A signed-in view wires them to a
+          react-query hook over the BFF; a signed-out view wires the same
+          components to the localStorage store. The switch is one query against{" "}
+          <code className={code}>/api/me</code>.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A public flag that can&apos;t be used to probe
+        </h3>
+        <p className="text-muted">
+          Discovery by email is the sharp edge: &ldquo;is there a budget for this
+          address&rdquo; is exactly what you don&apos;t want to leak. So a private
+          budget and a budget that doesn&apos;t exist answer the same 404, and
+          discovery resolves against the verified, namespaced email claim rather
+          than anything the caller can type. Owner-or-member access is checked on
+          every mutation before the row is touched.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// same answer whether it's private or absent
+if (!budget) throw new NotFoundError('No public budget found for that email');`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "A three-step add flow — category, amount, optional date/time and tags — in a spring-loaded bottom sheet.",
+          "A three-step add flow — category, amount, optional date/time, tags, note and vendor — in a spring-loaded bottom sheet.",
           "Editing any logged item, deleting it, re-tagging it, and splitting one expense across several people.",
-          "A budget shared by several people with an active-person selector; each expense is attributed to whoever is active.",
+          "A server-backed budget for signed-in visitors: expenses, people, splits, and settings persisted in Postgres and synced across devices.",
+          "Real sharing: a public budget others ask to join by your email, and approval that pulls their account onto the budget.",
           "Analytics: last-30-day total, current billing cycle with a list, splits by category and by person, and a week/month/year history that compares this period to the last.",
-          "Invite links that carry the budget, plus public budgets where people ask to join with your email and you approve.",
+          "An iPhone-app pass: segmented control, large title, full-width action, press feedback, safe-area padding.",
         ]}
         couldImprove={[
-          "A join request can't reach another person's browser — cross-account delivery is honestly a local stand-in until the backend lands.",
+          "A budget switcher — a member of several budgets sees their own by default; picking among joined budgets is next.",
+          "Optimistic writes: server mutations round-trip before the list updates, where the local store updates instantly.",
         ]}
         upcoming={[
-          "Real persistence in portfolio_api behind the BFF, dropped in where the localStorage reducers sit now, turning the invite link and the join request into live shared sync.",
+          "Notifying an owner when a join request arrives, rather than showing it only when they next open the page.",
         ]}
       />
     </ThoughtLayout>
