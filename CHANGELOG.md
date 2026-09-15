@@ -1,6 +1,10 @@
 # Changelog
 
-## 2026-09-14 - version 6.14.0
+## 2026-09-15 - version 6.15.0
+
+- **The budget goes to the backend when you're signed in.** The tracker shipped browser-only behind a storage seam; that seam now has a server behind it. A signed-in visitor's budget lives in Postgres (via the new `portfolio_api` budgets domain) and syncs across devices; a signed-out visitor keeps the localStorage budget, which needs no account. The page picks the source from `/api/me`, and a single `/api/budget/[[...path]]` BFF proxies every call to the backend with the caller's own token. This makes sharing real: making a budget public and approving a join request by email now actually pulls another account onto the same budget, rather than being a local stand-in.
+- **An optional note and vendor on every expense.** The add flow and the edit sheet each gained two optional fields — a note (the name/reason for the spend) and a vendor (where it went) — shown on the item in the cycle list.
+- **An iPhone-app feel, since that's where it's used.** The page got a mobile-app pass: a large title, an iOS-style segmented control for the week/month/year history, a full-width primary action, press-down feedback on taps, and safe-area padding so nothing sits under the home indicator.
 
 - **Edit a budget item after you log it.** Any logged expense can now be opened and changed — its category, amount, date and time, and tags — from an edit sheet reached off the cycle list, or deleted outright. This closes the first of the three things the budget feature marked "later".
 - **Split an expense across people.** Instead of attributing a whole expense to one person, an item can be divided among several, with a one-tap even split (leftover cents handed to the earliest people so it always sums). The by-person breakdown counts each split. An expense carries an optional `splits` list; without it the whole amount belongs to its one owner, exactly as before, so nothing already logged has to change.

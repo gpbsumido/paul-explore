@@ -32,6 +32,8 @@ export default function AddExpenseFlow({
   const [tags, setTags] = useState<string[]>([]);
   const [useNow, setUseNow] = useState(true);
   const [whenLocal, setWhenLocal] = useState("");
+  const [note, setNote] = useState("");
+  const [vendor, setVendor] = useState("");
   const reduced = useHubReducedMotion();
 
   const amountRef = useRef<HTMLInputElement>(null);
@@ -49,6 +51,8 @@ export default function AddExpenseFlow({
     setTags([]);
     setUseNow(true);
     setWhenLocal("");
+    setNote("");
+    setVendor("");
   };
 
   const save = () => {
@@ -58,6 +62,8 @@ export default function AddExpenseFlow({
       amountCents: cents,
       occurredAt: useNow || !whenLocal ? undefined : new Date(whenLocal).toISOString(),
       tags,
+      note: note.trim() || undefined,
+      vendor: vendor.trim() || undefined,
     });
     close();
   };
@@ -77,7 +83,11 @@ export default function AddExpenseFlow({
 
   return (
     <>
-      <Button size="lg" onClick={() => setOpen(true)}>
+      <Button
+        size="lg"
+        onClick={() => setOpen(true)}
+        className="w-full justify-center active:scale-[0.98] sm:w-auto"
+      >
         <span aria-hidden>+ </span>Add expense
       </Button>
 
@@ -141,7 +151,23 @@ export default function AddExpenseFlow({
 
         {step === 3 && (
           <m.div key="step3" {...stepMotion}>
-            <h2 className="mb-3 text-base font-semibold text-foreground">When &amp; tags</h2>
+            <h2 className="mb-3 text-base font-semibold text-foreground">Details</h2>
+            <div className="mb-3 space-y-2">
+              <Input
+                label="Note (optional)"
+                placeholder="What for?"
+                autoComplete="off"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+              <Input
+                label="Vendor (optional)"
+                placeholder="Where?"
+                autoComplete="off"
+                value={vendor}
+                onChange={(e) => setVendor(e.target.value)}
+              />
+            </div>
             <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"

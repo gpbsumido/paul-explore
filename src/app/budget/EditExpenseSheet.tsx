@@ -50,6 +50,8 @@ export default function EditExpenseSheet({
   const [amount, setAmount] = useState(dollars(expense.amountCents));
   const [whenLocal, setWhenLocal] = useState(toLocalInput(expense.occurredAt));
   const [tags, setTags] = useState<string[]>(expense.tags);
+  const [note, setNote] = useState(expense.note ?? "");
+  const [vendor, setVendor] = useState(expense.vendor ?? "");
   const ownerId = expense.personId;
   const [included, setIncluded] = useState<string[]>(
     expense.splits?.length ? expense.splits.map((s) => s.personId) : [expense.personId],
@@ -86,6 +88,8 @@ export default function EditExpenseSheet({
       amountCents: cents,
       occurredAt: new Date(whenLocal).toISOString(),
       tags,
+      note: note.trim() || undefined,
+      vendor: vendor.trim() || undefined,
       personId: isSplit ? ownerId : included[0] ?? ownerId,
       splits: isSplit ? splits : undefined,
     });
@@ -121,6 +125,20 @@ export default function EditExpenseSheet({
           type="datetime-local"
           value={whenLocal}
           onChange={(e) => setWhenLocal(e.target.value)}
+        />
+
+        <Input
+          label="Note"
+          placeholder="What for?"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+
+        <Input
+          label="Vendor"
+          placeholder="Where?"
+          value={vendor}
+          onChange={(e) => setVendor(e.target.value)}
         />
       </div>
 

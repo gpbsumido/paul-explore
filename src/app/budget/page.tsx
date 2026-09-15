@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import BudgetContent from "./BudgetContent";
+import BudgetView from "./BudgetView";
 import BudgetLoading from "./loading";
 
 const TITLE = "Budget";
@@ -36,7 +36,7 @@ export default function BudgetPage() {
       />
 
       <Suspense fallback={<BudgetLoading />}>
-        <BudgetContent />
+        <BudgetView />
       </Suspense>
     </PageShell>
   );
