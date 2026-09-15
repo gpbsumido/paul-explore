@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.16.0
+
+- **Filters on the ZeroProof board.** The board (`Slate`) can now filter ESPN fantasy in or out, narrow to a single sport, jump to one day, or keep only big favorites (≤ −200), longshots (≥ +200), or even matchups (all prices within ±200). The logic is a pure, fully-unit-tested module (`src/lib/zeroproof/boardFilters.ts`) — `matchesFacets`, `matchesOdds`, `filterBoardEvents`, `availableSports`/`availableDays`, and a NaN-guarded `localDayKey` — and the board wires native `<select>` controls into the existing sticky bar with a Clear button and a "no games match" empty state. Facets apply to every event; the day-horizon and its "always show what you've bet on" bypass apply only in all-dates mode; a specific date overrides the horizon; `hasMore` recomputes over the filtered set. The sport picker is scoped by the type filter so the two can't contradict. All client-side over the already-served board (no request, nothing to authorize). The local `fantasyLabel`/`dayLabel` helpers moved into the shared module. Covered by 24 unit tests and 8 board integration tests (each filter, the empty state and Clear, and an axe scan).
+
 ## 2026-09-15 - version 6.15.5
 
 - **Wrote up the ZeroProof pre-season fantasy fix.** A dated update on the ZeroProof thoughts page tells the story of the fantasy board taking bets on games that hadn't been drafted yet: why ESPN's pre-season schedule fooled the "earliest undecided week" logic, gating a league on its draft and real season start, pricing matchups off ESPN's win probability instead of a flat pick'em, voiding and refunding the invalid pre-season bets, and finally capturing every bettor's email into the god's view. Updated "What's next" — projection-based odds moved from upcoming to shipped, and the new gating, refunds and email capture are listed.

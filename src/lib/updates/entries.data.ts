@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-board-filters",
+    date: "2026-09-15",
+    version: "6.16.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Filter the ZeroProof board by sport, fantasy, date, and odds",
+    summary:
+      "The board got filters. Show or hide ESPN fantasy, narrow to a single sport, jump to one day, or keep only big favorites, longshots, or even matchups. It all happens in the browser, instantly, over the games already loaded — and when nothing matches, it tells you and offers a one-tap Clear.",
+    body: [
+      "The board could get long once there were real games and fantasy matchups on it at once, and I wanted to be able to say 'just show me the NFL' or 'just the longshots'. So there's a row of filters on the board now: a sports-or-fantasy toggle, a sport picker, a date picker, and an odds lens — any big favorite (−200 or shorter), any longshot (+200 or longer), or even matchups only.",
+      "They compose: pick Fantasy and the sport list narrows to the fantasy games, pick a single day and it shows just that day. Nothing goes to the server — the board is already served whole from the database, so filtering is instant and private. If a combination matches nothing, the board says so instead of going blank, and Clear filters puts everything back.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-budget-backend",
     date: "2026-09-15",
     version: "6.15.0",
