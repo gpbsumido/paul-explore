@@ -164,10 +164,12 @@ describe("availableSports / availableDays", () => {
       ev({ id: "c", commenceTime: "garbage" }),
     ];
     const days = availableDays(events);
-    expect(days).toContain(localDayKey("2026-10-20T18:00:00Z"));
-    expect(days).toContain(localDayKey("2026-10-23T18:00:00Z"));
-    expect(days).not.toContain(null);
+    const keys = days.map((d) => d.key);
+    expect(keys).toContain(localDayKey("2026-10-20T18:00:00Z"));
+    expect(keys).toContain(localDayKey("2026-10-23T18:00:00Z"));
+    expect(keys).not.toContain(null);
     expect(days).toHaveLength(2);
+    expect(days.every((d) => d.label.length > 0)).toBe(true);
   });
 });
 

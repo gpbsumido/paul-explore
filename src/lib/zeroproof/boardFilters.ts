@@ -136,14 +136,29 @@ export function availableSports(events: ZeroproofEvent[]): { sport: string; labe
   });
 }
 
-/** The distinct valid local-day keys present, ascending; events with bad dates are dropped. */
-export function availableDays(events: ZeroproofEvent[]): string[] {
-  const keys = new Set<string>();
+/** A whole-day label for a kickoff time in the local zone, e.g. "Sunday, Sep 7". */
+export function dayLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/**
+ * The distinct valid days present, ascending by key. The label is built from the
+ * event's real instant (not the key) so it stays correct across time zones;
+ * events with unparseable dates are dropped.
+ */
+export function availableDays(events: ZeroproofEvent[]): { key: string; label: string }[] {
+  const byKey = new Map<string, string>();
   for (const event of events) {
     const key = localDayKey(event.commenceTime);
-    if (key) keys.add(key);
+    if (key && !byKey.has(key)) byKey.set(key, dayLabel(event.commenceTime));
   }
-  return [...keys].sort();
+  return [...byKey.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, label]) => ({ key, label }));
 }
 
 /** The horizon/bet context the temporal filter needs, kept explicit so the filter stays pure. */
