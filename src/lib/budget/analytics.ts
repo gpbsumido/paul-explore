@@ -156,7 +156,13 @@ export function personSplits(
   const nameOf = new Map(people.map((p) => [p.id, p.name]));
   const totals = new Map<string, number>();
   for (const e of expenses) {
-    totals.set(e.personId, (totals.get(e.personId) ?? 0) + e.amountCents);
+    const shares =
+      e.splits && e.splits.length > 0
+        ? e.splits
+        : [{ personId: e.personId, amountCents: e.amountCents }];
+    for (const share of shares) {
+      totals.set(share.personId, (totals.get(share.personId) ?? 0) + share.amountCents);
+    }
   }
   return [...totals.entries()]
     .map(([personId, totalCents]) => ({

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-14 - version 6.14.0
+
+- **Edit a budget item after you log it.** Any logged expense can now be opened and changed — its category, amount, date and time, and tags — from an edit sheet reached off the cycle list, or deleted outright. This closes the first of the three things the budget feature marked "later".
+- **Split an expense across people.** Instead of attributing a whole expense to one person, an item can be divided among several, with a one-tap even split (leftover cents handed to the earliest people so it always sums). The by-person breakdown counts each split. An expense carries an optional `splits` list; without it the whole amount belongs to its one owner, exactly as before, so nothing already logged has to change.
+
 ## 2026-09-14 - version 6.13.0
 
 - **A fast-add budget tracker at `/budget`.** The whole feature is built around how little it takes to log a spend: open, tap Add, and a bottom sheet springs up asking three things in order — category, amount, then an optional date/time and tags. Date and time default to now, so the common path is a category tap, a number, and done.

@@ -21,9 +21,11 @@ const heading = "text-xs font-semibold uppercase tracking-wide text-muted";
 export default function Analytics({
   budget,
   now = new Date(),
+  onEditExpense,
 }: {
   budget: Budget;
   now?: Date;
+  onEditExpense?: (id: string) => void;
 }) {
   const { expenses, people, cycleStartDay } = budget;
   const total30 = lastNDaysTotal(expenses, now, 30);
@@ -69,8 +71,20 @@ export default function Analytics({
                     )}
                     <span className="text-xs text-muted">{nameOf.get(e.personId)}</span>
                   </span>
-                  <span className="tabular-nums text-sm font-medium text-foreground">
-                    {formatCents(e.amountCents)}
+                  <span className="flex items-center gap-2">
+                    <span className="tabular-nums text-sm font-medium text-foreground">
+                      {formatCents(e.amountCents)}
+                    </span>
+                    {onEditExpense && (
+                      <button
+                        type="button"
+                        onClick={() => onEditExpense(e.id)}
+                        aria-label={`Edit ${category.label} ${formatCents(e.amountCents)}`}
+                        className="rounded px-1.5 py-0.5 text-xs text-muted transition hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-[var(--color-feature-budget)]"
+                      >
+                        Edit
+                      </button>
+                    )}
                   </span>
                 </li>
               );
