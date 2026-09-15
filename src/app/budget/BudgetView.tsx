@@ -2,16 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import BudgetContent from "./BudgetContent";
+import BudgetSignedOut from "./BudgetSignedOut";
 import ServerBudgetContent from "./ServerBudgetContent";
 import BudgetLoading from "./loading";
 
 /**
- * Picks the data source by who is looking. A signed-in visitor gets the
- * server-backed budget (shared, synced across devices); everyone else keeps the
- * localStorage budget, which needs no account. The choice hangs on /api/me, the
- * same client-side identity hint the header uses, so the page stays static until
- * it runs.
+ * Gates the budget on sign-in. A budget lives on your account now, so a
+ * signed-in visitor gets the server-backed tracker and a signed-out one gets an
+ * explanation of what it does and a way in — never the tracker itself. The
+ * choice hangs on /api/me, the same client-side identity hint the header uses,
+ * so the page stays static until it runs.
  */
 export default function BudgetView() {
   const me = useQuery({
@@ -23,5 +23,5 @@ export default function BudgetView() {
 
   if (me.isPending) return <BudgetLoading />;
   if (me.data?.sub) return <ServerBudgetContent meEmail={me.data.email ?? undefined} />;
-  return <BudgetContent />;
+  return <BudgetSignedOut />;
 }
