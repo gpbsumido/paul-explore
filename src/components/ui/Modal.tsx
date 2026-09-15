@@ -190,8 +190,11 @@ export default function Modal({
             aria-describedby={ariaProps["aria-describedby"]}
             tabIndex={-1}
             className={[
-              "relative overflow-hidden rounded-2xl",
-              "w-full max-w-lg mx-4 p-6",
+              // overflow-y-auto (not overflow-hidden) + a dvh cap so a modal
+              // taller than the phone scrolls its own content instead of
+              // overflowing the screen. dvh shrinks when the keyboard is up.
+              "relative overflow-y-auto overflow-x-hidden rounded-2xl",
+              "max-h-[calc(100dvh-2rem)] w-full max-w-lg mx-4 p-6",
               "focus:outline-none",
               className,
             ]

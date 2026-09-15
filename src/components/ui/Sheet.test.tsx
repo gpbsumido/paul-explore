@@ -51,4 +51,25 @@ describe("Sheet", () => {
     renderSheet();
     expect(document.body.style.overflow).toBe("hidden");
   });
+
+  it("keeps focus on a child input when re-rendered with a fresh onClose", () => {
+    // Parents pass a new onClose every render. When it was an effect dependency
+    // the effect re-ran and re-focused the panel, blurring the field mid-type —
+    // which on mobile dismissed the keyboard. Focus must survive a re-render.
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} label="Test sheet">
+        <input aria-label="field" />
+      </Sheet>,
+    );
+    const input = screen.getByLabelText("field");
+    input.focus();
+    expect(input).toHaveFocus();
+
+    rerender(
+      <Sheet open onClose={() => {}} label="Test sheet">
+        <input aria-label="field" />
+      </Sheet>,
+    );
+    expect(input).toHaveFocus();
+  });
 });

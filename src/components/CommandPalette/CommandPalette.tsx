@@ -141,7 +141,7 @@ export default function CommandPalette({
       {open && (
         <m.div
           data-testid="command-palette-backdrop"
-          className="fixed inset-0 flex items-start justify-center px-4 pt-[12vh]"
+          className="fixed inset-0 flex items-start justify-center px-4 pb-4 pt-[8dvh] sm:pt-[12vh]"
           style={{
             zIndex: "var(--z-modal)",
             background: "var(--modal-backdrop)",
@@ -157,7 +157,7 @@ export default function CommandPalette({
           }}
         >
           <m.div
-            className="w-full max-w-xl overflow-hidden rounded-2xl shadow-xl"
+            className="flex max-h-[85dvh] w-full max-w-xl flex-col overflow-hidden rounded-2xl shadow-xl"
             style={{
               background: "var(--modal-bg)",
               backdropFilter: "blur(var(--blur-panel))",
@@ -175,7 +175,7 @@ export default function CommandPalette({
             }
             transition={{ duration: 0.15 }}
           >
-            <div className="flex items-center gap-2 border-b border-border px-4">
+            <div className="flex shrink-0 items-center gap-2 border-b border-border px-4">
               <svg
                 width="16"
                 height="16"
@@ -222,7 +222,7 @@ export default function CommandPalette({
                 id={LISTBOX_ID}
                 role="listbox"
                 aria-label="Commands"
-                className="max-h-[52vh] overflow-y-auto p-2"
+                className="min-h-0 flex-1 overflow-y-auto p-2"
               >
                 {grouped.map((group) => (
                   <div key={group.group} role="group" aria-label={group.group}>
