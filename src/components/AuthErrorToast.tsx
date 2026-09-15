@@ -44,11 +44,16 @@ export default function AuthErrorToast() {
     const next = code ? MESSAGES[code] : undefined;
     if (!next) return;
     handled.current = true;
-    setMessage(next);
     const params = new URLSearchParams(searchParams);
     params.delete("authError");
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    // Deferred so the effect never sets state synchronously (the codebase's rule
+    // for this) — one frame's delay before the toast is imperceptible.
+    const raf = requestAnimationFrame(() => {
+      setMessage(next);
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    });
+    return () => cancelAnimationFrame(raf);
   }, [searchParams, router, pathname]);
 
   useEffect(() => {
