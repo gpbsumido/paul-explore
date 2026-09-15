@@ -323,6 +323,137 @@ describe("ZeroProofContent — board horizon", () => {
   });
 });
 
+describe("ZeroProofContent — board filters", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  const mk = (
+    id: string,
+    sport: string,
+    iso: string,
+    home: string,
+    away: string,
+    homePrice: number,
+    awayPrice: number,
+  ) => ({
+    id,
+    sport,
+    home,
+    away,
+    commenceTime: iso,
+    status: "upcoming",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: iso,
+        outcomes: [
+          { name: home, priceAmerican: homePrice },
+          { name: away, priceAmerican: awayPrice },
+        ],
+      },
+    ],
+  });
+  // All within the default 3-day window off NOW, so only the facet filters vary.
+  const FILTER_EVENTS = {
+    events: [
+      mk("f-nba", "basketball_nba", "2026-09-09T18:00:00.000Z", "Suns", "Nuggets", -110, 120),
+      mk("f-nfl", "americanfootball_nfl", "2026-09-09T20:00:00.000Z", "Bills", "Jets", -300, 240),
+      mk("f-fan", "fantasy_ffl", "2026-09-10T18:00:00.000Z", "Team Alpha", "Team Beta", -110, -110),
+    ],
+  };
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => nowSpy.mockRestore());
+
+  const renderBoard = () =>
+    renderPage(undefined, undefined, () => HttpResponse.json(FILTER_EVENTS));
+
+  const shows = (name: RegExp) => screen.queryByRole("heading", { name });
+
+  it("shows every sport by default", async () => {
+    renderBoard();
+    expect(await screen.findByRole("heading", { name: /Suns/ })).toBeInTheDocument();
+    expect(shows(/Bills/)).toBeInTheDocument();
+    expect(shows(/Team Alpha/)).toBeInTheDocument();
+  });
+
+  it("filters ESPN fantasy in and out by type", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    fireEvent.change(screen.getByRole("combobox", { name: /show sports or fantasy/i }), {
+      target: { value: "fantasy" },
+    });
+    await waitFor(() => expect(shows(/Suns/)).toBeNull());
+    expect(shows(/Bills/)).toBeNull();
+    expect(shows(/Team Alpha/)).toBeInTheDocument();
+  });
+
+  it("filters by a specific sport", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    fireEvent.change(screen.getByRole("combobox", { name: "Sport" }), {
+      target: { value: "basketball_nba" },
+    });
+    await waitFor(() => expect(shows(/Bills/)).toBeNull());
+    expect(shows(/Suns/)).toBeInTheDocument();
+    expect(shows(/Team Alpha/)).toBeNull();
+  });
+
+  it("filters by odds — longshots keeps only the event with a +200 outcome", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    fireEvent.change(screen.getByRole("combobox", { name: "Odds" }), {
+      target: { value: "underdogs" },
+    });
+    await waitFor(() => expect(shows(/Suns/)).toBeNull());
+    expect(shows(/Bills/)).toBeInTheDocument(); // Jets +240
+    expect(shows(/Team Alpha/)).toBeNull();
+  });
+
+  it("filters by odds — even keeps only events with no big favorite or longshot", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    fireEvent.change(screen.getByRole("combobox", { name: "Odds" }), {
+      target: { value: "even" },
+    });
+    await waitFor(() => expect(shows(/Bills/)).toBeNull()); // -300 breaks it
+    expect(shows(/Suns/)).toBeInTheDocument();
+    expect(shows(/Team Alpha/)).toBeInTheDocument();
+  });
+
+  it("filters by a specific date", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    const dateSelect = screen.getByRole("combobox", { name: "Date" }) as HTMLSelectElement;
+    // The second day option is Sep 10 (the fantasy game); pick it by its value.
+    const sep10 = Array.from(dateSelect.options).find((o) => o.value !== "all" && o.textContent?.includes("10"));
+    fireEvent.change(dateSelect, { target: { value: sep10?.value } });
+    await waitFor(() => expect(shows(/Suns/)).toBeNull());
+    expect(shows(/Team Alpha/)).toBeInTheDocument();
+  });
+
+  it("shows an empty state and a working Clear filters when nothing matches", async () => {
+    renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    // Fantasy only + odds longshots: the only fantasy game is a pick'em, so empty.
+    fireEvent.change(screen.getByRole("combobox", { name: /show sports or fantasy/i }), {
+      target: { value: "fantasy" },
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: "Odds" }), {
+      target: { value: "underdogs" },
+    });
+    expect(await screen.findByText(/no games match your filters/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /clear filters/i }));
+    expect(await screen.findByRole("heading", { name: /Suns/ })).toBeInTheDocument();
+  });
+
+  it("has no axe violations with the filter controls present", async () => {
+    const { container } = renderBoard();
+    await screen.findByRole("heading", { name: /Suns/ });
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
 describe("ZeroProofContent — board days and existing bets", () => {
   const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
   const dayLabel = (iso: string) =>
