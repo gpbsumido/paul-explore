@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
 import type { ZeroproofEvent } from "./schemas";
 import {
-  availableDays,
   availableSports,
+  dateRangeActive,
   DEFAULT_BOARD_FILTERS,
   fantasyLabel,
   filterBoardEvents,
   hasMoreBeyondHorizon,
+  inDateRange,
   isFantasySport,
   localDayKey,
   matchesFacets,
@@ -139,7 +140,7 @@ describe("localDayKey", () => {
   });
 });
 
-describe("availableSports / availableDays", () => {
+describe("availableSports", () => {
   it("lists distinct sports present, labeled, real before fantasy", () => {
     const events = [
       ev({ sport: "basketball_nba" }),
@@ -156,20 +157,28 @@ describe("availableSports / availableDays", () => {
     ]);
     expect(sports.find((s) => s.sport === "fantasy_ffl")?.label).toBe("Fantasy Football");
   });
+});
 
-  it("lists distinct valid day keys and drops events with unparseable dates", () => {
-    const events = [
-      ev({ id: "a", commenceTime: "2026-10-20T18:00:00Z" }),
-      ev({ id: "b", commenceTime: "2026-10-23T18:00:00Z" }),
-      ev({ id: "c", commenceTime: "garbage" }),
-    ];
-    const days = availableDays(events);
-    const keys = days.map((d) => d.key);
-    expect(keys).toContain(localDayKey("2026-10-20T18:00:00Z"));
-    expect(keys).toContain(localDayKey("2026-10-23T18:00:00Z"));
-    expect(keys).not.toContain(null);
-    expect(days).toHaveLength(2);
-    expect(days.every((d) => d.label.length > 0)).toBe(true);
+describe("dateRangeActive / inDateRange", () => {
+  it("is active when either bound is set", () => {
+    expect(dateRangeActive(filters())).toBe(false);
+    expect(dateRangeActive(filters({ from: "2026-10-20" }))).toBe(true);
+    expect(dateRangeActive(filters({ to: "2026-10-25" }))).toBe(true);
+  });
+
+  it("treats empty bounds as open-ended", () => {
+    expect(inDateRange("2026-10-22", "", "")).toBe(true);
+    expect(inDateRange("2026-10-22", "2026-10-20", "")).toBe(true); // from onwards
+    expect(inDateRange("2026-10-19", "2026-10-20", "")).toBe(false);
+    expect(inDateRange("2026-10-22", "", "2026-10-25")).toBe(true); // up to
+    expect(inDateRange("2026-10-26", "", "2026-10-25")).toBe(false);
+  });
+
+  it("is inclusive on both ends and normalizes an inverted range", () => {
+    expect(inDateRange("2026-10-20", "2026-10-20", "2026-10-25")).toBe(true);
+    expect(inDateRange("2026-10-25", "2026-10-20", "2026-10-25")).toBe(true);
+    // from after to still works
+    expect(inDateRange("2026-10-22", "2026-10-25", "2026-10-20")).toBe(true);
   });
 });
 
@@ -199,19 +208,26 @@ describe("filterBoardEvents", () => {
     expect(filterBoardEvents([betLaterNfl], filters({ sport: "basketball_nba" }), c)).toEqual([]);
   });
 
-  it("a specific day overrides the horizon and drops the bet-on bypass", () => {
-    const dayKey = localDayKey("2026-10-30T18:00:00Z")!;
+  it("a date range overrides the horizon and drops the bet-on bypass", () => {
+    const day = localDayKey("2026-10-30T18:00:00Z")!;
     const betLater = ev({ id: "bet", commenceTime: "2026-10-25T18:00:00Z" });
     const onDay = ev({ id: "onday", commenceTime: "2026-10-30T18:00:00Z" });
     const c = ctx({ betEventIds: new Set(["bet"]) });
-    const out = filterBoardEvents([betLater, onDay], filters({ day: dayKey }), c);
-    expect(out.map((e) => e.id)).toEqual(["onday"]); // bet-on from another day is NOT shown in date mode
+    const out = filterBoardEvents([betLater, onDay], filters({ from: day, to: day }), c);
+    expect(out.map((e) => e.id)).toEqual(["onday"]); // bet-on outside the range is NOT shown in date mode
   });
 
-  it("never lets an unparseable date leak into a day or the horizon", () => {
+  it("a range spanning several days keeps every event inside it", () => {
+    const a = ev({ id: "a", commenceTime: "2026-10-21T18:00:00Z" });
+    const b = ev({ id: "b", commenceTime: "2026-10-30T18:00:00Z" });
+    const out = filterBoardEvents([a, b], filters({ from: "2026-10-20", to: "2026-10-31" }), ctx());
+    expect(out.map((e) => e.id)).toEqual(["a", "b"]);
+  });
+
+  it("never lets an unparseable date leak into a range or the horizon", () => {
     const bad = ev({ id: "bad", commenceTime: "nonsense" });
     expect(filterBoardEvents([bad], filters(), ctx())).toEqual([]);
-    expect(filterBoardEvents([bad], filters({ day: "2026-10-20" }), ctx())).toEqual([]);
+    expect(filterBoardEvents([bad], filters({ from: "2026-10-20", to: "2026-10-25" }), ctx())).toEqual([]);
   });
 });
 
@@ -229,8 +245,8 @@ describe("hasMoreBeyondHorizon", () => {
     expect(hasMoreBeyondHorizon([laterNfl], filters({ sport: "basketball_nba" }), base)).toBe(false);
   });
 
-  it("is false in specific-day mode", () => {
+  it("is false when a date range is active", () => {
     const later = ev({ id: "later", commenceTime: "2026-10-30T18:00:00Z" });
-    expect(hasMoreBeyondHorizon([later], filters({ day: "2026-10-30" }), base)).toBe(false);
+    expect(hasMoreBeyondHorizon([later], filters({ from: "2026-10-30", to: "" }), base)).toBe(false);
   });
 });

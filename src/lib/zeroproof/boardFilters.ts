@@ -22,15 +22,17 @@ export interface BoardFilters {
   type: BoardTypeFilter;
   /** A sport key like "basketball_nba", or "all". */
   sport: string;
-  /** A local day key from localDayKey(), or "all". */
-  day: string;
+  /** Inclusive local-day range bounds ("YYYY-MM-DD"), each "" when unset. */
+  from: string;
+  to: string;
   odds: BoardOddsFilter;
 }
 
 export const DEFAULT_BOARD_FILTERS: BoardFilters = {
   type: "all",
   sport: "all",
-  day: "all",
+  from: "",
+  to: "",
   odds: "all",
 };
 
@@ -145,20 +147,22 @@ export function dayLabel(iso: string): string {
   });
 }
 
+/** Whether a from/to range is in effect (either bound set). */
+export function dateRangeActive(filters: BoardFilters): boolean {
+  return filters.from !== "" || filters.to !== "";
+}
+
 /**
- * The distinct valid days present, ascending by key. The label is built from the
- * event's real instant (not the key) so it stays correct across time zones;
- * events with unparseable dates are dropped.
+ * Whether a local-day key falls within an inclusive [from, to] range. Empty
+ * bounds are open-ended, and an inverted range (from after to) is normalized so
+ * picking the two dates in either order still works. Day keys are "YYYY-MM-DD",
+ * which sort chronologically as strings.
  */
-export function availableDays(events: ZeroproofEvent[]): { key: string; label: string }[] {
-  const byKey = new Map<string, string>();
-  for (const event of events) {
-    const key = localDayKey(event.commenceTime);
-    if (key && !byKey.has(key)) byKey.set(key, dayLabel(event.commenceTime));
-  }
-  return [...byKey.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, label]) => ({ key, label }));
+export function inDateRange(key: string, from: string, to: string): boolean {
+  const [lo, hi] = from && to && from > to ? [to, from] : [from, to];
+  if (lo && key < lo) return false;
+  if (hi && key > hi) return false;
+  return true;
 }
 
 /** The horizon/bet context the temporal filter needs, kept explicit so the filter stays pure. */
@@ -183,8 +187,9 @@ export function filterBoardEvents(
   return events.filter((event) => {
     if (!matchesFacets(event, filters)) return false;
 
-    if (filters.day !== "all") {
-      return localDayKey(event.commenceTime) === filters.day;
+    if (dateRangeActive(filters)) {
+      const key = localDayKey(event.commenceTime);
+      return key !== null && inDateRange(key, filters.from, filters.to);
     }
 
     const time = new Date(event.commenceTime).getTime();
@@ -202,7 +207,7 @@ export function hasMoreBeyondHorizon(
   filters: BoardFilters,
   ctx: HorizonContext,
 ): boolean {
-  if (filters.day !== "all") return false;
+  if (dateRangeActive(filters)) return false;
   const cutoff = ctx.now + ctx.daysAhead * ctx.dayMs;
   return events.some((event) => {
     if (!matchesFacets(event, filters)) return false;
@@ -217,7 +222,7 @@ export function hasActiveFilters(filters: BoardFilters): boolean {
   return (
     filters.type !== "all" ||
     filters.sport !== "all" ||
-    filters.day !== "all" ||
+    dateRangeActive(filters) ||
     filters.odds !== "all"
   );
 }
