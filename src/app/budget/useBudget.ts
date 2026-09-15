@@ -14,8 +14,11 @@ import {
   requestToJoin,
   approveJoinRequest,
   denyJoinRequest,
+  updateExpense,
+  deleteExpense,
   type NewExpense,
   type JoinRequestInput,
+  type ExpensePatch,
 } from "@/lib/budget/budgetStore";
 
 /**
@@ -98,6 +101,15 @@ export function useBudget() {
     (id: string) => commit(denyJoinRequest(id, window.localStorage)),
     [],
   );
+  const edit = useCallback(
+    (id: string, patch: ExpensePatch) =>
+      commit(updateExpense(id, patch, window.localStorage)),
+    [],
+  );
+  const remove = useCallback(
+    (id: string) => commit(deleteExpense(id, window.localStorage)),
+    [],
+  );
 
   return {
     budget,
@@ -110,5 +122,7 @@ export function useBudget() {
     requestJoin,
     approveRequest,
     denyRequest,
+    edit,
+    remove,
   };
 }

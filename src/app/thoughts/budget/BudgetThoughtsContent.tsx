@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -119,16 +119,58 @@ export default function BudgetThoughtsContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-09-14-editing"
+        date="September 14, 2026"
+        title="The two things I said were &ldquo;later&rdquo;, done"
+      >
+        <p>
+          The tracker could add fast but not fix a mistake, and it pinned a shared
+          dinner on whoever happened to log it. Both are fixed now: any item opens
+          in an edit sheet — category, amount, when, tags, or delete — and an
+          expense can be split across people.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The odd cent has to go somewhere
+        </h3>
+        <p className="text-muted">
+          A £10 dinner three ways isn&apos;t 333 + 333 + 333 — that loses a penny.
+          The even split hands the leftover cents to the earliest people one at a
+          time, so the parts always sum back to the whole. It is a pure function
+          with a test that pins exactly that.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const base = Math.floor(amountCents / n);
+let remainder = amountCents - base * n;
+return ids.map((personId) => {
+  const extra = remainder > 0 ? 1 : 0;
+  remainder -= extra;
+  return { personId, amountCents: base + extra };
+});`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A new field that changes nothing already stored
+        </h3>
+        <p className="text-muted">
+          Splitting added an optional <code className={code}>splits</code> list to
+          an expense. Every item logged before it simply doesn&apos;t have one, and
+          the person breakdown reads a missing split as &ldquo;the whole amount
+          belongs to its one owner&rdquo; — the old meaning, unchanged — so nothing
+          had to migrate.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A three-step add flow — category, amount, optional date/time and tags — in a spring-loaded bottom sheet.",
+          "Editing any logged item, deleting it, re-tagging it, and splitting one expense across several people.",
           "A budget shared by several people with an active-person selector; each expense is attributed to whoever is active.",
           "Analytics: last-30-day total, current billing cycle with a list, splits by category and by person, and a week/month/year history that compares this period to the last.",
           "Invite links that carry the budget, plus public budgets where people ask to join with your email and you approve.",
         ]}
         couldImprove={[
-          "Editing a logged item, and re-tagging it after the fact — marked as later in the brief, deferred to a follow-up.",
-          "Splitting a single expense across people, rather than attributing it to one — the data shape leaves room for it.",
           "A join request can't reach another person's browser — cross-account delivery is honestly a local stand-in until the backend lands.",
         ]}
         upcoming={[

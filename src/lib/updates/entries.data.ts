@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-budget-editing",
+    date: "2026-09-14",
+    version: "6.14.0",
+    category: "feature",
+    tags: ["budget"],
+    title: "Edit budget items, and split them across people",
+    summary:
+      "You can now open any expense you've logged and change it — category, amount, date, tags — or delete it. And instead of pinning a spend on one person, you can split it across several, with a one-tap even split. The by-person totals count each share.",
+    body: [
+      "The budget tracker shipped able to add fast but not to fix a mistake. Now every item in the cycle list has an edit control: open it and change the category, amount, when it happened, or its tags, or delete it outright.",
+      "Splitting is the bigger one. A dinner that two people share no longer has to land entirely on whoever logged it — tick the people in on it, tap 'Split evenly', and the amount divides across them (the odd cent goes to the first person so it always adds up). The by-person breakdown counts each share rather than the whole ticket.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-budget-tracker",
     date: "2026-09-14",
     version: "6.13.0",

@@ -6,6 +6,7 @@ import Input from "@/components/ui/Input";
 import Sheet from "@/components/ui/Sheet";
 import AddExpenseFlow from "./AddExpenseFlow";
 import Analytics from "./Analytics";
+import EditExpenseSheet from "./EditExpenseSheet";
 import HistoryPanel from "./HistoryPanel";
 import Sharing from "./Sharing";
 import { useBudget } from "./useBudget";
@@ -29,12 +30,16 @@ export default function BudgetContent() {
     requestJoin,
     approveRequest,
     denyRequest,
+    edit,
+    remove,
   } = useBudget();
   const [addingPerson, setAddingPerson] = useState(false);
   const [personName, setPersonName] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [meEmail, setMeEmail] = useState<string | undefined>(undefined);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = budget.expenses.find((e) => e.id === editingId) ?? null;
   const [joinToken] = useState(() =>
     typeof window === "undefined" ? null : parseJoinToken(window.location.search),
   );
@@ -166,9 +171,26 @@ export default function BudgetContent() {
         </p>
       ) : (
         <>
-          <Analytics budget={budget} />
+          <Analytics budget={budget} onEditExpense={setEditingId} />
           <HistoryPanel budget={budget} />
         </>
+      )}
+
+      {editing && (
+        <EditExpenseSheet
+          open
+          expense={editing}
+          people={budget.people}
+          onSave={(patch) => {
+            edit(editing.id, patch);
+            setEditingId(null);
+          }}
+          onDelete={() => {
+            remove(editing.id);
+            setEditingId(null);
+          }}
+          onClose={() => setEditingId(null)}
+        />
       )}
 
       <Sharing

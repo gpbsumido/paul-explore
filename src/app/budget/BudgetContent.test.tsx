@@ -67,6 +67,18 @@ describe("BudgetContent", () => {
     expect(within(people).getByText("$100.00")).toBeInTheDocument();
   });
 
+  it("edits a logged expense from the list", () => {
+    fresh();
+    addExpense(/food/i, "12.00");
+    fireEvent.click(screen.getByRole("button", { name: /edit food/i }));
+    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: "20.00" } });
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
+
+    const list = screen.getByRole("list", { name: /this cycle/i });
+    expect(within(list).getByText("$20.00")).toBeInTheDocument();
+    expect(within(list).queryByText("$12.00")).not.toBeInTheDocument();
+  });
+
   it("offers a shareable invite link", () => {
     fresh();
     fireEvent.click(screen.getByRole("button", { name: /invite to share/i }));
