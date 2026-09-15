@@ -11,6 +11,36 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-budget-sign-in",
+    date: "2026-09-15",
+    version: "6.17.0",
+    category: "improvement",
+    tags: ["budget"],
+    title: "The budget now lives on your account — sign in to use it",
+    summary:
+      "The budget tracker is now behind sign-in. Signed in, it's the same shared, synced tracker; signed out, you get a page explaining what it does and a way in, rather than a browser-only budget that couldn't really be shared. A budget belongs to your account now.",
+    body: [
+      "The tracker started life running entirely in your browser, which was honest but meant a 'shared' budget was really just a stand-in. Now that budgets live on the server and sync across your devices, keeping a separate browser-only copy for signed-out visitors was more confusing than useful — so /budget asks you to sign in first.",
+      "Signed out, the page still tells you exactly what the tracker does — fast add, sharing and splitting, the by-category and by-person analytics — and gives you a button to sign in and start. It just doesn't show or store a budget until you do. If you'd been using the old browser-only budget, note that it lived in your browser and the account budget is a fresh, separate thing.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-filters",
+    date: "2026-09-15",
+    version: "6.16.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Filter the ZeroProof board by sport, fantasy, date, and odds",
+    summary:
+      "The board got filters. Show or hide ESPN fantasy, narrow to a single sport, jump to one day, or keep only big favorites, longshots, or even matchups. It all happens in the browser, instantly, over the games already loaded — and when nothing matches, it tells you and offers a one-tap Clear.",
+    body: [
+      "The board could get long once there were real games and fantasy matchups on it at once, and I wanted to be able to say 'just show me the NFL' or 'just the longshots'. So there's a row of filters on the board now: a sports-or-fantasy toggle, a sport picker, a date picker, and an odds lens — any big favorite (−200 or shorter), any longshot (+200 or longer), or even matchups only.",
+      "They compose: pick Fantasy and the sport list narrows to the fantasy games, pick a single day and it shows just that day. Nothing goes to the server — the board is already served whole from the database, so filtering is instant and private. If a combination matches nothing, the board says so instead of going blank, and Clear filters puts everything back.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-budget-backend",
     date: "2026-09-15",
     version: "6.15.0",

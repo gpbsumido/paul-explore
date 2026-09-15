@@ -42,6 +42,20 @@ import {
   playerHandle,
   sortMarkets,
 } from "@/lib/zeroproof/format";
+import {
+  type BoardFilters,
+  type BoardOddsFilter,
+  type BoardTypeFilter,
+  availableDays,
+  availableSports,
+  dayLabel,
+  DEFAULT_BOARD_FILTERS,
+  fantasyLabel,
+  filterBoardEvents,
+  hasActiveFilters,
+  hasMoreBeyondHorizon,
+  isFantasySport,
+} from "@/lib/zeroproof/boardFilters";
 
 async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url);
@@ -105,17 +119,6 @@ function OutcomeButton({
       </span>
     </button>
   );
-}
-
-/** A friendly label for an ESPN fantasy matchup, or null for a real-sports event. */
-function fantasyLabel(sport: string): string | null {
-  if (!sport.startsWith("fantasy_")) return null;
-  const game = sport.slice("fantasy_".length);
-  const names: Record<string, string> = {
-    ffl: "Fantasy Football",
-    fba: "Fantasy Basketball",
-  };
-  return names[game] ?? "Fantasy";
 }
 
 const BET_STATUS_STYLE: Record<string, string> = {
@@ -252,15 +255,8 @@ const HORIZON_STEP_DAYS = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const controlButton =
   "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
-
-/** A whole-day label for a kickoff time, e.g. "Sunday, Sep 7", in the local zone. */
-function dayLabel(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-  });
-}
+const filterSelect =
+  "h-8 rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
 
 /**
  * Group kickoff-sorted events into day buckets. Events arrive sorted by
@@ -318,15 +314,27 @@ function Slate({
   // Captured once at mount so filtering is a pure function of state across
   // re-renders (a live-updating clock would make render impure).
   const [now] = useState(() => Date.now());
+  const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
   const allEvents = eventsQuery.data?.events ?? [];
-  const cutoff = now + daysAhead * DAY_MS;
-  const visibleEvents = allEvents.filter(
-    (event) =>
-      new Date(event.commenceTime).getTime() <= cutoff ||
-      betEventIds.has(event.id),
-  );
-  const hasMore = visibleEvents.length < allEvents.length;
+
+  const horizonCtx = { now, daysAhead, dayMs: DAY_MS, betEventIds };
+  const visibleEvents = filterBoardEvents(allEvents, boardFilters, horizonCtx);
+  const hasMore = hasMoreBeyondHorizon(allEvents, boardFilters, horizonCtx);
   const dayGroups = groupEventsByDay(visibleEvents);
+
+  // The sport options are narrowed by the type filter, so the two can never
+  // contradict; changing the type resets the sport back to "all" for the same
+  // reason (the previously chosen sport may no longer be offered).
+  const typeScopedEvents = allEvents.filter((event) => {
+    if (boardFilters.type === "sports") return !isFantasySport(event.sport);
+    if (boardFilters.type === "fantasy") return isFantasySport(event.sport);
+    return true;
+  });
+  const sportOptions = availableSports(typeScopedEvents);
+  const dayOptions = availableDays(allEvents);
+  const filtersActive = hasActiveFilters(boardFilters);
+  const selectedDayLabel = dayOptions.find((day) => day.key === boardFilters.day)?.label;
+  const clearFilters = () => setBoardFilters(DEFAULT_BOARD_FILTERS);
 
   // Auto lazy-load: when the toggle is on, extend the horizon as the sentinel at
   // the bottom of the list scrolls into view. Guarded for environments without
@@ -378,36 +386,141 @@ function Slate({
         <>
           {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
               controls stay visible while you scroll the board. */}
-          <div className="sticky top-14 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
-            <p className="text-xs text-muted" aria-live="polite">
-              Showing games in the next {daysAhead} days
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              {daysAhead > HORIZON_STEP_DAYS && (
-                <button
-                  type="button"
-                  onClick={() => setDaysAhead(HORIZON_STEP_DAYS)}
-                  className={controlButton}
-                >
-                  Show only next 3 days
+          <div className="sticky top-14 z-20 mt-4 flex flex-col gap-2 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-muted">Filter</span>
+              <label className="sr-only" htmlFor="board-filter-type">
+                Show sports or fantasy
+              </label>
+              <select
+                id="board-filter-type"
+                className={filterSelect}
+                value={boardFilters.type}
+                onChange={(event) =>
+                  setBoardFilters((filters) => ({
+                    ...filters,
+                    type: event.target.value as BoardTypeFilter,
+                    sport: "all",
+                  }))
+                }
+              >
+                <option value="all">All types</option>
+                <option value="sports">Sports only</option>
+                <option value="fantasy">Fantasy only</option>
+              </select>
+
+              {sportOptions.length > 1 && (
+                <>
+                  <label className="sr-only" htmlFor="board-filter-sport">
+                    Sport
+                  </label>
+                  <select
+                    id="board-filter-sport"
+                    className={filterSelect}
+                    value={boardFilters.sport}
+                    onChange={(event) =>
+                      setBoardFilters((filters) => ({ ...filters, sport: event.target.value }))
+                    }
+                  >
+                    <option value="all">All sports</option>
+                    {sportOptions.map((sport) => (
+                      <option key={sport.sport} value={sport.sport}>
+                        {sport.label}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
+
+              {dayOptions.length > 1 && (
+                <>
+                  <label className="sr-only" htmlFor="board-filter-date">
+                    Date
+                  </label>
+                  <select
+                    id="board-filter-date"
+                    className={filterSelect}
+                    value={boardFilters.day}
+                    onChange={(event) =>
+                      setBoardFilters((filters) => ({ ...filters, day: event.target.value }))
+                    }
+                  >
+                    <option value="all">All dates</option>
+                    {dayOptions.map((day) => (
+                      <option key={day.key} value={day.key}>
+                        {day.label}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
+
+              <label className="sr-only" htmlFor="board-filter-odds">
+                Odds
+              </label>
+              <select
+                id="board-filter-odds"
+                className={filterSelect}
+                value={boardFilters.odds}
+                onChange={(event) =>
+                  setBoardFilters((filters) => ({
+                    ...filters,
+                    odds: event.target.value as BoardOddsFilter,
+                  }))
+                }
+              >
+                <option value="all">Any odds</option>
+                <option value="favorites">Big favorites</option>
+                <option value="underdogs">Longshots</option>
+                <option value="even">Even matchups</option>
+              </select>
+
+              {filtersActive && (
+                <button type="button" onClick={clearFilters} className={controlButton}>
+                  Clear filters
                 </button>
               )}
-              <label className="flex items-center gap-2 text-xs text-foreground">
-                <input
-                  type="checkbox"
-                  checked={autoLoad}
-                  onChange={(event) => setAutoLoad(event.target.checked)}
-                  className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
-                />
-                Auto-load as I scroll
-              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted" aria-live="polite">
+                {boardFilters.day !== "all"
+                  ? `Showing games on ${selectedDayLabel ?? "the selected day"}`
+                  : `Showing games in the next ${daysAhead} days`}
+                {` — ${visibleEvents.length} ${visibleEvents.length === 1 ? "game" : "games"}`}
+              </p>
+              {boardFilters.day === "all" && (
+                <div className="flex flex-wrap items-center gap-3">
+                  {daysAhead > HORIZON_STEP_DAYS && (
+                    <button
+                      type="button"
+                      onClick={() => setDaysAhead(HORIZON_STEP_DAYS)}
+                      className={controlButton}
+                    >
+                      Show only next 3 days
+                    </button>
+                  )}
+                  <label className="flex items-center gap-2 text-xs text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={autoLoad}
+                      onChange={(event) => setAutoLoad(event.target.checked)}
+                      className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                    />
+                    Auto-load as I scroll
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
           {visibleEvents.length === 0 ? (
             <p className="mt-6 text-sm text-muted">
-              Nothing kicks off in the next {daysAhead} days.
-              {hasMore ? " Load more to see games further out." : ""}
+              {hasMore
+                ? `No games in the next ${daysAhead} days${filtersActive ? " match your filters" : ""}.`
+                : filtersActive
+                  ? "No games match your filters. Clear the filters to see the full board."
+                  : `Nothing kicks off in the next ${daysAhead} days.`}
             </p>
           ) : (
             <div className="mt-6 space-y-8">
