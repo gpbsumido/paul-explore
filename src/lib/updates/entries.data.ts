@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-budget-sign-in",
+    date: "2026-09-15",
+    version: "6.17.0",
+    category: "improvement",
+    tags: ["budget"],
+    title: "The budget now lives on your account — sign in to use it",
+    summary:
+      "The budget tracker is now behind sign-in. Signed in, it's the same shared, synced tracker; signed out, you get a page explaining what it does and a way in, rather than a browser-only budget that couldn't really be shared. A budget belongs to your account now.",
+    body: [
+      "The tracker started life running entirely in your browser, which was honest but meant a 'shared' budget was really just a stand-in. Now that budgets live on the server and sync across your devices, keeping a separate browser-only copy for signed-out visitors was more confusing than useful — so /budget asks you to sign in first.",
+      "Signed out, the page still tells you exactly what the tracker does — fast add, sharing and splitting, the by-category and by-person analytics — and gives you a button to sign in and start. It just doesn't show or store a budget until you do. If you'd been using the old browser-only budget, note that it lived in your browser and the account budget is a fresh, separate thing.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-filters",
     date: "2026-09-15",
     version: "6.16.0",
