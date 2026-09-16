@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 - version 6.17.3
+
+- **Picked up the design-system overlay fixes for mobile.** Bumped `@paul-portfolio/react` to 0.10.4 and `@paul-portfolio/css` to 0.12.4, which fit the `GuidedTour` card and the `Tooltip` bubble to the viewport on a narrow screen instead of spilling past an edge and forcing a page scrollbar. The app renders both through the design system (the feature tours and every tooltip), so this reaches them everywhere. No app code changed — dependency + lockfile bump; the full build and the tour/showcase tests are green on the new versions.
+
 ## 2026-09-15 - version 6.17.2
 
 - **Trimmed the client bundle to improve First Contentful Paint.** Heavy, below-the-fold JavaScript is now code-split out of the initial bundle on the pages that carried the most of it, via `next/dynamic`:
