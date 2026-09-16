@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-1-0",
+    date: "2026-09-15",
+    version: "7.0.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof is live — a sportsbook with the loss taken out",
+    summary:
+      "The no-loss sportsbook is fully working now. Lock a simulated deposit for a term, bet real lines against a real ledger, and get the deposit back at the end no matter your record — what you keep is the record itself: wins, losses, ROI, closing-line value, streaks, a leaderboard, and badges. Fantasy matchup betting and shared leagues are in too.",
+    body: [
+      "The idea was always sports betting without the sting: you can't lose your deposit, so the only thing at stake is how good your calls were. That whole loop runs now — open a Season or Challenge wallet, place a bet with the odds frozen the moment you commit, and every stake, payout and refund is a real double-entry ledger row (with simulated dollars, on purpose — real money is a licensing problem for later). At term end the deposit comes back and the record stays.",
+      "Beyond the core: ESPN fantasy matchups are bettable and only show once a league has actually drafted and its season is about to start, real leagues let people share a contest and a bankroll-ranked board, and the settler grades and pays out on a schedule. It's the milestone this version marks.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-date-range",
     date: "2026-09-15",
     version: "6.18.0",
