@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { Button, FilterBar, Select } from "@/components/ui";
@@ -10,7 +11,18 @@ import { COLUMNS, getSortValue } from "@/lib/nba";
 import FantasyNav from "../../FantasyNav";
 import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
-import PlayerCompare from "./PlayerCompare";
+
+/**
+ * The compare panel pulls in recharts (a heavy dep), but it only renders when the
+ * reader opens it. Code-split it and mount it only while open, so recharts stays
+ * out of the stats page's initial bundle. A sized skeleton holds its place.
+ */
+const PlayerCompare = dynamic(() => import("./PlayerCompare"), {
+  ssr: false,
+  loading: () => (
+    <div className="mt-4 h-64 animate-pulse rounded-lg bg-surface" aria-hidden />
+  ),
+});
 
 export default function StatsContent() {
   // null = no explicit pick yet; once the user picks a team this holds their choice.
@@ -237,8 +249,8 @@ export default function StatsContent() {
           </div>
         )}
 
-        {!topLevelError && rows.length >= 2 && (
-          <PlayerCompare rows={rows} open={compareOpen} />
+        {!topLevelError && rows.length >= 2 && compareOpen && (
+          <PlayerCompare rows={rows} open />
         )}
 
         {!topLevelError && (rows.length > 0 || skeletonCount > 0) && (

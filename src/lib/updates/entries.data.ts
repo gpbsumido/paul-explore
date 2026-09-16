@@ -11,6 +11,35 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-1-0",
+    date: "2026-09-15",
+    version: "7.0.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof is live — a sportsbook with the loss taken out",
+    summary:
+      "The no-loss sportsbook is fully working now. Lock a simulated deposit for a term, bet real lines against a real ledger, and get the deposit back at the end no matter your record — what you keep is the record itself: wins, losses, ROI, closing-line value, streaks, a leaderboard, and badges. Fantasy matchup betting and shared leagues are in too.",
+    body: [
+      "The idea was always sports betting without the sting: you can't lose your deposit, so the only thing at stake is how good your calls were. That whole loop runs now — open a Season or Challenge wallet, place a bet with the odds frozen the moment you commit, and every stake, payout and refund is a real double-entry ledger row (with simulated dollars, on purpose — real money is a licensing problem for later). At term end the deposit comes back and the record stays.",
+      "Beyond the core: ESPN fantasy matchups are bettable and only show once a league has actually drafted and its season is about to start, real leagues let people share a contest and a bankroll-ranked board, and the settler grades and pays out on a schedule. It's the milestone this version marks.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-date-range",
+    date: "2026-09-15",
+    version: "6.18.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "Filter the board by a date range, with a calendar",
+    summary:
+      "The board's date filter is now a From/To calendar range instead of a single-day dropdown — pick two dates and see just the games in that window. Leave one side open for everything before or after a date.",
+    body: [
+      "The first cut of the board filters let you pick one day at a time from a list. Now it's a pair of calendar date pickers — From and To — so you can scope the board to a whole range: this weekend, the next two weeks, whatever. Either side can be left blank for an open-ended 'from here on' or 'up to then', and picking the dates in either order still does the sensible thing.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-budget-sign-in",
     date: "2026-09-15",
     version: "6.17.0",

@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-09-15 - version 7.0.0
+
+- **ZeroProof is fully functional in production — the milestone this major version marks.** The no-loss sportsbook is complete end to end: lock a deposit into a Season or Challenge wallet, bet real lines with the odds frozen at placement against a real double-entry ledger, and get the deposit back at term end while keeping the record — win-loss, ROI, CLV, streaks, a leaderboard, and accolades. Real cross-account leagues and sharing work, ESPN fantasy matchup betting is live and correctly gated (only real, drafted, in-window seasons, with invalid pre-season bets voided and refunded), the settler grades and pays on a cron, and the admin god's view attaches an identity to every bet. The simulated-dollar loop it was built around is done and running for real users.
+- This release also carries the recent polish detailed below: the board's date-range calendar filter, the FCP bundle trim, the one-shot session-timeout toast, and the design-system mobile overlay fixes.
+
+## 2026-09-15 - version 6.18.0
+
+- **The ZeroProof board date filter is a calendar range now.** The single-day dropdown became a From/To pair of native `<input type="date">` calendar pickers, so you can filter the board to a date range instead of one day. `BoardFilters.day` became inclusive `from`/`to` local-day bounds (either open-ended; an inverted range is normalized so the two dates work in any order), the range overrides the rolling horizon as before, and the status line echoes the chosen range. Dropped the now-unused `availableDays`; covered by `boardFilters.test.ts` (`dateRangeActive`/`inDateRange` bounds, inclusivity, normalization) and board integration tests that drive the date inputs.
+
+## 2026-09-15 - version 6.17.3
+
+- **Picked up the design-system overlay fixes for mobile.** Bumped `@paul-portfolio/react` to 0.10.4 and `@paul-portfolio/css` to 0.12.4, which fit the `GuidedTour` card and the `Tooltip` bubble to the viewport on a narrow screen instead of spilling past an edge and forcing a page scrollbar. The app renders both through the design system (the feature tours and every tooltip), so this reaches them everywhere. No app code changed — dependency + lockfile bump; the full build and the tour/showcase tests are green on the new versions.
+
+## 2026-09-15 - version 6.17.2
+
+- **Trimmed the client bundle to improve First Contentful Paint.** Heavy, below-the-fold JavaScript is now code-split out of the initial bundle on the pages that carried the most of it, via `next/dynamic`:
+  - **`/design-system`**: the whole chart family (`BarChart`, `DonutChart`, `RadarChart`, `HeatmapChart`, and the rest — all backed by one heavy geometry core) is previewed below the fold, so each loads lazily instead of shipping in the page's initial bundle. Biggest single win on that page.
+  - **ZeroProof lobby**: the bankroll-trend chart (`StackedLineChart`) only appears on the "Your record" tab, so it's deferred with a skeleton.
+  - **NBA stats**: the player-compare panel (recharts, behind a toggle) now mounts only when opened, so recharts never loads for someone who never compares.
+  Only genuinely heavy, non-first-paint code was split — the Three.js world/particles canvases were already lazy and were left as-is, and the vitals chart (a server component) was deliberately not forced into an `ssr: false` split. Covered by the existing gallery/board tests (they assert headings and cards, which still render synchronously). A dated write-up is on the vitals thoughts page.
+## 2026-09-15 - version 6.17.1
+
+- **The session-timeout toast clears after the first time.** It was a pure function of the `?authError` in the URL, which nothing ever removed — so after it showed once, navigating away and back (or the back button) re-raised it every time, because dismissing was only local state. It now captures the message into state on mount and strips `authError` from the URL with `router.replace` (no new history entry, other params kept), so it shows exactly once per timeout and returning to the page is silent.
+
 ## 2026-09-15 - version 6.17.0
 
 - **The budget now requires signing in.** A budget lives on your account, so `/budget` is gated: a signed-in visitor gets the server-backed tracker as before, and a signed-out one gets a new `BudgetSignedOut` explainer — what the tracker does (fast add, share and split, the analytics) and a Sign in button back to it — with no data and no controls. `BudgetView` picks between the two on `/api/me`; the localStorage-only tracker (`BudgetContent` and its `useBudget` hook) is retired, since a browser-only budget can't be the shared, synced thing it's meant to be. The shared building blocks and `budgetStore` helpers stay (the server path uses them). Note: a visitor who had a browser-only budget won't see it here anymore — the account budget is separate. Covered by `BudgetView.test.tsx` (gate shown signed-out with a returnTo sign-in link and none of the budget controls, server tracker shown signed-in, axe clean).
