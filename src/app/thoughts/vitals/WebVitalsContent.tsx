@@ -1101,8 +1101,65 @@ const selectedVersion = urlVersion ?? versions[0];`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-15-bundle-fcp"
+        date="September 15, 2026"
+        title="Chasing FCP by shipping less JavaScript, not by measuring more"
+      >
+        <p>
+          The vitals board tells me when a page is slow; it doesn&apos;t make it fast. So I went
+          after First Contentful Paint the way that actually moves it — getting heavy JavaScript out
+          of the code that has to parse before a page can paint — on the pages carrying the most of
+          it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The rule: split what&apos;s heavy AND not the first screen
+        </h3>
+        <p className="text-muted">
+          Code-splitting everything is its own tax — a loading waterfall, a flash of skeleton where
+          content used to be. So the bar was two things at once: genuinely heavy, and genuinely not
+          needed for first paint. Charts cleared it again and again; small components didn&apos;t,
+          and I left those alone.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The design-system gallery imported every chart eagerly
+        </h3>
+        <p className="text-muted">
+          The worst offender was <code className={code}>/design-system</code>, which previews the
+          whole component set — including the entire chart family (bar, donut, radar, heatmap, the
+          lot), all backed by one heavy geometry core, imported at the top and rendered in previews
+          below the fold. Each is lazy now, so that core loads only when you scroll to the charts:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// before: the whole chart family in the initial bundle
+import { BarChart, RadarChart, HeatmapChart, /* ... */ } from "@paul-portfolio/react";
+
+// after: each previews lazily, the geometry core out of first paint
+const BarChart = dynamic(
+  () => import("@paul-portfolio/react").then((m) => ({ default: m.BarChart })),
+  { ssr: false, loading: skeleton },
+);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The same move twice more — and the ones I refused to touch
+        </h3>
+        <p className="text-muted">
+          ZeroProof&apos;s bankroll chart (its own tab) and the NBA stats compare panel (recharts,
+          behind a toggle) got the same treatment — the compare panel mounts only when opened, so
+          recharts never loads for someone who never compares. What I left alone matters as much:
+          the Three.js world and particles canvases were already lazy, so I didn&apos;t redo them,
+          and the vitals chart on this very page sits in a server component where an ssr-false split
+          is the wrong tool — a note for later, not a forced change. The discipline is the point:
+          every split has to earn itself.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Heavy, below-the-fold JavaScript is code-split out of the initial bundle on the pages that carried the most — the design-system chart gallery, the ZeroProof bankroll chart, and the NBA stats compare panel — so First Contentful Paint isn't waiting on chart code it can't yet show.",
           "Real user measurements rather than lab numbers, aggregated to P75 by metric and by page, which is the only version of this worth having.",
           "Public, with no login — the data is not sensitive and gating it meant nobody looked.",
           "One source of truth for the selected version, so the first paint shows what the control says it shows.",

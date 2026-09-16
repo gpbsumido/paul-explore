@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-15 - version 6.17.2
+
+- **Trimmed the client bundle to improve First Contentful Paint.** Heavy, below-the-fold JavaScript is now code-split out of the initial bundle on the pages that carried the most of it, via `next/dynamic`:
+  - **`/design-system`**: the whole chart family (`BarChart`, `DonutChart`, `RadarChart`, `HeatmapChart`, and the rest — all backed by one heavy geometry core) is previewed below the fold, so each loads lazily instead of shipping in the page's initial bundle. Biggest single win on that page.
+  - **ZeroProof lobby**: the bankroll-trend chart (`StackedLineChart`) only appears on the "Your record" tab, so it's deferred with a skeleton.
+  - **NBA stats**: the player-compare panel (recharts, behind a toggle) now mounts only when opened, so recharts never loads for someone who never compares.
+  Only genuinely heavy, non-first-paint code was split — the Three.js world/particles canvases were already lazy and were left as-is, and the vitals chart (a server component) was deliberately not forced into an `ssr: false` split. Covered by the existing gallery/board tests (they assert headings and cards, which still render synchronously). A dated write-up is on the vitals thoughts page.
+
 ## 2026-09-15 - version 6.17.0
 
 - **The budget now requires signing in.** A budget lives on your account, so `/budget` is gated: a signed-in visitor gets the server-backed tracker as before, and a signed-out one gets a new `BudgetSignedOut` explainer — what the tracker does (fast add, share and split, the analytics) and a Sign in button back to it — with no data and no controls. `BudgetView` picks between the two on `/api/me`; the localStorage-only tracker (`BudgetContent` and its `useBudget` hook) is retired, since a browser-only budget can't be the shared, synced thing it's meant to be. The shared building blocks and `budgetStore` helpers stay (the server path uses them). Note: a visitor who had a browser-only budget won't see it here anymore — the account budget is separate. Covered by `BudgetView.test.tsx` (gate shown signed-out with a returnTo sign-in link and none of the budget controls, server tracker shown signed-in, axe clean).
