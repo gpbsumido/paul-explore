@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-15 - version 7.0.0
+
+- **ZeroProof is fully functional in production — the milestone this major version marks.** The no-loss sportsbook is complete end to end: lock a deposit into a Season or Challenge wallet, bet real lines with the odds frozen at placement against a real double-entry ledger, and get the deposit back at term end while keeping the record — win-loss, ROI, CLV, streaks, a leaderboard, and accolades. Real cross-account leagues and sharing work, ESPN fantasy matchup betting is live and correctly gated (only real, drafted, in-window seasons, with invalid pre-season bets voided and refunded), the settler grades and pays on a cron, and the admin god's view attaches an identity to every bet. The simulated-dollar loop it was built around is done and running for real users.
+- This release also carries the recent polish detailed below: the board's date-range calendar filter, the FCP bundle trim, the one-shot session-timeout toast, and the design-system mobile overlay fixes.
+
 ## 2026-09-15 - version 6.18.0
 
 - **The ZeroProof board date filter is a calendar range now.** The single-day dropdown became a From/To pair of native `<input type="date">` calendar pickers, so you can filter the board to a date range instead of one day. `BoardFilters.day` became inclusive `from`/`to` local-day bounds (either open-ended; an inverted range is normalized so the two dates work in any order), the range overrides the rolling horizon as before, and the status line echoes the chosen range. Dropped the now-unused `availableDays`; covered by `boardFilters.test.ts` (`dateRangeActive`/`inDateRange` bounds, inclusivity, normalization) and board integration tests that drive the date inputs.
