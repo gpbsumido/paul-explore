@@ -8,7 +8,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { StackedLineChart } from "@paul-portfolio/react";
+import dynamic from "next/dynamic";
 import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
@@ -57,6 +57,22 @@ import {
   hasMoreBeyondHorizon,
   isFantasySport,
 } from "@/lib/zeroproof/boardFilters";
+
+/**
+ * The bankroll-trend chart, code-split out of the lobby's initial bundle. It's
+ * only on the "Your record" tab (below the fold, never the first view), so its
+ * chart-geometry code shouldn't be parsed before the board can paint. A sized
+ * skeleton holds its place so swapping it in doesn't shift the layout.
+ */
+const StackedLineChart = dynamic(
+  () => import("@paul-portfolio/react").then((m) => m.StackedLineChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mt-4 h-56 animate-pulse rounded-lg bg-surface" aria-hidden />
+    ),
+  },
+);
 
 async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url);

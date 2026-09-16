@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-15 - version 6.17.2
+
+- **Trimmed the client bundle to improve First Contentful Paint.** Heavy, below-the-fold JavaScript is now code-split out of the initial bundle on the pages that carried the most of it, via `next/dynamic`:
+  - **`/design-system`**: the whole chart family (`BarChart`, `DonutChart`, `RadarChart`, `HeatmapChart`, and the rest — all backed by one heavy geometry core) is previewed below the fold, so each loads lazily instead of shipping in the page's initial bundle. Biggest single win on that page.
+  - **ZeroProof lobby**: the bankroll-trend chart (`StackedLineChart`) only appears on the "Your record" tab, so it's deferred with a skeleton.
+  - **NBA stats**: the player-compare panel (recharts, behind a toggle) now mounts only when opened, so recharts never loads for someone who never compares.
+  Only genuinely heavy, non-first-paint code was split — the Three.js world/particles canvases were already lazy and were left as-is, and the vitals chart (a server component) was deliberately not forced into an `ssr: false` split. Covered by the existing gallery/board tests (they assert headings and cards, which still render synchronously). A dated write-up is on the vitals thoughts page.
 ## 2026-09-15 - version 6.17.1
 
 - **The session-timeout toast clears after the first time.** It was a pure function of the `?authError` in the URL, which nothing ever removed — so after it showed once, navigating away and back (or the back button) re-raised it every time, because dismissing was only local state. It now captures the message into state on mount and strips `authError` from the URL with `router.replace` (no new history entry, other params kept), so it shows exactly once per timeout and returning to the page is silent.
