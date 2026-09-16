@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -23,10 +23,38 @@ const AUTO_DISMISS_MS = 6_000;
  * doesn't rewrite the URL or break the back button, mirroring InterviewNotice.
  */
 export default function AuthErrorToast() {
-  const code = useSearchParams().get("authError");
-  const message = code ? MESSAGES[code] : undefined;
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [message, setMessage] = useState<string | undefined>(undefined);
   const [dismissed, setDismissed] = useState(false);
+  const handled = useRef(false);
   const reduceMotion = useHubReducedMotion();
+
+  // Read ?authError once, hold its message in state, then strip the param from
+  // the URL. Without this the toast is a pure function of the URL, so it fires
+  // again every time the reader lands back on a page still carrying the param
+  // (the back button, an in-app link). replace (not push) keeps the back button
+  // working; the message lives in state so cleaning the URL doesn't hide it. The
+  // handled ref makes it strictly once per mount, so it can't re-raise itself if
+  // the URL hasn't updated yet (and a real auth redirect is a fresh mount).
+  useEffect(() => {
+    if (handled.current) return;
+    const code = searchParams.get("authError");
+    const next = code ? MESSAGES[code] : undefined;
+    if (!next) return;
+    handled.current = true;
+    const params = new URLSearchParams(searchParams);
+    params.delete("authError");
+    const qs = params.toString();
+    // Deferred so the effect never sets state synchronously (the codebase's rule
+    // for this) — one frame's delay before the toast is imperceptible.
+    const raf = requestAnimationFrame(() => {
+      setMessage(next);
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [searchParams, router, pathname]);
 
   useEffect(() => {
     if (!message) return;

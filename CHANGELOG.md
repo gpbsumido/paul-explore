@@ -7,6 +7,13 @@
   - **ZeroProof lobby**: the bankroll-trend chart (`StackedLineChart`) only appears on the "Your record" tab, so it's deferred with a skeleton.
   - **NBA stats**: the player-compare panel (recharts, behind a toggle) now mounts only when opened, so recharts never loads for someone who never compares.
   Only genuinely heavy, non-first-paint code was split — the Three.js world/particles canvases were already lazy and were left as-is, and the vitals chart (a server component) was deliberately not forced into an `ssr: false` split. Covered by the existing gallery/board tests (they assert headings and cards, which still render synchronously). A dated write-up is on the vitals thoughts page.
+## 2026-09-15 - version 6.17.1
+
+- **The session-timeout toast clears after the first time.** It was a pure function of the `?authError` in the URL, which nothing ever removed — so after it showed once, navigating away and back (or the back button) re-raised it every time, because dismissing was only local state. It now captures the message into state on mount and strips `authError` from the URL with `router.replace` (no new history entry, other params kept), so it shows exactly once per timeout and returning to the page is silent.
+
+## 2026-09-15 - version 6.18.0
+
+- **The ZeroProof board date filter is a calendar range now.** The single-day dropdown became a From/To pair of native `<input type="date">` calendar pickers, so you can filter the board to a date range instead of one day. `BoardFilters.day` became inclusive `from`/`to` local-day bounds (either open-ended; an inverted range is normalized so the two dates work in any order), the range overrides the rolling horizon as before, and the status line echoes the chosen range. Dropped the now-unused `availableDays`; covered by `boardFilters.test.ts` (`dateRangeActive`/`inDateRange` bounds, inclusivity, normalization) and board integration tests that drive the date inputs.
 
 ## 2026-09-15 - version 6.17.0
 

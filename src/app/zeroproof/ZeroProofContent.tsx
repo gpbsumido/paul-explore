@@ -42,12 +42,13 @@ import {
   playerHandle,
   sortMarkets,
 } from "@/lib/zeroproof/format";
+import Input from "@/components/ui/Input";
 import {
   type BoardFilters,
   type BoardOddsFilter,
   type BoardTypeFilter,
-  availableDays,
   availableSports,
+  dateRangeActive,
   dayLabel,
   DEFAULT_BOARD_FILTERS,
   fantasyLabel,
@@ -347,9 +348,14 @@ function Slate({
     return true;
   });
   const sportOptions = availableSports(typeScopedEvents);
-  const dayOptions = availableDays(allEvents);
   const filtersActive = hasActiveFilters(boardFilters);
-  const selectedDayLabel = dayOptions.find((day) => day.key === boardFilters.day)?.label;
+  const rangeActive = dateRangeActive(boardFilters);
+  const dateSummary = [
+    boardFilters.from && `from ${boardFilters.from}`,
+    boardFilters.to && `to ${boardFilters.to}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
   const clearFilters = () => setBoardFilters(DEFAULT_BOARD_FILTERS);
 
   // Auto lazy-load: when the toggle is on, extend the horizon as the sentinel at
@@ -448,28 +454,30 @@ function Slate({
                 </>
               )}
 
-              {dayOptions.length > 1 && (
-                <>
-                  <label className="sr-only" htmlFor="board-filter-date">
-                    Date
-                  </label>
-                  <select
-                    id="board-filter-date"
-                    className={filterSelect}
-                    value={boardFilters.day}
-                    onChange={(event) =>
-                      setBoardFilters((filters) => ({ ...filters, day: event.target.value }))
-                    }
-                  >
-                    <option value="all">All dates</option>
-                    {dayOptions.map((day) => (
-                      <option key={day.key} value={day.key}>
-                        {day.label}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              )}
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted">Dates</span>
+                <Input
+                  label="From date"
+                  hideLabel
+                  type="date"
+                  size="sm"
+                  value={boardFilters.from}
+                  onChange={(event) =>
+                    setBoardFilters((filters) => ({ ...filters, from: event.target.value }))
+                  }
+                />
+                <span className="text-xs text-muted">to</span>
+                <Input
+                  label="To date"
+                  hideLabel
+                  type="date"
+                  size="sm"
+                  value={boardFilters.to}
+                  onChange={(event) =>
+                    setBoardFilters((filters) => ({ ...filters, to: event.target.value }))
+                  }
+                />
+              </div>
 
               <label className="sr-only" htmlFor="board-filter-odds">
                 Odds
@@ -500,12 +508,12 @@ function Slate({
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted" aria-live="polite">
-                {boardFilters.day !== "all"
-                  ? `Showing games on ${selectedDayLabel ?? "the selected day"}`
+                {rangeActive
+                  ? `Showing games ${dateSummary}`
                   : `Showing games in the next ${daysAhead} days`}
                 {` — ${visibleEvents.length} ${visibleEvents.length === 1 ? "game" : "games"}`}
               </p>
-              {boardFilters.day === "all" && (
+              {!rangeActive && (
                 <div className="flex flex-wrap items-center gap-3">
                   {daysAhead > HORIZON_STEP_DAYS && (
                     <button
