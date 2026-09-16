@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "6.17.3",
+  "version": "6.18.0",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
