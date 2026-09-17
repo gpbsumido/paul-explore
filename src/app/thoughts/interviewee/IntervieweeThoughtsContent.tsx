@@ -49,37 +49,56 @@ export default function IntervieweeThoughtsContent() {
           >
             /interviewee
           </Link>{" "}
-          shows topic cards, a card opens the bullet-point answers with the
-          detail tucked behind a disclosure, and the whole thing is driven by
-          one data shape so I can paste in a fresh batch of prep notes and have
-          the pages just work. It&rsquo;s one of the tools on the{" "}
+          is organised by job interview &mdash; pick one, and it shows the
+          topics for that round; pick a topic, and it opens the bullet-point
+          answers with the detail tucked behind a disclosure. The whole thing is
+          driven by one data shape, so I can paste in a fresh batch of prep notes
+          and have the pages just work. It&rsquo;s an admin-only tool on the{" "}
           <Link
             href="/"
             className="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
           >
             dashboard
-          </Link>
-          . This is the write-up on why it&rsquo;s built the way it is.
+          </Link>{" "}
+          &mdash; the content is mine to rehearse, not to publish. This is the
+          write-up on why it&rsquo;s built the way it is.
         </>
       }
     >
       <Section title="One shape, fed from markdown">
         <p>
-          The thing I wanted was not a page, it was a format. Everything the deck
-          renders comes from a single{" "}
-          <C>IntervieweeTopic</C> array &mdash; an id, a title, a one-line
-          summary, a list of questions each with headline points and optional
-          detail, and the ids of related topics. The schema lives in{" "}
-          <C>src/lib/interviewee/types.ts</C> and is the trust boundary: a test
-          parses every topic against it, so a malformed paste fails a test rather
-          than a page.
+          The thing I wanted was not a page, it was a format. The deck is
+          organised by job interview: an <C>Interview</C> owns a list of{" "}
+          <C>IntervieweeTopic</C>s, each an id, a title, a one-line summary, a
+          list of questions with headline points and optional detail, and the
+          ids of related topics in the same interview. The schemas live in{" "}
+          <C>src/lib/interviewee/types.ts</C> and are the trust boundary: a test
+          parses every interview against them, so a malformed paste fails a test
+          rather than a page.
         </p>
         <p className="mt-3">
           That means the workflow is: write notes in the markdown template, hand
-          them over to be transformed into <C>topics.data.ts</C>, and the deck,
-          the topic pages, the related cards, and the keyboard shortcuts all come
-          out the other side for free. The format is the feature; the pages are
-          just a view of it.
+          them over to be transformed into <C>interviews.data.ts</C>, and the
+          deck, the interview pages, the topic pages, the related cards, and the
+          keyboard shortcuts all come out the other side for free. The format is
+          the feature; the pages are just a view of it. Related ids resolve{" "}
+          <em>within</em> an interview, so the same topic slug can mean different
+          things in two different rounds.
+        </p>
+      </Section>
+
+      <Section title="Behind sign-in, because the content is mine">
+        <p>
+          The prep notes are personal &mdash; my actual answers for a specific
+          company&rsquo;s round &mdash; so the whole feature is admin-only, gated
+          exactly like the to-do list. The route is in the session-protected
+          prefixes (a signed-out visitor lands on login with a{" "}
+          <C>returnTo</C>), and every page then re-checks the admin allowlist and{" "}
+          <C>notFound()</C>s anyone else &mdash; a 404 rather than a 403, so the
+          page&rsquo;s existence isn&rsquo;t confirmed. Because the pages read the
+          session, they&rsquo;re <C>force-dynamic</C> and dropped from the public
+          route list, so nothing about them reaches the sitemap. The write-up you
+          are reading stays public; the deck itself does not.
         </p>
       </Section>
 
@@ -127,14 +146,16 @@ export default function IntervieweeThoughtsContent() {
 
       <WhatsNext
         nowShipped={[
-          "A deck at /interviewee driven by one IntervieweeTopic shape, with topic pages, related-card hops, and a back route.",
-          "Number and arrow-key navigation, plus Esc to return to the deck.",
-          "Answered topics demoted but kept reachable, persisted per device.",
-          "A markdown template so a batch of notes transforms straight into the data.",
+          "An admin-only deck at /interviewee organised by job interview, driven by one Interview/IntervieweeTopic shape.",
+          "Interview pages, topic pages with expandable detail, related-card hops within an interview, and back routes at each level.",
+          "Number and arrow-key navigation at every level, plus Esc to return from a topic to its interview.",
+          "Reviewed topics demoted but kept reachable, persisted per device and keyed by interview + topic.",
+          "The Sardine hiring-manager round loaded in, plus a general-practice interview, from the markdown template.",
         ]}
         couldImprove={[
-          "Search or a tag filter would help once the deck grows past a screen.",
-          "A spaced-repetition nudge could resurface a topic I marked answered a while ago.",
+          "Search or a tag filter would help once an interview grows past a screen.",
+          "A spaced-repetition nudge could resurface a topic I marked reviewed a while ago.",
+          "The reviewed count on the deck is per device — syncing it to my account would let me pick up on another machine.",
         ]}
         upcoming={[
           "Nothing scheduled — it does what I need for the next round of interviews.",

@@ -207,7 +207,7 @@ export const THOUGHTS: ThoughtItem[] = [
     title: "Interviewee",
     href: "/thoughts/interviewee",
     preview:
-      "An interview-prep deck built around one data shape: topic cards fed from a markdown template, bullet-point answers with expandable detail, number and arrow-key navigation, and answered topics demoted but kept reachable",
+      "An admin-only interview-prep deck organised by job interview and built around one data shape: topics fed from a markdown template, bullet-point answers with expandable detail, number and arrow-key navigation, and reviewed topics demoted but kept",
     color: "#b07d3c",
   },
   {
