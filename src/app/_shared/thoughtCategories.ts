@@ -8,6 +8,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   {
     name: "Features",
     slugs: [
+      "interviewee",
       "budget",
       "updates",
       "research-explorer",
