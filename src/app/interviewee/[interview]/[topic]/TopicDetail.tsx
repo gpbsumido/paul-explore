@@ -6,8 +6,9 @@ import { useEffect } from "react";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
 import type { IntervieweeEntry, IntervieweeTopic } from "@/lib/interviewee/types";
-import { useAnswered } from "../useAnswered";
-import TopicCardGrid, { type TopicCard } from "../TopicCardGrid";
+import { useAnswered } from "../../useAnswered";
+import { answeredKey } from "../../answeredKey";
+import TopicCardGrid, { type TopicCard } from "../../TopicCardGrid";
 
 /** True when focus is in a field, so the shortcuts don't fight what I'm typing. */
 function isTyping(): boolean {
@@ -53,21 +54,25 @@ function Entry({ entry }: { entry: IntervieweeEntry }) {
 }
 
 /**
- * A single topic: the questions with their points and expandable detail, a way
- * back to the deck, and the related topics as cards. Esc (or Backspace) drops
- * back to the deck; the related cards keep their number quick-jump so I can hop
- * sideways without returning to the deck first.
+ * A single topic within an interview: the questions with their points and
+ * expandable detail, a way back to the interview, and the related topics as
+ * cards. Esc (or Backspace) drops back to the interview; the related cards keep
+ * their number quick-jump so I can hop sideways without going back first.
  */
 export default function TopicDetail({
+  interviewId,
   topic,
   related,
 }: {
+  interviewId: string;
   topic: IntervieweeTopic;
   related: IntervieweeTopic[];
 }) {
   const router = useRouter();
+  const backHref = `/interviewee/${interviewId}`;
   const { isAnswered, toggle } = useAnswered();
-  const answered = isAnswered(topic.id);
+  const key = answeredKey(interviewId, topic.id);
+  const answered = isAnswered(key);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -76,16 +81,16 @@ export default function TopicDetail({
       if (isTyping()) return;
       if (event.key === "Escape" || event.key === "Backspace") {
         event.preventDefault();
-        router.push("/interviewee");
+        router.push(backHref);
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [router]);
+  }, [router, backHref]);
 
   const relatedCards: TopicCard[] = related.map((sibling, index) => ({
     id: sibling.id,
-    href: `/interviewee/${sibling.id}`,
+    href: `/interviewee/${interviewId}/${sibling.id}`,
     title: sibling.title,
     summary: sibling.summary,
     number: index < 9 ? index + 1 : undefined,
@@ -105,18 +110,18 @@ export default function TopicDetail({
       <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
         <div className="mb-6 flex items-center justify-between gap-4">
           <Link
-            href="/interviewee"
+            href={backHref}
             className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
-            <span aria-hidden="true">←</span> All topics
+            <span aria-hidden="true">←</span> Back to interview
           </Link>
           <button
             type="button"
-            onClick={() => toggle(topic.id)}
+            onClick={() => toggle(key)}
             aria-pressed={answered}
             className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-muted transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
-            {answered ? "Answered — bring back" : "Mark answered"}
+            {answered ? "Reviewed — bring back" : "Mark reviewed"}
           </button>
         </div>
 
@@ -132,7 +137,7 @@ export default function TopicDetail({
             <kbd className="rounded bg-surface px-1.5 py-0.5 font-mono text-xs text-foreground">
               Esc
             </kbd>{" "}
-            for the deck. Numbers open a related topic below.
+            for the interview. Numbers open a related topic below.
           </p>
         </header>
 

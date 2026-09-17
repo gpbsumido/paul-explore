@@ -7,7 +7,7 @@ import type { IntervieweeTopic } from "@/lib/interviewee/types";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/interviewee/system-design",
+  usePathname: () => "/interviewee/general/system-design",
   useRouter: () => ({ push }),
 }));
 
@@ -46,7 +46,7 @@ beforeEach(() => {
 
 describe("TopicDetail", () => {
   it("shows the topic title and each question with its bullet points", () => {
-    render(<TopicDetail topic={topic} related={related} />);
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
     expect(
       screen.getByRole("heading", { level: 1, name: /System Design/ }),
     ).toBeInTheDocument();
@@ -57,44 +57,46 @@ describe("TopicDetail", () => {
   });
 
   it("tucks the deeper detail behind an expandable disclosure", () => {
-    render(<TopicDetail topic={topic} related={related} />);
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
     const detail =
       "The write path is append-only; the read path is a cache lookup.";
     expect(screen.getByText(detail).closest("details")).not.toBeNull();
   });
 
-  it("offers a way back to the deck", () => {
-    render(<TopicDetail topic={topic} related={related} />);
-    const back = screen.getByRole("link", { name: /all topics|back to/i });
-    expect(back).toHaveAttribute("href", "/interviewee");
+  it("offers a way back to the interview", () => {
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
+    const back = screen.getByRole("link", { name: /back to interview/i });
+    expect(back).toHaveAttribute("href", "/interviewee/general");
   });
 
-  it("returns to the deck when Escape is pressed", async () => {
+  it("returns to the interview when Escape is pressed", async () => {
     const user = userEvent.setup();
-    render(<TopicDetail topic={topic} related={related} />);
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
     await user.keyboard("{Escape}");
-    expect(push).toHaveBeenCalledWith("/interviewee");
+    expect(push).toHaveBeenCalledWith("/interviewee/general");
   });
 
-  it("shows related topics as cards that link to their pages", () => {
-    render(<TopicDetail topic={topic} related={related} />);
+  it("shows related topics as cards scoped to the same interview", () => {
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
     expect(
       screen.getByRole("link", { name: /APIs and Backend/ }),
-    ).toHaveAttribute("href", "/interviewee/apis");
+    ).toHaveAttribute("href", "/interviewee/general/apis");
     expect(
       screen.getByRole("link", { name: /Frontend and React/ }),
-    ).toHaveAttribute("href", "/interviewee/frontend");
+    ).toHaveAttribute("href", "/interviewee/general/frontend");
   });
 
   it("jumps to a related topic when its number key is pressed", async () => {
     const user = userEvent.setup();
-    render(<TopicDetail topic={topic} related={related} />);
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
     await user.keyboard("2");
-    expect(push).toHaveBeenCalledWith("/interviewee/frontend");
+    expect(push).toHaveBeenCalledWith("/interviewee/general/frontend");
   });
 
   it("has no accessibility violations", async () => {
-    const { container } = render(<TopicDetail topic={topic} related={related} />);
+    const { container } = render(
+      <TopicDetail interviewId="general" topic={topic} related={related} />,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 });

@@ -47,7 +47,6 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/flags",
   "/gallery-wall",
   "/graphql",
-  "/interviewee",
   "/lab",
   "/lab/motion",
   "/lab/particles",

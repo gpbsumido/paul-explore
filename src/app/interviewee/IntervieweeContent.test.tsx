@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import IntervieweeContent from "./IntervieweeContent";
-import type { IntervieweeTopic } from "@/lib/interviewee/types";
+import type { Interview } from "@/lib/interviewee/types";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -11,26 +11,16 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
-// The shell chrome pulls in the session menu and the animated backdrop, neither
-// of which this component owns. Stub them so the test scans the deck itself.
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 vi.mock("@/components/PageShell", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const topic = (over: Partial<IntervieweeTopic> = {}): IntervieweeTopic => ({
-  id: "system-design",
-  title: "System Design",
-  summary: "How I reason about scale, storage, and trade-offs.",
-  entries: [{ question: "Design a URL shortener", points: ["Hash the id"] }],
-  related: [],
-  ...over,
-});
+const topic = { id: "t1", title: "Topic One", summary: "s", entries: [{ question: "q", points: ["p"] }], related: [] };
 
-const TOPICS: IntervieweeTopic[] = [
-  topic({ id: "system-design", title: "System Design" }),
-  topic({ id: "apis", title: "APIs and Backend" }),
-  topic({ id: "frontend", title: "Frontend and React" }),
+const INTERVIEWS: Interview[] = [
+  { id: "sardine-2-hiring-manager", title: "Sardine Interview 2: Hiring manager", summary: "Senior frontend deep dive.", topics: [topic] },
+  { id: "general", title: "General practice", summary: "Warm-up.", topics: [topic, { ...topic, id: "t2" }] },
 ];
 
 beforeEach(() => {
@@ -39,68 +29,41 @@ beforeEach(() => {
 });
 
 describe("IntervieweeContent", () => {
-  it("shows the deck heading and a card for every topic", () => {
-    render(<IntervieweeContent topics={TOPICS} />);
+  it("shows the deck heading and a card for every interview", () => {
+    render(<IntervieweeContent interviews={INTERVIEWS} />);
     expect(
       screen.getByRole("heading", { level: 1, name: /interviewee/i }),
     ).toBeInTheDocument();
-    for (const t of TOPICS) {
-      expect(screen.getByRole("link", { name: new RegExp(t.title) })).toHaveAttribute(
-        "href",
-        `/interviewee/${t.id}`,
-      );
+    for (const iv of INTERVIEWS) {
+      expect(
+        screen.getByRole("link", { name: new RegExp(iv.title) }),
+      ).toHaveAttribute("href", `/interviewee/${iv.id}`);
     }
   });
 
-  it("jumps to the nth topic when its number key is pressed", async () => {
+  it("opens the nth interview when its number key is pressed", async () => {
     const user = userEvent.setup();
-    render(<IntervieweeContent topics={TOPICS} />);
+    render(<IntervieweeContent interviews={INTERVIEWS} />);
     await user.keyboard("2");
-    expect(push).toHaveBeenCalledWith("/interviewee/apis");
+    expect(push).toHaveBeenCalledWith("/interviewee/general");
   });
 
-  it("moves focus across cards with the arrow keys", async () => {
+  it("moves focus across interview cards with the arrow keys", async () => {
     const user = userEvent.setup();
-    render(<IntervieweeContent topics={TOPICS} />);
-    const first = screen.getByRole("link", { name: /System Design/ });
-    first.focus();
+    render(<IntervieweeContent interviews={INTERVIEWS} />);
+    screen.getByRole("link", { name: /Sardine/ }).focus();
     await user.keyboard("{ArrowRight}");
-    expect(screen.getByRole("link", { name: /APIs and Backend/ })).toHaveFocus();
+    expect(screen.getByRole("link", { name: /General practice/ })).toHaveFocus();
   });
 
-  it("demotes a topic to the answered list but keeps it reachable, and can bring it back", async () => {
-    const user = userEvent.setup();
-    render(<IntervieweeContent topics={TOPICS} />);
-
-    const review = screen.getByRole("region", { name: /to review/i });
-    expect(
-      within(review).getByRole("link", { name: /System Design/ }),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: /mark system design answered/i }),
-    );
-
-    const answered = screen.getByRole("region", { name: /answered/i });
-    expect(
-      within(answered).getByRole("link", { name: /System Design/ }),
-    ).toBeInTheDocument();
-    expect(
-      within(review).queryByRole("link", { name: /System Design/ }),
-    ).not.toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: /bring system design back/i }),
-    );
-    expect(
-      within(screen.getByRole("region", { name: /to review/i })).getByRole("link", {
-        name: /System Design/,
-      }),
-    ).toBeInTheDocument();
+  it("shows a reviewed count per interview", () => {
+    render(<IntervieweeContent interviews={INTERVIEWS} />);
+    // General has two topics, none reviewed yet.
+    expect(screen.getByText("0/2 reviewed")).toBeInTheDocument();
   });
 
   it("has no accessibility violations", async () => {
-    const { container } = render(<IntervieweeContent topics={TOPICS} />);
+    const { container } = render(<IntervieweeContent interviews={INTERVIEWS} />);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
