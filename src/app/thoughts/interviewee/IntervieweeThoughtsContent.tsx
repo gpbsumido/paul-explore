@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline monospace token, matching the code styling across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -144,6 +144,49 @@ export default function IntervieweeThoughtsContent() {
         </p>
       </Section>
 
+      <Update
+        id="update-2026-09-17-search"
+        date="September 17, 2026"
+        title="I'd filed search under someday. It was a pure function and a text box."
+      >
+        <p>
+          The closing block below used to list &ldquo;search or a tag
+          filter&rdquo; as a someday. The first time an interview grew past a
+          screen I wanted it immediately, and it turned out to be small.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The match had to go all the way down, not just titles.
+        </h3>
+        <p className="text-muted">
+          Searching &ldquo;performance&rdquo; and only matching a topic called
+          Performance would miss the point a paragraph deep in the refactor
+          topic. So the searchable text for a topic is everything: the interview
+          it sits in, the topic&rsquo;s title and summary, and every question,
+          point, and expandable detail &mdash; joined once and lowercased, so a
+          match is a plain substring check and every whitespace-separated term
+          has to hit (AND, so terms narrow).
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`[interview.title, interview.summary,
+ topic.title, topic.summary,
+ ...topic.entries.flatMap(e => [e.question, ...e.points, ...(e.details ?? [])])
+].join(" ").toLowerCase()`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Keeping it out of the keyboard&rsquo;s way.
+        </h3>
+        <p className="text-muted">
+          The deck already grabs number and arrow keys for card nav, which would
+          fight a search box. It didn&rsquo;t, because that handler already
+          stood down whenever focus was in a field &mdash; so digits and arrows
+          type into the box, and Enter opens the top result. The search is a
+          pure function I could unit-test on its own; the deck just renders the
+          interviews when the box is empty and the hits when it isn&rsquo;t.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An admin-only deck at /interviewee organised by job interview, driven by one Interview/IntervieweeTopic shape.",
@@ -151,11 +194,12 @@ export default function IntervieweeThoughtsContent() {
           "Number and arrow-key navigation at every level, plus Esc to return from a topic to its interview.",
           "Reviewed topics demoted but kept reachable, persisted per device and keyed by interview + topic.",
           "The Sardine hiring-manager round loaded in, plus a general-practice interview, from the markdown template.",
+          "Full-text search across every interview and topic — titles and all the inner text — with Enter to open the top result.",
         ]}
         couldImprove={[
-          "Search or a tag filter would help once an interview grows past a screen.",
           "A spaced-repetition nudge could resurface a topic I marked reviewed a while ago.",
           "The reviewed count on the deck is per device — syncing it to my account would let me pick up on another machine.",
+          "Search ranks by document order, not relevance — a title hit and a deep detail hit are weighted the same.",
         ]}
         upcoming={[
           "Nothing scheduled — it does what I need for the next round of interviews.",
