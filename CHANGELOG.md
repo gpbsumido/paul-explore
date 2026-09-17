@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-17 - version 6.19.0
+
+- **Added Interviewee, a keyboard-driven interview-prep deck at `/interviewee`.** Topic cards on the deck; open one for the headline bullet-point answers with the deeper detail tucked behind a native `<details>` disclosure, plus related-topic cards that jump straight to a sibling topic and a back route to the deck. It's driven by one data shape (`IntervieweeTopic`, a Zod schema in `src/lib/interviewee/types.ts`), so a markdown file of prep notes transforms straight into `topics.data.ts` — `TOPICS_TEMPLATE.md` documents the format. Keyboard-first: number keys `1–9` jump to the Nth card, arrow keys rove focus (roving tabindex, one tab stop), Enter opens the focused card, and `Esc`/`Backspace` returns to the deck; all ignored while typing, and every card carries an `aria-keyshortcuts`. Marking a topic answered demotes it to a separate "Answered" list on the deck but keeps it openable and reversible, persisted per device in `localStorage` via the `useSyncExternalStore` pattern. Not indexed (personal prep). Covered by data-shape, reprioritisation, keyboard-nav, disclosure, related-card, and axe tests; a dev-notes write-up is at `/thoughts/interviewee`.
+
 ## 2026-09-15 - version 6.17.3
 
 - **Picked up the design-system overlay fixes for mobile.** Bumped `@paul-portfolio/react` to 0.10.4 and `@paul-portfolio/css` to 0.12.4, which fit the `GuidedTour` card and the `Tooltip` bubble to the viewport on a narrow screen instead of spilling past an edge and forcing a page scrollbar. The app renders both through the design system (the feature tours and every tooltip), so this reaches them everywhere. No app code changed — dependency + lockfile bump; the full build and the tour/showcase tests are green on the new versions.

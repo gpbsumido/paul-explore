@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-interviewee-deck",
+    date: "2026-09-17",
+    version: "6.19.0",
+    category: "feature",
+    tags: ["interviewee"],
+    title: "Interviewee — a keyboard-driven interview-prep deck",
+    summary:
+      "A new deck of interview topics you open a card at a time: bullet-point answers with the detail behind a tap, related topics a keystroke away, and answered ones demoted but kept. Number keys jump straight to a card.",
+    body: [
+      "I wanted something I could actually drive mid-interview without reaching for the mouse. So the deck is keyboard-first: number keys 1 through 9 jump straight to a topic, the arrow keys walk the cards, and Escape drops back to the deck from a topic. Each card opens the headline points with the deeper detail tucked behind a disclosure, and related topics show as cards you can hop to sideways.",
+      "The whole thing is fed from one data shape, so a page of prep notes becomes the deck without touching the UI. Marking a topic answered slides it into a separate list rather than deleting it — it's still there to reopen or pull back into rotation, remembered on your device.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-date-range",
     date: "2026-09-15",
     version: "6.18.0",
