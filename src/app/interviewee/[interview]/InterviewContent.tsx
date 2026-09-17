@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
 import type { Interview, IntervieweeTopic } from "@/lib/interviewee/types";
+import { isDueForReview } from "@/lib/interviewee/reviewState";
 import { useAnswered } from "../useAnswered";
 import { answeredKey } from "../answeredKey";
 import TopicCardGrid, { type TopicCard } from "../TopicCardGrid";
@@ -43,17 +45,32 @@ export default function InterviewContent({
 }: {
   interview: Interview;
 }) {
-  const { isAnswered, toggle } = useAnswered();
+  const { isAnswered, toggle, reviewedAt } = useAnswered();
   const key = (topic: IntervieweeTopic) => answeredKey(interview.id, topic.id);
+  // Snapshot the clock once at mount via a lazy initializer, so the due-to-
+  // revisit check doesn't read an impure Date.now() during render on every pass.
+  const [now] = useState(() => Date.now());
+  const isDue = (topic: IntervieweeTopic): boolean => {
+    const at = reviewedAt(key(topic));
+    return at !== undefined && isDueForReview(at, now);
+  };
 
   const review = interview.topics.filter((topic) => !isAnswered(key(topic)));
-  const reviewed = interview.topics.filter((topic) => isAnswered(key(topic)));
+  // Reviewed topics that have gone stale surface first, as the revisit nudge.
+  const reviewed = interview.topics
+    .filter((topic) => isAnswered(key(topic)))
+    .sort((a, b) => Number(isDue(b)) - Number(isDue(a)));
+  const dueCount = reviewed.filter(isDue).length;
 
-  const toCard = (topic: IntervieweeTopic, number?: number): TopicCard => ({
+  const toCard = (
+    topic: IntervieweeTopic,
+    number?: number,
+    summary?: string,
+  ): TopicCard => ({
     id: topic.id,
     href: `/interviewee/${interview.id}/${topic.id}`,
     title: topic.title,
-    summary: topic.summary,
+    summary: summary ?? topic.summary,
     number,
     corner: (
       <AnsweredToggle
@@ -67,7 +84,13 @@ export default function InterviewContent({
   const reviewCards = review.map((topic, index) =>
     toCard(topic, index < 9 ? index + 1 : undefined),
   );
-  const reviewedCards = reviewed.map((topic) => toCard(topic));
+  const reviewedCards = reviewed.map((topic) =>
+    toCard(
+      topic,
+      undefined,
+      isDue(topic) ? `Due to revisit — ${topic.summary}` : topic.summary,
+    ),
+  );
 
   return (
     <PageShell>
@@ -117,6 +140,11 @@ export default function InterviewContent({
           <section aria-label="Reviewed">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted">
               Reviewed
+              {dueCount > 0 ? (
+                <span className="ml-2 font-semibold normal-case tracking-normal text-primary-600 dark:text-primary-400">
+                  {dueCount} due to revisit
+                </span>
+              ) : null}
             </h2>
             <TopicCardGrid cards={reviewedCards} ariaLabel="Reviewed topics" />
           </section>

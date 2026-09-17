@@ -92,6 +92,21 @@ describe("InterviewContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("flags a stale reviewed topic as due to revisit", () => {
+    // reviewed at epoch 1000 — years ago, so well past the revisit threshold.
+    window.localStorage.setItem(
+      "interviewee-answered",
+      JSON.stringify({ reviewed: { "general/system-design": 1000 } }),
+    );
+    render(<InterviewContent interview={interview} />);
+
+    const reviewed = screen.getByRole("region", { name: /reviewed/i });
+    expect(within(reviewed).getByText("1 due to revisit")).toBeInTheDocument();
+    expect(
+      within(reviewed).getByText(/due to revisit — System Design/i),
+    ).toBeInTheDocument();
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = render(<InterviewContent interview={interview} />);
     expect(await axe(container)).toHaveNoViolations();

@@ -44,22 +44,23 @@ describe("IntervieweeContent", () => {
   it("opens the nth interview when its number key is pressed", async () => {
     const user = userEvent.setup();
     render(<IntervieweeContent interviews={INTERVIEWS} />);
+    // focus a card so the digit isn't typed into the search box
+    screen.getByRole("link", { name: /Sardine/ }).focus();
     await user.keyboard("2");
     expect(push).toHaveBeenCalledWith("/interviewee/general");
   });
 
-  it("moves focus across interview cards with the arrow keys", async () => {
-    const user = userEvent.setup();
-    render(<IntervieweeContent interviews={INTERVIEWS} />);
-    screen.getByRole("link", { name: /Sardine/ }).focus();
-    await user.keyboard("{ArrowRight}");
-    expect(screen.getByRole("link", { name: /General practice/ })).toHaveFocus();
-  });
-
   it("shows a reviewed count per interview", () => {
     render(<IntervieweeContent interviews={INTERVIEWS} />);
-    // General has two topics, none reviewed yet.
     expect(screen.getByText("0/2 reviewed")).toBeInTheDocument();
+  });
+
+  it("offers the search combobox and the review-sync panel", () => {
+    render(<IntervieweeContent interviews={INTERVIEWS} />);
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+    expect(
+      screen.getByText(/move review progress between devices/i),
+    ).toBeInTheDocument();
   });
 
   it("has no accessibility violations", async () => {

@@ -6,12 +6,15 @@ import type { Interview } from "@/lib/interviewee/types";
 import { useAnswered } from "./useAnswered";
 import { answeredKey } from "./answeredKey";
 import TopicCardGrid, { type TopicCard } from "./TopicCardGrid";
+import TopicSearchBox from "./TopicSearchBox";
+import ReviewSync from "./ReviewSync";
 
 /**
- * The deck's front page: the job interviews. Pick one to see its topics. Each
- * card shows how many of its topics I've marked reviewed, so the interview I'm
- * mid-way through is legible at a glance. Numbers 1-9 open an interview; the
- * arrow keys walk the grid.
+ * The deck's front page: a search combobox over everything, the job interviews
+ * as cards (each showing how many of its topics I've marked reviewed), and a
+ * panel to move review progress between devices. Numbers 1-9 open the cards on
+ * screen and the arrow keys walk the grid; both stand down while I'm typing in
+ * the search box.
  */
 export default function IntervieweeContent({
   interviews,
@@ -20,7 +23,7 @@ export default function IntervieweeContent({
 }) {
   const { isAnswered } = useAnswered();
 
-  const cards: TopicCard[] = interviews.map((interview, index) => {
+  const interviewCards: TopicCard[] = interviews.map((interview, index) => {
     const total = interview.topics.length;
     const reviewed = interview.topics.filter((topic) =>
       isAnswered(answeredKey(interview.id, topic.id)),
@@ -56,9 +59,12 @@ export default function IntervieweeContent({
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-muted">
             My interview prep, organised by job interview. Open one for its
-            topics, then a topic for the bullet-point answers and the detail
-            behind them.
+            topics, or search across every interview to jump straight to a topic.
           </p>
+        </header>
+
+        <div className="mb-8">
+          <TopicSearchBox interviews={interviews} />
           <p className="mt-2 text-[13px] text-muted">
             Press{" "}
             <kbd className="rounded bg-surface px-1.5 py-0.5 font-mono text-xs text-foreground">
@@ -70,14 +76,16 @@ export default function IntervieweeContent({
             </kbd>{" "}
             to open an interview, or tab in and use the arrow keys.
           </p>
-        </header>
+        </div>
 
         <section aria-label="Interviews">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted">
             Interviews
           </h2>
-          <TopicCardGrid cards={cards} ariaLabel="Job interviews" />
+          <TopicCardGrid cards={interviewCards} ariaLabel="Job interviews" />
         </section>
+
+        <ReviewSync />
       </main>
     </PageShell>
   );
