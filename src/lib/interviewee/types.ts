@@ -34,7 +34,27 @@ export const intervieweeTopicSchema = z.object({
   summary: z.string().min(1),
   /** The questions, in the order I'd rehearse them. */
   entries: z.array(intervieweeEntrySchema).min(1),
-  /** Ids of sibling topics to surface as cards on the topic page. */
+  /** Ids of sibling topics (within the same interview) to surface as cards. */
   related: z.array(z.string().min(1)).default([]),
 });
 export type IntervieweeTopic = z.infer<typeof intervieweeTopicSchema>;
+
+/**
+ * A job interview: the deck is organised by these first. Each owns its own set
+ * of topics, and related ids resolve within the interview so the same topic
+ * slug can mean different things in two different interviews.
+ */
+export const interviewSchema = z.object({
+  /** URL slug and stable id, e.g. "sardine-2-hiring-manager". */
+  id: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/, "id must be a lowercase slug"),
+  /** The label shown on the deck, e.g. "Sardine Interview 2: Hiring manager". */
+  title: z.string().min(1),
+  /** Role and context line, shown under the interview heading. */
+  summary: z.string().min(1),
+  /** The topics for this interview, in the order I'd rehearse them. */
+  topics: z.array(intervieweeTopicSchema).min(1),
+});
+export type Interview = z.infer<typeof interviewSchema>;
