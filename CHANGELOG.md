@@ -2,7 +2,12 @@
 
 ## 2026-09-17 - version 6.19.1
 
-- **Search on the Interviewee deck.** Typing on `/interviewee` filters across every interview and topic — matched against titles, summaries, and all the text inside (each question, bullet point, and the expandable detail), so searching "performance" surfaces every topic that mentions it wherever the word appears. Results are topics linking straight to their page, labelled with the interview they belong to; the interview cards show while the box is empty. Enter opens the top result, and the existing number/arrow nav stands down while the box has focus. Backed by a pure, unit-tested `searchInterviewTopics` (whitespace-split terms, AND-matched, case-insensitive) in `src/lib/interviewee/search.ts`. Admin-only like the rest of the feature. A dated update is on the `/thoughts/interviewee` write-up.
+- **Search, ranking, a revisit nudge, and device sync on the Interviewee deck.**
+  - **Search combobox.** Typing on `/interviewee` filters across every interview and topic — matched against titles, summaries, and all the text inside (each question, bullet point, and the expandable detail), so searching "performance" surfaces every topic that mentions it wherever the word appears. Matches drop into a dropdown listing topics **by title**, each labelled with its interview; arrow keys move the active option, Enter opens it, Escape closes. Backed by a pure, unit-tested `searchInterviewTopics` (whitespace-split terms, AND-matched, case-insensitive) in `src/lib/interviewee/search.ts`.
+  - **Relevance ranking.** A title match now ranks above one that only lives in a bullet point — hits are scored by how shallow the match is (title, then summary, then question, then point/detail) and sorted, so the obvious result is first.
+  - **Spaced-repetition nudge.** Reviewed topics now carry a timestamp; on an interview page, ones reviewed more than three days ago are flagged "Due to revisit" and sorted to the top of the Reviewed list, with a count in the heading.
+  - **Move progress between devices.** Reviewed state is still device-local, but a panel on the deck exports it to a portable string and imports one back (merging, never wiping) — a serverless way to carry progress to another machine. Pure `serializeReviewState`/`parseReviewState` in `src/lib/interviewee/reviewState.ts`.
+  - Admin-only like the rest of the feature. A dated update is on the `/thoughts/interviewee` write-up.
 
 ## 2026-09-17 - version 6.19.0
 

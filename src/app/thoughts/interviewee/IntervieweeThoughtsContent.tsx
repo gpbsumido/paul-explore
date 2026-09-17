@@ -185,6 +185,45 @@ export default function IntervieweeThoughtsContent() {
           pure function I could unit-test on its own; the deck just renders the
           interviews when the box is empty and the hits when it isn&rsquo;t.
         </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A title hit shouldn&rsquo;t weigh the same as a footnote.
+        </h3>
+        <p className="text-muted">
+          The first cut sorted by document order, so a topic called Performance
+          could sit below one that merely mentions the word in a bullet. The fix
+          is to score by how shallow the match is &mdash; the shallowest tier
+          whose text contains every term wins, and results sort by that rank.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`rank 0: title
+rank 1: + summary + interview
+rank 2: + questions
+rank 3: + points & details   // a match only this deep sinks`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Reviewed isn&rsquo;t forever.
+        </h3>
+        <p className="text-muted">
+          &ldquo;Reviewed&rdquo; used to be a boolean, which is a lie &mdash; I
+          forget things. So the store keeps a timestamp per topic now, and a
+          topic reviewed more than three days ago resurfaces on its interview
+          page as &ldquo;Due to revisit,&rdquo; sorted to the top of the reviewed
+          list. A small spaced-repetition nudge, no scheduler.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          No account, but still portable.
+        </h3>
+        <p className="text-muted">
+          The obvious next step for the reviewed count was &ldquo;sync it to my
+          account,&rdquo; but that means a table and an endpoint in the separate
+          backend repo &mdash; more than the need justified. The lighter answer:
+          export the map to a string, paste it on the other machine, merge. It
+          moves between my devices without a server, and a real account sync can
+          come later if I actually want it.
+        </p>
       </Update>
 
       <WhatsNext
@@ -194,12 +233,14 @@ export default function IntervieweeThoughtsContent() {
           "Number and arrow-key navigation at every level, plus Esc to return from a topic to its interview.",
           "Reviewed topics demoted but kept reachable, persisted per device and keyed by interview + topic.",
           "The Sardine hiring-manager round loaded in, plus a general-practice interview, from the markdown template.",
-          "Full-text search across every interview and topic — titles and all the inner text — with Enter to open the top result.",
+          "Full-text search across every interview and topic — titles and all the inner text — in a ranked dropdown, with Enter to open the top result.",
+          "A spaced-repetition nudge: topics reviewed more than three days ago flagged 'Due to revisit' and floated up their interview's reviewed list.",
+          "Export/import of reviewed progress, so it moves between my devices without a server.",
         ]}
         couldImprove={[
-          "A spaced-repetition nudge could resurface a topic I marked reviewed a while ago.",
-          "The reviewed count on the deck is per device — syncing it to my account would let me pick up on another machine.",
-          "Search ranks by document order, not relevance — a title hit and a deep detail hit are weighted the same.",
+          "Ranking is coarse tiers, not real scoring — term frequency or proximity would order the deep matches better.",
+          "The revisit threshold is a flat three days; a proper schedule would space repeats out as a topic sticks.",
+          "Export/import is manual — a real account-backed sync (an endpoint in the backend repo) would make it automatic across devices.",
         ]}
         upcoming={[
           "Nothing scheduled — it does what I need for the next round of interviews.",
