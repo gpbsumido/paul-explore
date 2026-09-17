@@ -101,4 +101,21 @@ describe("searchInterviewTopics", () => {
   it("returns no matches for a term that appears nowhere", () => {
     expect(searchInterviewTopics(interviews, "kubernetes")).toEqual([]);
   });
+
+  it("ranks a title match above a match that only lives in a deep detail", () => {
+    // 'performance': acme/perf matches on its TITLE ("Performance"); globex/refactor
+    // matches only inside a point. The title hit should come first.
+    const hits = searchInterviewTopics(interviews, "performance");
+    expect(hits.map((h) => `${h.interviewId}/${h.topic.id}`)).toEqual([
+      "acme/perf",
+      "globex/refactor",
+    ]);
+    expect(hits[0].rank).toBeLessThan(hits[1].rank);
+  });
+
+  it("gives a title-only match rank 0", () => {
+    const [hit] = searchInterviewTopics(interviews, "testing");
+    expect(hit.topic.id).toBe("testing");
+    expect(hit.rank).toBe(0);
+  });
 });
