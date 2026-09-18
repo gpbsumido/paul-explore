@@ -7,7 +7,12 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
@@ -64,6 +69,7 @@ import {
   hasActiveFilters,
   hasMoreBeyondHorizon,
   isFantasySport,
+  isPastFixture,
 } from "@/lib/zeroproof/boardFilters";
 
 /**
@@ -159,12 +165,15 @@ function EventCard({
   selected,
   onPick,
   bets,
+  readOnly = false,
 }: {
   event: ZeroproofEvent;
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
   /** The caller's own bets on this fixture, if any. */
   bets: ZeroproofBet[];
+  /** A past fixture: shown for reference, with lines you can't bet. */
+  readOnly?: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
   return (
@@ -186,6 +195,11 @@ function EventCard({
           {fantasyLabel(event.sport) && (
             <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
               {fantasyLabel(event.sport)}
+            </span>
+          )}
+          {readOnly && (
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+              Final
             </span>
           )}
         </div>
@@ -242,6 +256,24 @@ function EventCard({
               </h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {market.outcomes.map((outcome) => {
+                  const key = `${outcome.name}-${outcome.point ?? ""}`;
+                  if (readOnly) {
+                    const line = formatPoint(outcome.point);
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2 text-sm"
+                      >
+                        <span className="truncate text-muted">
+                          {outcome.name}
+                          {line && <span className="ml-1">{line}</span>}
+                        </span>
+                        <span className="font-mono tabular-nums text-muted">
+                          {formatAmerican(outcome.priceAmerican)}
+                        </span>
+                      </div>
+                    );
+                  }
                   const isSelected =
                     selected !== null &&
                     selected.eventId === event.id &&
@@ -249,7 +281,7 @@ function EventCard({
                     selected.selection === outcome.name;
                   return (
                     <OutcomeButton
-                      key={`${outcome.name}-${outcome.point ?? ""}`}
+                      key={key}
                       name={outcome.name}
                       point={outcome.point}
                       price={outcome.priceAmerican}
@@ -277,6 +309,10 @@ function EventCard({
 }
 
 const HORIZON_STEP_DAYS = 3;
+// Past fixtures reveal in bigger steps than the upcoming horizon — it's browsing
+// history, not the active betting window — up to a 3-month cap the backend serves.
+const PAST_STEP_DAYS = 14;
+const MAX_PAST_DAYS = 90;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const controlButton =
   "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
@@ -307,11 +343,25 @@ function Slate({
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
 }) {
+  // Whether the board also shows recent finished fixtures, and how far back —
+  // grown in steps as you load earlier, up to the 3-month cap.
+  const [includePast, setIncludePast] = useState(false);
+  const [daysBack, setDaysBack] = useState(0);
+
   const eventsQuery = useQuery({
-    queryKey: queryKeys.zeroproof.events(),
-    queryFn: () => getJson("/api/zeroproof/events"),
+    // daysBack is in the key so widening the past window refetches; the backend
+    // returns just that window (?pastDays), so we fetch what we show, not 3
+    // months up front. keepPreviousData holds the board steady while it loads.
+    queryKey: [...queryKeys.zeroproof.events(), { includePast, daysBack }],
+    queryFn: () =>
+      getJson(
+        includePast
+          ? `/api/zeroproof/events?include=past&pastDays=${daysBack}`
+          : "/api/zeroproof/events",
+      ),
     select: (json) => eventsResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   // How far out the board reaches, in days. Starts at 3 and grows by 3 each
@@ -342,9 +392,12 @@ function Slate({
   const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
   const allEvents = eventsQuery.data?.events ?? [];
 
-  const horizonCtx = { now, daysAhead, dayMs: DAY_MS, betEventIds };
+  const horizonCtx = { now, daysAhead, daysBack, dayMs: DAY_MS, betEventIds };
   const visibleEvents = filterBoardEvents(allEvents, boardFilters, horizonCtx);
   const hasMore = hasMoreBeyondHorizon(allEvents, boardFilters, horizonCtx);
+  // We only fetch the window we're showing, so the loaded data can't tell us
+  // whether older fixtures exist — offer "load earlier" until the 3-month cap.
+  const hasEarlier = includePast && daysBack < MAX_PAST_DAYS;
   const dayGroups = groupEventsByDay(visibleEvents);
 
   // The sport options are narrowed by the type filter, so the two can never
@@ -507,6 +560,20 @@ function Slate({
                 <option value="even">Even matchups</option>
               </select>
 
+              <label className="flex items-center gap-2 text-xs text-foreground">
+                <input
+                  type="checkbox"
+                  checked={includePast}
+                  onChange={(event) => {
+                    const on = event.target.checked;
+                    setIncludePast(on);
+                    setDaysBack(on ? PAST_STEP_DAYS : 0);
+                  }}
+                  className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                />
+                Show past fixtures
+              </label>
+
               {filtersActive && (
                 <button type="button" onClick={clearFilters} className={controlButton}>
                   Clear filters
@@ -569,6 +636,7 @@ function Slate({
                         selected={selected}
                         onPick={onPick}
                         bets={betsByEvent.get(event.id) ?? []}
+                        readOnly={isPastFixture(event, now)}
                       />
                     ))}
                   </ul>
@@ -593,6 +661,22 @@ function Slate({
                   Load more games
                 </button>
               )}
+            </div>
+          )}
+
+          {hasEarlier && (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() =>
+                  setDaysBack((days) =>
+                    Math.min(days + PAST_STEP_DAYS, MAX_PAST_DAYS),
+                  )
+                }
+                className={controlButton}
+              >
+                Load earlier fixtures
+              </button>
             </div>
           )}
         </>

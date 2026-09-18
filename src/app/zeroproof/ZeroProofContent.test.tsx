@@ -97,12 +97,12 @@ const PROFILE = {
 const renderPage = (
   meResponse: () => Response = () => new HttpResponse(null, { status: 401 }),
   betsResponse: () => Response = () => HttpResponse.json({ bets: [] }),
-  eventsResponse: () => Response = () => HttpResponse.json(EVENTS),
+  eventsResponse: (request?: Request) => Response = () => HttpResponse.json(EVENTS),
   myLeaguesResponse: () => Response = () => HttpResponse.json({ leagues: [] }),
   discoverResponse: () => Response = () => HttpResponse.json({ leagues: [] }),
 ) => {
   server.use(
-    http.get("/api/zeroproof/events", () => eventsResponse()),
+    http.get("/api/zeroproof/events", ({ request }) => eventsResponse(request)),
     http.get("/api/zeroproof/leaderboard", () =>
       HttpResponse.json(LEADERBOARD),
     ),
@@ -1093,3 +1093,65 @@ describe("ZeroProofContent — wallet error toast", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("ZeroProofContent — past fixtures", () => {
+  const SLATE_NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(SLATE_NOW);
+  });
+  afterEach(() => nowSpy.mockRestore());
+
+  const PAST_EVENT = {
+    id: "past-1",
+    sport: "basketball_nba",
+    home: "Suns",
+    away: "Nuggets",
+    commenceTime: "2026-09-02T23:00:00.000Z",
+    status: "final",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: "2026-09-02T20:00:00.000Z",
+        outcomes: [
+          { name: "Suns", priceAmerican: -120 },
+          { name: "Nuggets", priceAmerican: 110 },
+        ],
+      },
+    ],
+  };
+
+  it("reveals recent past fixtures, read-only, and widens the window as you load earlier", async () => {
+    const pastDaysRequested: (string | null)[] = [];
+    renderPage(undefined, undefined, (request) => {
+      const url = request ? new URL(request.url) : null;
+      const includePast = url?.searchParams.get("include") === "past";
+      if (includePast) pastDaysRequested.push(url!.searchParams.get("pastDays"));
+      return HttpResponse.json({
+        events: includePast ? [...EVENTS.events, PAST_EVENT] : EVENTS.events,
+      });
+    });
+
+    // Wait for the upcoming board to load.
+    await screen.findByRole("heading", { name: /Celtics/ });
+    // The upcoming board doesn't include the finished game yet.
+    expect(screen.queryByRole("heading", { name: /Nuggets/ })).toBeNull();
+
+    fireEvent.click(
+      await screen.findByRole("checkbox", { name: /show past fixtures/i }),
+    );
+
+    // It shows up, badged Final, with static lines (no bet button for it).
+    expect(
+      await screen.findByRole("heading", { name: /Nuggets/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Final")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Suns/ })).toBeNull();
+    // The first past fetch asked for just the initial 2-week window.
+    expect(pastDaysRequested).toContain("14");
+
+    // Loading earlier widens the requested window rather than pulling 3 months.
+    fireEvent.click(screen.getByRole("button", { name: /load earlier/i }));
+    await waitFor(() => expect(pastDaysRequested).toContain("28"));
+  });
+})
