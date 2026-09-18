@@ -500,6 +500,200 @@
     );
 }
 
+/* ---------------------------------------------------------------------------
+   Motion primitives — ReactBits/OriginKit-style effects and an iOS Liquid
+   Glass surface, reimplemented on the design tokens rather than pulled from a
+   library. Components live in src/components/motion. Every animation is
+   disabled under prefers-reduced-motion; the static look (border, glass,
+   layout) survives so nothing here depends on movement.
+   --------------------------------------------------------------------------- */
+
+/* BlurReveal — text/blocks resolve from a blur as they rise into place. */
+@keyframes motion-blur-reveal {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+.motion-blur-reveal {
+  animation: motion-blur-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* ShineSweep — a specular bar travels diagonally across the element. */
+@keyframes motion-shine {
+  0% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+.motion-shine {
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--color-foreground) 22%, transparent),
+    transparent
+  );
+  animation: motion-shine 2.6s ease-in-out infinite;
+}
+
+/* SpotlightCard — a soft glow follows the pointer via --spot-x/--spot-y. */
+.motion-spotlight {
+  position: relative;
+}
+.motion-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    240px circle at var(--spot-x, 50%) var(--spot-y, 0%),
+    color-mix(in srgb, var(--color-primary-500) 20%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.motion-spotlight:hover::before {
+  opacity: 1;
+}
+
+/* StarBorder — a conic gradient rotates around the border. */
+@keyframes motion-star-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.motion-star-border {
+  position: relative;
+  isolation: isolate;
+  border-radius: inherit;
+  padding: 1px;
+}
+.motion-star-border__ring {
+  position: absolute;
+  inset: -35%;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    currentColor 60deg,
+    transparent 150deg,
+    currentColor 240deg,
+    transparent 330deg
+  );
+  animation: motion-star-spin 4s linear infinite;
+}
+.motion-star-border__content {
+  position: relative;
+  border-radius: inherit;
+  background: var(--color-surface);
+}
+
+/* ClickSpark — rays burst outward from the press point, then clear. */
+@keyframes motion-spark-ray {
+  from {
+    transform: rotate(var(--angle)) translateX(3px) scaleX(1);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--angle)) translateX(22px) scaleX(0.2);
+    opacity: 0;
+  }
+}
+.motion-spark-host {
+  position: relative;
+  display: inline-flex;
+}
+.motion-spark {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.motion-spark__ray {
+  position: absolute;
+  height: 2px;
+  width: 11px;
+  border-radius: 999px;
+  transform-origin: left center;
+  background: var(--color-primary-500);
+  animation: motion-spark-ray 0.45s ease-out forwards;
+}
+
+/* LiquidGlass — the frosted glass surface with a drifting specular highlight. */
+@keyframes motion-glass-drift {
+  0%,
+  100% {
+    transform: translate3d(-14%, -10%, 0) rotate(0deg);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate3d(14%, 10%, 0) rotate(8deg);
+    opacity: 0.9;
+  }
+}
+.motion-liquid-glass {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: color-mix(
+    in srgb,
+    var(--glass-accent, var(--color-foreground)) 6%,
+    color-mix(in srgb, var(--color-surface) 66%, transparent)
+  );
+  backdrop-filter: blur(var(--blur-chip));
+  -webkit-backdrop-filter: blur(var(--blur-chip));
+  border: 1px solid
+    color-mix(in srgb, var(--glass-accent, var(--color-border)) 30%, var(--color-border));
+}
+.motion-liquid-glass__sheen {
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  background: radial-gradient(
+    50% 40% at 50% 40%,
+    color-mix(in srgb, var(--color-foreground) 16%, transparent),
+    transparent 70%
+  );
+  animation: motion-glass-drift 7s ease-in-out infinite;
+}
+.motion-liquid-glass__content {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-blur-reveal,
+  .motion-star-border__ring,
+  .motion-spark__ray,
+  .motion-liquid-glass__sheen {
+    animation: none;
+  }
+  .motion-shine,
+  .motion-liquid-glass__sheen {
+    display: none;
+  }
+  .motion-blur-reveal {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
 
 @layer base {
   html,
