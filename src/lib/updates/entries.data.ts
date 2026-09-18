@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-design-system-effects-gallery",
+    date: "2026-09-18",
+    version: "7.4.0",
+    category: "feature",
+    tags: ["design-system"],
+    title: "Two dozen new effects, live in the component gallery",
+    summary:
+      "The design-system gallery now shows every motion and effect component the shared package ships — sparks, blur reveals, glass, 3D and path galleries, particle text and more — each with a live, playable preview.",
+    body: [
+      "The shared UI package grew a batch of motion and effect components, and the gallery at /design-system now documents all of them: click sparks, blur reveals, star borders, liquid glass, a rubber-band segmented control, a lattice loader, a drifting 3D wall, spinning and path galleries, a momentum slider, hover and link image reveals, portrait heroes, a light bloom, particle and botanical canvas text, a refine frame, and a floating folder. Every one has a real, prop-accurate preview you can interact with, not a screenshot.",
+      "They're heavy — canvas loops, 3D transforms, animation frames — so each preview only starts once its card scrolls into view. Opening the gallery stays fast instead of firing two dozen animation loops at once.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-board-visuals",
     date: "2026-09-18",
     version: "7.3.0",
