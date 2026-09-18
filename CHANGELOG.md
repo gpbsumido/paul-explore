@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18 - version 6.20.0
+
+- **ZeroProof celebrates my wins, and the record shows more.** The first time I open "Your record" after bets settle in my favour, a celebration card counts up the new winnings (whole-dollar pop, `useCountUp`) over a success glow and a scatter of sparkles, announces politely, and a "Nice!" tap marks those wins seen so they don't celebrate twice — reduced motion drops the sparkles and jumps the number to the total, and the seen set is per-device. The record grew two stats — **Win rate** (wins over graded bets) and **Net profit** (signed total across settled bets) — and a **Recent form** row of the last eight settled bets as W/L/P/V chips. The maths is a pure, unit-tested module (`src/lib/zeroproof/analytics.ts`: `netProfitTotalCents`, `winRatePct`, `recentForm`, `unseenWins`) plus a `formatNetCents` helper; the bets are read through the same query the bankroll chart already uses (no extra request), and reuse the existing `useCountUp`/`usePrefersReducedMotion`/`usePersistentState` hooks. Covered by analytics unit tests, a `WinCelebration` component test (count, total, dismiss-marks-seen, reduced-motion, axe), and the existing ZeroProof content/axe suite.
+
 ## 2026-09-17 - version 6.19.1
 
 - **Search, ranking, a revisit nudge, and device sync on the Interviewee deck.**

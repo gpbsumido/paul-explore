@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-win-celebration",
+    date: "2026-09-18",
+    version: "6.20.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "ZeroProof cheers your wins, and shows more of your record",
+    summary:
+      "Open Your record after a bet lands in your favour and ZeroProof adds up what you just won and celebrates it — once per win. The record also gained a win rate, a net-profit figure, and a recent-form strip of your last few results.",
+    body: [
+      "Winning should feel like something. Now the first time you check Your record after a bet settles in your favour, ZeroProof totals what you just won and celebrates it — a number that counts up, a glow, a few sparkles — then quietly remembers it, so the same win doesn't cheer at you every visit. Ask your device for reduced motion and it stays calm and just shows the total.",
+      "The record panel also tells you more at a glance: your win rate over graded bets, your net profit across everything that's settled, and a row of your last eight results as win/loss/push chips. It all reads off bets already loaded, so nothing new is fetched.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-interviewee-deck",
     date: "2026-09-17",
     version: "6.19.0",
