@@ -968,9 +968,46 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       }
       return res.json();
     },
+    // Optimistic: drop the bet onto its board fixture straight away, so placing
+    // it feels instant rather than waiting on the round-trip. The settler's
+    // real bet replaces it when onSettled refetches; a failure rolls it back.
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.zeroproof.bets() });
+      const previous = queryClient.getQueryData<ZeroproofBet[]>(
+        queryKeys.zeroproof.bets(),
+      );
+      const optimistic: ZeroproofBet = {
+        id: `optimistic-${bet.eventId}-${bet.market}-${bet.selection}`,
+        walletId: activeWallet,
+        eventId: bet.eventId,
+        market: bet.market,
+        selection: bet.selection,
+        oddsAmerican: bet.price,
+        lineValue: bet.point ?? null,
+        closingOddsAmerican: null,
+        clv: null,
+        stakeCents: stakeCents ?? 0,
+        status: "open",
+        placedAt: new Date().toISOString(),
+        settledAt: null,
+      };
+      queryClient.setQueryData<ZeroproofBet[]>(
+        queryKeys.zeroproof.bets(),
+        (old) => [...(old ?? []), optimistic],
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(queryKeys.zeroproof.bets(), context.previous);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
       setStake("");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.bets() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
     },
   });
 
