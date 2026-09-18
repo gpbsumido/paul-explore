@@ -1023,12 +1023,13 @@ for (const [nickname, color] of Object.entries(BRAND[league])) {
         <p className="text-muted">
           I liked effects from ReactBits and OriginKit and the iOS &ldquo;Liquid
           Glass&rdquo; look, but I didn&rsquo;t want their libraries in the
-          bundle. So I rebuilt the ones I wanted &mdash; a click spark, a
-          pointer-tracking spotlight, a blur reveal, a spinning conic border, a
-          specular shine, a frosted glass surface &mdash; as small components on
-          my own tokens, in <code>src/components/motion</code>, with the
-          keyframes in <code>globals.css</code>. Each one stands down when the
-          device asks for reduced motion, so nothing on the board depends on
+          bundle. So I rebuilt the ones I wanted &mdash; a click spark, a blur
+          reveal, a spinning conic border, a specular shine, a frosted glass
+          surface &mdash; as small components on my own tokens, in{" "}
+          <code>src/components/motion</code> (the cursor-follow spotlight was
+          already there, so I left it), with the keyframes in{" "}
+          <code>globals.css</code>. Each one stands down when the device asks
+          for reduced motion, so nothing on the board depends on
           movement.
         </p>
 

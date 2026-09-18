@@ -78,7 +78,6 @@ import {
   ClickSpark,
   LiquidGlass,
   ShineSweep,
-  SpotlightCard,
   StarBorder,
 } from "@/components/motion";
 
@@ -191,7 +190,7 @@ function EventCard({
   const accent = `linear-gradient(to bottom, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
     <li className="list-none">
-      <SpotlightCard className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pl-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pl-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
         <span
           aria-hidden="true"
           className="absolute inset-y-4 left-0 w-1 rounded-full"
@@ -323,7 +322,7 @@ function EventCard({
           ))}
         </div>
       )}
-      </SpotlightCard>
+      </div>
     </li>
   );
 }
@@ -390,7 +389,7 @@ function BoardHighlights({
           style={{ color: teamAccentColor(underdog.selection, underdog.event.sport) }}
         >
           <StarBorder className="h-full rounded-2xl">
-            <SpotlightCard className="flex h-full flex-col rounded-2xl p-5 text-foreground">
+            <div className="flex h-full flex-col rounded-2xl p-5 text-foreground">
               <BlurReveal
                 as="h3"
                 className="text-xs font-semibold tracking-wide text-muted uppercase"
@@ -428,14 +427,14 @@ function BoardHighlights({
                   Bet this
                 </button>
               </ShineSweep>
-            </SpotlightCard>
+            </div>
           </StarBorder>
         </div>
       )}
 
       {close && (
         <LiquidGlass className="rounded-2xl">
-          <SpotlightCard className="flex h-full flex-col rounded-2xl p-5">
+          <div className="flex h-full flex-col rounded-2xl p-5">
             <BlurReveal
               as="h3"
               delayMs={90}
@@ -453,7 +452,7 @@ function BoardHighlights({
               Practically a coin flip &mdash; the sides sit within{" "}
               {Math.max(1, Math.round(close.spread * 100))} points
             </p>
-          </SpotlightCard>
+          </div>
         </LiquidGlass>
       )}
     </div>

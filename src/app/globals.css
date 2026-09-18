@@ -548,28 +548,6 @@
   animation: motion-shine 2.6s ease-in-out infinite;
 }
 
-/* SpotlightCard — a soft glow follows the pointer via --spot-x/--spot-y. */
-.motion-spotlight {
-  position: relative;
-}
-.motion-spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    240px circle at var(--spot-x, 50%) var(--spot-y, 0%),
-    color-mix(in srgb, var(--color-primary-500) 20%, transparent),
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-.motion-spotlight:hover::before {
-  opacity: 1;
-}
-
 /* StarBorder — a conic gradient rotates around the border, clipped to the card. */
 @keyframes motion-star-spin {
   to {
