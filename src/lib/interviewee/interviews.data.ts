@@ -500,6 +500,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
           "4. Reproduce with THEIR data volume, not my seed data. 'Nothing changed in the frontend' is a clue, not an alibi — their case table may have grown past the point my virtualization assumed.",
           "5. Fix, then confirm against the real numbers — the RUM P75 for that route on that release, not a local Lighthouse run.",
         ],
+        details: [
+          "Each split has a tool, so the triage isn't hand-waving: everyone-or-them is RUM P75 for the route segmented by tenant; every-page-or-one is that route's P75 against a control route; network-or-render is the DevTools waterfall (time-to-first-byte, payload size — backend/network) versus the profiler (long tasks, layout thrash — frontend).",
+          "The 'nothing changed in the frontend' case is usually data growth crossing a threshold the UI silently assumed — a table that was smooth at 200 rows janks at 20,000 because virtualization was never added, or a query that was fine until a customer's history got long. That's exactly why I reproduce at THEIR data volume: my seed data will never show it.",
+        ],
       },
     ],
     related: ["performance-refactor", "ai-assisted-dev", "testing-philosophy"],
@@ -634,6 +638,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
           "5. Then the real question, the part that separates senior: why did no layer catch it, and which layer should have? Add the check there so the whole category can't ship again — a pattern-level fix, not just this instance.",
           "6. Close the loop with a short blameless note on what the gap was, so the lesson outlives the incident.",
         ],
+        details: [
+          "The layer question in step 5 is the senior part, so here's how I actually run it: map the bug to the cheapest layer that could have caught it, and add the test there — not higher. A wrong calculation is a unit test. A broken API contract is an integration or contract test. A dead user flow is one Playwright test. Something only real traffic reveals is a monitor or alert, not a test at all. Putting an end-to-end test where a unit test belongs just buys a slow, flaky suite.",
+          "Then widen from the instance to the category: this bug got through — can the whole class of it get through? If a missing null-check shipped, the fix is the check plus a lint rule or a type that makes the class unrepresentable, so the next one can't even compile. That's the difference between fixing a bug and closing a hole.",
+        ],
       },
       {
         question: "How does AI-assisted development change testing?",
@@ -657,6 +665,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
           "Keys: name tags in a list. Without stable ones React matches by position, so inserting at the top makes it think every row changed. Never use the array index when the list can reorder.",
           "useEffect cleanup: anything you start in an effect (listener, interval, subscription) the cleanup stops. Skip it and every re-run stacks another one — the classic slow leak.",
           "Stale closures: a function remembers variables as they were when created — a photo, not a live feed. Fix with deps or the functional update form (setCount(c => c + 1)).",
+        ],
+        details: [
+          "The through-line worth saying out loud: React's whole model is 'describe the UI as a function of state, let React diff and patch the DOM.' Reconciliation is that diff; keys are how it matches list items across two renders; effect cleanup is how a component undoes what it set up; and a stale closure is what happens when a function outlives the render that created it and keeps reading that render's values.",
+          "In practice, most of these bugs I catch in review are two of them. Index-as-key on a list that can reorder: delete the second row and React thinks rows 3-10 all changed, so it remounts them and loses focus and input state. And a setInterval or handler reading a captured count that never updates. A stable id for the key and the functional update form kill most of it; the rest is remembering the dependency array is the contract for when a closure gets refreshed.",
         ],
       },
       {
@@ -824,6 +836,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
           "The platform is 'agentic risk' — how much of the roadmap is agent-driven UX in the product itself? That's the frontend problem I most want to work on.",
           "What does growth from this role look like — where did the last person in a role like this go?",
           "What would make you look back in a year and say this hire was a clear win?",
+        ],
+        details: [
+          "None of these are small talk — each is a probe, and their answer tells me as much as mine tells them. 'What does the frontend look like today, and where's the pain' surfaces whether the 'set the standard' mandate in the JD is real or aspirational. The AI-workflow question opens the door to show mine and gauges whether I'd be an asset there or an oddity.",
+          "'How much of the roadmap is agent-driven UX' tells me how much of the interesting frontend work actually exists versus is a pitch. And 'where did the last person in this role go' is the honest trajectory signal — a seat people leave, stall in, or get promoted out of answers the growth question better than any careful HR phrasing will.",
         ],
       },
     ],
