@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.2] - 2026-09-18
+
+### Documentation
+
+- Append a September 18 update to Motion Components explaining the components-only squircle gap, the SVG liquid carve, and the portrait hero sections in paul-design-system PR 91. Preserve the original write-up and add review/release status plus deferred effects to What's next.
+
 ## [7.2.1] - 2026-09-18
 
 ### Tests

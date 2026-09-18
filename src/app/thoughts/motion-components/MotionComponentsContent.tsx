@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -236,6 +236,69 @@ export default function MotionComponentsContent() {
           </Bullet>
         </ul>
       </Section>
+      <Update
+        id="update-2026-09-18-corner-coverage"
+        date="September 18, 2026"
+        title="The corner rule existed, but half the entry points missed it"
+      >
+        <p>
+          I added a global squircle rule and tested that it existed. That proved
+          the declaration was in a file, not that the components imported it.
+          The components-only entry deliberately skips base.css, so buttons,
+          inputs, and cards used through that entry kept ordinary rounded corners.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The failing test needed to follow the public entry point.
+        </h3>
+        <p className="text-muted">
+          I replaced the base-file presence check with an AST audit of every
+          radius in the exported component styles. It found 68 declarations
+          without a corner shape. Each component now carries its own shape;
+          circles and capsules explicitly stay round, while overlays inherit.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`FAIL src/components/__tests__/squircle.test.ts
+AssertionError: expected [ …(68) ] to deeply equal []
+
+/* Components-only consumers now receive both declarations. */
+.btn {
+  border-radius: var(--paul-radius-md);
+  corner-shape: squircle;
+}`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The liquid button keeps its velocity when the pointer reverses.
+        </h3>
+        <p className="text-muted">
+          The unfinished button used a radial CSS mask and an always-running
+          animation loop. I replaced it with a subtractive SVG mask and separate
+          critically damped springs for position and radius. New input changes
+          the target without discarding velocity. The loop stops at rest and
+          cancels when the component unmounts, becomes disabled, or reduced
+          motion is enabled. Keyboard activation stays native.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The hero is a composition, so the copy and actions stay in charge.
+        </h3>
+        <p className="text-muted">
+          Hero06 arranges supplied images in a spiral; Hero13 uses CSS perspective
+          to interpret the public OriginKit poster. Both accept copy, navigation,
+          and action slots. The pointer moves only the decorative gallery by at
+          most ten pixels, and reduced motion keeps it still. Missing imagery
+          never removes the heading or actions. These are original token-based
+          interpretations, not imports of the vendor runtime.
+        </p>
+        <p className="mt-3 text-muted">
+          The implementation and verification live in{" "}
+          <a className="text-primary-600 hover:underline dark:text-primary-400"
+            href="https://github.com/gpbsumido/paul-design-system/pull/91">
+            paul-design-system PR 91
+          </a>. Native corner-shape support is still required for continuous
+          corners; unsupported browsers retain border-radius. A green source
+          test does not turn that into universal browser support, and an open PR
+          is not a deployed update.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "Reduced motion as the default rather than a fallback, so the accessible path is the one that runs unless something opts out.",
@@ -246,6 +309,7 @@ export default function MotionComponentsContent() {
           "There is no test that a new animation went through the components rather than around them.",
         ]}
         upcoming={[
+          "Review the liquid button, portrait sections, and component corner fix in paul-design-system PR 91 before merging and releasing. Seven renderer/library-heavy effects remain deferred; no new WebGL, physics, or icon dependency was added.",
           "A check that any new animated component answers prefers-reduced-motion somehow — through these components or its own hook — since the gap is not knowing, rather than any one page.",
         ]}
       />
