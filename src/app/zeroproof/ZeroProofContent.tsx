@@ -73,13 +73,11 @@ import {
 } from "@/lib/zeroproof/boardFilters";
 import { biggestUnderdog, closestGame } from "@/lib/zeroproof/boardHighlights";
 import { teamAccentColor } from "@/lib/zeroproof/teamAccent";
-import {
-  BlurReveal,
-  ClickSpark,
-  LiquidGlass,
-  ShineSweep,
-  StarBorder,
-} from "@/components/motion";
+import BlurReveal from "@/components/motion/BlurReveal";
+import ClickSpark from "@/components/motion/ClickSpark";
+import LiquidGlass from "@/components/motion/LiquidGlass";
+import ShineSweep from "@/components/motion/ShineSweep";
+import StarBorder from "@/components/motion/StarBorder";
 
 /**
  * The bankroll-trend chart, code-split out of the lobby's initial bundle. It's
