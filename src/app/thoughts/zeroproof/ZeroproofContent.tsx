@@ -970,8 +970,75 @@ time >= now - daysBack  * dayMs`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-18-board-visuals"
+        date="September 18, 2026"
+        title="Dressing up the board — and the team colours I couldn't use"
+      >
+        <p>
+          The board worked but read as a grey list. I wanted highlight cards for
+          the games worth a glance, team colour on every fixture, some motion
+          when you place a bet, and for the bet to land the instant I hit place.
+          Most of that was straightforward. The team colours were not.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I reached for real brand colours and hit a wall.
+        </h3>
+        <p className="text-muted">
+          I wanted Lakers purple and Celtics green. But the board spans NBA, NFL,
+          MLB and fantasy, and the events carry team <em>names</em>, not ids
+          &mdash; there&rsquo;s no logo URL or brand-colour table I can key off
+          across all of them. Rather than hand-maintain a colour map that would
+          be wrong for three sports out of four, I hash the name to a hue in the
+          app&rsquo;s tone band. Not the real colour, but a stable one: the same
+          team is always the same shade, and it stays inside the palette guard
+          because it&rsquo;s an <code>hsl()</code>, never a hard-coded hex.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`export function teamAccentColor(name: string): string {
+  return \`hsl(\${hueFromName(name)} 52% 48%)\`;
+}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Animations I own, not a dependency.
+        </h3>
+        <p className="text-muted">
+          I liked effects from ReactBits and OriginKit and the iOS &ldquo;Liquid
+          Glass&rdquo; look, but I didn&rsquo;t want their libraries in the
+          bundle. So I rebuilt the ones I wanted &mdash; a click spark, a
+          pointer-tracking spotlight, a blur reveal, a spinning conic border, a
+          specular shine, a frosted glass surface &mdash; as small components on
+          my own tokens, in <code>src/components/motion</code>, with the
+          keyframes in <code>globals.css</code>. Each one stands down when the
+          device asks for reduced motion, so nothing on the board depends on
+          movement.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The bet should be on the board before the server answers.
+        </h3>
+        <p className="text-muted">
+          Placing a bet used to wait on the round-trip before the fixture showed
+          it. Now the mutation writes the bet into the bets cache first, so the
+          &ldquo;Your bet&rdquo; flag appears the moment I hit place; a failure
+          rolls it back, and the settler&rsquo;s real bet replaces it on the next
+          refetch.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`onMutate: async () => {
+  await queryClient.cancelQueries({ queryKey: bets });
+  const previous = queryClient.getQueryData(bets);
+  queryClient.setQueryData(bets, (old) => [...(old ?? []), optimistic]);
+  return { previous };
+},`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "A board with some life to it: highlight cards for the biggest underdog and the closest game, a team-tinted accent on every fixture, animations built on my own design tokens (spark, spotlight, blur reveal, conic border, shine, iOS liquid glass), and optimistic bet placement so a bet shows on its fixture the instant it's placed.",
           "Look back at the board: a 'Show past fixtures' checkbox reveals recently-finished games read-only (badged Final, lines as text, not bet buttons), a couple of weeks at a time up to 3 months back via 'load earlier' or the date filter.",
           "See how you stack up: a Compare tab puts your record next to a chosen leaderboard player — win rate, ROI, sharp score, record, volume — flagging who leads each and where you'd rank, with your open bets alongside.",
           "Winning finally feels like something: the first time you open Your record after bets settle in your favour, a card counts up the new winnings over a glow and sparkles, then marks them seen so it only celebrates once — reduced-motion safe, per device.",
