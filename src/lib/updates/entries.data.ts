@@ -13,7 +13,7 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
     id: "e-zeroproof-compare",
     date: "2026-09-18",
-    version: "6.21.0",
+    version: "7.1.0",
     category: "feature",
     tags: ["zeroproof"],
     title: "See how you stack up on ZeroProof",
@@ -28,7 +28,7 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
     id: "e-zeroproof-win-celebration",
     date: "2026-09-18",
-    version: "6.20.0",
+    version: "7.1.0",
     category: "improvement",
     tags: ["zeroproof"],
     title: "ZeroProof cheers your wins, and shows more of your record",
@@ -37,6 +37,21 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
     body: [
       "Winning should feel like something. Now the first time you check Your record after a bet settles in your favour, ZeroProof totals what you just won and celebrates it — a number that counts up, a glow, a few sparkles — then quietly remembers it, so the same win doesn't cheer at you every visit. Ask your device for reduced motion and it stays calm and just shows the total.",
       "The record panel also tells you more at a glance: your win rate over graded bets, your net profit across everything that's settled, and a row of your last eight results as win/loss/push chips. It all reads off bets already loaded, so nothing new is fetched.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-1-0",
+    date: "2026-09-15",
+    version: "7.0.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "ZeroProof is live — a sportsbook with the loss taken out",
+    summary:
+      "The no-loss sportsbook is fully working now. Lock a simulated deposit for a term, bet real lines against a real ledger, and get the deposit back at the end no matter your record — what you keep is the record itself: wins, losses, ROI, closing-line value, streaks, a leaderboard, and badges. Fantasy matchup betting and shared leagues are in too.",
+    body: [
+      "The idea was always sports betting without the sting: you can't lose your deposit, so the only thing at stake is how good your calls were. That whole loop runs now — open a Season or Challenge wallet, place a bet with the odds frozen the moment you commit, and every stake, payout and refund is a real double-entry ledger row (with simulated dollars, on purpose — real money is a licensing problem for later). At term end the deposit comes back and the record stays.",
+      "Beyond the core: ESPN fantasy matchups are bettable and only show once a league has actually drafted and its season is about to start, real leagues let people share a contest and a bankroll-ranked board, and the settler grades and pays out on a schedule. It's the milestone this version marks.",
     ],
     resolvedTicketIds: [],
   },

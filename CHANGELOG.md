@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18 - version 7.1.0
+
+- **Realigned the develop line onto production's 7.x.** Production shipped 7.0.0 (ZeroProof live end to end) while develop kept building on a parallel 6.19–6.21 line — so develop was numbered *below* production despite carrying more. This merges `main` back into develop and sets the line to 7.1.0. The 6.19–6.21 sections below are that develop-line history and all ship to production in 7.1.0: the public ZeroProof win-celebration and compare tool, and the admin-only interviewee deck. The 7.0.0 section further down is the production milestone they build on. The public updates feed attributes the ZeroProof features to 7.1.0, the release that actually delivers them.
+
 ## 2026-09-18 - version 6.21.0
 
 - **A Compare tab on ZeroProof — how I stack up against the field.** A new lobby tab where I pick a player from the leaderboard and see my record next to theirs: win rate, ROI, sharp score, record, and volume, with each comparable measure flagging who leads and a "you lead N of M" summary, plus where I'd rank on the board by ROI. My own open bets list alongside. The comparison maths is a pure, unit-tested module (`src/lib/zeroproof/compare.ts`: `compareStats`, `leadSummary`, `rankByMetric`), and the presentational `ComparePanel` is tested on its own; it reads the leaderboard and profile the lobby already fetches, so nothing new is requested. Signed-in only — a signed-out visitor gets a sign-in prompt. Scoped to records on purpose: the leaderboard is anonymised and individual picks are private, so which bets two players agreed or disagreed on (and another player's upcoming bets) would need a new, consented backend surface — a deliberate follow-up. Covered by compare unit tests, a `ComparePanel` component test (rank, metrics, player switch, upcoming bets, axe), and two lobby integration tests (signed-out prompt, signed-in comparison), with the existing ZeroProof content + tour + axe suites still green.
@@ -26,6 +30,15 @@
 
 - **Added Interviewee, an admin-only interview-prep deck at `/interviewee`, organised by job interview.** The deck lists job interviews; open one for its topics, open a topic for the headline bullet-point answers with the deeper detail tucked behind a native `<details>` disclosure, plus related-topic cards that hop to a sibling topic within the same interview and back routes at each level. It's driven by one data shape (`Interview` owning `IntervieweeTopic`s, Zod schemas in `src/lib/interviewee/types.ts`), so a markdown file of prep notes transforms straight into `interviews.data.ts` — `TOPICS_TEMPLATE.md` documents the format, and related ids resolve within an interview. Keyboard-first at every level: number keys `1–9` jump to the Nth card, arrow keys rove focus (roving tabindex, one tab stop), Enter opens the focused card, and `Esc`/`Backspace` returns from a topic to its interview; all ignored while typing, every card carries an `aria-keyshortcuts`. Marking a topic reviewed demotes it to a separate "Reviewed" list but keeps it openable and reversible, persisted per device in `localStorage` (keyed by interview + topic) via the `useSyncExternalStore` pattern. Admin-only: the route is session-protected and each page re-checks the admin allowlist and `notFound()`s anyone else (`force-dynamic`, dropped from the public route list), like `/to-do`. Ships with the Sardine hiring-manager round and a general-practice interview. Covered by data-shape, admin-gate, reprioritisation, keyboard-nav, disclosure, related-card, and axe tests; a dev-notes write-up is at `/thoughts/interviewee`.
 
+## 2026-09-15 - version 7.0.0
+
+- **ZeroProof is fully functional in production — the milestone this major version marks.** The no-loss sportsbook is complete end to end: lock a deposit into a Season or Challenge wallet, bet real lines with the odds frozen at placement against a real double-entry ledger, and get the deposit back at term end while keeping the record — win-loss, ROI, CLV, streaks, a leaderboard, and accolades. Real cross-account leagues and sharing work, ESPN fantasy matchup betting is live and correctly gated (only real, drafted, in-window seasons, with invalid pre-season bets voided and refunded), the settler grades and pays on a cron, and the admin god's view attaches an identity to every bet. The simulated-dollar loop it was built around is done and running for real users.
+- This release also carries the recent polish detailed below: the board's date-range calendar filter, the FCP bundle trim, the one-shot session-timeout toast, and the design-system mobile overlay fixes.
+
+## 2026-09-15 - version 6.18.0
+
+- **The ZeroProof board date filter is a calendar range now.** The single-day dropdown became a From/To pair of native `<input type="date">` calendar pickers, so you can filter the board to a date range instead of one day. `BoardFilters.day` became inclusive `from`/`to` local-day bounds (either open-ended; an inverted range is normalized so the two dates work in any order), the range overrides the rolling horizon as before, and the status line echoes the chosen range. Dropped the now-unused `availableDays`; covered by `boardFilters.test.ts` (`dateRangeActive`/`inDateRange` bounds, inclusivity, normalization) and board integration tests that drive the date inputs.
+
 ## 2026-09-15 - version 6.17.3
 
 - **Picked up the design-system overlay fixes for mobile.** Bumped `@paul-portfolio/react` to 0.10.4 and `@paul-portfolio/css` to 0.12.4, which fit the `GuidedTour` card and the `Tooltip` bubble to the viewport on a narrow screen instead of spilling past an edge and forcing a page scrollbar. The app renders both through the design system (the feature tours and every tooltip), so this reaches them everywhere. No app code changed — dependency + lockfile bump; the full build and the tour/showcase tests are green on the new versions.
@@ -40,10 +53,6 @@
 ## 2026-09-15 - version 6.17.1
 
 - **The session-timeout toast clears after the first time.** It was a pure function of the `?authError` in the URL, which nothing ever removed — so after it showed once, navigating away and back (or the back button) re-raised it every time, because dismissing was only local state. It now captures the message into state on mount and strips `authError` from the URL with `router.replace` (no new history entry, other params kept), so it shows exactly once per timeout and returning to the page is silent.
-
-## 2026-09-15 - version 6.18.0
-
-- **The ZeroProof board date filter is a calendar range now.** The single-day dropdown became a From/To pair of native `<input type="date">` calendar pickers, so you can filter the board to a date range instead of one day. `BoardFilters.day` became inclusive `from`/`to` local-day bounds (either open-ended; an inverted range is normalized so the two dates work in any order), the range overrides the rolling horizon as before, and the status line echoes the chosen range. Dropped the now-unused `availableDays`; covered by `boardFilters.test.ts` (`dateRangeActive`/`inDateRange` bounds, inclusivity, normalization) and board integration tests that drive the date inputs.
 
 ## 2026-09-15 - version 6.17.0
 
