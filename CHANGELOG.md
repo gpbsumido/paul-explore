@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18 - version 6.19.2
+
+- **Grounded the Interviewee prep answers in concrete examples, and gave the procedural ones real steps.** Swept both interviews for answers that stated a principle without an instance and gave each a specific example — some real (the BFF token code I read by hand, the cancel-during-hydration transition test, Helika AI's 25-agent credit split), some illustrative "here's how it'd apply" (semver deprecation aliases, add-a-`status_v2`-field API evolution, out-of-band fraud scoring on a queue, a colour-blind-safe risk score), including the general-practice interview where the examples are invented-but-plausible engineering that maps to a fraud/risk domain. Filled in the previously-thin "who have you made better" answer with a concrete mentoring trajectory. Restructured the walk-me-through questions — "a bug ships to prod," "the dashboard is slow, Go," and the first-90-days plan — into explicit numbered steps, since those expect a procedure, not a sentence. Added a thorough expandable "Show detail" section to four big-list answers that warrant depth — the React fundamentals rundown, the bug-to-prod steps (how I pick which layer should have caught it), the slow-dashboard triage (a tool per split), and the questions-for-the-hiring-manager (what each one is really probing). Content-only change to the admin-only deck — no behaviour change; `interviews.data.test.ts` still validates every entry.
+
 ## 2026-09-17 - version 6.19.1
 
 - **Search, ranking, a revisit nudge, and device sync on the Interviewee deck.**

@@ -31,14 +31,14 @@ const GENERAL_TOPICS: IntervieweeTopic[] = [
         question: "How do you decide between SQL and a document store?",
         points: [
           "Start from the access patterns, not the data: how is it read, how is it written, what has to be transactional.",
-          "Relational when the shape is stable and I need joins and constraints; document when the shape varies per record and reads are by a single key.",
+          "Relational when the shape is stable and I need joins and constraints; document when the shape varies per record and reads are by a single key — e.g. a fraud case with fixed fields, joined to users and rules, is relational; a raw device-signal blob whose shape changes per SDK version is a document keyed by device id.",
         ],
       },
       {
         question: "When do you introduce a queue?",
         points: [
           "When producer and consumer run at different rates, or the work can be done later without the caller waiting.",
-          "It buys back-pressure and retries, at the cost of eventual consistency I now have to reason about.",
+          "It buys back-pressure and retries, at the cost of eventual consistency I now have to reason about — e.g. scoring a transaction for fraud out-of-band: accept the event fast, enqueue the heavy model call, and reconcile the verdict a moment later rather than blocking checkout on it.",
         ],
       },
     ],
@@ -57,21 +57,21 @@ const GENERAL_TOPICS: IntervieweeTopic[] = [
           "Reach for memo/useMemo/useCallback at real, measured boundaries, not everywhere.",
         ],
         details: [
-          "The common cause isn't a slow component, it's a new object or function passed as a prop every render, which defeats memoisation one level down. Stabilise the reference before reaching for React.memo.",
+          "The common cause isn't a slow component, it's a new object or function passed as a prop every render, which defeats memoisation one level down. E.g. a filter bar passing a fresh {} style object on each keystroke silently re-renders all 20 charts below it — stabilise that reference and they go quiet. Fix the churning prop before reaching for React.memo.",
         ],
       },
       {
         question: "Server components vs client components — how do you split?",
         points: [
           "Default to server; drop to a client component only where there's interactivity or browser-only state.",
-          "Keep the client boundary as low in the tree as possible so less JavaScript ships.",
+          "Keep the client boundary as low in the tree as possible so less JavaScript ships — e.g. a risk dashboard renders the page and the data table on the server; only the filter chips and a live-updating status badge are client components.",
         ],
       },
       {
         question: "How do you make an interface accessible by default?",
         points: [
           "Semantic HTML first, ARIA only to fill gaps semantics can't.",
-          "Every control keyboard-operable with a visible focus state; colour is never the only signal.",
+          "Every control keyboard-operable with a visible focus state; colour is never the only signal — e.g. a risk score shows red and a 'High' label and an icon, so it still reads for a colour-blind analyst.",
         ],
       },
     ],
@@ -85,14 +85,14 @@ const GENERAL_TOPICS: IntervieweeTopic[] = [
       {
         question: "REST or GraphQL for a new service?",
         points: [
-          "REST when the resources and access patterns are stable and cacheable; GraphQL when clients need to shape wildly different queries.",
+          "REST when the resources and access patterns are stable and cacheable; GraphQL when clients need to shape wildly different queries — e.g. a fixed fraud-console feed is a cacheable REST endpoint, but an internal tool where analysts compose arbitrary queries over cases is where GraphQL earns its resolvers.",
           "GraphQL moves the cost to the server (resolvers, N+1, depth limits) — I'd only take that on when the flexibility earns it.",
         ],
       },
       {
         question: "How do you evolve an API without breaking clients?",
         points: [
-          "Add, don't change: new fields are safe, removing or retyping is not.",
+          "Add, don't change: new fields are safe, removing or retyping is not — e.g. add a status_v2 enum alongside status rather than changing what status returns, and retire the old field a version later once clients have moved.",
           "Version at the edge when a breaking change is unavoidable, and give clients a deprecation window.",
         ],
       },
@@ -100,7 +100,7 @@ const GENERAL_TOPICS: IntervieweeTopic[] = [
         question: "Where does authorization actually live?",
         points: [
           "At every boundary that can be reached directly, not just the UI — the database and the API each enforce their own.",
-          "An allowlist in the app layer means nothing to the datastore behind it; the check has to sit where the request lands.",
+          "An allowlist in the app layer means nothing to the datastore behind it; the check has to sit where the request lands — e.g. the fraud API re-checks the analyst's role on every request, because a crafted call straight to the endpoint never touches the UI's guard.",
         ],
       },
     ],
@@ -124,7 +124,7 @@ const GENERAL_TOPICS: IntervieweeTopic[] = [
       {
         question: "What does TDD actually change day to day?",
         points: [
-          "It forces me to state the observable success criteria before writing code, so the diff stays the smallest thing that meets them.",
+          "It forces me to state the observable success criteria before writing code, so the diff stays the smallest thing that meets them — e.g. before a discount rule I write the failing test 'orders over $100 get 10% off, and it doesn't stack with an existing coupon,' then write only what turns it green.",
           "Red, green, refactor keeps the codebase in a working state the whole way through.",
         ],
       },
@@ -139,14 +139,14 @@ const GENERAL_TOPICS: IntervieweeTopic[] = [
       {
         question: "Tell me about a hard technical decision you made.",
         points: [
-          "Name the fork and the constraint that made it hard, not just the choice.",
+          "Name the fork and the constraint that made it hard, not just the choice — e.g. hand-rolling the chat state machine vs. adopting XState: I chose hand-rolled for v1's size, and said plainly what it cost me once nested streaming-while-hydrating states crept in.",
           "Say what I optimised for and what I traded away — a decision with no cost is a decision I didn't really make.",
         ],
       },
       {
         question: "Tell me about a time you disagreed with someone.",
         points: [
-          "Frame it around the shared goal, not who was right.",
+          "Frame it around the shared goal, not who was right — e.g. the query-layer refactor: a teammate worried about rewrite risk mid-fundraise, so I reframed it around 'we both want fewer production incidents' and proved it on one slice with before/after numbers instead of arguing.",
           "End with the outcome and what I'd carry forward, not a re-litigation.",
         ],
       },
@@ -231,7 +231,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
         question: "How did you validate the AI's output before rendering it?",
         points: [
           "Model output that drives UI is untrusted input: schema validation with Zod, a safe fallback rendering when the payload doesn't validate, and never eval-ing or blindly trusting config from the model.",
-          "Two floors, not one: shape (is it the right structure?) and sanity (a capped series count, finite numbers, sane ranges) — valid JSON can still be semantic nonsense.",
+          "Two floors, not one: shape (is it the right structure?) and sanity (a capped series count, finite numbers, sane ranges). Concretely: the model once returned a chart with 10,000 series and a negative axis — valid JSON, unrenderable — so the schema caps the series array and checks the numbers are finite before anything renders.",
         ],
         details: [
           "Junior: treat the AI like a user typing into a form — check the value against a strict shape first, and if it doesn't match, show a safe plain-text version instead of crashing.",
@@ -257,7 +257,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "How did you measure whether it was any good?",
         points: [
-          "Instrumented the artifact interactions, not just question counts: a chart that gets filtered, expanded, or pinned was a useful answer; one ignored wasn't.",
+          "Instrumented the artifact interactions, not just question counts — e.g. did a returned chart get filtered, expanded, or pinned within the first 30 seconds? An ignored chart counted as a miss even if the question technically 'succeeded.'",
           "The blunt qualitative bar: it was demoed live to investors and customers, so 'survives a live demo' was a real recurring test.",
         ],
       },
@@ -384,7 +384,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "What does designing a public SDK teach you that app work doesn't?",
         points: [
-          "You can't break users: semver discipline, deprecation paths, backwards compatibility — every public API is a promise you keep for years.",
+          "You can't break users: semver discipline, deprecation paths, backwards compatibility — every public API is a promise you keep for years. Concretely, a function I shipped in 2023 still has to accept its original arguments, so new behaviour arrives as a new optional param, never a changed one.",
           "Docs and reference integrations ARE the product — I wrote sdk-demo-react and sdk-demo-nextjs, because an SDK without a working example doesn't get adopted.",
           "Reviewing external and teammate contributions to a public artifact is my clearest reviewable-evidence mentoring surface.",
         ],
@@ -454,14 +454,14 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "How do you version a component library consumed by five apps without breaking them?",
         points: [
-          "Semver as the contract: patch fixes, minor adds, major warns and documents. Never remove in the same release you deprecate — mark it deprecated (warns but works), give a version to migrate, remove a major later.",
-          "The social part matters: announce, don't just publish.",
+          "Semver as the contract: patch fixes, minor adds, major warns and documents. Never remove in the same release you deprecate — e.g. renaming GhostButton to a Button variant: ship a deprecated GhostButton that still works and console-warns, then drop it a major later once the apps have migrated.",
+          "The social part matters: announce, don't just publish — a migration note in the changelog and a heads-up in the team channel before a major, not an npm publish nobody notices until CI goes red.",
         ],
       },
       {
         question: "A product team wants a one-off variant that violates the system. What do you do?",
         points: [
-          "A sanctioned escape hatch with a paper trail, then decide whether the exception is a missing feature or a real one-off — never a flat no (they'll fork it) and never a silent fork.",
+          "A sanctioned escape hatch with a paper trail — e.g. a style-override prop plus an exceptions list I review monthly — then decide whether the exception is a missing feature or a real one-off; never a flat no (they'll fork it) and never a silent fork.",
           "Three teams making the same exception means the system is missing a feature.",
         ],
       },
@@ -494,8 +494,15 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "A customer says the dashboard is slow and nothing changed in the frontend deploy. Go.",
         points: [
-          "Systematic triage, not guessing: everyone or just them (their data/network vs our code), every page or one (global vs specific), network slow or render slow (backend vs frontend) — each split halves the search space.",
-          "'Nothing changed in the frontend' is a clue, not an alibi — their data may have grown past a threshold. Reproduce with their data volume, then RUM/Sentry for scope, then the network tab, then the profiler.",
+          "1. Resist guessing — narrow with binary splits. Is it everyone or just them? (their data/network vs. our code.)",
+          "2. Every page or one? A global regression points at shared infra; one view points at that view's data or queries.",
+          "3. Once it's localized, is the time in the network or the render? A DevTools waterfall vs. a profiler flame chart — API latency and main-thread work have completely different fixes.",
+          "4. Reproduce with THEIR data volume, not my seed data. 'Nothing changed in the frontend' is a clue, not an alibi — their case table may have grown past the point my virtualization assumed.",
+          "5. Fix, then confirm against the real numbers — the RUM P75 for that route on that release, not a local Lighthouse run.",
+        ],
+        details: [
+          "Each split has a tool, so the triage isn't hand-waving: everyone-or-them is RUM P75 for the route segmented by tenant; every-page-or-one is that route's P75 against a control route; network-or-render is the DevTools waterfall (time-to-first-byte, payload size — backend/network) versus the profiler (long tasks, layout thrash — frontend).",
+          "The 'nothing changed in the frontend' case is usually data growth crossing a threshold the UI silently assumed — a table that was smooth at 200 rows janks at 20,000 because virtualization was never added, or a query that was fine until a customer's history got long. That's exactly why I reproduce at THEIR data volume: my seed data will never show it.",
         ],
       },
     ],
@@ -522,21 +529,24 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
         question: "Show me a case where the AI was confidently wrong and you caught it. How?",
         points: [
           "You catch it because the process ALWAYS runs the real thing — the test suite, the build, the endpoint — instead of trusting the AI's summary. People without a verification habit ship these.",
-          "AI bugs look correct: a function call that reads perfectly but doesn't exist, an edge case handled with confident nonsense. So reading isn't enough — run it and spot-check every API it claims exists.",
+          "AI bugs look correct: a function call that reads perfectly but doesn't exist, an edge case handled with confident nonsense. Example: I've caught it inventing a component prop that didn't exist — the build's type-check flagged it, not my read of code that looked right. So reading isn't enough — run it and spot-check every API it claims exists.",
         ],
       },
       {
         question: "What do you never delegate to the model?",
         points: [
-          "Architectural decisions, security-sensitive review, the final read of any diff I ship, and test intent — the model writes test code, I decide what must be true.",
-          "Delegate labor, never judgment: the stuff where being wrong is expensive and hard to detect stays human.",
+          "Architectural decisions, security-sensitive review, the final read of any diff I ship, and test intent — the model writes the test code, I decide what it must prove (e.g. that a cancel mid-hydration keeps the partial text).",
+          "Delegate labor, never judgment: I'll let it draft a migration, a test file, or boilerplate, but I own the rollback plan, what the test has to prove, and the last read of the diff — the calls where being wrong is expensive and fails silently.",
+        ],
+        details: [
+          "Concrete line: the BFF token-handling code I read myself, character by character, because a subtle mistake there leaks tokens and no test would catch it. The renderer boilerplate next to it, I let the model write and just ran.",
         ],
       },
       {
         question: "What's the failure mode of an AI-heavy team, and how do you counter it?",
         points: [
           "Throughput outrunning verification, codebase coherence drifting (every file a different author), and debugging skill atrophy from always regenerating.",
-          "The antidotes are process: tests as gatekeepers, shared conventions the AI is given, and humans owning every diff. The test defines 'correct' before the code exists.",
+          "The antidotes are process: tests as gatekeepers, shared conventions the AI is given, and humans owning every diff. Concretely, my harness makes the failing test the first commit and feeds the model the repo's lint rules and conventions file, so throughput can't outrun verification and every file comes out in one voice.",
         ],
         details: [
           "Junior: when a human writes slowly, review keeps up; when AI writes fast, review is the bottleneck unless the test defines correct first. Write the failing test yourself (the intent), let the AI make it pass (the labor), and the test referees.",
@@ -612,7 +622,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
         question: "Why mutation testing? Almost nobody uses it.",
         points: [
           "Coverage lies: 90% coverage with weak assertions is theatre. Mutation testing breaks the code (flips a > to >=, deletes a line) and checks whether any test fails — if none do, that test was decoration.",
-          "I use it selectively on the logic that matters most, not everywhere — it's slow, and that's an engineering trade-off.",
+          "I use it selectively on the logic that matters most — e.g. the Helika AI state-machine reducer and the design-system chart geometry, where flipping a > to >= would silently mis-handle a cancel or misplace an arc and no one would catch it in a demo — not everywhere, because it's slow.",
         ],
         details: [
           "Junior: coverage says 'this line RAN during tests,' not 'a test would notice if this line were wrong.' Mutation testing checks the second thing.",
@@ -621,14 +631,22 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "A bug ships to production anyway. Walk me through what you do.",
         points: [
-          "Sentry alert, reproduce, the fix ships WITH a test that fails without it, then the real question: why did no layer catch it, and which layer should have. Pattern-level fixes, not just instance fixes.",
-          "The bug is evidence of a hole in the safety net — add the check at the layer that should have caught it so the whole category can't ship again.",
+          "1. Stop the bleeding first. If it's actively doing harm, roll back or flag it off before diagnosing — a fraud rule scoring everything 'safe' can't wait for a root cause.",
+          "2. Reproduce it from the real signal — the Sentry trace, the user's exact input. A fix for a bug I can't reproduce is a guess wearing a fix's clothes.",
+          "3. Write the failing test first, then the fix — it fails without the change and passes with it. E.g. cancel-during-artifact-hydration shipped once and left the message stuck loading; the fix landed with the state-machine transition test that now catches it.",
+          "4. Ship it and confirm on the live system, not just in CI — hit the real endpoint or watch the error rate drop, because merged isn't deployed.",
+          "5. Then the real question, the part that separates senior: why did no layer catch it, and which layer should have? Add the check there so the whole category can't ship again — a pattern-level fix, not just this instance.",
+          "6. Close the loop with a short blameless note on what the gap was, so the lesson outlives the incident.",
+        ],
+        details: [
+          "The layer question in step 5 is the senior part, so here's how I actually run it: map the bug to the cheapest layer that could have caught it, and add the test there — not higher. A wrong calculation is a unit test. A broken API contract is an integration or contract test. A dead user flow is one Playwright test. Something only real traffic reveals is a monitor or alert, not a test at all. Putting an end-to-end test where a unit test belongs just buys a slow, flaky suite.",
+          "Then widen from the instance to the category: this bug got through — can the whole class of it get through? If a missing null-check shipped, the fix is the check plus a lint rule or a type that makes the class unrepresentable, so the next one can't even compile. That's the difference between fixing a bug and closing a hole.",
         ],
       },
       {
         question: "How does AI-assisted development change testing?",
         points: [
-          "It raises the stakes: AI writes plausible code faster than humans review it, so tests become the contract that keeps throughput honest.",
+          "It raises the stakes: AI writes plausible code faster than humans review it, so tests become the contract that keeps throughput honest — e.g. before the model touches a fraud-scoring rule I'd write the failing test 'a $10k transfer from a brand-new device scores High,' and let it rewrite the implementation however it likes as long as that stays green.",
           "My harness makes failing-tests-first mandatory for exactly this reason — the test is written by the intent, the code by the tool, and the test arbitrates. This lands hard at Sardine specifically.",
         ],
       },
@@ -647,6 +665,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
           "Keys: name tags in a list. Without stable ones React matches by position, so inserting at the top makes it think every row changed. Never use the array index when the list can reorder.",
           "useEffect cleanup: anything you start in an effect (listener, interval, subscription) the cleanup stops. Skip it and every re-run stacks another one — the classic slow leak.",
           "Stale closures: a function remembers variables as they were when created — a photo, not a live feed. Fix with deps or the functional update form (setCount(c => c + 1)).",
+        ],
+        details: [
+          "The through-line worth saying out loud: React's whole model is 'describe the UI as a function of state, let React diff and patch the DOM.' Reconciliation is that diff; keys are how it matches list items across two renders; effect cleanup is how a component undoes what it set up; and a stale closure is what happens when a function outlives the render that created it and keeps reading that render's values.",
+          "In practice, most of these bugs I catch in review are two of them. Index-as-key on a list that can reorder: delete the second row and React thinks rows 3-10 all changed, so it remounts them and loses focus and input state. And a setInterval or handler reading a captured count that never updates. A stable id for the key and the functional update form kill most of it; the rest is remembering the dependency array is the contract for when a closure gets refreshed.",
         ],
       },
       {
@@ -722,7 +744,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "You keep saying 'I' — who else was on this, and what did they own?",
         points: [
-          "Being primary author of the frontend apps makes generous, SPECIFIC credit more convincing, not less: 'X built the export flow, Y owned the mobile pass' sounds like a lead.",
+          "Being primary author of the frontend apps makes generous, SPECIFIC credit more convincing, not less — e.g. on Helika AI the backend team owned the 25-agent orchestration and the API while I owned the whole frontend and drove the schema contract. Naming who owned what sounds like a lead.",
           "'It was mostly me' sounds like a red flag even when it's true — know the team shape and credit precisely.",
         ],
       },
@@ -739,15 +761,25 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "A stakeholder wants it Friday; done right it's two weeks. Your next steps?",
         points: [
-          "A menu, not a verdict: 'Friday buys you A without B, with risk C; two weeks buys the full thing; A-then-B costs one extra day.' Their call.",
+          "A menu, not a verdict — e.g. 'Friday ships the risk dashboard read-only with the new chart; the write path and the audit log land the week after, and here's the risk of shipping without the audit log.' Their call, made with the tradeoff in front of them.",
           "Never silently crunch, never silently cut quality — both write checks the team cashes later.",
         ],
       },
       {
         question: "How do you review a PR from someone much more junior?",
         points: [
-          "Label blocking vs preference so they're not overwhelmed, explain the WHY behind one pattern deeply instead of ten shallow flags, and praise something real and specific.",
+          "Label blocking vs preference so they're not overwhelmed, explain the WHY behind one pattern deeply instead of ten shallow flags, and praise something real and specific ('this loading/empty/error handling is exactly right') rather than a generic 'nice work.'",
           "The goal is that their next PR needs fewer comments, not that this PR reaches perfection.",
+        ],
+      },
+      {
+        question: "Who have you made better, and what's the evidence?",
+        points: [
+          "A trajectory I caused, not a compliment I paid: e.g. a mid-level engineer whose first PRs needed three review rounds for the same gaps — unhandled loading/error states, ad-hoc fetching. I paired on one feature, moved the standard into a shared hook so the right way was the short way, and had them present the next design at standup.",
+          "Within a couple of months they were reviewing others' PRs against that same bar — the sign it stuck is that the pattern outlived me flagging it.",
+        ],
+        details: [
+          "The shape that convinces: 'when they joined, N review rounds; I did X with them; now they own Y' — a slope I moved, with a before and after, not 'they're great.'",
         ],
       },
     ],
@@ -782,8 +814,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "What would you do in your first 90 days?",
         points: [
-          "Listen before touching: learn the codebase, the deploy path, and the team's current pain — the expensive mistake is prescribing the Helika medicine before diagnosing their patient.",
-          "Ship something small end-to-end early to learn the real path to production, then find the leverage point and propose it with measurements, the way the query-layer refactor was argued.",
+          "1. Weeks 1-2, listen before touching: learn the codebase, the deploy path, and the team's real pain. The expensive mistake is prescribing the Helika medicine before diagnosing their patient.",
+          "2. Week 1 too, ship something small end-to-end — a real bug-fix or a minor feature — to learn the path to production for real, not from a doc.",
+          "3. Weeks 3-6, find the leverage point: every codebase has its 'duplicated dashboard code' equivalent. Propose it with measurements, the way the query-layer refactor was argued — not on taste.",
+          "4. By day 90, have shipped one meaningful improvement and set a standard others can follow — the role is written as a lead, so the deliverable is a pattern, not just a PR.",
         ],
       },
     ],
@@ -802,6 +836,10 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
           "The platform is 'agentic risk' — how much of the roadmap is agent-driven UX in the product itself? That's the frontend problem I most want to work on.",
           "What does growth from this role look like — where did the last person in a role like this go?",
           "What would make you look back in a year and say this hire was a clear win?",
+        ],
+        details: [
+          "None of these are small talk — each is a probe, and their answer tells me as much as mine tells them. 'What does the frontend look like today, and where's the pain' surfaces whether the 'set the standard' mandate in the JD is real or aspirational. The AI-workflow question opens the door to show mine and gauges whether I'd be an asset there or an oddity.",
+          "'How much of the roadmap is agent-driven UX' tells me how much of the interesting frontend work actually exists versus is a pitch. And 'where did the last person in this role go' is the honest trajectory signal — a seat people leave, stall in, or get promoted out of answers the growth question better than any careful HR phrasing will.",
         ],
       },
     ],
