@@ -848,8 +848,51 @@ for (const spec of closedLeagues) {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-18-win-celebration"
+        date="September 18, 2026"
+        title="Winning felt like nothing, so the record cheers — once"
+      >
+        <p>
+          The ledger was correct and the record was accurate and opening a bet
+          that won felt like reading a bank statement. A no-loss book should at
+          least let you enjoy the wins, so the record now celebrates them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Celebrate the win once, then shut up about it.
+        </h3>
+        <p className="text-muted">
+          The trick is &ldquo;first time seeing it,&rdquo; not &ldquo;every
+          visit.&rdquo; A device-local set holds the ids of wins I&rsquo;ve
+          already been shown; the celebration keys off the wins that aren&rsquo;t
+          in it, and dismissing adds them. So a fresh win pops, and the same win
+          never pops again.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const { ids, count, totalCents } = unseenWins(bets, seen);
+if (count === 0) return null;         // nothing new to cheer
+// "Nice!" → setSeen(prev => [...prev, ...ids])`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The number moves; the accessible one holds still.
+        </h3>
+        <p className="text-muted">
+          The big figure counts up in whole dollars for the pop, but that
+          animated number is <code>aria-hidden</code> — the real total is plain
+          static text a screen reader reads, and the whole card is a polite live
+          region. Ask for reduced motion and the count-up jumps straight to the
+          total and the sparkles don&rsquo;t render. The maths (win rate, net
+          profit, recent form, the unseen-wins total) is a pure module I could
+          unit-test without any of the animation.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Winning finally feels like something: the first time you open Your record after bets settle in your favour, a card counts up the new winnings over a glow and sparkles, then marks them seen so it only celebrates once — reduced-motion safe, per device.",
+          "More of the record at a glance: a win rate over graded bets, a signed net-profit figure across everything settled, and a recent-form row of the last eight results as win/loss/push chips.",
           "Fantasy matchups only open for betting once a league has drafted and its season is within a week of a real game — read from ESPN's pro schedule — so the board stops offering undrafted pre-season coin-flips a month early.",
           "Fantasy matchups are priced off ESPN's per-side win probability, or the projected-points gap when there's no probability yet, instead of a flat -110 pick'em — a real favourite and underdog, no vig.",
           "Bets placed on those invalid pre-season matchups are voided and refunded automatically as the sync runs: the stake comes back and the bet stays out of everyone's win-loss record.",
