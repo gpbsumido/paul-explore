@@ -45,12 +45,12 @@ describe("netProfitTotalCents", () => {
 });
 
 describe("winRatePct", () => {
-  it("is wins over graded (wins + losses), ignoring pushes", () => {
-    expect(winRatePct({ wins: 6, losses: 4, pushes: 2 })).toBe(60);
+  it("is wins over graded (wins + losses), which excludes pushes", () => {
+    expect(winRatePct({ wins: 6, losses: 4 })).toBe(60);
   });
 
   it("is null with no graded bets, so the UI shows a dash not NaN", () => {
-    expect(winRatePct({ wins: 0, losses: 0, pushes: 3 })).toBeNull();
+    expect(winRatePct({ wins: 0, losses: 0 })).toBeNull();
   });
 });
 

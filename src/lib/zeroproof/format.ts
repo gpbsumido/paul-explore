@@ -84,6 +84,12 @@ export function formatSignedPct(pct: number | null): string {
   return `${pct > 0 ? "+" : ""}${pct}%`;
 }
 
+/** Integer cents as a signed dollar amount, e.g. 500 -> `+$5.00`, -500 -> `-$5.00`. */
+export function formatNetCents(cents: number): string {
+  const base = formatCents(cents);
+  return cents > 0 ? `+${base}` : base;
+}
+
 /**
  * A current streak as a readable run: positive is a win streak, negative a
  * losing one, zero is nothing going.

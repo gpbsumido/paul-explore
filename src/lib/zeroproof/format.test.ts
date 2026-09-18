@@ -7,6 +7,7 @@ import {
   playerHandle,
   formatRecord,
   formatCents,
+  formatNetCents,
   formatSignedPct,
   formatStreak,
 } from "./format";
@@ -130,6 +131,12 @@ describe("response schemas", () => {
       ],
     });
     expect(parsed.events[0].markets[0].outcomes[0].point).toBeUndefined();
+  });
+
+  it("signs net cents: plus for a profit, minus already carried, plain zero", () => {
+    expect(formatNetCents(500)).toBe("+$5.00");
+    expect(formatNetCents(-500)).toBe("-$5.00");
+    expect(formatNetCents(0)).toBe("$0.00");
   });
 
   it("parses leaderboard entries with a nullable sharp score", () => {
