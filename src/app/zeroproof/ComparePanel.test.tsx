@@ -50,7 +50,7 @@ describe("ComparePanel", () => {
   it("shows where I rank against the field", () => {
     render(<ComparePanel myStats={myStats} entries={entries} openBets={openBets} />);
     // ROI 8.4 beats one of {14.2, 3.1} → rank 2 of 3.
-    expect(screen.getByText(/#?2\D+3/)).toBeInTheDocument();
+    expect(screen.getByText("#2 of 3")).toBeInTheDocument();
   });
 
   it("compares me to the selected player across the metrics", () => {
