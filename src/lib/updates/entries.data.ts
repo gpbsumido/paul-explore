@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-compare",
+    date: "2026-09-18",
+    version: "6.21.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See how you stack up on ZeroProof",
+    summary:
+      "A new Compare tab lets you pick a player from the leaderboard and put your record next to theirs — win rate, ROI, sharp score and more, with who leads each and where you'd rank.",
+    body: [
+      "The leaderboard tells you who's on top, but not how you measure up against a particular player. The new Compare tab does: pick someone from the board and your stats line up beside theirs — win rate, ROI, sharp score, record, volume — with each measure flagging who's ahead and a running tally of who leads more of them, plus where you'd land on the board by ROI. Your own open bets sit right alongside.",
+      "It's records only, on purpose: the board is anonymous and everyone's individual picks stay private, so this compares how you've each done, not which side you each took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-win-celebration",
     date: "2026-09-18",
     version: "6.20.0",
