@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-board-visuals",
+    date: "2026-09-18",
+    version: "7.3.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "The ZeroProof board got a glow-up",
+    summary:
+      "Highlight cards for the biggest underdog and the closest game, team-tinted fixtures, a set of new animations, and bets that show up the moment you place them.",
+    body: [
+      "The board used to be a flat list. Now, above the fixtures, two cards point you at the games worth a look: today's biggest underdog — the longest shot on the board, with what it pays if it lands and a button that drops it straight into your slip — and the closest game, the matchup nearest a coin flip. Every fixture also carries its team's real colour — the actual brand colour for the major leagues — so the board reads at a glance instead of as a wall of grey.",
+      "It moves, too: selecting a bet throws off a little spark, borders shimmer, headings resolve from a blur, and the bet slip sits on a frosted iOS-style glass surface — all of which stands down if you've asked your device for reduced motion. And placing a bet now shows on its fixture instantly, rather than after a round-trip to the server.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-past-fixtures",
     date: "2026-09-18",
     version: "7.2.0",
