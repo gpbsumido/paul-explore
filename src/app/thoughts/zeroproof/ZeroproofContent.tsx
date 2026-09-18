@@ -926,8 +926,51 @@ if (count === 0) return null;         // nothing new to cheer
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-18-past-fixtures"
+        date="September 18, 2026"
+        title="Letting the board look backwards, without a lower bound bug"
+      >
+        <p>
+          The board only ever showed upcoming games, and I wanted to glance back
+          at how a line moved or a matchup I&rsquo;d missed. Two things had to be
+          true: the backend had to serve finished games, and the board had to
+          stop pretending time only runs forward.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The horizon only had an upper bound.
+        </h3>
+        <p className="text-muted">
+          The board&rsquo;s day-horizon filter was <code>time &le; now +
+          daysAhead</code> &mdash; no lower bound at all. So the moment the
+          backend returned a past game, it would have shown, with no way to
+          limit how far back. The fix is symmetry: a <code>daysBack</code> that
+          mirrors <code>daysAhead</code>, defaulting to 0 so the everyday board
+          is unchanged, and growing as you load earlier &mdash; up to a 3-month
+          cap the backend enforces.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`time <= now + daysAhead * dayMs &&
+time >= now - daysBack  * dayMs`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A finished game isn&rsquo;t a bet button.
+        </h3>
+        <p className="text-muted">
+          Past fixtures render read-only &mdash; badged Final, their closing
+          lines shown as plain text instead of the pickable price buttons, so
+          there&rsquo;s no way to try to bet a game that already happened. The
+          backend serves the last 90 days behind an opt-in <code>?include=past</code>,
+          reusing the same latest-line join as the upcoming query; the board
+          fetches it only when the box is on.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Look back at the board: a 'Show past fixtures' checkbox reveals recently-finished games read-only (badged Final, lines as text, not bet buttons), a couple of weeks at a time up to 3 months back via 'load earlier' or the date filter.",
           "See how you stack up: a Compare tab puts your record next to a chosen leaderboard player — win rate, ROI, sharp score, record, volume — flagging who leads each and where you'd rank, with your open bets alongside.",
           "Winning finally feels like something: the first time you open Your record after bets settle in your favour, a card counts up the new winnings over a glow and sparkles, then marks them seen so it only celebrates once — reduced-motion safe, per device.",
           "More of the record at a glance: a win rate over graded bets, a signed net-profit figure across everything settled, and a recent-form row of the last eight results as win/loss/push chips.",

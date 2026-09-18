@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-past-fixtures",
+    date: "2026-09-18",
+    version: "7.2.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Look back at past fixtures on the ZeroProof board",
+    summary:
+      "A new checkbox on the board shows recently-finished games alongside the upcoming ones — read-only, and you can scroll back up to three months.",
+    body: [
+      "The board only ever showed what's coming up. Now there's a 'Show past fixtures' checkbox: turn it on and recently-finished games appear too, marked Final, with their closing lines shown for reference (you can't bet a game that's already happened). It reveals a couple of weeks at a time, and a 'Load earlier' button — or the date filter — walks back up to three months.",
+      "It's off by default, so the everyday board is exactly as it was. Handy for looking back at how a line moved, or a matchup you meant to bet and didn't.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-compare",
     date: "2026-09-18",
     version: "7.1.0",

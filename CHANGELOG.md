@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18 - version 7.2.0
+
+- **Show past fixtures on the ZeroProof board.** A "Show past fixtures" checkbox on the board reveals recently-finished games alongside the upcoming ones — read-only, badged **Final**, with the closing lines shown as text rather than as bet buttons (you can't bet a game that's happened). It reveals a couple of weeks at a time, and a "Load earlier fixtures" button walks back up to 3 months; the date-range filter reaches back over the same window. The board filter gained a symmetric `daysBack` lower bound (mirroring the future horizon), a pure `isPastFixture` helper, and the events query and BFF route pass `?include=past` through to the backend, which serves finished fixtures from the last 90 days (companion change in portfolio_api). Off by default, so the normal board is unchanged. Covered by `isPastFixture`/past-horizon unit tests and a board integration test (checkbox reveals a Final, read-only fixture; the upcoming board doesn't), with the existing ZeroProof content + axe suites still green.
+
 ## 2026-09-18 - version 7.1.0
 
 - **Realigned the develop line onto production's 7.x.** Production shipped 7.0.0 (ZeroProof live end to end) while develop kept building on a parallel 6.19–6.21 line — so develop was numbered *below* production despite carrying more. This merges `main` back into develop and sets the line to 7.1.0. The 6.19–6.21 sections below are that develop-line history and all ship to production in 7.1.0: the public ZeroProof win-celebration and compare tool, and the admin-only interviewee deck. The 7.0.0 section further down is the production milestone they build on. The public updates feed attributes the ZeroProof features to 7.1.0, the release that actually delivers them.
