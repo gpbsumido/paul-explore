@@ -655,6 +655,19 @@
   z-index: 1;
 }
 
+/* Answer prefers-reduced-transparency the way Apple's materials do: drop the
+   blur and settle onto a solid surface, rather than a see-through one. */
+@media (prefers-reduced-transparency: reduce) {
+  .motion-liquid-glass {
+    background-color: var(--color-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .motion-liquid-glass__sheen {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-blur-reveal,
   .motion-star-border__ring,
