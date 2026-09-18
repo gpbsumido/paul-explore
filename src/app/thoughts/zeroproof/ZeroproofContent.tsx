@@ -962,9 +962,11 @@ time >= now - daysBack  * dayMs`}
           Past fixtures render read-only &mdash; badged Final, their closing
           lines shown as plain text instead of the pickable price buttons, so
           there&rsquo;s no way to try to bet a game that already happened. The
-          backend serves the last 90 days behind an opt-in <code>?include=past</code>,
-          reusing the same latest-line join as the upcoming query; the board
-          fetches it only when the box is on.
+          backend serves finished games behind an opt-in{" "}
+          <code>?include=past&amp;pastDays=N</code>, reusing the same latest-line
+          join as the upcoming query. The board fetches only the window it shows
+          &mdash; a couple of weeks at first, widened as you load earlier up to
+          the 3-month cap &mdash; rather than pulling all 90 days at once.
         </p>
       </Update>
 

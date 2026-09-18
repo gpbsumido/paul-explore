@@ -7,7 +7,12 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
@@ -344,13 +349,19 @@ function Slate({
   const [daysBack, setDaysBack] = useState(0);
 
   const eventsQuery = useQuery({
-    queryKey: [...queryKeys.zeroproof.events(), { includePast }],
+    // daysBack is in the key so widening the past window refetches; the backend
+    // returns just that window (?pastDays), so we fetch what we show, not 3
+    // months up front. keepPreviousData holds the board steady while it loads.
+    queryKey: [...queryKeys.zeroproof.events(), { includePast, daysBack }],
     queryFn: () =>
       getJson(
-        `/api/zeroproof/events${includePast ? "?include=past" : ""}`,
+        includePast
+          ? `/api/zeroproof/events?include=past&pastDays=${daysBack}`
+          : "/api/zeroproof/events",
       ),
     select: (json) => eventsResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   // How far out the board reaches, in days. Starts at 3 and grows by 3 each
@@ -384,15 +395,9 @@ function Slate({
   const horizonCtx = { now, daysAhead, daysBack, dayMs: DAY_MS, betEventIds };
   const visibleEvents = filterBoardEvents(allEvents, boardFilters, horizonCtx);
   const hasMore = hasMoreBeyondHorizon(allEvents, boardFilters, horizonCtx);
-  // More past fixtures sit beyond the current window, so a "load earlier" is
-  // worth showing (bounded by the 3-month cap the backend serves).
-  const hasEarlier =
-    includePast &&
-    daysBack < MAX_PAST_DAYS &&
-    allEvents.some((event) => {
-      const time = new Date(event.commenceTime).getTime();
-      return !Number.isNaN(time) && time < now - daysBack * DAY_MS;
-    });
+  // We only fetch the window we're showing, so the loaded data can't tell us
+  // whether older fixtures exist — offer "load earlier" until the 3-month cap.
+  const hasEarlier = includePast && daysBack < MAX_PAST_DAYS;
   const dayGroups = groupEventsByDay(visibleEvents);
 
   // The sport options are narrowed by the type filter, so the two can never

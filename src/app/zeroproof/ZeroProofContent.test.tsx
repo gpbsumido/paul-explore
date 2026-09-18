@@ -1121,10 +1121,12 @@ describe("ZeroProofContent — past fixtures", () => {
     ],
   };
 
-  it("reveals recent past fixtures, read-only, when the box is checked", async () => {
+  it("reveals recent past fixtures, read-only, and widens the window as you load earlier", async () => {
+    const pastDaysRequested: (string | null)[] = [];
     renderPage(undefined, undefined, (request) => {
-      const includePast =
-        !!request && new URL(request.url).searchParams.get("include") === "past";
+      const url = request ? new URL(request.url) : null;
+      const includePast = url?.searchParams.get("include") === "past";
+      if (includePast) pastDaysRequested.push(url!.searchParams.get("pastDays"));
       return HttpResponse.json({
         events: includePast ? [...EVENTS.events, PAST_EVENT] : EVENTS.events,
       });
@@ -1145,5 +1147,11 @@ describe("ZeroProofContent — past fixtures", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Final")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Suns/ })).toBeNull();
+    // The first past fetch asked for just the initial 2-week window.
+    expect(pastDaysRequested).toContain("14");
+
+    // Loading earlier widens the requested window rather than pulling 3 months.
+    fireEvent.click(screen.getByRole("button", { name: /load earlier/i }));
+    await waitFor(() => expect(pastDaysRequested).toContain("28"));
   });
 })
