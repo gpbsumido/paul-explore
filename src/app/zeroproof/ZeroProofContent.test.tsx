@@ -97,12 +97,12 @@ const PROFILE = {
 const renderPage = (
   meResponse: () => Response = () => new HttpResponse(null, { status: 401 }),
   betsResponse: () => Response = () => HttpResponse.json({ bets: [] }),
-  eventsResponse: () => Response = () => HttpResponse.json(EVENTS),
+  eventsResponse: (request?: Request) => Response = () => HttpResponse.json(EVENTS),
   myLeaguesResponse: () => Response = () => HttpResponse.json({ leagues: [] }),
   discoverResponse: () => Response = () => HttpResponse.json({ leagues: [] }),
 ) => {
   server.use(
-    http.get("/api/zeroproof/events", () => eventsResponse()),
+    http.get("/api/zeroproof/events", ({ request }) => eventsResponse(request)),
     http.get("/api/zeroproof/leaderboard", () =>
       HttpResponse.json(LEADERBOARD),
     ),
@@ -1093,3 +1093,57 @@ describe("ZeroProofContent — wallet error toast", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("ZeroProofContent — past fixtures", () => {
+  const SLATE_NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(SLATE_NOW);
+  });
+  afterEach(() => nowSpy.mockRestore());
+
+  const PAST_EVENT = {
+    id: "past-1",
+    sport: "basketball_nba",
+    home: "Suns",
+    away: "Nuggets",
+    commenceTime: "2026-09-02T23:00:00.000Z",
+    status: "final",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: "2026-09-02T20:00:00.000Z",
+        outcomes: [
+          { name: "Suns", priceAmerican: -120 },
+          { name: "Nuggets", priceAmerican: 110 },
+        ],
+      },
+    ],
+  };
+
+  it("reveals recent past fixtures, read-only, when the box is checked", async () => {
+    renderPage(undefined, undefined, (request) => {
+      const includePast =
+        !!request && new URL(request.url).searchParams.get("include") === "past";
+      return HttpResponse.json({
+        events: includePast ? [...EVENTS.events, PAST_EVENT] : EVENTS.events,
+      });
+    });
+
+    // Wait for the upcoming board to load.
+    await screen.findByRole("heading", { name: /Celtics/ });
+    // The upcoming board doesn't include the finished game yet.
+    expect(screen.queryByRole("heading", { name: /Nuggets/ })).toBeNull();
+
+    fireEvent.click(
+      await screen.findByRole("checkbox", { name: /show past fixtures/i }),
+    );
+
+    // It shows up, badged Final, with static lines (no bet button for it).
+    expect(
+      await screen.findByRole("heading", { name: /Nuggets/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Final")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Suns/ })).toBeNull();
+  });
+})
