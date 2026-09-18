@@ -18,6 +18,12 @@ import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
 import {
+  netProfitTotalCents,
+  winRatePct,
+  recentForm,
+} from "@/lib/zeroproof/analytics";
+import WinCelebration from "./WinCelebration";
+import {
   eventsResponseSchema,
   leaderboardResponseSchema,
   profileResponseSchema,
@@ -34,6 +40,7 @@ import type {
 import {
   formatAmerican,
   formatCents,
+  formatNetCents,
   formatPoint,
   formatRecord,
   formatSignedPct,
@@ -761,6 +768,44 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+const FORM_CHIP: Record<
+  string,
+  { letter: string; label: string; className: string }
+> = {
+  won: { letter: "W", label: "Win", className: "bg-success-500/15 text-success-600 dark:text-success-300" },
+  lost: { letter: "L", label: "Loss", className: "bg-error-500/15 text-error-600 dark:text-error-300" },
+  push: { letter: "P", label: "Push", className: "bg-surface-raised text-muted" },
+  void: { letter: "V", label: "Void", className: "bg-surface-raised text-muted" },
+};
+
+/** The last handful of settled bets as W/L/P chips, newest first. */
+function RecentForm({ bets }: { bets: ZeroproofBet[] }) {
+  const form = recentForm(bets, 8);
+  if (form.length === 0) return null;
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">Recent form</h3>
+      <ol
+        className="mt-2 flex flex-wrap gap-1.5"
+        aria-label="Recent settled bets, newest first"
+      >
+        {form.map(({ id, status }) => {
+          const chip = FORM_CHIP[status] ?? FORM_CHIP.push;
+          return (
+            <li
+              key={id}
+              className={`flex h-7 w-7 items-center justify-center rounded-md font-mono text-xs font-semibold ${chip.className}`}
+            >
+              <span className="sr-only">{chip.label}</span>
+              <span aria-hidden="true">{chip.letter}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
 function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
   return (
     <li className="rounded-xl border border-border bg-surface/50 p-4">
@@ -1038,6 +1083,19 @@ function Profile() {
       query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
 
+  const signedIn = Boolean(
+    profileQuery.data && !profileQuery.data.signedOut,
+  );
+  // Shares the bets cache with RecordTrend below (same query key); only fetches
+  // once signed in, so a signed-out visitor never hits the 401.
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+    enabled: signedIn,
+  });
+  const bets = betsQuery.data ?? [];
+
   return (
     <section aria-labelledby="profile-title" className="mt-12">
       <h2 id="profile-title" className="text-xl font-semibold text-foreground">
@@ -1074,12 +1132,23 @@ function Profile() {
 
       {profileQuery.data && !profileQuery.data.signedOut && (
         <div className="mt-6 space-y-6">
+          <WinCelebration bets={bets} />
+
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label="Record" value={formatRecord(profileQuery.data.stats)} />
+            <Stat
+              label="Win rate"
+              value={
+                winRatePct(profileQuery.data.stats) === null
+                  ? "—"
+                  : `${winRatePct(profileQuery.data.stats)}%`
+              }
+            />
             <Stat
               label="ROI"
               value={formatSignedPct(profileQuery.data.stats.roiPct)}
             />
+            <Stat label="Net profit" value={formatNetCents(netProfitTotalCents(bets))} />
             <Stat
               label="Sharp score"
               value={
@@ -1109,6 +1178,8 @@ function Profile() {
               value={String(profileQuery.data.stats.betCount)}
             />
           </dl>
+
+          <RecentForm bets={bets} />
 
           <RecordTrend wallets={profileQuery.data.wallets} />
 
