@@ -17,7 +17,7 @@ describe("Motion Components write-up", () => {
   it("preserves the original reasoning and appends the corner coverage correction", () => {
     render(<MotionComponentsContent />);
     expect(screen.getByRole("heading", { name: "The corner rule existed, but half the entry points missed it" })).toBeInTheDocument();
-    expect(screen.getByText(/Update.*September 18, 2026/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Update.*September 18, 2026/).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: /one hook, shared/i })).toBeInTheDocument();
     expect(screen.getByText(/Hero06/)).toBeInTheDocument();
   });

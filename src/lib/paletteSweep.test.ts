@@ -24,6 +24,7 @@ const ARCHIVE = [
  */
 const IDENTITY = [
   "src/lib/nbaTeamColors.ts",
+  "src/lib/zeroproof/teamColors.ts",
   "src/lib/graphql.ts",
   "src/lib/tcg.ts",
   "src/lib/vitals.ts",

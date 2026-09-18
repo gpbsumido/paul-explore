@@ -1,16 +1,13 @@
 # Changelog
 
-## [7.2.2] - 2026-09-18
+## 2026-09-18 - version 7.3.1
 
-### Documentation
+- Append a September 18 update to the Motion Components write-up covering the components-only squircle gap, the SVG liquid carve button, and the portrait hero sections in paul-design-system PR 91. The original ReactBits/OriginKit note stays put; What's next gains the review/release status and the deferred effects.
 
-- Append a September 18 update to Motion Components explaining the components-only squircle gap, the SVG liquid carve, and the portrait hero sections in paul-design-system PR 91. Preserve the original write-up and add review/release status plus deferred effects to What's next.
+## 2026-09-18 - version 7.3.0
 
-## [7.2.1] - 2026-09-18
-
-### Tests
-
-- Pin the dated motion-components update and preserve the original write-up before adding the corner-coverage correction.
+- **Gave the ZeroProof board some life.** A pass over the board's look and feel. Above the fixtures, two highlight cards call out the games worth a glance — today's **biggest underdog** (the longest shot, with the payout multiple if it lands, and a "Bet this" button that loads it into the slip) and the **closest game** (the matchup nearest a coin flip). Both are pure, unit-tested selectors (`src/lib/zeroproof/boardHighlights.ts`: `biggestUnderdog`, `closestGame`, `impliedProbability`) that read the events already on screen, so they follow the board's own filters. Every fixture now carries a team-tinted accent bar — the **real brand colour** for NBA/NFL/MLB teams (`teamColors.ts`, league-scoped so the NFL's and MLB's Cardinals and Giants don't collide, matched by the tail of the vendor's full name), falling back to a deterministic name→`hsl()` hash (`teamAccent.ts`) for fantasy and unknown teams. Placing a bet is **optimistic** — it lands on its fixture the instant I hit place, rolling back if the server rejects it, rather than waiting on the round-trip.
+- **Added a set of motion primitives to the design system** (`src/components/motion/`), reimplemented on the design tokens rather than pulled from a library: ReactBits-style `ClickSpark` (a burst on selecting a bet) and `BlurReveal`; OriginKit-style `StarBorder` (a conic gradient that sweeps the border) and `ShineSweep` (a specular sweep); and an iOS **Liquid Glass** surface (frosted, with a drifting highlight) on the bet slip and the closest-game card. (The existing `SpotlightCard` already covers a cursor-follow glow, so it isn't reimplemented here.) Every animation is disabled under `prefers-reduced-motion`, and the keyframes live in `globals.css`. Covered by component tests for each primitive plus a board integration test for the optimistic placement, with the existing ZeroProof content + axe suites still green.
 
 ## 2026-09-18 - version 7.2.0
 

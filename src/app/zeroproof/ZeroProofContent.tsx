@@ -71,6 +71,13 @@ import {
   isFantasySport,
   isPastFixture,
 } from "@/lib/zeroproof/boardFilters";
+import { biggestUnderdog, closestGame } from "@/lib/zeroproof/boardHighlights";
+import { teamAccentColor } from "@/lib/zeroproof/teamAccent";
+import BlurReveal from "@/components/motion/BlurReveal";
+import ClickSpark from "@/components/motion/ClickSpark";
+import LiquidGlass from "@/components/motion/LiquidGlass";
+import ShineSweep from "@/components/motion/ShineSweep";
+import StarBorder from "@/components/motion/StarBorder";
 
 /**
  * The bankroll-trend chart, code-split out of the lobby's initial bundle. It's
@@ -131,24 +138,26 @@ function OutcomeButton({
 }) {
   const line = formatPoint(point);
   return (
-    <button
-      type="button"
-      onClick={onPick}
-      aria-pressed={selected}
-      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
-        selected
-          ? "border-primary-500 bg-primary-500/10"
-          : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
-      }`}
-    >
-      <span className="truncate text-foreground">
-        {name}
-        {line && <span className="ml-1 text-muted">{line}</span>}
-      </span>
-      <span className="font-mono tabular-nums text-foreground">
-        {formatAmerican(price)}
-      </span>
-    </button>
+    <ClickSpark className="w-full">
+      <button
+        type="button"
+        onClick={onPick}
+        aria-pressed={selected}
+        className={`flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${
+          selected
+            ? "scale-[1.02] border-primary-500 bg-primary-500/10 shadow-sm motion-reduce:scale-100"
+            : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
+        }`}
+      >
+        <span className="truncate text-foreground">
+          {name}
+          {line && <span className="ml-1 text-muted">{line}</span>}
+        </span>
+        <span className="font-mono tabular-nums text-foreground">
+          {formatAmerican(price)}
+        </span>
+      </button>
+    </ClickSpark>
   );
 }
 
@@ -176,9 +185,16 @@ function EventCard({
   readOnly?: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
+  const accent = `linear-gradient(to bottom, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
-    <li className="rounded-2xl border border-border bg-surface/50 p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+    <li className="list-none">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pl-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-4 left-0 w-1 rounded-full"
+          style={{ background: accent }}
+        />
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-lg font-semibold text-foreground">
             <span>{event.away}</span>
@@ -304,8 +320,16 @@ function EventCard({
           ))}
         </div>
       )}
+      </div>
     </li>
   );
+}
+
+/** American odds → a decimal payout multiple, e.g. +122 reads as "2.2×". */
+function payoutMultiple(american: number): string {
+  const mult =
+    american >= 0 ? 1 + american / 100 : 1 + 100 / Math.abs(american);
+  return `${mult.toFixed(1)}×`;
 }
 
 const HORIZON_STEP_DAYS = 3;
@@ -334,6 +358,103 @@ function groupEventsByDay(
     else groups.push({ key: label, label, events: [event] });
   }
   return groups;
+}
+
+/**
+ * The two "look here first" cards above the board: the longest shot on the
+ * board (biggest payout if it lands) and the game closest to a coin flip. Both
+ * read from the events already loaded, so they stay in step with the board.
+ * "Bet this" on the underdog loads it straight into the slip.
+ */
+function BoardHighlights({
+  events,
+  now,
+  onPick,
+}: {
+  events: ZeroproofEvent[];
+  now: number;
+  onPick: (bet: SelectedBet) => void;
+}) {
+  const underdog = biggestUnderdog(events, now);
+  const close = closestGame(events, now);
+  if (!underdog && !close) return null;
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {underdog && (
+        <div
+          className="rounded-2xl"
+          style={{ color: teamAccentColor(underdog.selection, underdog.event.sport) }}
+        >
+          <StarBorder className="h-full rounded-2xl">
+            <div className="flex h-full flex-col rounded-2xl p-5 text-foreground">
+              <BlurReveal
+                as="h3"
+                className="text-xs font-semibold tracking-wide text-muted uppercase"
+              >
+                Biggest underdog
+              </BlurReveal>
+              <p className="mt-2 text-lg font-semibold text-foreground">
+                {underdog.selection}
+              </p>
+              <p className="text-sm text-muted">
+                {underdog.event.away} @ {underdog.event.home}
+              </p>
+              <p className="mt-1 text-sm text-foreground">
+                Pays{" "}
+                <span className="font-mono font-semibold tabular-nums">
+                  {payoutMultiple(underdog.priceAmerican)}
+                </span>{" "}
+                if it lands
+              </p>
+              <ShineSweep className="mt-4 self-start rounded-full">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onPick({
+                      eventId: underdog.event.id,
+                      eventLabel: `${underdog.event.away} @ ${underdog.event.home}`,
+                      market: "h2h",
+                      selection: underdog.selection,
+                      point: undefined,
+                      price: underdog.priceAmerican,
+                    })
+                  }
+                  className="inline-flex h-8 items-center rounded-full bg-primary-600 px-4 text-xs font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+                >
+                  Bet this
+                </button>
+              </ShineSweep>
+            </div>
+          </StarBorder>
+        </div>
+      )}
+
+      {close && (
+        <LiquidGlass className="rounded-2xl">
+          <div className="flex h-full flex-col rounded-2xl p-5">
+            <BlurReveal
+              as="h3"
+              delayMs={90}
+              className="text-xs font-semibold tracking-wide text-muted uppercase"
+            >
+              Closest game
+            </BlurReveal>
+            <p className="mt-2 text-lg font-semibold text-foreground">
+              {close.event.away} @ {close.event.home}
+            </p>
+            <p className="text-sm text-muted">
+              {close.outcomes.map((outcome) => outcome.name).join(" vs ")}
+            </p>
+            <p className="mt-1 text-sm text-foreground">
+              Practically a coin flip &mdash; the sides sit within{" "}
+              {Math.max(1, Math.round(close.spread * 100))} points
+            </p>
+          </div>
+        </LiquidGlass>
+      )}
+    </div>
+  );
 }
 
 function Slate({
@@ -467,6 +588,8 @@ function Slate({
 
       {eventsQuery.data && allEvents.length > 0 && (
         <>
+          <BoardHighlights events={allEvents} now={now} onPick={onPick} />
+
           {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
               controls stay visible while you scroll the board. */}
           <div className="sticky top-14 z-20 mt-4 flex flex-col gap-2 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
@@ -968,18 +1091,52 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       }
       return res.json();
     },
+    // Optimistic: drop the bet onto its board fixture straight away, so placing
+    // it feels instant rather than waiting on the round-trip. The settler's
+    // real bet replaces it when onSettled refetches; a failure rolls it back.
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.zeroproof.bets() });
+      const previous = queryClient.getQueryData<ZeroproofBet[]>(
+        queryKeys.zeroproof.bets(),
+      );
+      const optimistic: ZeroproofBet = {
+        id: `optimistic-${bet.eventId}-${bet.market}-${bet.selection}`,
+        walletId: activeWallet,
+        eventId: bet.eventId,
+        market: bet.market,
+        selection: bet.selection,
+        oddsAmerican: bet.price,
+        lineValue: bet.point ?? null,
+        closingOddsAmerican: null,
+        clv: null,
+        stakeCents: stakeCents ?? 0,
+        status: "open",
+        placedAt: new Date().toISOString(),
+        settledAt: null,
+      };
+      queryClient.setQueryData<ZeroproofBet[]>(
+        queryKeys.zeroproof.bets(),
+        (old) => [...(old ?? []), optimistic],
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(queryKeys.zeroproof.bets(), context.previous);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
       setStake("");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.bets() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
     },
   });
 
   return (
-    <div
-      role="region"
-      aria-label="Bet slip"
-      className="mt-6 rounded-2xl border border-primary-500/40 bg-surface p-5"
-    >
+    <div role="region" aria-label="Bet slip" className="mt-6">
+      <LiquidGlass className="rounded-2xl p-5 ring-1 ring-primary-500/30">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Bet slip</h2>
         <button
@@ -1039,14 +1196,16 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
               className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => placeBet.mutate()}
-            disabled={stakeCents === null || placeBet.isPending}
-            className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
-          >
-            {placeBet.isPending ? "Placing…" : "Place bet"}
-          </button>
+          <ShineSweep className="rounded-full">
+            <button
+              type="button"
+              onClick={() => placeBet.mutate()}
+              disabled={stakeCents === null || placeBet.isPending}
+              className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
+            >
+              {placeBet.isPending ? "Placing…" : "Place bet"}
+            </button>
+          </ShineSweep>
         </div>
       )}
 
@@ -1055,6 +1214,7 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
           Bet placed — your balance is updated below.
         </p>
       )}
+      </LiquidGlass>
     </div>
   );
 }

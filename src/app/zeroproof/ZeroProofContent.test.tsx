@@ -846,6 +846,34 @@ describe("ZeroProofContent — bet slip", () => {
       stakeCents: 2500,
     });
   });
+
+  it("flags the fixture the moment a bet is placed, before the server confirms", async () => {
+    // Hold the POST open so the only thing that could flag the fixture is the
+    // optimistic write — the bets GET stays empty throughout.
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    server.use(
+      http.post("/api/zeroproof/bets", async () => {
+        await gate;
+        return HttpResponse.json({ id: "bet-1" });
+      }),
+    );
+    renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    fireEvent.change(within(slip).getByLabelText(/stake/i), {
+      target: { value: "25" },
+    });
+    expect(screen.queryByText("Your bet")).toBeNull();
+    fireEvent.click(within(slip).getByRole("button", { name: /place bet/i }));
+    expect(await screen.findByText("Your bet")).toBeInTheDocument();
+    expect(
+      screen.getByRole("list", { name: /your bets on this matchup/i }),
+    ).toHaveTextContent("Celtics");
+    release();
+  });
 });
 
 describe("ZeroProofContent — live updates", () => {
