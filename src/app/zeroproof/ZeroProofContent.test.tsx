@@ -193,7 +193,7 @@ describe("ZeroProofContent — slate", () => {
 });
 
 describe("ZeroProofContent — tabs", () => {
-  it("splits the lobby into Board, Leagues, Leaderboard and Your record, Board first", async () => {
+  it("splits the lobby into Board, Leagues, Leaderboard, Compare and Your record, Board first", async () => {
     renderPage();
     const tablist = screen.getByRole("tablist", {
       name: /zeroproof sections/i,
@@ -202,7 +202,7 @@ describe("ZeroProofContent — tabs", () => {
       within(tablist)
         .getAllByRole("tab")
         .map((t) => t.textContent),
-    ).toEqual(["Board", "Leagues", "Leaderboard", "Your record"]);
+    ).toEqual(["Board", "Leagues", "Leaderboard", "Compare", "Your record"]);
     expect(screen.getByRole("tab", { name: "Board" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -231,6 +231,25 @@ describe("ZeroProofContent — tabs", () => {
       "aria-selected",
       "true",
     );
+  });
+});
+
+describe("ZeroProofContent — compare", () => {
+  it("asks a signed-out visitor to sign in", async () => {
+    renderPage(); // me → 401
+    fireEvent.click(screen.getByRole("tab", { name: "Compare" }));
+    expect(await screen.findByText(/sign in to compare/i)).toBeInTheDocument();
+  });
+
+  it("shows how a signed-in player stacks up against the board", async () => {
+    renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(screen.getByRole("tab", { name: "Compare" }));
+    const panel = await screen.findByRole("tabpanel", { name: "Compare" });
+    expect(
+      await within(panel).findByRole("heading", { name: /how you stack up/i }),
+    ).toBeInTheDocument();
+    // My ROI from the profile fixture shows up in the comparison table.
+    expect(within(panel).getByText("+8.4%")).toBeInTheDocument();
   });
 });
 
@@ -649,13 +668,15 @@ describe("ZeroProofContent — profile", () => {
   it("shows a signed-in player's stats, wallet balance, and accolades", async () => {
     renderPage(() => HttpResponse.json(PROFILE));
     await goToTab(/your record/i);
+    // Scope to the record panel: the Compare panel also renders these stats.
+    const panel = await screen.findByRole("tabpanel", { name: /your record/i });
     // stats
-    expect(await screen.findByText("18-11-2")).toBeInTheDocument();
-    expect(screen.getByText("+8.4%")).toBeInTheDocument();
+    expect(await within(panel).findByText("18-11-2")).toBeInTheDocument();
+    expect(within(panel).getByText("+8.4%")).toBeInTheDocument();
     // wallet balance in dollars from cents
-    expect(screen.getByText("$118.40")).toBeInTheDocument();
+    expect(within(panel).getByText("$118.40")).toBeInTheDocument();
     // accolade
-    expect(screen.getByText("First Win")).toBeInTheDocument();
+    expect(within(panel).getByText("First Win")).toBeInTheDocument();
   });
 
   it("charts a bankroll trend once there are settled bets", async () => {

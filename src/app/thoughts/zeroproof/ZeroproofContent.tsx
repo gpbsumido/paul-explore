@@ -889,8 +889,46 @@ if (count === 0) return null;         // nothing new to cheer
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-18-compare"
+        date="September 18, 2026"
+        title="How you stack up, without giving anyone away"
+      >
+        <p>
+          The leaderboard says who&rsquo;s on top; it doesn&rsquo;t say how I
+          measure up against one particular player. A Compare tab does &mdash;
+          pick someone from the board and our records line up side by side,
+          each measure flagged for who leads, with where I&rsquo;d rank by ROI.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The interesting half is the half I didn&rsquo;t build.
+        </h3>
+        <p className="text-muted">
+          What I actually wanted was &ldquo;which bets did we agree or disagree
+          on,&rdquo; and I deliberately didn&rsquo;t ship it. The board is
+          anonymised on purpose (a handle that can&rsquo;t be walked back to a
+          person) and everyone&rsquo;s picks are private, so surfacing another
+          player&rsquo;s individual bets to me would undo that. It needs a
+          consented, opt-in surface on the backend, not a clever client &mdash;
+          so this compares how we&rsquo;ve each done, not what we each took.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Comparing is pure; fetching is free.
+        </h3>
+        <p className="text-muted">
+          The &ldquo;who leads&rdquo; and &ldquo;where do I rank&rdquo; logic is
+          a pure module I could unit-test on its own, with null scores sinking
+          below any real number so an ungraded player doesn&rsquo;t top the
+          board. The panel reads the leaderboard and profile the lobby had
+          already fetched, so the tab costs no new request.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "See how you stack up: a Compare tab puts your record next to a chosen leaderboard player — win rate, ROI, sharp score, record, volume — flagging who leads each and where you'd rank, with your open bets alongside.",
           "Winning finally feels like something: the first time you open Your record after bets settle in your favour, a card counts up the new winnings over a glow and sparkles, then marks them seen so it only celebrates once — reduced-motion safe, per device.",
           "More of the record at a glance: a win rate over graded bets, a signed net-profit figure across everything settled, and a recent-form row of the last eight results as win/loss/push chips.",
           "Fantasy matchups only open for betting once a league has drafted and its season is within a week of a real game — read from ESPN's pro schedule — so the board stops offering undrafted pre-season coin-flips a month early.",
@@ -921,6 +959,7 @@ if (count === 0) return null;         // nothing new to cheer
           "That tour is now a shared engine: the same consent-first coach-mark runs on Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, and the design-system gallery, each built from a small per-page step config.",
         ]}
         couldImprove={[
+          "The Compare tab is records only. A consented, opt-in surface would let it show which bets two players agreed or disagreed on, and each other's upcoming bets — the part I most wanted but wouldn't build over the board's anonymity.",
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
           "Results only match by the vendor's own event ids. An ESPN fallback would need fuzzy team-and-time matching, which I left as a deliberate later problem.",

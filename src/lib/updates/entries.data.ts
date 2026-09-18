@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-compare",
+    date: "2026-09-18",
+    version: "6.21.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See how you stack up on ZeroProof",
+    summary:
+      "A new Compare tab lets you pick a player from the leaderboard and put your record next to theirs — win rate, ROI, sharp score and more, with who leads each and where you'd rank.",
+    body: [
+      "The leaderboard tells you who's on top, but not how you measure up against a particular player. The new Compare tab does: pick someone from the board and your stats line up beside theirs — win rate, ROI, sharp score, record, volume — with each measure flagging who's ahead and a running tally of who leads more of them, plus where you'd land on the board by ROI. Your own open bets sit right alongside.",
+      "It's records only, on purpose: the board is anonymous and everyone's individual picks stay private, so this compares how you've each done, not which side you each took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-win-celebration",
     date: "2026-09-18",
     version: "6.20.0",
@@ -22,21 +37,6 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
     body: [
       "Winning should feel like something. Now the first time you check Your record after a bet settles in your favour, ZeroProof totals what you just won and celebrates it — a number that counts up, a glow, a few sparkles — then quietly remembers it, so the same win doesn't cheer at you every visit. Ask your device for reduced motion and it stays calm and just shows the total.",
       "The record panel also tells you more at a glance: your win rate over graded bets, your net profit across everything that's settled, and a row of your last eight results as win/loss/push chips. It all reads off bets already loaded, so nothing new is fetched.",
-    ],
-    resolvedTicketIds: [],
-  },
-  {
-    id: "e-interviewee-deck",
-    date: "2026-09-17",
-    version: "6.19.0",
-    category: "feature",
-    tags: ["interviewee"],
-    title: "Interviewee — a private, keyboard-driven interview-prep deck",
-    summary:
-      "A new admin-only deck for my interview prep, organised by job interview: open an interview, then a topic, for bullet-point answers with the detail behind a tap and related topics a keystroke away. Number keys jump straight to a card.",
-    body: [
-      "I wanted something I could actually drive mid-interview without reaching for the mouse, so the deck is keyboard-first at every level: number keys 1 through 9 jump straight to an interview or topic, the arrow keys walk the cards, and Escape drops back from a topic to its interview. Each topic opens the headline points with the deeper detail tucked behind a disclosure, and related topics show as cards you can hop to sideways.",
-      "The whole thing is fed from one data shape — an interview owning its topics — so a page of prep notes becomes the deck without touching the UI. It's behind sign-in and admin-only, since the content is my own answers; marking a topic reviewed slides it into a separate list rather than deleting it, remembered on my device.",
     ],
     resolvedTicketIds: [],
   },
