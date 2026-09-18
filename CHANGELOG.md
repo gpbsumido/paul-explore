@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18 - version 6.19.2
+
+- **Grounded the Interviewee prep answers in concrete examples.** Swept the Sardine interview data for answers that stated a principle without an instance and gave each a specific example: what stays a human call vs. delegated to the model (rollback plans and test intent, and the BFF token code I read by hand, vs. migrations and boilerplate), the AI-was-confidently-wrong story (an invented component prop the type-check caught, not my read), the chart-output sanity check (a 10,000-series/negative-axis payload the schema rejects), where mutation testing earns its keep (the state-machine reducer and the chart geometry), the bug-to-prod loop (cancel-during-hydration got a state-machine transition test), the design-system escape hatch (a monthly-reviewed exceptions list), and specific credit (Helika AI's backend team owned the 25-agent orchestration; I owned the frontend and the schema contract). Content-only change to the admin-only deck — no behaviour change; `interviews.data.test.ts` still validates every entry.
+
 ## 2026-09-17 - version 6.19.1
 
 - **Search, ranking, a revisit nudge, and device sync on the Interviewee deck.**
