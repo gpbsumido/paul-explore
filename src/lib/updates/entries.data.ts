@@ -41,21 +41,6 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
     resolvedTicketIds: [],
   },
   {
-    id: "e-interviewee-deck",
-    date: "2026-09-17",
-    version: "6.19.0",
-    category: "feature",
-    tags: ["interviewee"],
-    title: "Interviewee — a private, keyboard-driven interview-prep deck",
-    summary:
-      "A new admin-only deck for my interview prep, organised by job interview: open an interview, then a topic, for bullet-point answers with the detail behind a tap and related topics a keystroke away. Number keys jump straight to a card.",
-    body: [
-      "I wanted something I could actually drive mid-interview without reaching for the mouse, so the deck is keyboard-first at every level: number keys 1 through 9 jump straight to an interview or topic, the arrow keys walk the cards, and Escape drops back from a topic to its interview. Each topic opens the headline points with the deeper detail tucked behind a disclosure, and related topics show as cards you can hop to sideways.",
-      "The whole thing is fed from one data shape — an interview owning its topics — so a page of prep notes becomes the deck without touching the UI. It's behind sign-in and admin-only, since the content is my own answers; marking a topic reviewed slides it into a separate list rather than deleting it, remembered on my device.",
-    ],
-    resolvedTicketIds: [],
-  },
-  {
     id: "e-zeroproof-board-date-range",
     date: "2026-09-15",
     version: "6.18.0",

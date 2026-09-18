@@ -3,6 +3,7 @@
 ## 2026-09-18 - version 6.21.0
 
 - **A Compare tab on ZeroProof — how I stack up against the field.** A new lobby tab where I pick a player from the leaderboard and see my record next to theirs: win rate, ROI, sharp score, record, and volume, with each comparable measure flagging who leads and a "you lead N of M" summary, plus where I'd rank on the board by ROI. My own open bets list alongside. The comparison maths is a pure, unit-tested module (`src/lib/zeroproof/compare.ts`: `compareStats`, `leadSummary`, `rankByMetric`), and the presentational `ComparePanel` is tested on its own; it reads the leaderboard and profile the lobby already fetches, so nothing new is requested. Signed-in only — a signed-out visitor gets a sign-in prompt. Scoped to records on purpose: the leaderboard is anonymised and individual picks are private, so which bets two players agreed or disagreed on (and another player's upcoming bets) would need a new, consented backend surface — a deliberate follow-up. Covered by compare unit tests, a `ComparePanel` component test (rank, metrics, player switch, upcoming bets, axe), and two lobby integration tests (signed-out prompt, signed-in comparison), with the existing ZeroProof content + tour + axe suites still green.
+- **Pulled the admin-only Interviewee deck out of the public updates feed.** It's a private, sign-in-gated tool, so it has no business in the visitor-facing changelog — removed its `UPDATE_ENTRIES` entry. The feature and its dev-notes write-up stay; only the public feed listing is gone.
 
 ## 2026-09-18 - version 6.20.0
 
