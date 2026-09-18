@@ -231,7 +231,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
         question: "How did you validate the AI's output before rendering it?",
         points: [
           "Model output that drives UI is untrusted input: schema validation with Zod, a safe fallback rendering when the payload doesn't validate, and never eval-ing or blindly trusting config from the model.",
-          "Two floors, not one: shape (is it the right structure?) and sanity (a capped series count, finite numbers, sane ranges) — valid JSON can still be semantic nonsense.",
+          "Two floors, not one: shape (is it the right structure?) and sanity (a capped series count, finite numbers, sane ranges). Concretely: the model once returned a chart with 10,000 series and a negative axis — valid JSON, unrenderable — so the schema caps the series array and checks the numbers are finite before anything renders.",
         ],
         details: [
           "Junior: treat the AI like a user typing into a form — check the value against a strict shape first, and if it doesn't match, show a safe plain-text version instead of crashing.",
@@ -461,7 +461,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "A product team wants a one-off variant that violates the system. What do you do?",
         points: [
-          "A sanctioned escape hatch with a paper trail, then decide whether the exception is a missing feature or a real one-off — never a flat no (they'll fork it) and never a silent fork.",
+          "A sanctioned escape hatch with a paper trail — e.g. a style-override prop plus an exceptions list I review monthly — then decide whether the exception is a missing feature or a real one-off; never a flat no (they'll fork it) and never a silent fork.",
           "Three teams making the same exception means the system is missing a feature.",
         ],
       },
@@ -522,21 +522,24 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
         question: "Show me a case where the AI was confidently wrong and you caught it. How?",
         points: [
           "You catch it because the process ALWAYS runs the real thing — the test suite, the build, the endpoint — instead of trusting the AI's summary. People without a verification habit ship these.",
-          "AI bugs look correct: a function call that reads perfectly but doesn't exist, an edge case handled with confident nonsense. So reading isn't enough — run it and spot-check every API it claims exists.",
+          "AI bugs look correct: a function call that reads perfectly but doesn't exist, an edge case handled with confident nonsense. Example: I've caught it inventing a component prop that didn't exist — the build's type-check flagged it, not my read of code that looked right. So reading isn't enough — run it and spot-check every API it claims exists.",
         ],
       },
       {
         question: "What do you never delegate to the model?",
         points: [
-          "Architectural decisions, security-sensitive review, the final read of any diff I ship, and test intent — the model writes test code, I decide what must be true.",
-          "Delegate labor, never judgment: the stuff where being wrong is expensive and hard to detect stays human.",
+          "Architectural decisions, security-sensitive review, the final read of any diff I ship, and test intent — the model writes the test code, I decide what it must prove (e.g. that a cancel mid-hydration keeps the partial text).",
+          "Delegate labor, never judgment: I'll let it draft a migration, a test file, or boilerplate, but I own the rollback plan, what the test has to prove, and the last read of the diff — the calls where being wrong is expensive and fails silently.",
+        ],
+        details: [
+          "Concrete line: the BFF token-handling code I read myself, character by character, because a subtle mistake there leaks tokens and no test would catch it. The renderer boilerplate next to it, I let the model write and just ran.",
         ],
       },
       {
         question: "What's the failure mode of an AI-heavy team, and how do you counter it?",
         points: [
           "Throughput outrunning verification, codebase coherence drifting (every file a different author), and debugging skill atrophy from always regenerating.",
-          "The antidotes are process: tests as gatekeepers, shared conventions the AI is given, and humans owning every diff. The test defines 'correct' before the code exists.",
+          "The antidotes are process: tests as gatekeepers, shared conventions the AI is given, and humans owning every diff. Concretely, my harness makes the failing test the first commit and feeds the model the repo's lint rules and conventions file, so throughput can't outrun verification and every file comes out in one voice.",
         ],
         details: [
           "Junior: when a human writes slowly, review keeps up; when AI writes fast, review is the bottleneck unless the test defines correct first. Write the failing test yourself (the intent), let the AI make it pass (the labor), and the test referees.",
@@ -612,7 +615,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
         question: "Why mutation testing? Almost nobody uses it.",
         points: [
           "Coverage lies: 90% coverage with weak assertions is theatre. Mutation testing breaks the code (flips a > to >=, deletes a line) and checks whether any test fails — if none do, that test was decoration.",
-          "I use it selectively on the logic that matters most, not everywhere — it's slow, and that's an engineering trade-off.",
+          "I use it selectively on the logic that matters most — e.g. the Helika AI state-machine reducer and the design-system chart geometry, where flipping a > to >= would silently mis-handle a cancel or misplace an arc and no one would catch it in a demo — not everywhere, because it's slow.",
         ],
         details: [
           "Junior: coverage says 'this line RAN during tests,' not 'a test would notice if this line were wrong.' Mutation testing checks the second thing.",
@@ -621,7 +624,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "A bug ships to production anyway. Walk me through what you do.",
         points: [
-          "Sentry alert, reproduce, the fix ships WITH a test that fails without it, then the real question: why did no layer catch it, and which layer should have. Pattern-level fixes, not just instance fixes.",
+          "Sentry alert, reproduce, the fix ships WITH a test that fails without it — e.g. cancel-during-artifact-hydration shipped once and left the message stuck loading; the fix added the state-machine transition test that now catches it. Then the real question: why did no layer catch it, and which layer should have. Pattern-level fixes, not just instance fixes.",
           "The bug is evidence of a hole in the safety net — add the check at the layer that should have caught it so the whole category can't ship again.",
         ],
       },
@@ -722,7 +725,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "You keep saying 'I' — who else was on this, and what did they own?",
         points: [
-          "Being primary author of the frontend apps makes generous, SPECIFIC credit more convincing, not less: 'X built the export flow, Y owned the mobile pass' sounds like a lead.",
+          "Being primary author of the frontend apps makes generous, SPECIFIC credit more convincing, not less — e.g. on Helika AI the backend team owned the 25-agent orchestration and the API while I owned the whole frontend and drove the schema contract. Naming who owned what sounds like a lead.",
           "'It was mostly me' sounds like a red flag even when it's true — know the team shape and credit precisely.",
         ],
       },
@@ -746,7 +749,7 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
       {
         question: "How do you review a PR from someone much more junior?",
         points: [
-          "Label blocking vs preference so they're not overwhelmed, explain the WHY behind one pattern deeply instead of ten shallow flags, and praise something real and specific.",
+          "Label blocking vs preference so they're not overwhelmed, explain the WHY behind one pattern deeply instead of ten shallow flags, and praise something real and specific ('this loading/empty/error handling is exactly right') rather than a generic 'nice work.'",
           "The goal is that their next PR needs fewer comments, not that this PR reaches perfection.",
         ],
       },
