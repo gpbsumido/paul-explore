@@ -23,6 +23,7 @@ import {
   recentForm,
 } from "@/lib/zeroproof/analytics";
 import WinCelebration from "./WinCelebration";
+import ComparePanel from "./ComparePanel";
 import {
   eventsResponseSchema,
   leaderboardResponseSchema,
@@ -1222,10 +1223,80 @@ function Profile() {
   );
 }
 
+/**
+ * How I stack up against the field: my stats next to a chosen leaderboard
+ * player, and my own open bets alongside. Signed in only — it needs my record.
+ */
+function CompareTab() {
+  const profileQuery = useQuery({
+    queryKey: queryKeys.zeroproof.me(),
+    queryFn: fetchProfile,
+    staleTime: 60 * 1000,
+  });
+  const signedIn = Boolean(
+    profileQuery.data && !profileQuery.data.signedOut,
+  );
+  const boardQuery = useQuery({
+    queryKey: queryKeys.zeroproof.leaderboard("roi"),
+    queryFn: () => getJson(`/api/zeroproof/leaderboard?board=roi`),
+    select: (json) => leaderboardResponseSchema.parse(json),
+    staleTime: 5 * 60 * 1000,
+    enabled: signedIn,
+  });
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+    enabled: signedIn,
+  });
+
+  if (profileQuery.isLoading) {
+    return (
+      <p className="mt-12 text-sm text-muted" role="status">
+        Loading your record…
+      </p>
+    );
+  }
+  if (profileQuery.isError) {
+    return (
+      <div className="mt-12">
+        <QueryError
+          message="Couldn't load your record right now."
+          onRetry={() => profileQuery.refetch()}
+        />
+      </div>
+    );
+  }
+  if (!profileQuery.data || profileQuery.data.signedOut) {
+    return (
+      <div className="mt-12 rounded-2xl border border-border bg-surface/50 p-6">
+        <p className="text-sm text-muted">
+          Sign in to compare your record against the rest of the board.
+        </p>
+        <Link
+          href="/auth/login"
+          className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <ComparePanel
+      myStats={profileQuery.data.stats}
+      entries={boardQuery.data?.entries ?? []}
+      openBets={(betsQuery.data ?? []).filter((bet) => bet.status === "open")}
+    />
+  );
+}
+
 const LOBBY_TABS = [
   { id: "board", label: "Board" },
   { id: "leagues", label: "Leagues" },
   { id: "leaderboard", label: "Leaderboard" },
+  { id: "compare", label: "Compare" },
   { id: "record", label: "Your record" },
 ] as const;
 type LobbyTab = (typeof LOBBY_TABS)[number]["id"];
@@ -1396,6 +1467,16 @@ export default function ZeroProofContent() {
         className="focus-visible:outline-none"
       >
         <Leaderboard />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-compare"
+        aria-labelledby="zp-tab-compare"
+        tabIndex={0}
+        hidden={tab !== "compare"}
+        className="focus-visible:outline-none"
+      >
+        <CompareTab />
       </div>
       <div
         role="tabpanel"
