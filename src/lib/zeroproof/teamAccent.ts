@@ -1,12 +1,15 @@
+import { teamBrandColor } from "./teamColors";
+
 /**
- * A stable accent colour for a team, derived from its name. There's no
- * cross-sport brand-colour table on the board (events carry names, not ids), so
- * instead of leaving every fixture the same grey I hash the name to a hue. Same
- * team, same colour every time; different teams read distinctly.
+ * A stable accent colour for a team. When the team is in a league I have brand
+ * colours for (NBA, NFL, MLB), it reads in its real colour; otherwise — a
+ * fantasy team, an unknown name — I hash the name to a hue so it still gets its
+ * own stable, distinct shade rather than a flat grey.
  *
- * Saturation and lightness are pinned inside the app's tone band so the accents
- * sit with the rest of the palette rather than shouting over it, and the result
- * is an `hsl()` string — no raw hex — so it stays inside the palette guard.
+ * The hash's saturation and lightness are pinned inside the app's tone band so
+ * the fallback sits with the palette, and it's an `hsl()` string (no raw hex),
+ * so the hash path stays inside the palette guard. The brand path returns hex
+ * from the identity-allowlisted teamColors table.
  */
 
 /** djb2-ish string hash, folded into a 0-359 hue. Deterministic per name. */
@@ -18,6 +21,10 @@ function hueFromName(name: string): number {
   return hash % 360;
 }
 
-export function teamAccentColor(name: string): string {
+export function teamAccentColor(name: string, sport?: string): string {
+  if (sport) {
+    const brand = teamBrandColor(sport, name);
+    if (brand) return brand;
+  }
   return `hsl(${hueFromName(name)} 52% 48%)`;
 }

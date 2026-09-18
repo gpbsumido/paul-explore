@@ -983,21 +983,37 @@ time >= now - daysBack  * dayMs`}
         </p>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
-          I reached for real brand colours and hit a wall.
+          First I hashed the name, because there was no table.
         </h3>
         <p className="text-muted">
-          I wanted Lakers purple and Celtics green. But the board spans NBA, NFL,
+          I wanted Lakers purple and Celtics green, but the board spans NBA, NFL,
           MLB and fantasy, and the events carry team <em>names</em>, not ids
-          &mdash; there&rsquo;s no logo URL or brand-colour table I can key off
-          across all of them. Rather than hand-maintain a colour map that would
-          be wrong for three sports out of four, I hash the name to a hue in the
-          app&rsquo;s tone band. Not the real colour, but a stable one: the same
-          team is always the same shade, and it stays inside the palette guard
-          because it&rsquo;s an <code>hsl()</code>, never a hard-coded hex.
+          &mdash; no logo URL or brand-colour table I could key off across all of
+          them. So the first cut hashed the name to a hue in the app&rsquo;s tone
+          band: not the real colour, but a stable one, and an <code>hsl()</code>
+          so it stayed inside the palette guard with no hard-coded hex.
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
-          {`export function teamAccentColor(name: string): string {
-  return \`hsl(\${hueFromName(name)} 52% 48%)\`;
+          {`// the fallback: stable, distinct, palette-safe
+return \`hsl(\${hueFromName(name)} 52% 48%)\`;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then I built the table anyway &mdash; scoped by league.
+        </h3>
+        <p className="text-muted">
+          A hash is fine, but Lakers purple is better, so I wrote the brand
+          colours out after all. The catch is that a nickname isn&rsquo;t unique:
+          the NFL and MLB both have a Cardinals and a Giants, and they don&rsquo;t
+          share a palette. So the table is keyed by league &mdash; derived from
+          the sport &mdash; and the lookup matches either the exact nickname or
+          the tail of the vendor&rsquo;s full name (<code>Boston Red Sox</code>).
+          Fantasy teams have no brand colour and fall back to the hash.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const league = leagueFromSport(sport); // nba | nfl | mlb | null
+for (const [nickname, color] of Object.entries(BRAND[league])) {
+  if (lower === nickname || lower.endsWith(\` \${nickname}\`)) return color;
 }`}
         </pre>
 

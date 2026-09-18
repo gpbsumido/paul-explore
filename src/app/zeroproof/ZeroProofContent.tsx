@@ -188,7 +188,7 @@ function EventCard({
   readOnly?: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
-  const accent = `linear-gradient(to bottom, ${teamAccentColor(event.away)}, ${teamAccentColor(event.home)})`;
+  const accent = `linear-gradient(to bottom, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
     <li className="list-none">
       <SpotlightCard className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pl-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
@@ -387,7 +387,7 @@ function BoardHighlights({
       {underdog && (
         <div
           className="rounded-2xl"
-          style={{ color: teamAccentColor(underdog.selection) }}
+          style={{ color: teamAccentColor(underdog.selection, underdog.event.sport) }}
         >
           <StarBorder className="h-full rounded-2xl">
             <SpotlightCard className="flex h-full flex-col rounded-2xl p-5 text-foreground">

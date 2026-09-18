@@ -22,4 +22,13 @@ describe("teamAccentColor", () => {
   it("handles an empty name without throwing", () => {
     expect(() => teamAccentColor("")).not.toThrow();
   });
+
+  it("uses the real brand colour when the sport is known", () => {
+    expect(teamAccentColor("Los Angeles Lakers", "basketball_nba")).toBe("#552583");
+    expect(teamAccentColor("Boston Celtics", "basketball_nba")).toBe("#007a33");
+  });
+
+  it("falls back to the hash for fantasy teams", () => {
+    expect(teamAccentColor("Team Alpha", "fantasy_ffl")).toMatch(/^hsl\(/);
+  });
 });
