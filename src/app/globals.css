@@ -570,7 +570,7 @@
   opacity: 1;
 }
 
-/* StarBorder — a conic gradient rotates around the border. */
+/* StarBorder — a conic gradient rotates around the border, clipped to the card. */
 @keyframes motion-star-spin {
   to {
     transform: rotate(1turn);
@@ -579,6 +579,7 @@
 .motion-star-border {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   border-radius: inherit;
   padding: 1px;
 }
