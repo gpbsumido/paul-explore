@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.1] - 2026-09-18
+
+### Tests
+
+- Pin the dated motion-components update and preserve the original write-up before adding the corner-coverage correction.
+
 ## 2026-09-18 - version 7.2.0
 
 - **Show past fixtures on the ZeroProof board.** A "Show past fixtures" checkbox on the board reveals recently-finished games alongside the upcoming ones — read-only, badged **Final**, with the closing lines shown as text rather than as bet buttons (you can't bet a game that's happened). It reveals a couple of weeks at a time, and a "Load earlier fixtures" button walks back up to 3 months; the date-range filter reaches back over the same window. The board filter gained a symmetric `daysBack` lower bound (mirroring the future horizon), a pure `isPastFixture` helper, and the events query and BFF route pass `?include=past&pastDays=N` through to the backend — fetching just the window on screen and widening it as you scroll (with `keepPreviousData` so the board doesn't blank), rather than pulling 3 months at once (companion change in portfolio_api). Off by default, so the normal board is unchanged. Covered by `isPastFixture`/past-horizon unit tests and a board integration test (checkbox reveals a Final, read-only fixture; the upcoming board doesn't), with the existing ZeroProof content + axe suites still green.
