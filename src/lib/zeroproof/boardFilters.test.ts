@@ -9,6 +9,7 @@ import {
   hasMoreBeyondHorizon,
   inDateRange,
   isFantasySport,
+  isPastFixture,
   localDayKey,
   matchesFacets,
   matchesOdds,
@@ -250,3 +251,45 @@ describe("hasMoreBeyondHorizon", () => {
     expect(hasMoreBeyondHorizon([later], filters({ from: "2026-10-30", to: "" }), base)).toBe(false);
   });
 });
+
+describe("isPastFixture", () => {
+  const NOW = new Date("2026-10-20T12:00:00.000Z").getTime();
+
+  it("is true for a final event", () => {
+    expect(
+      isPastFixture(ev({ status: "final", commenceTime: "2026-10-25T00:00:00Z" }), NOW),
+    ).toBe(true);
+  });
+
+  it("is true for an event whose kickoff has already passed", () => {
+    expect(isPastFixture(ev({ commenceTime: "2026-10-19T00:00:00Z" }), NOW)).toBe(true);
+  });
+
+  it("is false for an upcoming event still ahead of now", () => {
+    expect(isPastFixture(ev({ commenceTime: "2026-10-21T00:00:00Z" }), NOW)).toBe(false);
+  });
+})
+
+describe("filterBoardEvents — past horizon", () => {
+  const now = Date.parse("2026-10-20T00:00:00.000Z");
+  const ctx = (daysBack: number) => ({
+    now,
+    daysAhead: 3,
+    daysBack,
+    dayMs: DAY_MS,
+    betEventIds: new Set<string>(),
+  });
+
+  it("hides past fixtures by default (daysBack 0)", () => {
+    const past = ev({ id: "p", commenceTime: "2026-10-18T18:00:00Z", status: "final" });
+    expect(filterBoardEvents([past], filters(), ctx(0)).map((e) => e.id)).toEqual([]);
+  });
+
+  it("shows past fixtures within the daysBack window and hides older ones", () => {
+    const recent = ev({ id: "recent", commenceTime: "2026-10-18T18:00:00Z", status: "final" });
+    const old = ev({ id: "old", commenceTime: "2026-10-10T18:00:00Z", status: "final" });
+    const out = filterBoardEvents([recent, old], filters(), ctx(3)).map((e) => e.id);
+    expect(out).toContain("recent");
+    expect(out).not.toContain("old");
+  });
+})

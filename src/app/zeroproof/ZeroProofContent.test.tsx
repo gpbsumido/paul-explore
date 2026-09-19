@@ -97,12 +97,12 @@ const PROFILE = {
 const renderPage = (
   meResponse: () => Response = () => new HttpResponse(null, { status: 401 }),
   betsResponse: () => Response = () => HttpResponse.json({ bets: [] }),
-  eventsResponse: () => Response = () => HttpResponse.json(EVENTS),
+  eventsResponse: (request?: Request) => Response = () => HttpResponse.json(EVENTS),
   myLeaguesResponse: () => Response = () => HttpResponse.json({ leagues: [] }),
   discoverResponse: () => Response = () => HttpResponse.json({ leagues: [] }),
 ) => {
   server.use(
-    http.get("/api/zeroproof/events", () => eventsResponse()),
+    http.get("/api/zeroproof/events", ({ request }) => eventsResponse(request)),
     http.get("/api/zeroproof/leaderboard", () =>
       HttpResponse.json(LEADERBOARD),
     ),
@@ -193,7 +193,7 @@ describe("ZeroProofContent — slate", () => {
 });
 
 describe("ZeroProofContent — tabs", () => {
-  it("splits the lobby into Board, Leagues, Leaderboard and Your record, Board first", async () => {
+  it("splits the lobby into Board, Leagues, Leaderboard, Compare and Your record, Board first", async () => {
     renderPage();
     const tablist = screen.getByRole("tablist", {
       name: /zeroproof sections/i,
@@ -202,7 +202,7 @@ describe("ZeroProofContent — tabs", () => {
       within(tablist)
         .getAllByRole("tab")
         .map((t) => t.textContent),
-    ).toEqual(["Board", "Leagues", "Leaderboard", "Your record"]);
+    ).toEqual(["Board", "Leagues", "Leaderboard", "Compare", "Your record"]);
     expect(screen.getByRole("tab", { name: "Board" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -231,6 +231,25 @@ describe("ZeroProofContent — tabs", () => {
       "aria-selected",
       "true",
     );
+  });
+});
+
+describe("ZeroProofContent — compare", () => {
+  it("asks a signed-out visitor to sign in", async () => {
+    renderPage(); // me → 401
+    fireEvent.click(screen.getByRole("tab", { name: "Compare" }));
+    expect(await screen.findByText(/sign in to compare/i)).toBeInTheDocument();
+  });
+
+  it("shows how a signed-in player stacks up against the board", async () => {
+    renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(screen.getByRole("tab", { name: "Compare" }));
+    const panel = await screen.findByRole("tabpanel", { name: "Compare" });
+    expect(
+      await within(panel).findByRole("heading", { name: /how you stack up/i }),
+    ).toBeInTheDocument();
+    // My ROI from the profile fixture shows up in the comparison table.
+    expect(within(panel).getByText("+8.4%")).toBeInTheDocument();
   });
 });
 
@@ -649,13 +668,15 @@ describe("ZeroProofContent — profile", () => {
   it("shows a signed-in player's stats, wallet balance, and accolades", async () => {
     renderPage(() => HttpResponse.json(PROFILE));
     await goToTab(/your record/i);
+    // Scope to the record panel: the Compare panel also renders these stats.
+    const panel = await screen.findByRole("tabpanel", { name: /your record/i });
     // stats
-    expect(await screen.findByText("18-11-2")).toBeInTheDocument();
-    expect(screen.getByText("+8.4%")).toBeInTheDocument();
+    expect(await within(panel).findByText("18-11-2")).toBeInTheDocument();
+    expect(within(panel).getByText("+8.4%")).toBeInTheDocument();
     // wallet balance in dollars from cents
-    expect(screen.getByText("$118.40")).toBeInTheDocument();
+    expect(within(panel).getByText("$118.40")).toBeInTheDocument();
     // accolade
-    expect(screen.getByText("First Win")).toBeInTheDocument();
+    expect(within(panel).getByText("First Win")).toBeInTheDocument();
   });
 
   it("charts a bankroll trend once there are settled bets", async () => {
@@ -824,6 +845,34 @@ describe("ZeroProofContent — bet slip", () => {
       selection: "Celtics",
       stakeCents: 2500,
     });
+  });
+
+  it("flags the fixture the moment a bet is placed, before the server confirms", async () => {
+    // Hold the POST open so the only thing that could flag the fixture is the
+    // optimistic write — the bets GET stays empty throughout.
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    server.use(
+      http.post("/api/zeroproof/bets", async () => {
+        await gate;
+        return HttpResponse.json({ id: "bet-1" });
+      }),
+    );
+    renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    fireEvent.change(within(slip).getByLabelText(/stake/i), {
+      target: { value: "25" },
+    });
+    expect(screen.queryByText("Your bet")).toBeNull();
+    fireEvent.click(within(slip).getByRole("button", { name: /place bet/i }));
+    expect(await screen.findByText("Your bet")).toBeInTheDocument();
+    expect(
+      screen.getByRole("list", { name: /your bets on this matchup/i }),
+    ).toHaveTextContent("Celtics");
+    release();
   });
 });
 
@@ -1072,3 +1121,65 @@ describe("ZeroProofContent — wallet error toast", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("ZeroProofContent — past fixtures", () => {
+  const SLATE_NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(SLATE_NOW);
+  });
+  afterEach(() => nowSpy.mockRestore());
+
+  const PAST_EVENT = {
+    id: "past-1",
+    sport: "basketball_nba",
+    home: "Suns",
+    away: "Nuggets",
+    commenceTime: "2026-09-02T23:00:00.000Z",
+    status: "final",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: "2026-09-02T20:00:00.000Z",
+        outcomes: [
+          { name: "Suns", priceAmerican: -120 },
+          { name: "Nuggets", priceAmerican: 110 },
+        ],
+      },
+    ],
+  };
+
+  it("reveals recent past fixtures, read-only, and widens the window as you load earlier", async () => {
+    const pastDaysRequested: (string | null)[] = [];
+    renderPage(undefined, undefined, (request) => {
+      const url = request ? new URL(request.url) : null;
+      const includePast = url?.searchParams.get("include") === "past";
+      if (includePast) pastDaysRequested.push(url!.searchParams.get("pastDays"));
+      return HttpResponse.json({
+        events: includePast ? [...EVENTS.events, PAST_EVENT] : EVENTS.events,
+      });
+    });
+
+    // Wait for the upcoming board to load.
+    await screen.findByRole("heading", { name: /Celtics/ });
+    // The upcoming board doesn't include the finished game yet.
+    expect(screen.queryByRole("heading", { name: /Nuggets/ })).toBeNull();
+
+    fireEvent.click(
+      await screen.findByRole("checkbox", { name: /show past fixtures/i }),
+    );
+
+    // It shows up, badged Final, with static lines (no bet button for it).
+    expect(
+      await screen.findByRole("heading", { name: /Nuggets/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Final")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Suns/ })).toBeNull();
+    // The first past fetch asked for just the initial 2-week window.
+    expect(pastDaysRequested).toContain("14");
+
+    // Loading earlier widens the requested window rather than pulling 3 months.
+    fireEvent.click(screen.getByRole("button", { name: /load earlier/i }));
+    await waitFor(() => expect(pastDaysRequested).toContain("28"));
+  });
+})

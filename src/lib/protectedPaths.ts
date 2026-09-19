@@ -14,6 +14,9 @@ const SESSION_PROTECTED_PREFIXES = [
   "/settings",
   "/calendar",
   "/to-do",
+  // My interview prep. Signed-in isn't enough: the page 404s anyone off the
+  // admin allowlist, like /to-do.
+  "/interviewee",
   // ZeroProof admin surfaces (the ESPN-league registry). Signed-in isn't enough:
   // the page 404s anyone off the admin allowlist, like /to-do.
   "/zeroproof/admin",
