@@ -8,7 +8,7 @@ import DetailsHeading from "./DetailsHeading";
 import FieldNotes from "./FieldNotes";
 import styles from "./playground.module.css";
 
-export default function LandingContentV6({ writingPicks }: { writingPicks?: string[] }) {
+export default function LandingContentV6() {
   return (
     <div className={styles.page}>
       <header className={`${styles.header} sticky top-0`}>
@@ -20,7 +20,7 @@ export default function LandingContentV6({ writingPicks }: { writingPicks?: stri
         <PlaygroundHero />
         <ProjectCollection />
         <div className={styles.proof}><p className={styles.eyebrow}>03 / Under the surface</p><DetailsHeading /><Proof /></div>
-        <div className={styles.writing}><p className={styles.eyebrow}>04 / Field notes</p><FieldNotes picks={writingPicks} /></div>
+        <div className={styles.writing}><p className={styles.eyebrow}>04 / Field notes</p><FieldNotes /></div>
         <Contact variant="blob" />
       </main>
       <footer className={styles.footer}><Link href="/">Paul Sumido / Toronto</Link><Link href="/design-system">Built with my design system ↗</Link><Link href="/discover?version=v5">Previous edition ↗</Link><a href="#hero">Back to the playground ↑</a></footer>

@@ -17,11 +17,10 @@ import LandingContentV6 from "./v6/LandingContentV6";
  * for a shared cache to leak. These tests pin both halves of that contract.
  */
 describe("the root page", () => {
-  it("renders the guest landing with writing picks", () => {
+  it("renders the guest landing", () => {
     const element = Home();
 
     expect(element.type).toBe(LandingContentV6);
-    expect(Array.isArray(element.props.writingPicks)).toBe(true);
   });
 
   it("never reads the session and never opts out of static rendering", () => {

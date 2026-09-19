@@ -4,15 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BotanicalText, DriftWall } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
-import { THOUGHTS } from "@/app/_shared/featureData.data";
-import { WRITING_POOL } from "../v5/featured";
+import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
 
-// The write-ups have no captures of their own, so the wall behind the bloom uses
-// the app screenshots as tiles that link out to the docs and write-ups. One
-// screenshot per tile, all distinct, so nothing repeats on the wall.
-const TILE_IMAGES = [
+// Every feature with a capture. Each tile shows the app, is named after it, and
+// links to its write-up where one exists (or the app itself), so the screenshot,
+// the hovered title, and the destination all agree.
+const TILE_IDS = [
   "design-system",
   "operator",
   "world",
@@ -21,11 +20,18 @@ const TILE_IMAGES = [
   "work-portfolio",
   "pokemon",
   "particles",
+  "research",
+  "learn",
+  "budget",
+  "fantasy-nba",
+  "gallery-wall",
+  "craft",
+  "zeroproof",
 ];
 
 const BLOOM_TEXT = "docs and thoughts";
 
-export default function FieldNotes({ picks }: { picks?: string[] }) {
+export default function FieldNotes() {
   const { theme } = useTheme();
   const [hovered, setHovered] = useState<string | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -50,16 +56,16 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
     return () => observer.disconnect();
   }, []);
 
-  // Fill the wall with distinct write-ups: whatever was picked first, then the
-  // rest of the pool, deduped, capped at one per screenshot so every tile is a
-  // unique link and a unique image.
-  const hrefs = Array.from(
-    new Set([...(picks ?? []), ...WRITING_POOL.map((p) => p.href)]),
-  ).slice(0, TILE_IMAGES.length);
-  const tiles = hrefs.flatMap((href, i) => {
-    const thought = THOUGHTS.find((t) => t.href === href);
-    return thought
-      ? [{ image: previewSrc(TILE_IMAGES[i], theme), title: thought.title, href }]
+  const tiles = TILE_IDS.flatMap((id) => {
+    const feature = FEATURES.find((f) => f.id === id);
+    return feature
+      ? [
+          {
+            image: previewSrc(id, theme),
+            title: feature.title,
+            href: feature.thoughtsHref ?? feature.href,
+          },
+        ]
       : [];
   });
 

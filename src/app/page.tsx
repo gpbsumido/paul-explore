@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import LandingContentV6 from "./v6/LandingContentV6";
-import { pickWriting } from "./v5/featured";
 
 // Static, regenerated hourly. This page reads no session and renders no
 // session-derived markup -- the header's log in/log out control resolves its
@@ -38,13 +37,7 @@ export const metadata: Metadata = {
 /**
  * The landing page. Renders the current generation only. Every retired one, and
  * the ?version= switch between them, lives at /discover.
- *
- * The writing shortlist is baked at each ISR regeneration rather
- * than drawn per request -- it rotates hourly instead of per visit, which is
- * the price of the page being a static document.
  */
 export default function Home() {
-  const writingPicks = pickWriting(Math.random);
-
-  return <LandingContentV6 writingPicks={writingPicks} />;
+  return <LandingContentV6 />;
 }
