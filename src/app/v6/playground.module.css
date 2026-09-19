@@ -55,12 +55,12 @@
 .projectTitle h3 { font:600 clamp(1.5rem,2.5vw,2.3rem)/1.15 var(--font-display-face),sans-serif; letter-spacing:-.04em; }
 .projectTitle > span { color:var(--play-accent); font-size:.7rem; }
 .projectNote { color:var(--paul-color-muted); font-size:.82rem; line-height:1.6; }
-.collectionFooter { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin:0 clamp(1.25rem,4vw,4.5rem); padding:2rem 0 1rem; border-top:1px solid var(--paul-color-border); }
+.collectionFooter { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin:0 clamp(1.25rem,4vw,4.5rem); padding:1rem 0 2.5rem; border-bottom:1px solid var(--paul-color-border); }
 .collectionFooter p { flex:1 1 22rem; color:var(--paul-color-muted); font-size:.85rem; }
 .proof { margin:0 clamp(1.25rem,4vw,4.5rem); padding:3rem 0 1rem; }
 .proof > h2 { margin-bottom:3rem; }
 .proof > section { border-bottom:0; }
-.writing { margin:0 clamp(1.25rem,4vw,4.5rem); padding-top:4rem; }
+.writing { margin:0 clamp(1.25rem,4vw,4.5rem); padding:4rem 0 3rem; }
 .writing > p { margin:0; }
 .writing > section { padding-top:1.5rem; }
 .footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:1.5rem; padding:2rem clamp(1.25rem,4vw,4.5rem); border-top:1px solid var(--paul-color-border); color:var(--paul-color-muted); font-size:.75rem; }
