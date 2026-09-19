@@ -27,7 +27,7 @@
 .sceneControl { margin-left:auto; }
 .sceneBar :global(.rubber-segment__option), .filterBar :global(.rubber-segment__option) { min-height:44px; }
 .workScroll { position:relative; height:240vh; }
-.workSticky { position:sticky; top:0; height:100vh; display:flex; flex-direction:column; justify-content:center; gap:1.75rem; overflow:hidden; padding:2.5rem clamp(1.25rem,4vw,4.5rem); }
+.workSticky { position:sticky; top:0; height:100vh; display:flex; flex-direction:column; justify-content:center; gap:1.75rem; overflow:hidden; padding:2.5rem clamp(1.25rem,4vw,4.5rem); background:var(--paul-color-background); z-index:6; }
 .sectionHeading { display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; }
 .sectionHeading h2, .proof > h2 { font-family:var(--font-display-face),sans-serif; font-size:clamp(2.4rem,4.8vw,4.8rem); line-height:1.04; letter-spacing:-.05em; margin-top:1rem; font-weight:600; }
 .sectionHeading > p { color:var(--paul-color-muted); font-size:.9rem; line-height:1.65; }
@@ -77,13 +77,22 @@
 .fieldNotes { padding:0; }
 .fieldNotesStage { position:relative; height:min(34rem,72vh); overflow:hidden; border-radius:1.25rem; border:1px solid var(--paul-color-border); background:var(--paul-color-surface); }
 .driftWall { position:absolute; inset:0; }
-.bloom { position:absolute; inset:0; display:grid; grid-template-columns:minmax(0,1fr); align-items:center; justify-items:stretch; z-index:2; pointer-events:none; padding:0 1rem; overflow:hidden; }
-.bloom::before { content:""; position:absolute; inset:0; background:radial-gradient(55% 55% at center, color-mix(in srgb,var(--paul-color-background) 72%,transparent), transparent 80%); }
+.bloom { position:absolute; inset:0; display:grid; grid-template-columns:minmax(0,1fr); align-items:center; justify-items:stretch; z-index:2; pointer-events:none; padding:0 1rem; overflow:hidden; transition:opacity .35s var(--paul-easing-out); }
+/* Fade the lettering out when a tile is hovered so the image underneath reads. */
+.bloom[data-hovered="true"] { opacity:.12; }
+.bloom::before { content:""; position:absolute; inset:0; background:radial-gradient(66% 58% at center, color-mix(in srgb,var(--paul-color-background) 84%,transparent), transparent 82%); }
 /* Pin the bloom canvas to the stage width so its centred text never runs off the edge on a narrow screen. */
 .bloomText { display:block; width:100%; max-width:100%; }
+/* Small screens: the flower bloom shrinks to noise. Swap it for plain lettering
+   in the same rose, which stays legible. */
+.bloomTitle { display:none; grid-area:1 / 1; text-align:center; font-family:var(--font-display-face),sans-serif; font-weight:700; text-transform:lowercase; letter-spacing:-.02em; line-height:1.05; font-size:clamp(2rem,11vw,3.2rem); color:hsl(330 70% 64%); text-shadow:0 2px 18px var(--paul-color-background); padding:0 .5rem; }
+@media (max-width:640px) {
+  .bloomText { display:none; }
+  .bloomTitle { display:block; }
+}
 .bloomText canvas { width:100%; height:auto; display:block; }
 /* Light mode: the blooms render pale, so darken and saturate them to read on a light stage. Dark mode keeps them bright. */
-.bloomText canvas { filter:saturate(1.4) brightness(.6) contrast(1.05); }
+.bloomText canvas { filter:saturate(1.5) brightness(.5) contrast(1.2); }
 :global([data-theme="dark"]) .bloomText canvas { filter:none; }
 .hoverTitle { position:absolute; bottom:1rem; right:1.25rem; z-index:3; max-width:min(70%,22rem); padding:.5rem .9rem; background:var(--paul-color-foreground); color:var(--paul-color-background); border-radius:.6rem; font-size:.82rem; font-weight:600; line-height:1.3; pointer-events:none; opacity:0; transform:translateY(.4rem); transition:opacity .18s, transform .18s; }
 .hoverTitle[data-show="true"] { opacity:1; transform:translateY(0); }

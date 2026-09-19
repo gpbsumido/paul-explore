@@ -5,12 +5,13 @@ import Link from "next/link";
 import { BotanicalText, DriftWall } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
 import { THOUGHTS } from "@/app/_shared/featureData.data";
-import { WRITING_POOL, WRITING_SHOWN } from "../v5/featured";
+import { WRITING_POOL } from "../v5/featured";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
 
 // The write-ups have no captures of their own, so the wall behind the bloom uses
-// the app screenshots as tiles that link out to the docs and write-ups.
+// the app screenshots as tiles that link out to the docs and write-ups. One
+// screenshot per tile, all distinct, so nothing repeats on the wall.
 const TILE_IMAGES = [
   "design-system",
   "operator",
@@ -18,6 +19,8 @@ const TILE_IMAGES = [
   "vitals",
   "flags",
   "work-portfolio",
+  "pokemon",
+  "particles",
 ];
 
 const BLOOM_TEXT = "docs and thoughts";
@@ -26,35 +29,37 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
   const { theme } = useTheme();
   const [hovered, setHovered] = useState<string | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const [fontSize, setFontSize] = useState(96);
+  const [fontSize, setFontSize] = useState(120);
 
-  // The bloom text is drawn at a fixed pixel size, so on a narrow stage it
-  // overflows instead of staying centered. Scale the size to the stage width so
-  // the whole phrase always fits, and re-measure on resize.
+  // The bloom is drawn at a fixed pixel size, so scale it to the stage width so
+  // the whole phrase fits and the letters stay big enough to read the flowers.
+  // Re-measure on resize.
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
     const measure = () => {
       const width = stage.clientWidth;
-      const fitted = Math.round((width * 1.5) / BLOOM_TEXT.length);
-      setFontSize(Math.max(30, Math.min(120, fitted)));
+      // Tuned so a ~13in laptop lands a little under the design-system default
+      // of 120, scaling down on smaller stages and up to a cap on larger ones.
+      const fitted = Math.round((width * 1.45) / BLOOM_TEXT.length);
+      setFontSize(Math.max(40, Math.min(140, fitted)));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(stage);
     return () => observer.disconnect();
   }, []);
-  const chosen = picks ?? WRITING_POOL.slice(0, WRITING_SHOWN).map((p) => p.href);
-  const tiles = chosen.flatMap((href, i) => {
+
+  // Fill the wall with distinct write-ups: whatever was picked first, then the
+  // rest of the pool, deduped, capped at one per screenshot so every tile is a
+  // unique link and a unique image.
+  const hrefs = Array.from(
+    new Set([...(picks ?? []), ...WRITING_POOL.map((p) => p.href)]),
+  ).slice(0, TILE_IMAGES.length);
+  const tiles = hrefs.flatMap((href, i) => {
     const thought = THOUGHTS.find((t) => t.href === href);
     return thought
-      ? [
-          {
-            image: previewSrc(TILE_IMAGES[i % TILE_IMAGES.length], theme),
-            title: thought.title,
-            href,
-          },
-        ]
+      ? [{ image: previewSrc(TILE_IMAGES[i], theme), title: thought.title, href }]
       : [];
   });
 
@@ -70,19 +75,28 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
         }}
         onPointerLeave={() => setHovered(null)}
       >
-        <DriftWall
-          items={[...tiles, ...tiles]}
-          columns={4}
-          className={styles.driftWall}
-        />
-        <div className={styles.bloom} aria-hidden="true">
+        <DriftWall items={tiles} columns={4} className={styles.driftWall} />
+        <div
+          className={styles.bloom}
+          data-hovered={hovered ? "true" : "false"}
+          aria-hidden="true"
+        >
           <BotanicalText
             text={BLOOM_TEXT}
             fontSize={fontSize}
+            density={13}
             className={styles.bloomText}
           />
+          {/* Below the wall's small breakpoint the flowers shrink to noise, so
+              swap in plain lettering in the same rose. Both fade when a tile is
+              hovered so the image underneath reads. */}
+          <span className={styles.bloomTitle}>{BLOOM_TEXT}</span>
         </div>
-        <span className={styles.hoverTitle} data-show={hovered ? "true" : "false"} aria-hidden="true">
+        <span
+          className={styles.hoverTitle}
+          data-show={hovered ? "true" : "false"}
+          aria-hidden="true"
+        >
           {hovered}
         </span>
       </div>
