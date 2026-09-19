@@ -442,12 +442,14 @@ const observer = new IntersectionObserver(([entry]) => {
           The vendor&rsquo;s numbered codenames didn&rsquo;t make the cut
         </h3>
         <p className="text-muted">
-          Two of the new pieces are portrait-hero compositions that shipped
-          under the source library&rsquo;s numbered codenames. Those names mean
-          nothing in my gallery, so the cards read as a spiral hero and a
-          perspective hero instead. The only place the raw export identifier
-          survives is the import that binds them — everything a reader sees is
-          the descriptive name.
+          Some of the new pieces are portrait-hero compositions that first
+          shipped under the source library&rsquo;s numbered codenames, which mean
+          nothing in my gallery. Rather than paper over that with an alias, I
+          renamed the exports at the source and released a new version, so the
+          package itself now speaks in real names: a spiral that orbits its
+          imagery around the copy like planets, a one-point-perspective corridor
+          with the pictures as posters on the walls, and a fan that spreads them
+          to both sides.
         </p>
       </Update>
 

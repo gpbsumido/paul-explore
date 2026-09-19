@@ -42,6 +42,7 @@ const DEMO_NAMES = [
   "LinkPreviewDemo",
   "SpiralPortraitHeroDemo",
   "PerspectivePortraitHeroDemo",
+  "CorridorPortraitHeroDemo",
   "LightBloomDemo",
   "ParticleTextDemo",
   "RefineFrameDemo",

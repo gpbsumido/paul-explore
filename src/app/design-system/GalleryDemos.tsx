@@ -41,12 +41,9 @@ import {
   SmoothScrollSlider,
   HoverImageReveal,
   LinkPreview,
-  // Aliased to real names: the published package still binds these two heroes
-  // under the vendor's numbered codenames, so this import is the only place the
-  // raw export identifier appears. Everything the app renders or documents uses
-  // the descriptive names below.
-  Hero06 as SpiralPortraitHero,
-  Hero13 as PerspectivePortraitHero,
+  SpiralPortraitHero,
+  PerspectivePortraitHero,
+  CorridorPortraitHero,
   LightBloom,
   ParticleText,
   RefineFrame,
@@ -633,12 +630,32 @@ export function PerspectivePortraitHeroDemo() {
       <div className="w-full overflow-hidden rounded-xl [&_.portrait-hero]:min-h-0 [&_.portrait-hero]:p-6">
         <PerspectivePortraitHero
           heading="Depth without a renderer"
-          description="The same copy slots, arranged with CSS perspective for a poster-like tilt."
+          description="Posters pasted on the walls of a one-point-perspective corridor."
           images={HERO_IMAGES}
           headingLevel={3}
           actions={
             <Button size="sm" href="/design-system">
               Browse components
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function CorridorPortraitHeroDemo() {
+  return (
+    <DeferredPreview minHeight="16rem">
+      <div className="w-full overflow-hidden rounded-xl [&_.portrait-hero]:min-h-0 [&_.portrait-hero]:p-6">
+        <CorridorPortraitHero
+          heading="A wall of pictures either side"
+          description="The imagery fans out to both sides into a receding corridor."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/work-portfolio">
+              See the work
             </Button>
           }
         />
