@@ -39,16 +39,17 @@ export default function ProjectCollection() {
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
         window.innerWidth < 768;
       if (off) {
-        section.style.height = "";
         track.style.transform = "";
         return;
       }
-      const distance = track.scrollWidth - track.clientWidth;
-      section.style.height = `${window.innerHeight + distance}px`;
+      // The section height is a fixed CSS value, so filtering never resizes it
+      // (which was jumping the page). We just map that fixed scroll distance to
+      // the track's current overflow.
       const scrollable = section.offsetHeight - window.innerHeight;
       const progress = scrollable > 0
         ? Math.min(1, Math.max(0, -section.getBoundingClientRect().top / scrollable))
         : 0;
+      const distance = Math.max(0, track.scrollWidth - track.clientWidth);
       track.style.transform = `translate3d(${-progress * distance}px, 0, 0)`;
     };
     update();
@@ -61,6 +62,7 @@ export default function ProjectCollection() {
   }, [projects.length]);
 
   return (
+    <>
     <section id="work" ref={sectionRef} className={styles.workScroll} aria-labelledby="work-title">
       <div className={styles.workSticky}>
         <div className={styles.sectionHeading}>
@@ -94,8 +96,9 @@ export default function ProjectCollection() {
             );
           })}
         </ul>
-        <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/discover" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
       </div>
     </section>
+    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/discover" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
+    </>
   );
 }
