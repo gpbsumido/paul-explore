@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BotanicalText, DriftWall } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -19,8 +20,30 @@ const TILE_IMAGES = [
   "work-portfolio",
 ];
 
+const BLOOM_TEXT = "docs and thoughts";
+
 export default function FieldNotes({ picks }: { picks?: string[] }) {
   const { theme } = useTheme();
+  const [hovered, setHovered] = useState<string | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [fontSize, setFontSize] = useState(96);
+
+  // The bloom text is drawn at a fixed pixel size, so on a narrow stage it
+  // overflows instead of staying centered. Scale the size to the stage width so
+  // the whole phrase always fits, and re-measure on resize.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const measure = () => {
+      const width = stage.clientWidth;
+      const fitted = Math.round((width * 1.5) / BLOOM_TEXT.length);
+      setFontSize(Math.max(30, Math.min(120, fitted)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
   const chosen = picks ?? WRITING_POOL.slice(0, WRITING_SHOWN).map((p) => p.href);
   const tiles = chosen.flatMap((href, i) => {
     const thought = THOUGHTS.find((t) => t.href === href);
@@ -37,15 +60,26 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
 
   return (
     <div className={styles.fieldNotes}>
-      <div className={styles.fieldNotesStage}>
+      <div
+        ref={stageRef}
+        className={styles.fieldNotesStage}
+        onPointerOver={(event) => {
+          const link = (event.target as HTMLElement).closest("a");
+          setHovered(link?.getAttribute("aria-label") ?? null);
+        }}
+        onPointerLeave={() => setHovered(null)}
+      >
         <DriftWall
           items={[...tiles, ...tiles]}
           columns={4}
           className={styles.driftWall}
         />
         <div className={styles.bloom} aria-hidden="true">
-          <BotanicalText text="docs and thoughts" fontSize={110} />
+          <BotanicalText text={BLOOM_TEXT} fontSize={fontSize} />
         </div>
+        <span className={styles.hoverTitle} data-show={hovered ? "true" : "false"} aria-hidden="true">
+          {hovered}
+        </span>
       </div>
       <p className={styles.fieldNotesLink}>
         <Link href="/thoughts">
