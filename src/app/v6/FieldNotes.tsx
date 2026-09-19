@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { HoverImageReveal } from "@paul-portfolio/react";
+import { BotanicalText, DriftWall } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
 import { THOUGHTS } from "@/app/_shared/featureData.data";
 import { WRITING_POOL, WRITING_SHOWN } from "../v5/featured";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
 
-// The write-ups have no captures of their own, so hovering a title reveals one
-// of the app screenshots instead. Decorative, and it gives the menu a payoff.
-const REVEALS = [
+// The write-ups have no captures of their own, so the wall behind the bloom uses
+// the app screenshots as tiles that link out to the docs and write-ups.
+const TILE_IMAGES = [
   "design-system",
   "operator",
   "world",
@@ -22,13 +22,13 @@ const REVEALS = [
 export default function FieldNotes({ picks }: { picks?: string[] }) {
   const { theme } = useTheme();
   const chosen = picks ?? WRITING_POOL.slice(0, WRITING_SHOWN).map((p) => p.href);
-  const items = chosen.flatMap((href, i) => {
+  const tiles = chosen.flatMap((href, i) => {
     const thought = THOUGHTS.find((t) => t.href === href);
     return thought
       ? [
           {
-            label: thought.title,
-            image: previewSrc(REVEALS[i % REVEALS.length], theme),
+            image: previewSrc(TILE_IMAGES[i % TILE_IMAGES.length], theme),
+            title: thought.title,
             href,
           },
         ]
@@ -37,9 +37,17 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
 
   return (
     <div className={styles.fieldNotes}>
-      <h2>The reasoning, written while it was fresh.</h2>
-      <HoverImageReveal items={items} />
-      <p>
+      <div className={styles.fieldNotesStage}>
+        <DriftWall
+          items={[...tiles, ...tiles]}
+          columns={4}
+          className={styles.driftWall}
+        />
+        <div className={styles.bloom} aria-hidden="true">
+          <BotanicalText text="docs and thoughts" fontSize={110} />
+        </div>
+      </div>
+      <p className={styles.fieldNotesLink}>
         <Link href="/thoughts">
           Every write-up on this site <span aria-hidden="true">↗</span>
         </Link>

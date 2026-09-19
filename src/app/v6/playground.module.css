@@ -26,13 +26,15 @@
 .sceneBar p { font-family:var(--font-display-face),sans-serif; font-size:1.2rem; margin-top:.2rem; }
 .sceneControl { margin-left:auto; }
 .sceneBar :global(.rubber-segment__option), .filterBar :global(.rubber-segment__option) { min-height:44px; }
-.work { max-width:1400px; margin:auto; padding:6rem clamp(1.25rem,4vw,4.5rem); }
+.workScroll { position:relative; }
+.workSticky { position:sticky; top:0; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:2rem; overflow:hidden; max-width:1600px; margin:0 auto; padding:4rem clamp(1.25rem,4vw,4.5rem); }
 .sectionHeading { display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; }
 .sectionHeading h2, .proof > h2 { font-family:var(--font-display-face),sans-serif; font-size:clamp(2.4rem,4.8vw,4.8rem); line-height:1.04; letter-spacing:-.05em; margin-top:1rem; font-weight:600; }
 .sectionHeading > p { color:var(--paul-color-muted); font-size:.9rem; line-height:1.65; }
 .filterBar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin:2.5rem 0; }
 .count { color:var(--paul-color-muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
-.projects { display:flex; flex-direction:column; gap:2rem; max-width:48rem; margin:0 auto; padding:0; list-style:none; }
+.projectsRow { display:flex; gap:2rem; padding:0.5rem 0; list-style:none; will-change:transform; }
+.project { flex:0 0 min(26rem, 82vw); }
 .project:nth-child(even) { margin-top:5rem; }
 .project:nth-child(4n + 3) { margin-left:1.5rem; }
 .tilt, .projectSurface { border-radius:1rem; }
@@ -63,8 +65,8 @@
 .writing > section { padding-top:1.5rem; }
 .footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:1.5rem; padding:2rem clamp(1.25rem,4vw,4.5rem); border-top:1px solid var(--paul-color-border); color:var(--paul-color-muted); font-size:.75rem; }
 @media (max-width: 900px) { .nav {display:none;} .sectionHeading {align-items:start; flex-direction:column; gap:1rem;} .sceneControl {margin-left:0;} }
-@media (max-width: 700px) { .header {gap:.75rem; padding:1rem;} .brand {font-size:1.1rem;} .brandDot {display:none;} .hero {min-height:34rem; padding:4rem 0;} .heroMeta {font-size:.6rem;} .identity {font-size:.7rem; max-width:15rem; margin:0 auto 1.5rem; line-height:1.7;} .headline {font-size:clamp(3.3rem,12vw,5rem);} .hero :global(.portrait-hero__description) {font-size:.9rem;} .hero :global(.portrait-hero__content) {padding:1rem 0;} .hero :global(.portrait-hero__image) {width:9rem; height:6rem;} .sceneBar > div:first-child {width:100%;} .sceneBar {gap:.6rem;} .sceneBar :global(.rubber-segment__option) {padding-inline:.65rem;} .work {padding-top:4rem;} .projects {grid-template-columns:1fr; gap:1.5rem;} .project:nth-child(n) {margin:0;} .projectLink {padding:1rem;} .filterBar :global(.rubber-segment__option) {padding-inline:.7rem;} .proof {padding-top:1rem;} .footer {flex-direction:column;} }
-@media (prefers-reduced-motion:reduce) { .page *, .page *::before, .page *::after {scroll-behavior:auto;} .preview img,.openArrow,.openLabel {transition:none;} .projectLink:hover .preview img,.projectLink:focus-visible .preview img {transform:none;} }
+@media (max-width: 700px) { .header {gap:.75rem; padding:1rem;} .brand {font-size:1.1rem;} .brandDot {display:none;} .hero {min-height:34rem; padding:4rem 0;} .heroMeta {font-size:.6rem;} .identity {font-size:.7rem; max-width:15rem; margin:0 auto 1.5rem; line-height:1.7;} .headline {font-size:clamp(3.3rem,12vw,5rem);} .hero :global(.portrait-hero__description) {font-size:.9rem;} .hero :global(.portrait-hero__content) {padding:1rem 0;} .hero :global(.portrait-hero__image) {width:9rem; height:6rem;} .sceneBar > div:first-child {width:100%;} .sceneBar {gap:.6rem;} .sceneBar :global(.rubber-segment__option) {padding-inline:.65rem;} .workSticky {position:static; min-height:0; overflow:visible; padding:4rem 1rem;} .projectsRow {flex-wrap:wrap; gap:1.5rem;} .project {flex-basis:100%;} .project:nth-child(n) {margin:0;} .projectLink {padding:1rem;} .filterBar :global(.rubber-segment__option) {padding-inline:.7rem;} .proof {padding-top:1rem;} .footer {flex-direction:column;} }
+@media (prefers-reduced-motion:reduce) { .page *, .page *::before, .page *::after {scroll-behavior:auto;} .preview img,.openArrow,.openLabel {transition:none;} .projectLink:hover .preview img,.projectLink:focus-visible .preview img {transform:none;} .workSticky {position:static; min-height:0; overflow:visible;} .projectsRow {flex-wrap:wrap;} }
 @media (hover:none) { .openLabel {transform:none;} }
 @media (max-width:700px) {
   .hero :global(.portrait-hero__content)::before { inset:-.5rem; filter:blur(1rem); }
@@ -72,10 +74,14 @@
   .filterBar :global(.rubber-segment) { font-size:.82rem; }
 }
 
-.fieldNotes h2 { font-family:var(--font-display-face),sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:600; letter-spacing:-0.02em; margin-bottom:1.5rem; }
-.fieldNotes p { margin-top:1.5rem; }
-.fieldNotes p a { color:var(--paul-color-primary-700); text-decoration:underline; text-underline-offset:4px; }
-:global([data-theme="dark"]) .fieldNotes p a { color:var(--paul-color-primary-300); }
+.fieldNotes { padding:0 clamp(1.25rem,4vw,4.5rem); }
+.fieldNotesStage { position:relative; height:min(34rem,72vh); overflow:hidden; border-radius:1.25rem; border:1px solid var(--paul-color-border); background:var(--paul-color-surface); }
+.driftWall { position:absolute; inset:0; }
+.bloom { position:absolute; inset:0; display:grid; place-items:center; z-index:2; pointer-events:none; padding:0 1rem; }
+.bloom::before { content:""; position:absolute; inset:0; background:radial-gradient(55% 55% at center, color-mix(in srgb,var(--paul-color-background) 72%,transparent), transparent 80%); }
+.fieldNotesLink { margin-top:1.5rem; }
+.fieldNotesLink a { color:var(--paul-color-primary-700); text-decoration:underline; text-underline-offset:4px; }
+:global([data-theme="dark"]) .fieldNotesLink a { color:var(--paul-color-primary-300); }
 
 /* Single-column projects: drop the two-column stagger so the scroll is even. */
 .project:nth-child(even) { margin-top:0; }

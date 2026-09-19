@@ -13,9 +13,14 @@ export default function DetailsHeading() {
       <br />
       Serious about the{" "}
       <TextLoop
-        items={["details", "tests", "accessibility", "performance", "edge cases"]}
+        items={[
+          "details.",
+          "tests.",
+          "accessibility.",
+          "performance.",
+          "edge cases.",
+        ]}
       />
-      .
     </h2>
   );
 }

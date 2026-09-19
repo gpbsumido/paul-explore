@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button, ClickSpark, RubberSegment, Spotlight, TiltCard } from "@paul-portfolio/react";
@@ -21,41 +21,81 @@ const PICKS = [
 export default function ProjectCollection() {
   const [filter, setFilter] = useState("All");
   const projects = PICKS.filter((pick) => filter === "All" || pick.category === filter);
+  const sectionRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLUListElement>(null);
+
+  // Vertical scroll through the (tall) section drives the track sideways: as you
+  // scroll down, the projects pass by left to right. The section height is set
+  // to the track's overflow so the two distances match. Under reduced motion we
+  // bail out and let the row scroll normally, so no one gets scroll-jacked.
+  useEffect(() => {
+    const section = sectionRef.current;
+    const track = trackRef.current;
+    if (!section || !track) return;
+    const update = () => {
+      // Reduced motion or a narrow screen: hand back to a normal wrapping row
+      // (the CSS unpins it), so we never scroll-jack where it'd hurt.
+      const off =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
+        window.innerWidth < 768;
+      if (off) {
+        section.style.height = "";
+        track.style.transform = "";
+        return;
+      }
+      const distance = track.scrollWidth - track.clientWidth;
+      section.style.height = `${window.innerHeight + distance}px`;
+      const scrollable = section.offsetHeight - window.innerHeight;
+      const progress = scrollable > 0
+        ? Math.min(1, Math.max(0, -section.getBoundingClientRect().top / scrollable))
+        : 0;
+      track.style.transform = `translate3d(${-progress * distance}px, 0, 0)`;
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [projects.length]);
 
   return (
-    <section id="work" className={styles.work} aria-labelledby="work-title">
-      <div className={styles.sectionHeading}>
-        <div><p className={styles.eyebrow}>02 / Open for exploring</p><h2 id="work-title">Pick a rabbit hole<span className={styles.accent}>.</span></h2></div>
-        <p>Working apps. Small obsessions.<br />There’s something to play with in every one.</p>
+    <section id="work" ref={sectionRef} className={styles.workScroll} aria-labelledby="work-title">
+      <div className={styles.workSticky}>
+        <div className={styles.sectionHeading}>
+          <div><p className={styles.eyebrow}>02 / Open for exploring</p><h2 id="work-title">Pick a rabbit hole<span className={styles.accent}>.</span></h2></div>
+          <p>Working apps. Small obsessions.<br />Scroll to travel through them.</p>
+        </div>
+        <div className={styles.filterBar}>
+          <fieldset><legend className="sr-only">Filter projects</legend><RubberSegment segments={FILTERS} value={filter} onChange={setFilter} /></fieldset>
+          <span aria-live="polite" aria-atomic="true" className={styles.count}>{String(projects.length).padStart(2, "0")} projects / {filter}</span>
+        </div>
+        <ul ref={trackRef} className={styles.projectsRow} aria-label="Projects">
+          {projects.map((pick) => {
+            const feature = FEATURES.find((item) => item.id === pick.id)!;
+            return (
+              <li key={pick.id} className={styles.project}>
+                <TiltCard maxTilt={4} glare={false} className={styles.tilt}>
+                  <Spotlight color="color-mix(in srgb, var(--paul-color-primary-400) 15%, transparent)" className={styles.projectSurface}>
+                    <Link href={feature.href} className={styles.projectLink}>
+                      <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true">↗</span></div>
+                      <div className={styles.preview}>
+                        <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.lightImage} />
+                        <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.darkImage} />
+                        <span className={styles.openLabel} aria-hidden="true">Step inside ↗</span>
+                      </div>
+                      <div className={styles.projectTitle}><h3>{feature.title}</h3><span>{pick.category}</span></div>
+                      <p className={styles.projectNote}>{pick.note}</p>
+                    </Link>
+                  </Spotlight>
+                </TiltCard>
+              </li>
+            );
+          })}
+        </ul>
+        <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/discover" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
       </div>
-      <div className={styles.filterBar}>
-        <fieldset><legend className="sr-only">Filter projects</legend><RubberSegment segments={FILTERS} value={filter} onChange={setFilter} /></fieldset>
-        <span aria-live="polite" aria-atomic="true" className={styles.count}>{String(projects.length).padStart(2, "0")} projects / {filter}</span>
-      </div>
-      <ul className={styles.projects} aria-label="Projects">
-        {projects.map((pick) => {
-          const feature = FEATURES.find((item) => item.id === pick.id)!;
-          return (
-            <li key={pick.id} className={styles.project}>
-              <TiltCard maxTilt={4} glare={false} className={styles.tilt}>
-                <Spotlight color="color-mix(in srgb, var(--paul-color-primary-400) 15%, transparent)" className={styles.projectSurface}>
-                  <Link href={feature.href} className={styles.projectLink}>
-                    <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true">↗</span></div>
-                    <div className={styles.preview}>
-                      <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 55vw" className={styles.lightImage} />
-                      <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 55vw" className={styles.darkImage} />
-                      <span className={styles.openLabel} aria-hidden="true">Step inside ↗</span>
-                    </div>
-                    <div className={styles.projectTitle}><h3>{feature.title}</h3><span>{pick.category}</span></div>
-                    <p className={styles.projectNote}>{pick.note}</p>
-                  </Link>
-                </Spotlight>
-              </TiltCard>
-            </li>
-          );
-        })}
-      </ul>
-      <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/discover" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
     </section>
   );
 }
