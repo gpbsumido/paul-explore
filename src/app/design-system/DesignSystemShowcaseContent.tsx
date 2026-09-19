@@ -605,6 +605,14 @@ const PREVIEWS: Record<string, ReactNode> = {
   ),
 };
 
+/** Big compositions that read better on their own full-width row than in a cell. */
+const WIDE_COMPONENT_IDS = new Set([
+  "portrait-spiral-hero",
+  "perspective-hero",
+  "corridor-hero",
+  "botanical-text",
+]);
+
 function ComponentCard({ component }: { component: ComponentDoc }) {
   return (
     <article
@@ -624,7 +632,7 @@ function ComponentCard({ component }: { component: ComponentDoc }) {
       {/* The live component. The tagline already sits above it and the ⓘ carries
           usage, so the preview isn't wrapped in another tooltip — that stacked a
           second popover on the Tooltip/InfoTip cards and read as a glitch. */}
-      <div className="flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4">
+      <div className="flex min-h-16 w-full items-center overflow-hidden rounded-xl border border-border bg-surface/60 p-4">
         {PREVIEWS[component.id]}
       </div>
 
@@ -919,6 +927,9 @@ export default function DesignSystemShowcaseContent({
               adoption: component.usedOn.length,
               haystack:
                 `${component.name} ${component.tagline} ${component.usage}`.toLowerCase(),
+              // The big compositions get a full-width row rather than a cramped
+              // grid cell.
+              wide: WIDE_COMPONENT_IDS.has(component.id),
               card: <ComponentCard key={component.id} component={component} />,
             }))}
           />

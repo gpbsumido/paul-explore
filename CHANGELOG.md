@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-18 - version 7.4.1
+
+- **Gallery polish from testing the effects on develop.** The big compositions — the three portrait heroes and the botanical canvas text — each get their own full-width row instead of a cramped grid cell. Every effect preview is now clipped to its card, so the galleries, sliders and 3D wall stay inside their frame rather than spilling across the grid.
+- **Friendlier effect demos.** BlurReveal has a replay button and RefineFrame a loading/done toggle; the lattice loader shows its done and failed states next to working; the circular gallery's cards sit closer together; and the hover-image-reveal menu is a shorter list.
+- Dropped the source-library names from the gallery card provenance note.
+
 ## 2026-09-18 - version 7.4.0
 
 - **The design-system gallery now covers the full effect set.** Bumped `@paul-portfolio/react` to 0.12.4 (and `css`/`tokens` alongside) and documented the two dozen new motion and effect components in the live gallery at `/design-system` — sparks, blur reveals, star borders, liquid glass, a rubber-band segmented control, a lattice loader, a drifting 3D wall, spinning and path galleries, a momentum slider, hover/link image reveals, portrait heroes, light bloom, particle and botanical canvas text, a refine frame, and a floating folder. Each gets a catalog entry (the gallery's integrity test requires documenting every export the package ships) and a live, prop-real preview. The animated previews only mount once their card scrolls on screen, so opening the gallery doesn't kick off two dozen animation loops at once.

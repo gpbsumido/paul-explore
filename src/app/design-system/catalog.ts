@@ -60,7 +60,7 @@ const AI_ELSEWHERE =
   "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.";
 
 const EFFECT_ELSEWHERE =
-  "A ReactBits/OriginKit effect rebuilt on the tokens with no runtime dependency. It ships in the shared package and is rendered in this gallery, but the app hasn't wired it into a product surface yet.";
+  "A motion or effect primitive rebuilt on the design tokens with no runtime dependency. It ships in the shared package and is rendered in this gallery, but the app hasn't wired it into a product surface yet.";
 
 export const COMPONENTS: ComponentDoc[] = [
   {

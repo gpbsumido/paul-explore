@@ -47,6 +47,7 @@ import {
   LightBloom,
   ParticleText,
   RefineFrame,
+  type RefineStatus,
   FolderFloat,
   BotanicalText,
 } from "@paul-portfolio/react";
@@ -431,11 +432,25 @@ export function ClickSparkDemo() {
 }
 
 export function BlurRevealDemo() {
+  // BlurReveal plays once on mount, so remounting it with a fresh key replays it.
+  const [runKey, setRunKey] = useState(0);
   return (
     <DeferredPreview>
-      <BlurReveal className="text-lg font-semibold text-foreground">
-        Resolves from a blur
-      </BlurReveal>
+      <div className="flex flex-col items-center gap-3">
+        <BlurReveal
+          key={runKey}
+          className="text-lg font-semibold text-foreground"
+        >
+          Resolves from a blur
+        </BlurReveal>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => setRunKey((k) => k + 1)}
+        >
+          Replay
+        </Button>
+      </div>
     </DeferredPreview>
   );
 }
@@ -521,7 +536,11 @@ export function LiquidCarveButtonDemo() {
 export function LatticeLoaderDemo() {
   return (
     <DeferredPreview>
-      <LatticeLoader label="Working" showTimer />
+      <div className="flex flex-wrap items-start justify-center gap-6">
+        <LatticeLoader label="Working" status="working" showTimer />
+        <LatticeLoader status="done" doneLabel="Done" />
+        <LatticeLoader status="error" errorLabel="Failed" />
+      </div>
     </DeferredPreview>
   );
 }
@@ -545,9 +564,9 @@ export function CircularGalleryDemo() {
     <DeferredPreview minHeight="12rem">
       <CircularGallery
         items={DEMO_TILES}
-        radius={200}
-        cardWidth={110}
-        cardHeight={74}
+        radius={140}
+        cardWidth={120}
+        cardHeight={80}
       />
     </DeferredPreview>
   );
@@ -577,7 +596,7 @@ export function HoverImageRevealDemo() {
   return (
     <DeferredPreview minHeight="11rem">
       <HoverImageReveal
-        items={DEMO_TILES.map((tile) => ({
+        items={DEMO_TILES.slice(0, 3).map((tile) => ({
           label: tile.title,
           image: tile.image,
           href: tile.href,
@@ -685,15 +704,34 @@ export function ParticleTextDemo() {
 }
 
 export function RefineFrameDemo() {
+  const [status, setStatus] = useState<RefineStatus>("refining");
   return (
     <DeferredPreview minHeight="12rem">
-      <div className="w-full max-w-[220px]">
-        <RefineFrame status="refining">
-          <div
-            className="h-full w-full bg-cover bg-center"
-            style={{ backgroundImage: "url(/landing/featured/world-light.jpg)" }}
-          />
-        </RefineFrame>
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-full max-w-[220px]">
+          <RefineFrame status={status}>
+            <div
+              className="h-full w-full bg-cover bg-center"
+              style={{ backgroundImage: "url(/landing/featured/world-light.jpg)" }}
+            />
+          </RefineFrame>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant={status === "complete" ? "secondary" : "primary"}
+            onClick={() => setStatus("refining")}
+          >
+            Loading
+          </Button>
+          <Button
+            size="sm"
+            variant={status === "complete" ? "primary" : "secondary"}
+            onClick={() => setStatus("complete")}
+          >
+            Done
+          </Button>
+        </div>
       </div>
     </DeferredPreview>
   );

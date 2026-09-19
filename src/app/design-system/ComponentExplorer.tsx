@@ -35,6 +35,8 @@ export type ExplorerItem = {
   adoption: number;
   /** Lowercased name + tagline + usage, searched with plain includes(). */
   haystack: string;
+  /** Span the full grid width on its own row — for big compositions (heroes). */
+  wide?: boolean;
   card: ReactNode;
 };
 
@@ -210,7 +212,7 @@ export default function ComponentExplorer({
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {visible.map((item) => (
-            <div key={item.id} className="contents">
+            <div key={item.id} className={item.wide ? "col-span-full" : "contents"}>
               {item.card}
             </div>
           ))}
