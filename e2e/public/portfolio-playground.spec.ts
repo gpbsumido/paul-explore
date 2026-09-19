@@ -21,10 +21,10 @@ test("@smoke homepage scenes, pause and project filters work", async ({ page }) 
   await expect(page.locator(".portrait-hero__image").first()).toHaveCSS("animation-play-state", "running");
   await page.getByRole("radio", { name: "Play", exact: true }).click();
   const projects = page.getByRole("list", { name: "Projects", exact: true });
-  await expect(projects.getByRole("listitem")).toHaveCount(1);
-  await expect(projects.getByRole("link")).toHaveAttribute("href", "/world");
+  await expect(projects.getByRole("listitem")).toHaveCount(5);
+  await expect(projects.getByRole("link").first()).toHaveAttribute("href", "/world");
   await page.getByRole("radio", { name: "All", exact: true }).click();
-  await expect(projects.getByRole("listitem")).toHaveCount(6);
+  await expect(projects.getByRole("listitem")).toHaveCount(15);
 });
 
 for (const theme of ["light", "dark"] as const) {
@@ -58,7 +58,7 @@ test("reduced motion keeps the scene still and the controls usable", async ({ pa
   await page.getByRole("radio", { name: "Corridor", exact: true }).click();
   await expect(page.locator(".portrait-hero__poster").first()).toHaveCSS("animation-play-state", "paused");
   await page.getByRole("radio", { name: "Play", exact: true }).click();
-  await expect(page.getByRole("list", { name: "Projects" }).getByRole("link")).toHaveAttribute("href", "/world");
+  await expect(page.getByRole("list", { name: "Projects" }).getByRole("link").first()).toHaveAttribute("href", "/world");
 });
 
 test("failed decorative images leave the hero usable", async ({ page }) => {
