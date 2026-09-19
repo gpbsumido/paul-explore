@@ -231,8 +231,10 @@ export function ChipDemo() {
 
 export function TiltCardPreview() {
   return (
-    <TiltCard className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
-      Hover me
+    <TiltCard>
+      <div className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
+        Hover me
+      </div>
     </TiltCard>
   );
 }
@@ -458,8 +460,8 @@ export function BlurRevealDemo() {
 export function StarBorderDemo() {
   return (
     <DeferredPreview>
-      <StarBorder className="text-primary-500">
-        <span className="block rounded-xl bg-surface-raised px-4 py-3 text-sm text-foreground">
+      <StarBorder className="rounded-xl text-primary-500">
+        <span className="block px-4 py-3 text-sm text-foreground">
           Animated conic border
         </span>
       </StarBorder>
