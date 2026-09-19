@@ -5,6 +5,7 @@ import Writing from "../v5/sections/Writing";
 import Contact from "../v5/sections/Contact";
 import PlaygroundHero from "./PlaygroundHero";
 import ProjectCollection from "./ProjectCollection";
+import DetailsHeading from "./DetailsHeading";
 import styles from "./playground.module.css";
 
 export default function LandingContentV6({ writingPicks }: { writingPicks?: string[] }) {
@@ -18,7 +19,7 @@ export default function LandingContentV6({ writingPicks }: { writingPicks?: stri
       <main>
         <PlaygroundHero />
         <ProjectCollection />
-        <div className={styles.proof}><p className={styles.eyebrow}>03 / Under the surface</p><h2>Playful on the outside.<br />Serious about the details.</h2><Proof /></div>
+        <div className={styles.proof}><p className={styles.eyebrow}>03 / Under the surface</p><DetailsHeading /><Proof /></div>
         <div className={styles.writing}><p className={styles.eyebrow}>04 / Field notes</p><Writing picks={writingPicks} /></div>
         <Contact />
       </main>
