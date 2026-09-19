@@ -86,7 +86,7 @@
 /* Small screens: the flower bloom shrinks to noise. Swap it for plain lettering
    in the same rose, which stays legible. */
 .bloomTitle { display:none; grid-area:1 / 1; text-align:center; font-family:var(--font-display-face),sans-serif; font-weight:700; text-transform:lowercase; letter-spacing:-.02em; line-height:1.05; font-size:clamp(2rem,11vw,3.2rem); color:hsl(330 70% 64%); text-shadow:0 2px 18px var(--paul-color-background); padding:0 .5rem; }
-@media (max-width:900px) {
+@media (max-width:1000px) {
   .bloomText { display:none; }
   .bloomTitle { display:block; }
 }

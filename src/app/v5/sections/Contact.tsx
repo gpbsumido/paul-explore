@@ -12,9 +12,10 @@ import { SHELL, BAND } from "../shell";
  * to close the loop is worse than its absence.
  */
 const REACH = [
+  { label: "GitHub", href: "https://github.com/gpbsumido" },
+  { label: "NPM Packages", href: "https://www.npmjs.com/~psumido" },
   { label: "Resume as PDF", href: "/resume/Resume-Developer-Sumido.pdf" },
   { label: "Resume as Word", href: "/resume/Resume-Developer-Sumido.docx" },
-  { label: "github.com/gpbsumido", href: "https://github.com/gpbsumido" },
 ];
 
 /**
