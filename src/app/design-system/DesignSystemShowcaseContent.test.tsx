@@ -145,7 +145,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
       ).not.toBeInTheDocument();
-      expect(within(grid()).getByText(/1 of 49/)).toBeInTheDocument();
+      expect(within(grid()).getByText(/1 of 73/)).toBeInTheDocument();
     });
 
     it("filters by category chip and marks it pressed", async () => {
@@ -161,7 +161,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
       ).not.toBeInTheDocument();
-      expect(within(grid()).getByText(/14 of 49/)).toBeInTheDocument();
+      expect(within(grid()).getByText(/14 of 73/)).toBeInTheDocument();
     });
 
     it("offers to clear filters instead of a blank grid when nothing matches", async () => {
@@ -182,7 +182,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).getByRole("heading", { level: 3, name: "Avatar" }),
       ).toBeInTheDocument();
-      expect(within(grid()).getByText(/49 of 49/)).toBeInTheDocument();
+      expect(within(grid()).getByText(/73 of 73/)).toBeInTheDocument();
     });
 
     it("sorts the grid alphabetically on request", async () => {

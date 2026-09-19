@@ -27,6 +27,11 @@ export default function DesignSystemShowcaseThoughtsContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-18-effects",
+            date: "Sep 18, 2026",
+            title: "Two dozen effects landed, and the test wouldn't let me document them by halves",
+          },
+          {
             id: "update-2026-09-12-navigation",
             date: "Sep 12, 2026",
             title: "49 cards stopped being browsable, so the gallery learned to answer questions",
@@ -383,6 +388,71 @@ return COMPONENTS[(dayNumber * 31) % COMPONENTS.length];`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-18-effects"
+        date="September 18, 2026"
+        title="Two dozen effects landed, and the test wouldn't let me document them by halves"
+      >
+        <p>
+          The shared package picked up a big batch of motion and effect
+          components — click sparks, blur reveals, liquid glass, a rubber-band
+          segmented control, a 3D drifting wall, galleries that spin and glide,
+          canvas text that assembles from particles. Bumping to 0.11.2 turned
+          the gallery&rsquo;s integrity test red before I&rsquo;d written a line
+          of catalog.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The integrity test decides when I&rsquo;m done, not me
+        </h3>
+        <p className="text-muted">
+          The catalog check compares the documented components against the
+          package&rsquo;s real exports and demands they match exactly. So the
+          dep bump alone failed the build with a precise to-do list: 49
+          documented, 72 exported. There was no documenting half the batch and
+          moving on — the test counts.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`FAIL src/app/design-system/catalog.test.ts
+AssertionError: expected [ Array(49) ] to deeply equal [ Array(72) ]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Two dozen animation loops is not a page you want to open
+        </h3>
+        <p className="text-muted">
+          The gallery mounts every visible card at once and opens on{" "}
+          <em>all</em> of them, and these previews aren&rsquo;t static —
+          each runs a <code className={code}>requestAnimationFrame</code> loop
+          or a canvas. Mounting them together would peg the main thread and drain
+          a laptop battery for cards nobody has scrolled to. So each effect
+          preview waits behind an <code className={code}>IntersectionObserver</code>{" "}
+          and only mounts when its card nears the viewport — the initial state is
+          a skeleton, which is also what the server renders, so none of the heavy
+          trees land in the first paint.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// the preview stays a skeleton until its card scrolls near
+const observer = new IntersectionObserver(([entry]) => {
+  if (entry.isIntersecting) setShown(true);
+}, { rootMargin: "200px" });`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The vendor&rsquo;s numbered codenames didn&rsquo;t make the cut
+        </h3>
+        <p className="text-muted">
+          Some of the new pieces are portrait-hero compositions that first
+          shipped under the source library&rsquo;s numbered codenames, which mean
+          nothing in my gallery. Rather than paper over that with an alias, I
+          renamed the exports at the source and released a new version, so the
+          package itself now speaks in real names: a spiral that orbits its
+          imagery around the copy like planets, a one-point-perspective corridor
+          with the pictures as posters on the walls, and a fan that spreads them
+          to both sides.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "The gallery is navigable: six categories as filter chips, live search, four sort orders, per-card anchors, and a shareable URL for any filtered view.",
@@ -390,13 +460,14 @@ return COMPONENTS[(dayNumber * 31) % COMPONENTS.length];`}
           "The gallery renders the published package rather than a local reimplementation, so it cannot drift from what actually ships.",
           "All ten of the 0.6.0 AI-app primitives are catalogued and rendered live, the hook-free ones inline and the stateful ones as client islands.",
           "The four 0.10.0 fraud-ops primitives — RiskScore, AgentDecisionCard, Timeline, StatCard — are catalogued and previewed live too.",
+          "The two dozen 0.11.x motion and effect components are catalogued and previewed live, each deferred behind an IntersectionObserver so opening the gallery doesn't start every animation loop at once.",
           "A props playground per primitive, since the question is usually what a component does under a prop rather than how it looks at rest.",
           "Design tokens shown alongside the components that consume them.",
         ]}
         couldImprove={[
           "Nothing catches visual regressions. The showcase is the obvious place to snapshot, and it does not.",
-          "No accessibility check runs per primitive here, even though this is the one place every component is rendered in isolation — the cheapest possible place to run axe.",
-          "It documents what exists but not when to use which, so two similar primitives give no guidance on choosing.",
+          "The effect previews are deferred until visible, which is right for the page but means a naive full-page snapshot would capture skeletons unless it scrolls first.",
+          "It documents what exists but not when to use which, and the effect batch makes that sharper — several of them overlap in feel, with no guidance on choosing.",
         ]}
         upcoming={[
           "Run axe against every primitive in the gallery. Everything is already rendered in isolation, so it is close to free and would catch regressions at the source rather than once per feature.",

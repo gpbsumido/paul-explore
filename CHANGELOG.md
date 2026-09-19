@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-18 - version 7.4.0
+
+- **The design-system gallery now covers the full effect set.** Bumped `@paul-portfolio/react` to 0.12.4 (and `css`/`tokens` alongside) and documented the two dozen new motion and effect components in the live gallery at `/design-system` — sparks, blur reveals, star borders, liquid glass, a rubber-band segmented control, a lattice loader, a drifting 3D wall, spinning and path galleries, a momentum slider, hover/link image reveals, portrait heroes, light bloom, particle and botanical canvas text, a refine frame, and a floating folder. Each gets a catalog entry (the gallery's integrity test requires documenting every export the package ships) and a live, prop-real preview. The animated previews only mount once their card scrolls on screen, so opening the gallery doesn't kick off two dozen animation loops at once.
+- **Three portrait heroes, properly named.** With the design system's 0.12 release the heroes ship under real names, so the gallery documents them directly: a **spiral** (portraits orbiting the copy like planets), a **perspective corridor** (portraits as posters on the walls of a one-point-perspective tunnel), and a **corridor fan** (imagery spreading to both sides).
+- **Tooltips land where they should.** 0.12.4 portals the InfoTip/Tooltip bubble to the document body, fixing the every-card hint in the gallery: `backdrop-filter` on the `.glass-card` was establishing a containing block that offset the fixed-position bubble, so hints were showing up away from the ⓘ they belong to.
+
 ## 2026-09-18 - version 7.3.1
 
 - Append a September 18 update to the Motion Components write-up covering the components-only squircle gap, the SVG liquid carve button, and the portrait hero sections in paul-design-system PR 91. The original ReactBits/OriginKit note stays put; What's next gains the review/release status and the deferred effects.
