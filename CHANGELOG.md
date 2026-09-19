@@ -5,6 +5,7 @@
 - **Gallery polish from testing the effects on develop.** The big compositions — the three portrait heroes and the botanical canvas text — each get their own full-width row instead of a cramped grid cell. Every effect preview is now clipped to its card, so the galleries, sliders and 3D wall stay inside their frame rather than spilling across the grid.
 - **Friendlier effect demos.** BlurReveal has a replay button and RefineFrame a loading/done toggle; the lattice loader shows its done and failed states next to working; the circular gallery's cards sit closer together; and the hover-image-reveal menu is a shorter list.
 - **Fixed two demos that used their component wrong.** The star border now carries its own rounding so the animated edge follows the corner, and the tilt card's frame sits on a child so the whole card tilts rather than just the text.
+- The drifting 3D wall gets a definite-height wrapper so it actually renders — it's `height: 100%` and a `min-height`-only parent collapsed it to nothing.
 - Dropped the source-library names from the gallery card provenance note.
 
 ## 2026-09-18 - version 7.4.0

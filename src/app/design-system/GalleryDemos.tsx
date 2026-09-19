@@ -550,13 +550,17 @@ export function LatticeLoaderDemo() {
 export function DriftWallDemo() {
   return (
     <DeferredPreview minHeight="12rem">
-      <DriftWall
-        items={DEMO_TILES}
-        columns={3}
-        tileWidth={92}
-        tileHeight={64}
-        className="w-full"
-      />
+      {/* DriftWall is height:100% and measures its container, so it needs a
+          definite height to render — min-height alone collapses it to zero. */}
+      <div className="h-48 w-full">
+        <DriftWall
+          items={DEMO_TILES}
+          columns={3}
+          tileWidth={92}
+          tileHeight={64}
+          className="w-full"
+        />
+      </div>
     </DeferredPreview>
   );
 }
