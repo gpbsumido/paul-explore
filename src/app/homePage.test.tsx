@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Home from "./page";
-import LandingContentV5 from "./v5/LandingContentV5";
+import LandingContentV6 from "./v6/LandingContentV6";
 
 /**
  * The root page is static for everyone.
@@ -17,12 +17,10 @@ import LandingContentV5 from "./v5/LandingContentV5";
  * for a shared cache to leak. These tests pin both halves of that contract.
  */
 describe("the root page", () => {
-  it("renders the guest landing with a tagline and writing picks", () => {
+  it("renders the guest landing", () => {
     const element = Home();
 
-    expect(element.type).toBe(LandingContentV5);
-    expect(typeof element.props.taglineIndex).toBe("number");
-    expect(Array.isArray(element.props.writingPicks)).toBe(true);
+    expect(element.type).toBe(LandingContentV6);
   });
 
   it("never reads the session and never opts out of static rendering", () => {
@@ -36,7 +34,7 @@ describe("the root page", () => {
     expect(source).not.toMatch(/getSession|auth0|FeatureHub/);
     // And nothing re-introduces the per-visit render the old fix needed.
     expect(source).not.toMatch(/force-dynamic/);
-    // ISR keeps the baked tagline rotating.
+    // ISR keeps the baked writing rotating.
     expect(source).toMatch(/export\s+const\s+revalidate/);
   });
 });

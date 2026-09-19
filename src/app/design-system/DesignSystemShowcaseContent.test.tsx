@@ -42,6 +42,22 @@ describe("DesignSystemShowcaseContent", () => {
     expect(calendarLinks[0]).toHaveAttribute("href", "/calendar");
   });
 
+  it("links out to the published npm package and its source", () => {
+    render(<DesignSystemShowcaseContent />);
+    const npm = screen.getByRole("link", { name: /view on npm/i });
+    expect(npm).toHaveAttribute(
+      "href",
+      "https://www.npmjs.com/package/@paul-portfolio/react",
+    );
+    expect(npm).toHaveAttribute("target", "_blank");
+    const github = screen.getByRole("link", { name: /source on github/i });
+    expect(github).toHaveAttribute(
+      "href",
+      "https://github.com/gpbsumido/paul-design-system",
+    );
+    expect(github).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+
   describe("Button playground", () => {
     it("shows the minimal snippet for default props", () => {
       render(<DesignSystemShowcaseContent />);

@@ -409,7 +409,7 @@ const PREVIEWS: Record<string, ReactNode> = {
   "heatmap-chart": (
     <HeatmapChart
       label="Commits by day and week"
-      colLabels={["M", "T", "W", "T", "F"]}
+      colLabels={["Mo", "Tu", "We", "Th", "Fr"]}
       rows={[
         { label: "W1", values: [1, 4, 2, 6, 3] },
         { label: "W2", values: [5, 2, 7, 3, 8] },
@@ -823,6 +823,22 @@ export default function DesignSystemShowcaseContent({
             <Button variant="outline" href="/thoughts/design-system-showcase">
               Read the write-up
             </Button>
+            <a
+              className="btn btn--ghost"
+              href="https://www.npmjs.com/package/@paul-portfolio/react"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on npm <span aria-hidden="true">↗</span>
+            </a>
+            <a
+              className="btn btn--ghost"
+              href="https://github.com/gpbsumido/paul-design-system"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Source on GitHub <span aria-hidden="true">↗</span>
+            </a>
             <FeatureTour
               label="Design system"
               storageKey="design-system-tour-seen"

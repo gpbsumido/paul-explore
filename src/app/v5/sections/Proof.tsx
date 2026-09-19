@@ -1,5 +1,5 @@
-import Link from "next/link";
 import AnimatedNumber from "@/components/motion/AnimatedNumber";
+import VitalsLink from "./VitalsLink";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 import { SHELL } from "../shell";
@@ -53,12 +53,7 @@ export default function Proof() {
           ))}
         </dl>
         <p className="mt-10 text-sm">
-          <Link
-            href="/vitals"
-            className="text-primary-700 underline underline-offset-4 hover:opacity-80 dark:text-primary-300"
-          >
-            Real Core Web Vitals from this domain, measured live
-          </Link>
+          <VitalsLink />
         </p>
       </div>
     </section>
