@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-19 - version 7.5.0
+
+- **Rebuilt the home page as a portfolio playground.** The landing at `/` is a new v6 design: a scene-switching portrait hero, a horizontally scroll-jacked project shelf where scrolling down travels the work sideways (with a rubber-band category filter), a "Serious about the ___" heading that loops through details, tests, accessibility and performance, a live LinkPreview on the Core Web Vitals line, and a Field Notes stage where "docs and thoughts" blooms in flowers over a drifting wall of app tiles that name themselves on hover. The hero and the wall swap their light and dark captures with the theme, and every earlier edition still lives behind `/discover?version=`.
+- **Made the scroll shelf sturdier.** The work section has a fixed height so switching the category filter no longer jumps the page, the shortlist footer sits above its own divider instead of overlapping the next section, and the section titles share one side inset so 01/02/03/04 line up. The field-notes bloom scales to the stage width so the whole phrase stays centred on resize, and it darkens in light mode to read against the pale stage.
+- **Linked the design system page out to npm and GitHub.** `/design-system` now carries "View on npm" and "Source on GitHub" next to the write-up link.
+- **Fixed the heatmap demo's duplicate React key.** Its columns were labelled `M T W T F`, so the two `T`s collided on the key `col-T`; they are now `Mo Tu We Th Fr`.
+
 ## 2026-09-19 - version 7.4.2
 
 - Enlarged the BotanicalText gallery demo so its lettering is legible, and gave the TiltCard demo a matching corner radius.
