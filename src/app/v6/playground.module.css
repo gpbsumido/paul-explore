@@ -77,13 +77,14 @@
 .fieldNotes { padding:0; }
 .fieldNotesStage { position:relative; height:min(34rem,72vh); overflow:hidden; border-radius:1.25rem; border:1px solid var(--paul-color-border); background:var(--paul-color-surface); }
 .driftWall { position:absolute; inset:0; }
-.bloom { position:absolute; inset:0; display:grid; place-items:center; z-index:2; pointer-events:none; padding:0 1rem; }
+.bloom { position:absolute; inset:0; display:grid; grid-template-columns:minmax(0,1fr); align-items:center; justify-items:stretch; z-index:2; pointer-events:none; padding:0 1rem; overflow:hidden; }
 .bloom::before { content:""; position:absolute; inset:0; background:radial-gradient(55% 55% at center, color-mix(in srgb,var(--paul-color-background) 72%,transparent), transparent 80%); }
-.bloom :global(.botanical-text) { width:100%; }
-.bloom canvas { width:100%; height:auto; display:block; }
+/* Pin the bloom canvas to the stage width so its centred text never runs off the edge on a narrow screen. */
+.bloomText { display:block; width:100%; max-width:100%; }
+.bloomText canvas { width:100%; height:auto; display:block; }
 /* Light mode: the blooms render pale, so darken and saturate them to read on a light stage. Dark mode keeps them bright. */
-.bloom canvas { filter:saturate(1.4) brightness(.6) contrast(1.05); }
-:global([data-theme="dark"]) .bloom canvas { filter:none; }
+.bloomText canvas { filter:saturate(1.4) brightness(.6) contrast(1.05); }
+:global([data-theme="dark"]) .bloomText canvas { filter:none; }
 .hoverTitle { position:absolute; bottom:1rem; right:1.25rem; z-index:3; max-width:min(70%,22rem); padding:.5rem .9rem; background:var(--paul-color-foreground); color:var(--paul-color-background); border-radius:.6rem; font-size:.82rem; font-weight:600; line-height:1.3; pointer-events:none; opacity:0; transform:translateY(.4rem); transition:opacity .18s, transform .18s; }
 .hoverTitle[data-show="true"] { opacity:1; transform:translateY(0); }
 .fieldNotesLink { margin-top:1.5rem; }

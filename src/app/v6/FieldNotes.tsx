@@ -65,7 +65,8 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
         className={styles.fieldNotesStage}
         onPointerOver={(event) => {
           const link = (event.target as HTMLElement).closest("a");
-          setHovered(link?.getAttribute("aria-label") ?? null);
+          const image = link?.querySelector("img");
+          setHovered(image?.getAttribute("alt") || null);
         }}
         onPointerLeave={() => setHovered(null)}
       >
@@ -75,7 +76,11 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
           className={styles.driftWall}
         />
         <div className={styles.bloom} aria-hidden="true">
-          <BotanicalText text={BLOOM_TEXT} fontSize={fontSize} />
+          <BotanicalText
+            text={BLOOM_TEXT}
+            fontSize={fontSize}
+            className={styles.bloomText}
+          />
         </div>
         <span className={styles.hoverTitle} data-show={hovered ? "true" : "false"} aria-hidden="true">
           {hovered}

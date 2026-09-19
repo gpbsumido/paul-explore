@@ -42,6 +42,15 @@ describe("portfolio playground", () => {
     expect(screen.getByRole("link", { name: /Every write-up on this site/ })).toHaveAttribute("href", "/thoughts");
     expect(screen.getAllByRole("link").length).toBeGreaterThan(1);
   });
+  it("names the tile the pointer is over", () => {
+    render(<ThemeProvider><FieldNotes /></ThemeProvider>);
+    const tile = screen.getAllByRole("link").find((a) => a.querySelector("img"));
+    expect(tile).toBeTruthy();
+    const title = tile!.querySelector("img")!.getAttribute("alt");
+    expect(title).toBeTruthy();
+    fireEvent.pointerOver(tile!);
+    expect(screen.getByText(title!)).toBeInTheDocument();
+  });
 
   it("has no axe violations in the hero and project collection", async () => {
     const { container } = render(<ThemeProvider><PlaygroundHero /><ProjectCollection /></ThemeProvider>);
