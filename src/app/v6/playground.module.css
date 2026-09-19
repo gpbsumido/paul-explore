@@ -21,7 +21,7 @@
 .hero :global(.portrait-hero__image) { width:min(17rem,20cqw); height:min(11rem,15cqh); box-shadow:0 8px 30px #0002; border:1px solid var(--paul-color-border); }
 .heroWrap[data-paused="true"] :global(.portrait-hero__image), .heroWrap[data-paused="true"] :global(.portrait-hero__poster) { animation-play-state:paused; }
 .heroWrap[data-paused="true"] :global(.portrait-hero__gallery) { transform:none !important; }
-.sceneBar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; padding:1.25rem 0 1.6rem; border-bottom:1px solid var(--paul-color-border); }
+.sceneBar { position:sticky; bottom:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; padding:1rem clamp(1.25rem,4vw,4.5rem); margin:0 calc(-1 * clamp(1.25rem,4vw,4.5rem)); background:color-mix(in srgb,var(--paul-color-background) 86%,transparent); backdrop-filter:blur(16px); border-top:1px solid var(--paul-color-border); border-bottom:1px solid var(--paul-color-border); }
 .eyebrow { font-size:.68rem; line-height:1.6; letter-spacing:.13em; text-transform:uppercase; color:var(--paul-color-muted); }
 .sceneBar p { font-family:var(--font-display-face),sans-serif; font-size:1.2rem; margin-top:.2rem; }
 .sceneControl { margin-left:auto; }
@@ -32,7 +32,7 @@
 .sectionHeading > p { color:var(--paul-color-muted); font-size:.9rem; line-height:1.65; }
 .filterBar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin:2.5rem 0; }
 .count { color:var(--paul-color-muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
-.projects { display:grid; grid-template-columns:1.2fr 1fr; align-items:start; gap:3.5rem 2rem; padding:0; list-style:none; }
+.projects { display:flex; flex-direction:column; gap:2rem; max-width:48rem; margin:0 auto; padding:0; list-style:none; }
 .project:nth-child(even) { margin-top:5rem; }
 .project:nth-child(4n + 3) { margin-left:1.5rem; }
 .tilt, .projectSurface { border-radius:1rem; }

@@ -3,10 +3,11 @@ import { render, screen, within, fireEvent } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import PlaygroundHero from "./PlaygroundHero";
 import ProjectCollection from "./ProjectCollection";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 describe("portfolio playground", () => {
   it("switches scenes without losing its heading or resume link", () => {
-    const { container } = render(<PlaygroundHero />);
+    const { container } = render(<ThemeProvider><PlaygroundHero /></ThemeProvider>);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Paul Sumido");
     expect(screen.getByRole("link", { name: /Resume/ })).toHaveAttribute("href", "/resume");
@@ -19,7 +20,7 @@ describe("portfolio playground", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
   it("lets visitors pause the ambient hero motion", () => {
-    render(<PlaygroundHero />);
+    render(<ThemeProvider><PlaygroundHero /></ThemeProvider>);
     fireEvent.click(screen.getByRole("button", { name: "Pause motion" }));
     expect(screen.getByRole("button", { name: "Resume motion" })).toHaveAttribute("aria-pressed", "true");
   });
@@ -36,7 +37,7 @@ describe("portfolio playground", () => {
     expect(within(collection).getAllByRole("listitem")).toHaveLength(6);
   });
   it("has no axe violations in the hero and project collection", async () => {
-    const { container } = render(<><PlaygroundHero /><ProjectCollection /></>);
+    const { container } = render(<ThemeProvider><PlaygroundHero /><ProjectCollection /></ThemeProvider>);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
