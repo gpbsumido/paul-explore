@@ -3,12 +3,12 @@ import { ARCHIVED_VERSIONS, archiveLabel, isArchived } from "./archive";
 
 /**
  * /discover stopped being "the landing page, plus a switch to older ones" when
- * v5 took over /. Every generation it holds is history now, v4 included, so the
+ * v5 took over /. Every generation it holds is history now, v5 included, so the
  * banner is a caption on all of them rather than a warning on some of them.
  */
 describe("the /discover archive", () => {
-  it("holds every retired generation, v4 included", () => {
-    expect(ARCHIVED_VERSIONS).toEqual(["v1", "v2", "v3", "v4"]);
+  it("holds every retired generation, v5 included", () => {
+    expect(ARCHIVED_VERSIONS).toEqual(["v1", "v2", "v3", "v4", "v5"]);
   });
 
   it("treats every version it holds as history", () => {

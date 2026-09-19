@@ -37,6 +37,11 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-19-playground",
+            date: "September 19, 2026",
+            title: "The components became the homepage",
+          },
+          {
             id: "update-2026-08-15-everywhere",
             date: "Aug 15, 2026",
             title: "The palette stopped being a landing-page feature",
@@ -318,16 +323,55 @@ export default function V5RedesignContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-19-playground"
+        date="September 19, 2026"
+        title="The components became the homepage"
+      >
+        <p>
+          I moved v5 into the archive and built the next homepage around the
+          components in my design system: three switchable hero scenes, an
+          elastic project filter, and real screenshots on tilting surfaces.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The motion has controls now.
+        </h3>
+        <p className="text-muted">
+          Spiral, perspective and corridor are the published hero components,
+          not copies. A pause button stops their ambient motion; reduced-motion
+          preferences also stop the scenes. The project links work with a
+          keyboard or touch, without needing to hover a moving image.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`import { SpiralPortraitHero, PerspectivePortraitHero,
+  CorridorPortraitHero, RubberSegment, TiltCard, Spotlight }
+  from "@paul-portfolio/react";`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A passing interaction test still missed hydration.
+        </h3>
+        <p className="text-muted">
+          The browser checks could switch scenes while React recovered from a
+          render mismatch. The same error appeared on the archived v5 page:
+          the shared toaster created a portal on its first client render but
+          rendered nothing on the server. Mounting it client-only fixes that
+          boundary, and a browser test now checks for page errors as well as
+          working controls.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Minified React error #418`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "A root page that states the role, backs it with the full craft matrix and its evidence links, and closes with a way to get in touch. The old landing is one click away and still runs.",
+          "A portfolio playground built with the published design-system heroes and motion components. V5 remains at /discover?version=v5, and the new root still renders statically.",
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
           "There is no way to tell whether this page actually converts better than the slot machine did, because nothing measures where visitors go from the root.",
-          "The site-wide social-card alt text still describes this as a personal playground and portfolio, which is the positioning the new landing moves away from.",
         ]}
         upcoming={[
           "Real field data on the new landing, since the whole hero is built around an LCP rule and the only honest check on that is the number /vitals collects from real loads.",
