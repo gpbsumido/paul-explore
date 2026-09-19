@@ -1,11 +1,11 @@
 import Link from "next/link";
 import LandingActions from "../v4/LandingActions";
 import Proof from "../v5/sections/Proof";
-import Writing from "../v5/sections/Writing";
 import Contact from "../v5/sections/Contact";
 import PlaygroundHero from "./PlaygroundHero";
 import ProjectCollection from "./ProjectCollection";
 import DetailsHeading from "./DetailsHeading";
+import FieldNotes from "./FieldNotes";
 import styles from "./playground.module.css";
 
 export default function LandingContentV6({ writingPicks }: { writingPicks?: string[] }) {
@@ -20,7 +20,7 @@ export default function LandingContentV6({ writingPicks }: { writingPicks?: stri
         <PlaygroundHero />
         <ProjectCollection />
         <div className={styles.proof}><p className={styles.eyebrow}>03 / Under the surface</p><DetailsHeading /><Proof /></div>
-        <div className={styles.writing}><p className={styles.eyebrow}>04 / Field notes</p><Writing picks={writingPicks} /></div>
+        <div className={styles.writing}><p className={styles.eyebrow}>04 / Field notes</p><FieldNotes picks={writingPicks} /></div>
         <Contact />
       </main>
       <footer className={styles.footer}><Link href="/">Paul Sumido / Toronto</Link><Link href="/design-system">Built with my design system ↗</Link><Link href="/discover?version=v5">Previous edition ↗</Link><a href="#hero">Back to the playground ↑</a></footer>

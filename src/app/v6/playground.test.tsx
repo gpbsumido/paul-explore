@@ -3,6 +3,7 @@ import { render, screen, within, fireEvent } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import PlaygroundHero from "./PlaygroundHero";
 import ProjectCollection from "./ProjectCollection";
+import FieldNotes from "./FieldNotes";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 describe("portfolio playground", () => {
@@ -36,6 +37,12 @@ describe("portfolio playground", () => {
     fireEvent.click(screen.getByRole("radio", { name: "All" }));
     expect(within(collection).getAllByRole("listitem")).toHaveLength(6);
   });
+  it("reveals write-ups as a hover menu with a browse-all link", () => {
+    render(<ThemeProvider><FieldNotes /></ThemeProvider>);
+    expect(screen.getByRole("link", { name: /Every write-up on this site/ })).toHaveAttribute("href", "/thoughts");
+    expect(screen.getAllByRole("link").length).toBeGreaterThan(1);
+  });
+
   it("has no axe violations in the hero and project collection", async () => {
     const { container } = render(<ThemeProvider><PlaygroundHero /><ProjectCollection /></ThemeProvider>);
     expect(await axe(container)).toHaveNoViolations();

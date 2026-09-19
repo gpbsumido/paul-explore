@@ -71,3 +71,12 @@
   .hero :global(.portrait-hero__gallery) { opacity:.45; }
   .filterBar :global(.rubber-segment) { font-size:.82rem; }
 }
+
+.fieldNotes h2 { font-family:var(--font-display-face),sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:600; letter-spacing:-0.02em; margin-bottom:1.5rem; }
+.fieldNotes p { margin-top:1.5rem; }
+.fieldNotes p a { color:var(--paul-color-primary-700); text-decoration:underline; text-underline-offset:4px; }
+:global([data-theme="dark"]) .fieldNotes p a { color:var(--paul-color-primary-300); }
+
+/* Single-column projects: drop the two-column stagger so the scroll is even. */
+.project:nth-child(even) { margin-top:0; }
+.project:nth-child(4n + 3) { margin-left:0; }
