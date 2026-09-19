@@ -6,6 +6,9 @@
 - **Made the scroll shelf sturdier.** The work section has a fixed height so switching the category filter no longer jumps the page, the shortlist footer sits above its own divider instead of overlapping the next section, and the section titles share one side inset so 01/02/03/04 line up. The field-notes bloom scales to the stage width so the whole phrase stays centred on resize, and it darkens in light mode to read against the pale stage.
 - **Linked the design system page out to npm and GitHub.** `/design-system` now carries "View on npm" and "Source on GitHub" next to the write-up link.
 - **Fixed the heatmap demo's duplicate React key.** Its columns were labelled `M T W T F`, so the two `T`s collided on the key `col-T`; they are now `Mo Tu We Th Fr`.
+- **Added a surprise page.** The "Surprise me" button opens `/surprise`, which toggles between spinning to a random feature and a creative, interactive list of every feature on the site, including the ones the discover reel leaves out.
+- **Filled out the project shelf.** Section 2 now travels past fourteen works with captured light and dark previews, and on small screens it side-scrolls as a swipeable row instead of stacking into a column.
+- **Light mode reaches the demos.** The particle lab and every work-portfolio demo (bar the retro-arcade game, which stays dark on purpose) now follow the theme through a shared `--wp-surface` and foreground-tinted overlays, instead of staying dark on a light page. The closing section swaps its cursor spotlight for a drifting blob background and gains a Calendly booking link.
 
 ## 2026-09-19 - version 7.4.2
 
