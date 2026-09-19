@@ -84,7 +84,9 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
           <BotanicalText
             text={BLOOM_TEXT}
             fontSize={fontSize}
-            density={19}
+            // density is the sampling STEP in px, so lower means more flowers.
+            // Keep it small for a dense bloom, not a sparse one.
+            density={3}
             className={styles.bloomText}
           />
           {/* Below the wall's small breakpoint the flowers shrink to noise, so
