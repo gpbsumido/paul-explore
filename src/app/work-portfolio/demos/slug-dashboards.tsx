@@ -133,21 +133,21 @@ export default function SlugDashboardsDemo({
       }}
     >
       {/* Embeddable public dashboard, shown in a browser frame */}
-      <div className="overflow-hidden rounded-xl border border-white/12 bg-white/[0.04] backdrop-blur-sm">
-        <div className="flex items-center gap-2 border-b border-white/10 bg-black/20 px-3 py-2">
+      <div className="overflow-hidden rounded-xl border border-foreground/12 bg-foreground/[0.04] backdrop-blur-sm">
+        <div className="flex items-center gap-2 border-b border-foreground/10 bg-black/20 px-3 py-2">
           <span aria-hidden className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-foreground/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-foreground/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-foreground/20" />
           </span>
-          <div className="flex flex-1 items-center gap-1.5 rounded-md border border-white/10 bg-black/30 px-2 py-1 font-mono text-[11px] text-muted">
+          <div className="flex flex-1 items-center gap-1.5 rounded-md border border-foreground/10 bg-black/30 px-2 py-1 font-mono text-[11px] text-muted">
             <span style={{ color: "hsl(90 55% 55%)" }}>🔒 dash.public</span>
             <span>/d/</span>
             <select
               aria-label="Dashboard slug"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="rounded border border-white/10 bg-transparent px-1 py-0.5 text-foreground"
+              className="rounded border border-foreground/10 bg-transparent px-1 py-0.5 text-foreground"
             >
               {CONFIGS.map((c) => (
                 <option key={c.slug} value={c.slug}>

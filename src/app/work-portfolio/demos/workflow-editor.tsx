@@ -187,7 +187,7 @@ export default function WorkflowEditorDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(166 40% 7%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(164 70% 55% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(164 70% 55% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
@@ -293,7 +293,7 @@ export default function WorkflowEditorDemo({
                   setMenuNode(null);
                   item.act();
                 }}
-                className="block w-full rounded px-2 py-1.5 text-left text-[12px] text-foreground hover:bg-white/5"
+                className="block w-full rounded px-2 py-1.5 text-left text-[12px] text-foreground hover:bg-foreground/5"
               >
                 {item.label}
               </button>

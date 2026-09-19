@@ -128,7 +128,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
 
       {/* A boarding pass, not a field sprawled across the page. */}
       <div className="flex flex-1 items-center justify-center">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/12 bg-white/[0.06] shadow-xl backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-foreground/12 bg-foreground/[0.06] shadow-xl backdrop-blur-sm">
       <div
         className={`${poster} flex items-center justify-between px-5 py-2.5 text-[12px] uppercase text-background`}
         style={{ background: ACCENT }}

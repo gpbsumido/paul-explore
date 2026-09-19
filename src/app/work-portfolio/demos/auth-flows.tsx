@@ -132,7 +132,7 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
       </div>
 
       <div className="mx-auto flex w-full max-w-xs flex-1 flex-col justify-center">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 shadow-xl backdrop-blur-sm">
+        <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.05] p-5 shadow-xl backdrop-blur-sm">
           <p className={`${poster} mb-3 text-center text-[17px]`}>
             {screen.title}
           </p>

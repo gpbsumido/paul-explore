@@ -89,7 +89,7 @@ function StatRow({
       >
         −
       </IconButton>
-      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/10">
+      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-foreground/10">
         <span
           className="block h-full rounded-full"
           style={{
@@ -297,7 +297,7 @@ export default function CharacterSheetsDemo({
       <div className="grid min-h-0 flex-1 gap-3 sm:grid-cols-[10rem_1fr]">
         <ul
           aria-label="Roster"
-          className="min-h-0 space-y-1.5 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-sm"
+          className="min-h-0 space-y-1.5 overflow-y-auto rounded-2xl border border-foreground/10 bg-foreground/[0.04] p-2 backdrop-blur-sm"
         >
           {characters.map((c) => (
             <li key={c.id}>
@@ -307,13 +307,13 @@ export default function CharacterSheetsDemo({
                 onClick={() => setSelectedId(c.id)}
                 className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors ${
                   c.id === selected.id
-                    ? "border-white/25 bg-white/10"
-                    : "border-transparent hover:bg-white/5"
+                    ? "border-foreground/25 bg-foreground/10"
+                    : "border-transparent hover:bg-foreground/5"
                 }`}
               >
                 <span
                   aria-hidden
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-black/30 text-[15px]"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-foreground/15 bg-black/30 text-[15px]"
                 >
                   {classIcon(c.cls)}
                 </span>
@@ -335,9 +335,9 @@ export default function CharacterSheetsDemo({
           ))}
         </ul>
 
-        <div className="flex min-h-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
+        <div className="flex min-h-0 flex-col gap-2.5 rounded-2xl border border-foreground/10 bg-foreground/[0.04] p-4 backdrop-blur-sm">
           {/* Character portrait plate */}
-          <div className="flex items-center gap-3 border-b border-white/10 pb-2.5">
+          <div className="flex items-center gap-3 border-b border-foreground/10 pb-2.5">
             <span
               aria-hidden
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 text-3xl"
@@ -379,7 +379,7 @@ export default function CharacterSheetsDemo({
 
           <div className="flex items-center gap-2 text-[11px] text-muted">
             <span className={`${poster} text-[11px]`}>Stat points</span>
-            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-foreground/10">
               <span
                 className="block h-full rounded-full transition-[width]"
                 style={{
