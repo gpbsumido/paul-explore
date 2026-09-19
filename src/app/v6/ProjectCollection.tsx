@@ -23,7 +23,7 @@ const PICKS = [
   { id: "budget", category: "Systems", note: "Envelopes and forecasts for money that moves.", caption: "Money, planned", number: "11" },
   { id: "fantasy-nba", category: "Play", note: "A whole NBA season, read through real box scores.", caption: "Fantasy, with data", number: "12" },
   { id: "gallery-wall", category: "Play", note: "Frame your photos and print the hang sheet before a nail goes in.", caption: "A wall, measured", number: "13" },
-  { id: "craft", category: "Play", note: "Small handmade things that fit nowhere else.", caption: "Odds and ends", number: "14" },
+  { id: "zeroproof", category: "Systems", note: "Sports betting with the loss taken out.", caption: "A ledger you can't lose", number: "14" },
 ];
 
 export default function ProjectCollection() {
@@ -31,6 +31,17 @@ export default function ProjectCollection() {
   const projects = PICKS.filter((pick) => filter === "All" || pick.category === filter);
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLUListElement>(null);
+
+  // Filtering changes how many cards there are, which changes the section's
+  // height. Jump back to the top of the shelf so the shorter set starts from
+  // the left instead of stranding you partway through a section that just shrank.
+  const changeFilter = (value: string) => {
+    const section = sectionRef.current;
+    if (section) {
+      window.scrollTo({ top: section.getBoundingClientRect().top + window.scrollY });
+    }
+    setFilter(value);
+  };
 
   // Vertical scroll through the (tall) section drives the track sideways: as you
   // scroll down, the projects pass by left to right. The section height is set
@@ -43,9 +54,11 @@ export default function ProjectCollection() {
     const update = () => {
       // Reduced motion or a narrow screen: hand back to a normal wrapping row
       // (the CSS unpins it), so we never scroll-jack where it'd hurt.
+      // Unpin at the same 900px the CSS does, or the section stays pinned while
+      // the track sits frozen and you scroll a tall block of the same cards.
       const off =
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
-        window.innerWidth < 768;
+        window.innerWidth <= 900;
       if (off) {
         track.style.transform = "";
         return;
@@ -76,7 +89,7 @@ export default function ProjectCollection() {
       ref={sectionRef}
       className={styles.workScroll}
       aria-labelledby="work-title"
-      style={{ ["--scroll-height" as string]: `${PICKS.length * 30}vh` }}
+      style={{ ["--scroll-height" as string]: `${projects.length * 30}vh` }}
     >
       <div className={styles.workSticky}>
         <div className={styles.sectionHeading}>
@@ -84,7 +97,7 @@ export default function ProjectCollection() {
           <p>Working apps. Small obsessions.<br />Scroll to travel through them.</p>
         </div>
         <div className={styles.filterBar}>
-          <fieldset><legend className="sr-only">Filter projects</legend><RubberSegment segments={FILTERS} value={filter} onChange={setFilter} /></fieldset>
+          <fieldset><legend className="sr-only">Filter projects</legend><RubberSegment segments={FILTERS} value={filter} onChange={changeFilter} /></fieldset>
           <span aria-live="polite" aria-atomic="true" className={styles.count}>{String(projects.length).padStart(2, "0")} projects / {filter}</span>
         </div>
         <ul ref={trackRef} className={styles.projectsRow} aria-label="Projects">

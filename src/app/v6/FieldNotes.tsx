@@ -84,7 +84,7 @@ export default function FieldNotes({ picks }: { picks?: string[] }) {
           <BotanicalText
             text={BLOOM_TEXT}
             fontSize={fontSize}
-            density={13}
+            density={19}
             className={styles.bloomText}
           />
           {/* Below the wall's small breakpoint the flowers shrink to noise, so

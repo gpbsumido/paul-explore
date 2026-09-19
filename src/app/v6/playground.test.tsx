@@ -30,10 +30,10 @@ describe("portfolio playground", () => {
     const collection = screen.getByRole("list", { name: "Projects" });
     expect(within(collection).getAllByRole("listitem")).toHaveLength(14);
     fireEvent.click(screen.getByRole("radio", { name: "Play" }));
-    expect(within(collection).getAllByRole("listitem")).toHaveLength(6);
+    expect(within(collection).getAllByRole("listitem")).toHaveLength(5);
     expect(within(collection).getByRole("link", { name: /Explore Toronto/ })).toHaveAttribute("href", "/world");
     fireEvent.click(screen.getByRole("radio", { name: "Systems" }));
-    expect(within(collection).getAllByRole("listitem")).toHaveLength(4);
+    expect(within(collection).getAllByRole("listitem")).toHaveLength(5);
     fireEvent.click(screen.getByRole("radio", { name: "All" }));
     expect(within(collection).getAllByRole("listitem")).toHaveLength(14);
   });
