@@ -1,8 +1,9 @@
 # Changelog
 
-## 2026-09-18 - version 7.4.2
+## 2026-09-19 - version 7.4.2
 
-- Enlarged the BotanicalText gallery demo so its lettering is legible, and gave the TiltCard demo a matching corner radius so its cursor glare clips to the card (the glare fix itself lands with the next design-system bump).
+- Enlarged the BotanicalText gallery demo so its lettering is legible, and gave the TiltCard demo a matching corner radius.
+- Bumped the design system to `react@0.12.6` / `css@0.13.8`, which keeps the PathGallery images on the drawn path at any width and clips the TiltCard glare to the card's rounded corners.
 
 ## 2026-09-18 - version 7.4.1
 
