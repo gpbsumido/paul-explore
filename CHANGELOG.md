@@ -7,6 +7,7 @@
 - **Fixed two demos that used their component wrong.** The star border now carries its own rounding so the animated edge follows the corner, and the tilt card's frame sits on a child so the whole card tilts rather than just the text.
 - The drifting 3D wall gets a definite-height wrapper so it actually renders — it's `height: 100%` and a `min-height`-only parent collapsed it to nothing.
 - Dropped the source-library names from the gallery card provenance note.
+- Bumped the design system to `react@0.12.5` / `css@0.13.7`, which brings the dark-mode fixes for the rubber-band segmented control and the liquid-carve button.
 
 ## 2026-09-18 - version 7.4.0
 
