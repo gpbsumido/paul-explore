@@ -37,6 +37,11 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-19-shelf",
+            date: "September 19, 2026",
+            title: "Reviewing the playground live, and the two sections that fought back",
+          },
+          {
             id: "update-2026-09-19-playground",
             date: "September 19, 2026",
             title: "The components became the homepage",
@@ -363,11 +368,91 @@ export default function V5RedesignContent() {
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-19-shelf"
+        date="September 19, 2026"
+        title="Reviewing the playground live, and the two sections that fought back"
+      >
+        <p>
+          The homepage shipped, then I sat with it on the running site and fed
+          changes back as I scrolled. Most were a line of CSS. Two sections
+          argued.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The projects scroll sideways as you scroll down.
+        </h3>
+        <p className="text-muted">
+          The work shelf is not a vertical list any more. A tall section pins a
+          viewport, and vertical scroll through it drives the row of cards left,
+          so eight projects travel past as you move down the page. Reduced
+          motion and narrow screens fall back to a wrapping grid, so no one gets
+          scroll-jacked where it would hurt.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const scrollable = section.offsetHeight - window.innerHeight;
+const progress = -section.getBoundingClientRect().top / scrollable;
+track.style.transform = \`translate3d(\${-progress * distance}px,0,0)\`;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Filtering the shelf threw the page to the bottom.
+        </h3>
+        <p className="text-muted">
+          The first cut set the section&rsquo;s height from JavaScript to match
+          the track&rsquo;s overflow. Switching the category re-measured a
+          shorter track, the section shrank under my scroll position, and the
+          page lurched to the bottom. The fix was to stop measuring the height
+          at all: a fixed CSS height, with the scroll maths reading that.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- section.style.height = \`\${innerHeight + distance}px\`;  // jumped on filter
++ .workScroll { height: 240vh; }                          // stable`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;docs and thoughts&rdquo; grew off the edge of the screen.
+        </h3>
+        <p className="text-muted">
+          Field notes became a bloom of flowers spelling{" "}
+          <em>docs and thoughts</em> over a drifting wall of app tiles that name
+          themselves on hover. The bloom draws at a fixed pixel size, so on a
+          narrower window it overflowed the stage instead of centering. Sizing
+          the font to the stage width, re-measured on resize, keeps the whole
+          phrase in frame.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const fitted = Math.round((width * 1.5) / "docs and thoughts".length);
+setFontSize(Math.max(30, Math.min(120, fitted)));`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A heatmap demo tripped a duplicate-key warning.
+        </h3>
+        <p className="text-muted">
+          The design-system gallery labelled its heatmap columns M T W T F.
+          React keys the labels by their text, so the two single-letter
+          Tuesdays and Thursdays collided. Two-letter labels settle it, and the
+          gallery grew{" "}
+          <Link
+            href="/design-system"
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            View on npm and Source on GitHub
+          </Link>{" "}
+          links in the same pass.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Encountered two children with the same key, \`col-T\`.`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A portfolio playground built with the published design-system heroes and motion components. V5 remains at /discover?version=v5, and the new root still renders statically.",
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
+          "A project shelf that scrolls sideways as you scroll down, past eight works with real light and dark screenshots, and a field-notes bloom over a drifting wall of app tiles.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
