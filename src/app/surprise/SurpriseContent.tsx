@@ -78,6 +78,11 @@ export default function SurpriseContent() {
 
       {view === "Spin" ? (
         <section className={styles.spin} aria-label="Spin for a feature">
+          <ClickSpark>
+            <Button onClick={roll} variant="primary">
+              Surprise me <span aria-hidden="true">↻</span>
+            </Button>
+          </ClickSpark>
           <TiltCard maxTilt={5} glare={false} className={styles.spinTilt}>
             <Spotlight
               color={`color-mix(in srgb, ${feature.color} 24%, transparent)`}
@@ -102,11 +107,6 @@ export default function SurpriseContent() {
               </div>
             </Spotlight>
           </TiltCard>
-          <ClickSpark>
-            <Button onClick={roll} variant="primary">
-              Surprise me <span aria-hidden="true">↻</span>
-            </Button>
-          </ClickSpark>
         </section>
       ) : (
         <ul className={styles.grid} aria-label="All features">
