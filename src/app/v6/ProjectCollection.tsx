@@ -18,6 +18,12 @@ const PICKS = [
   { id: "vitals", category: "Systems", note: "This site’s performance, measured in the wild.", caption: "The reality check", number: "06" },
   { id: "pokemon", category: "Play", note: "Three little apps sharing one Pokémon dataset.", caption: "Data, three ways", number: "07" },
   { id: "particles", category: "Play", note: "A constellation that leans toward your cursor.", caption: "A physics toy", number: "08" },
+  { id: "research", category: "Interfaces", note: "A reader for the papers I keep going back to.", caption: "Papers, organized", number: "09" },
+  { id: "learn", category: "Interfaces", note: "Notes and demos from things I taught myself.", caption: "Self-taught, in public", number: "10" },
+  { id: "budget", category: "Systems", note: "Envelopes and forecasts for money that moves.", caption: "Money, planned", number: "11" },
+  { id: "fantasy-nba", category: "Play", note: "A whole NBA season, read through real box scores.", caption: "Fantasy, with data", number: "12" },
+  { id: "gallery-wall", category: "Play", note: "Frame your photos and print the hang sheet before a nail goes in.", caption: "A wall, measured", number: "13" },
+  { id: "craft", category: "Play", note: "Small handmade things that fit nowhere else.", caption: "Odds and ends", number: "14" },
 ];
 
 export default function ProjectCollection() {
@@ -65,7 +71,13 @@ export default function ProjectCollection() {
 
   return (
     <>
-    <section id="work" ref={sectionRef} className={styles.workScroll} aria-labelledby="work-title">
+    <section
+      id="work"
+      ref={sectionRef}
+      className={styles.workScroll}
+      aria-labelledby="work-title"
+      style={{ ["--scroll-height" as string]: `${PICKS.length * 30}vh` }}
+    >
       <div className={styles.workSticky}>
         <div className={styles.sectionHeading}>
           <div><p className={styles.eyebrow}>02 / Open for exploring</p><h2 id="work-title">Pick a rabbit hole<span className={styles.accent}>.</span></h2></div>
