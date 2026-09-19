@@ -74,6 +74,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/pokemon",
   "/research",
   "/resume",
+  "/surprise",
   "/tcg/pocket",
   "/tcg/pokemon",
   "/tcg/pokemon/sets",

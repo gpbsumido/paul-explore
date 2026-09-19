@@ -268,7 +268,7 @@ export default function DashboardDesignerDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(192 46% 8%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(190 88% 60% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(190 88% 60% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",

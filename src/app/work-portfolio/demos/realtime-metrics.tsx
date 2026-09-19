@@ -81,7 +81,7 @@ export default function RealtimeMetricsDemo({
           <button
             type="button"
             onClick={spike}
-            className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase text-foreground transition-colors hover:bg-white/10"
+            className="rounded-full border border-foreground/10 bg-foreground/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase text-foreground transition-colors hover:bg-foreground/10"
           >
             ⚡ Spike
           </button>
@@ -89,7 +89,7 @@ export default function RealtimeMetricsDemo({
             type="button"
             aria-pressed={live}
             onClick={() => setLive((v) => !v)}
-            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase"
+            className="flex items-center gap-1.5 rounded-full border border-foreground/10 bg-foreground/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase"
             style={{ color: live ? "hsl(160 62% 55%)" : "var(--color-muted)" }}
           >
             <span
@@ -110,7 +110,7 @@ export default function RealtimeMetricsDemo({
         ].map((tile) => (
           <div
             key={tile.label}
-            className="rounded-xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-sm"
+            className="rounded-xl border border-foreground/10 bg-foreground/[0.05] p-3 backdrop-blur-sm"
           >
             <p className="text-[10px] uppercase tracking-wider text-muted">
               {tile.label}

@@ -7,9 +7,12 @@ import {
   QueryClientProvider,
   MutationCache,
 } from "@tanstack/react-query";
-import { Toaster } from "@paul-portfolio/react";
 import dynamic from "next/dynamic";
 import { notifyMutationError } from "@/lib/mutationErrorToast";
+
+// The design-system toaster portals to document.body on its first client
+// render. Mount it after hydration so the server and initial client trees agree.
+const Toaster = dynamic(() => import("@paul-portfolio/react").then((m) => m.Toaster), { ssr: false });
 
 // Dev-only, and loaded through a dynamic import guarded by NODE_ENV so the
 // devtools module can never reach the production bundle (a static import leaves

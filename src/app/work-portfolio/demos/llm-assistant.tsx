@@ -211,7 +211,7 @@ export default function LlmAssistantDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-2 p-5 text-foreground"
       style={{
-        background: "hsl(282 34% 8%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(280 72% 66% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(280 72% 66% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",

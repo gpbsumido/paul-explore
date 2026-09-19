@@ -239,7 +239,7 @@ function RankedTable({ seed }: ChartProps) {
       {rows.map((r, i) => (
         <div key={r.name} className="flex items-center gap-2 text-[10px]">
           <span className="w-12 shrink-0 text-muted">{r.name}</span>
-          <span className="h-3 flex-1 overflow-hidden rounded-sm bg-black/5 dark:bg-white/10">
+          <span className="h-3 flex-1 overflow-hidden rounded-sm bg-black/5 dark:bg-foreground/10">
             <span
               className="block h-full rounded-sm"
               style={{
@@ -703,7 +703,7 @@ export default function ChartLibraryDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(215 42% 8%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(205 85% 60% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(205 85% 60% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
@@ -733,7 +733,7 @@ export default function ChartLibraryDemo({
                 onClick={() => setMode(m)}
                 className={`px-2.5 py-1 capitalize ${
                   mode === m
-                    ? "bg-black/10 text-foreground dark:bg-white/15"
+                    ? "bg-black/10 text-foreground dark:bg-foreground/15"
                     : "text-muted"
                 }`}
               >

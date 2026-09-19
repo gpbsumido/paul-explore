@@ -53,9 +53,16 @@ export default function DemoStage({
 }) {
   // plain lookup into the module-level map, component identities are stable
   const Demo = DEMO_BY_SLUG[feature.slug] ?? ComingSoonDemo;
-  const style: CSSProperties & { "--wp-accent": string } = {
+  // A demo surface that follows the theme: the project accent mixed into the
+  // page background, so it reads as a light accent tint in light mode and a
+  // dark one in dark mode. Demos that hardcoded a near-black root point here.
+  const style: CSSProperties & {
+    "--wp-accent": string;
+    "--wp-surface": string;
+  } = {
     ...stageBackground(project.accent),
     "--wp-accent": project.accent.accent,
+    "--wp-surface": `color-mix(in srgb, ${project.accent.accent} 10%, var(--color-background))`,
   };
 
   return (

@@ -74,7 +74,7 @@ function Card({
         opacity: isDragging ? 0.4 : 1,
         background: `color-mix(in srgb, ${color} 10%, transparent)`,
       }}
-      className="flex items-center justify-between gap-1 rounded-lg border border-white/10 py-2 pr-1.5 pl-2.5 backdrop-blur-sm"
+      className="flex items-center justify-between gap-1 rounded-lg border border-foreground/10 py-2 pr-1.5 pl-2.5 backdrop-blur-sm"
     >
       <span
         {...attributes}
@@ -286,7 +286,7 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
       </header>
 
       {/* Airtime strip */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+      <div className="rounded-xl border border-foreground/10 bg-foreground/[0.04] p-3 backdrop-blur-sm">
         <p className={`${poster} mb-2 text-[11px] text-muted`}>Airtime this week</p>
         <div className="flex items-end gap-1.5">
           {DAYS.map((d, i) => (
@@ -337,7 +337,7 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
         <DragOverlay dropAnimation={null}>
           {activePost ? (
             <div
-              className="flex cursor-grabbing items-center gap-1 rounded-lg border border-white/20 px-2.5 py-2 text-[12.5px] font-medium text-foreground shadow-xl"
+              className="flex cursor-grabbing items-center gap-1 rounded-lg border border-foreground/20 px-2.5 py-2 text-[12.5px] font-medium text-foreground shadow-xl"
               style={{
                 background: `color-mix(in srgb, ${COLUMN_COLOR[activePost.column]} 14%, var(--color-background))`,
               }}

@@ -180,7 +180,7 @@ export default function ReferralLinksDemo({
             Referral link
           </p>
           <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[12px] text-foreground dark:bg-white/10">
+            <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[12px] text-foreground dark:bg-foreground/10">
               {onThisOrigin(created.url)}
             </code>
             <button
