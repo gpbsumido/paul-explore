@@ -231,7 +231,7 @@ export function ChipDemo() {
 
 export function TiltCardPreview() {
   return (
-    <TiltCard>
+    <TiltCard className="rounded-xl">
       <div className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
         Hover me
       </div>
@@ -761,7 +761,7 @@ export function FolderFloatDemo() {
 export function BotanicalTextDemo() {
   return (
     <DeferredPreview>
-      <BotanicalText text="Bloom" fontSize={64} />
+      <BotanicalText text="Bloom" fontSize={120} density={7} />
     </DeferredPreview>
   );
 }

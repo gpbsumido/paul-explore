@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18 - version 7.4.2
+
+- Enlarged the BotanicalText gallery demo so its lettering is legible, and gave the TiltCard demo a matching corner radius so its cursor glare clips to the card (the glare fix itself lands with the next design-system bump).
+
 ## 2026-09-18 - version 7.4.1
 
 - **Gallery polish from testing the effects on develop.** The big compositions — the three portrait heroes and the botanical canvas text — each get their own full-width row instead of a cramped grid cell. Every effect preview is now clipped to its card, so the galleries, sliders and 3D wall stay inside their frame rather than spilling across the grid.
