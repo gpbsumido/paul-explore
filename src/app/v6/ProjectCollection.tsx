@@ -125,7 +125,7 @@ export default function ProjectCollection() {
         </ul>
       </div>
     </section>
-    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/discover" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
+    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/surprise" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
     </>
   );
 }
