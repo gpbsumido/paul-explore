@@ -24,6 +24,7 @@ const PICKS = [
   { id: "fantasy-nba", category: "Play", note: "A whole NBA season, read through real box scores.", caption: "Fantasy, with data", number: "12" },
   { id: "gallery-wall", category: "Play", note: "Frame your photos and print the hang sheet before a nail goes in.", caption: "A wall, measured", number: "13" },
   { id: "zeroproof", category: "Systems", note: "Sports betting with the loss taken out.", caption: "A ledger you can't lose", number: "14" },
+  { id: "calendar", category: "Interfaces", note: "Events, countdowns, and a month you can actually plan in.", caption: "Time, laid out", number: "15" },
 ];
 
 export default function ProjectCollection() {

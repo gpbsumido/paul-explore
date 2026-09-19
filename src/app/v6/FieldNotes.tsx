@@ -27,6 +27,7 @@ const TILE_IDS = [
   "gallery-wall",
   "craft",
   "zeroproof",
+  "calendar",
 ];
 
 const BLOOM_TEXT = "docs and thoughts";

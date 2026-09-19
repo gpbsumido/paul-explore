@@ -18,7 +18,7 @@ const HERO_COMPONENTS = [SpiralPortraitHero, PerspectivePortraitHero, CorridorPo
 const HERO_IMAGE_IDS = [
   "work-portfolio", "design-system", "operator", "world", "vitals", "flags",
   "pokemon", "particles", "research", "learn", "budget", "fantasy-nba",
-  "gallery-wall", "craft", "zeroproof",
+  "gallery-wall", "craft", "zeroproof", "calendar",
 ];
 
 export default function PlaygroundHero() {

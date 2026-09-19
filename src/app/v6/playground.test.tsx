@@ -28,14 +28,14 @@ describe("portfolio playground", () => {
   it("filters projects and restores the collection", () => {
     render(<ProjectCollection />);
     const collection = screen.getByRole("list", { name: "Projects" });
-    expect(within(collection).getAllByRole("listitem")).toHaveLength(14);
+    expect(within(collection).getAllByRole("listitem")).toHaveLength(15);
     fireEvent.click(screen.getByRole("radio", { name: "Play" }));
     expect(within(collection).getAllByRole("listitem")).toHaveLength(5);
     expect(within(collection).getByRole("link", { name: /Explore Toronto/ })).toHaveAttribute("href", "/world");
     fireEvent.click(screen.getByRole("radio", { name: "Systems" }));
     expect(within(collection).getAllByRole("listitem")).toHaveLength(5);
     fireEvent.click(screen.getByRole("radio", { name: "All" }));
-    expect(within(collection).getAllByRole("listitem")).toHaveLength(14);
+    expect(within(collection).getAllByRole("listitem")).toHaveLength(15);
   });
   it("reveals write-ups as a hover menu with a browse-all link", () => {
     render(<ThemeProvider><FieldNotes /></ThemeProvider>);
