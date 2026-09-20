@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.10
+
+- The "This site" work-portfolio demo now shows theme-matched screenshots. It only had dark-mode thumbnails, so a light-theme visitor saw dark screengrabs of pages that were actually light. Added a light capture for each of the nine linked pages and refreshed the dark ones to the current design, and the demo now swaps light/dark per theme (only the active one loads).
+
 ## 2026-09-20 - version 7.5.9
 
 - An editorial pass to make the site read less like an even, generated template and more like it was laid out by hand.
