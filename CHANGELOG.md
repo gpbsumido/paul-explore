@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.14
+
+- Fixed the landing contact section: its drifting-blob background was boxed inside the max-width shell, leaving black bars down the sides. The background now bleeds to the full section width while the copy stays in the shell frame.
+
 ## 2026-09-20 - version 7.5.13
 
 - Broke the signed-in feature-hub grid into the same irregular bento (a repeating wide tile, dense-packed) via an optional className on the feature card, so the main hub stops reading as an even three-up too.
