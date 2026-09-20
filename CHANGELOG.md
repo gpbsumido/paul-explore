@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.15
+
+- Deprecated seven dev-thoughts write-ups whose features are superseded — Route Restructure, Risk-scoring API, the v2/v3/v4/v5 redesign notes, and the Landing Page preview. They move into the Deprecated group on the thoughts index and keep their history, rather than sitting in the active categories.
+
 ## 2026-09-20 - version 7.5.14
 
 - Fixed the landing contact section: its drifting-blob background was boxed inside the max-width shell, leaving black bars down the sides. The background now bleeds to the full section width while the copy stays in the shell frame, and the heading now reads "If you are hiring a frontend dev".
