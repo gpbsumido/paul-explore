@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.1
+
+- **Tidied up the arrows.** Every Unicode arrow on the landing and the surprise page (`↗ ↘ ↑ → ↻`), which rendered thin and uneven especially small on mobile, is now a crisp shared SVG icon that inherits its colour. The work-portfolio prev/next arrows also overlay the demo on a narrow screen instead of flanking and squeezing it, so the demo gets the full width.
+
 ## 2026-09-19 - version 7.5.0
 
 - **Rebuilt the home page as a portfolio playground.** The landing at `/` is a new v6 design: a scene-switching portrait hero, a horizontally scroll-jacked project shelf where scrolling down travels the work sideways (with a rubber-band category filter), a "Serious about the ___" heading that loops through details, tests, accessibility and performance, a live LinkPreview on the Core Web Vitals line, and a Field Notes stage where "docs and thoughts" blooms in flowers over a drifting wall of app tiles that name themselves on hover. The hero and the wall swap their light and dark captures with the theme, and every earlier edition still lives behind `/discover?version=`.

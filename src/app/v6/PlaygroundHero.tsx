@@ -8,6 +8,7 @@ import {
 import { useTheme } from "@/components/ThemeProvider";
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
+import { ArrowDownRight, ArrowUpRight } from "./arrows";
 import styles from "./playground.module.css";
 
 const SCENES = ["Spiral", "Perspective", "Corridor"];
@@ -37,7 +38,7 @@ export default function PlaygroundHero() {
     <div className={styles.heroWrap} data-paused={paused}>
       <div className={styles.heroMeta}>
         <span>01 / The playground</span>
-        <span>Toronto, Canada <span aria-hidden="true">↗</span></span>
+        <span>Toronto, Canada <ArrowUpRight size={12} /></span>
       </div>
       <Hero
         id="hero"
@@ -45,7 +46,7 @@ export default function PlaygroundHero() {
         images={images}
         heading={<><span className={styles.identity}>Paul Sumido <span aria-hidden="true">/</span> Lead Frontend Developer</span><span className={styles.headline}>Ideas into<br /><em>interfaces.</em></span></>}
         description="A collection of things I’ve built, questions I’ve followed, and details I couldn’t leave alone. Come click around."
-        actions={<><ClickSpark><Button href="#work" variant="primary" size="lg">Explore the work <span aria-hidden="true">↘</span></Button></ClickSpark><Button href="/resume" variant="outline" size="lg">Resume <span aria-hidden="true">↗</span></Button></>}
+        actions={<><ClickSpark><Button href="#work" variant="primary" size="lg">Explore the work <ArrowDownRight size={15} /></Button></ClickSpark><Button href="/resume" variant="outline" size="lg">Resume <ArrowUpRight size={15} /></Button></>}
       />
       <div className={styles.sceneBar}>
         <div><span className={styles.eyebrow}>Same work. Different perspective.</span><p>Make yourself at home.</p></div>

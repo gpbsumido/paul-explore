@@ -7,6 +7,7 @@ import { Button, ClickSpark, RubberSegment, Spotlight, TiltCard } from "@paul-po
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
+import { ArrowUpRight } from "./arrows";
 
 const FILTERS = ["All", "Interfaces", "Systems", "Play"];
 const PICKS = [
@@ -109,11 +110,11 @@ export default function ProjectCollection() {
                 <TiltCard maxTilt={4} glare={false} className={styles.tilt}>
                   <Spotlight color="color-mix(in srgb, var(--paul-color-primary-400) 15%, transparent)" className={styles.projectSurface}>
                     <Link href={feature.href} className={styles.projectLink}>
-                      <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true">↗</span></div>
+                      <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true"><ArrowUpRight /></span></div>
                       <div className={styles.preview}>
                         <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.lightImage} />
                         <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.darkImage} />
-                        <span className={styles.openLabel} aria-hidden="true">Step inside ↗</span>
+                        <span className={styles.openLabel} aria-hidden="true">Step inside <ArrowUpRight size={13} /></span>
                       </div>
                       <div className={styles.projectTitle}><h3>{feature.title}</h3><span>{pick.category}</span></div>
                       <p className={styles.projectNote}>{pick.note}</p>
@@ -126,7 +127,7 @@ export default function ProjectCollection() {
         </ul>
       </div>
     </section>
-    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/surprise" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
+    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/surprise" variant="outline">Surprise me <ArrowUpRight size={14} /></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <ArrowUpRight size={14} /></Button></div>
     </>
   );
 }
