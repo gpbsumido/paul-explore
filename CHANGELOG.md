@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.10
+
+- An editorial personality pass, to read less like a generated template and more like something with a point of view.
+  - **Bolder display titles.** The shared `PageIntro` heading jumped to a `clamp(2.6rem … 4.25rem)` bold, tight-tracked display size, so every page opens with the landing's confidence instead of a polite `text-3xl`.
+  - **Signature link underline.** Wherever a link underlines it now draws as a chunky, offset rule in the accent that fills in on hover, not the thin browser default.
+  - **Numbered sections.** The thoughts index categories are numbered `01 / …`, `02 / …` in the accent, the same editorial device the landing uses.
+  - **A break in the grid.** The first write-up card is now a wider featured bento tile, so the index no longer reads as an identical three-up grid.
+  - **Killed a stray purple.** The signed-in hub header had a faint violet wash (`rgba(139,92,246,…)`) — the classic vibecode gradient — now verdigris.
+
 ## 2026-09-20 - version 7.5.9
 
 - Added a faint film grain over the whole site. Perfectly flat, even surfaces are one of the quiet "generated, not designed" tells; a subtle analog grain gives the paper some life. It's a fixed, non-interactive SVG-noise overlay blended with `overlay` so it textures the surfaces without touching text legibility, sits below modals and the cookie bar, and hides itself under `prefers-reduced-transparency`.
