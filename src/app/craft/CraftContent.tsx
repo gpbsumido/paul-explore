@@ -5,6 +5,7 @@ import Link from "next/link";
 import { m, useReducedMotion } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import PageIntro from "@/components/PageIntro";
 import { CRAFT_TRAITS, type CraftTrait } from "@/lib/craft";
 
 /** Chevron that rotates when its card is open. */
@@ -148,20 +149,18 @@ export default function CraftContent() {
       />
 
       <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-        <header className="mb-8">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            The craft
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            What a lead front-end developer does
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            {CRAFT_TRAITS.length} traits, each one backed by something already
-            shipped in this project. Open a trait to see what owning it means
-            and where it shows up. This whole site is the portfolio; this page
-            is the index into it.
-          </p>
-        </header>
+        <PageIntro
+          eyebrow="The craft"
+          title="What a lead front-end developer does"
+          lede={
+            <>
+              {CRAFT_TRAITS.length} traits, each one backed by something already
+              shipped in this project. Open a trait to see what owning it means
+              and where it shows up. This whole site is the portfolio; this page
+              is the index into it.
+            </>
+          }
+        />
 
         <div className="mb-4 flex justify-end">
           <button

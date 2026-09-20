@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import PageIntro from "@/components/PageIntro";
 import { UPDATE_ENTRIES } from "@/lib/updates/entries.data";
 import { SEED_TICKETS } from "@/lib/updates/tickets.data";
 import {
@@ -156,26 +157,24 @@ export default function UpdatesContent() {
       />
 
       <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-        <header className="mb-8">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            What&apos;s new
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Updates
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            A running note of what shipped and why, in plain language. Search it,
-            filter by what kind of change it was, and open any entry for the
-            longer story. Got an idea?{" "}
-            <Link
-              href="/updates/tickets"
-              className="font-medium text-primary-600 hover:underline dark:text-primary-400"
-            >
-              Suggest it on the board
-            </Link>
-            .
-          </p>
-        </header>
+        <PageIntro
+          eyebrow="What's new"
+          title="Updates"
+          lede={
+            <>
+              A running note of what shipped and why, in plain language. Search
+              it, filter by what kind of change it was, and open any entry for
+              the longer story. Got an idea?{" "}
+              <Link
+                href="/updates/tickets"
+                className="font-medium text-primary-600 hover:underline dark:text-primary-400"
+              >
+                Suggest it on the board
+              </Link>
+              .
+            </>
+          }
+        />
 
         <div className="mb-6 space-y-3">
           <input
