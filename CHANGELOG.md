@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.6
+
+- Retired the colored left-border stripe on cards, the single most-cited "AI-generated" design tell. The category colour now sits in a small dot beside the title on the thoughts index, fantasy hub and countdown cards, and the redundant stripe is gone from the write-up, craft and updates cards. Left rails that actually mean something stay put: calendar event chips, the operator state rails, team-colour pick cards, and the neutral rails in `/learn`. First step of a wider design detox.
+
 ## 2026-09-20 - version 7.5.4
 
 - Moved the design-system dependency off the vendored preview archives and onto the published `@paul-portfolio/react` 0.12.9 and `css` 0.13.11, now that 0.9.14 is released to npm, and removed `vendor/`.
