@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.7
+
+- Kept the icon arrows on the text line. The design-system reset renders a bare `svg` as `display:block`, which dropped a trailing arrow (↗) onto its own line in the header nav, the hero meta and the footer — buttons were fine because they use flex. The shared arrow component now sets `display:inline-block`, so every arrow across the landing sits inline again.
+- Finished the `PageIntro` rollout onto the ticket board and gallery wall, so those two pages now carry the same editorial heading as the rest of the site.
+
 ## 2026-09-20 - version 7.5.6
 
 - Retired the colored left-border stripe on cards, the single most-cited "AI-generated" design tell. The category colour now sits in a small dot beside the title on the thoughts index, fantasy hub and countdown cards, and the redundant stripe is gone from the write-up, craft and updates cards. Left rails that actually mean something stay put: calendar event chips, the operator state rails, team-colour pick cards, and the neutral rails in `/learn`. First step of a wider design detox.

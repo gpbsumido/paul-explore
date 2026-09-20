@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import PageIntro from "@/components/PageIntro";
 import { useTicketBoard } from "./useTicketBoard";
 import {
   searchTickets,
@@ -210,26 +211,24 @@ export default function TicketBoardContent() {
       />
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-        <header className="mb-8">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            Suggestions &amp; bugs
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Ticket board
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            What people have asked for and what&apos;s wrong, as it moves from an
-            idea to shipped. Upvote what you want, or add your own — the ones that
-            ship link back to the{" "}
-            <Link
-              href="/updates"
-              className="font-medium text-primary-600 hover:underline dark:text-primary-400"
-            >
-              update
-            </Link>{" "}
-            that closed them.
-          </p>
-        </header>
+        <PageIntro
+          eyebrow="Suggestions & bugs"
+          title="Ticket board"
+          lede={
+            <>
+              What people have asked for and what&apos;s wrong, as it moves from
+              an idea to shipped. Upvote what you want, or add your own — the
+              ones that ship link back to the{" "}
+              <Link
+                href="/updates"
+                className="font-medium text-primary-600 hover:underline dark:text-primary-400"
+              >
+                update
+              </Link>{" "}
+              that closed them.
+            </>
+          }
+        />
 
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <input
