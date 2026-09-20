@@ -10,6 +10,7 @@ import {
 } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import PageIntro from "@/components/PageIntro";
 import WallStage from "./WallStage";
 import { ACCENT_BAND } from "@/lib/accentBand";
 import WallsPanel from "./WallsPanel";
@@ -391,20 +392,12 @@ export default function GalleryWallContent({ initialState }: Props) {
             aria-label="Wall preview"
             className="relative min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1"
           >
-            <header className="mb-6">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-                Arranger
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Gallery Wall
-              </h1>
-              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
-                Upload your photos and the app frames each one. Drag frames
-                anywhere on the wall to arrange them, set your wall size, and
-                print the hang sheet with the exact measurements before a single
-                nail goes in.
-              </p>
-            </header>
+            <PageIntro
+              className="mb-6"
+              eyebrow="Arranger"
+              title="Gallery Wall"
+              lede="Upload your photos and the app frames each one. Drag frames anywhere on the wall to arrange them, set your wall size, and print the hang sheet with the exact measurements before a single nail goes in."
+            />
 
             <div className="glass-card rounded-2xl p-4">
               {/* The preview window is a fixed size no matter the wall or zoom.
