@@ -1,6 +1,12 @@
 // Crisp inline arrow/refresh icons for the landing. The Unicode glyphs (↗ ↘ ↑
 // → ↻) render thin and uneven, especially small on mobile, so everything on the
 // page uses these instead. They inherit currentColor and sit on the text line.
+//
+// display:inline-block is load-bearing: the design-system reset makes bare
+// svgs display:block, which dropped a trailing arrow onto its own line in any
+// inline-text context (nav links, the hero meta, the footer). Buttons use flex
+// so they never showed it. inline-block keeps the icon on the text line
+// everywhere while staying a flex item inside buttons.
 
 type IconProps = { size?: number; className?: string };
 
@@ -17,7 +23,7 @@ function Icon({
       fill="none"
       aria-hidden="true"
       className={className}
-      style={{ verticalAlign: "-0.125em" }}
+      style={{ display: "inline-block", verticalAlign: "-0.125em" }}
     >
       <path
         d={d}
