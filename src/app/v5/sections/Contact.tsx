@@ -34,7 +34,7 @@ export default function Contact({
           as="h2"
           className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
         >
-          If you are hiring a frontend lead
+          If you are hiring a frontend dev
         </TextReveal>
         <p className="mt-5 text-lg leading-relaxed text-muted">
           The resume is one page and the evidence for all of it is on this

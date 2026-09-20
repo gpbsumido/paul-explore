@@ -2,7 +2,7 @@
 
 ## 2026-09-20 - version 7.5.14
 
-- Fixed the landing contact section: its drifting-blob background was boxed inside the max-width shell, leaving black bars down the sides. The background now bleeds to the full section width while the copy stays in the shell frame.
+- Fixed the landing contact section: its drifting-blob background was boxed inside the max-width shell, leaving black bars down the sides. The background now bleeds to the full section width while the copy stays in the shell frame, and the heading now reads "If you are hiring a frontend dev".
 
 ## 2026-09-20 - version 7.5.13
 
