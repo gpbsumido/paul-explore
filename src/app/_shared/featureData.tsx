@@ -865,6 +865,8 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
 interface FeatureCardProps {
   feature: FeatureItem;
   prefersReduced: boolean;
+  /** Extra grid classes, e.g. a col-span for a featured bento tile. */
+  className?: string;
 }
 
 /**
@@ -875,7 +877,11 @@ interface FeatureCardProps {
  * Entrance is driven by the parent staggerContainer variant; this component
  * only declares `variants={cardFlipIn}` and lets Framer inherit initial/animate.
  */
-export function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
+export function FeatureCard({
+  feature,
+  prefersReduced,
+  className,
+}: FeatureCardProps) {
   const Preview = PREVIEW_MAP[feature.id];
   const token = FEATURE_TOKEN[feature.id] ?? "--color-feature-nba";
 
@@ -884,7 +890,7 @@ export function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
       variants={cardFlipIn}
       transition={prefersReduced ? instantTransition : { ...spring.smooth }}
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
-      className="flex flex-col overflow-hidden rounded-2xl h-full"
+      className={`flex flex-col overflow-hidden rounded-2xl h-full${className ? ` ${className}` : ""}`}
       style={{
         background: `color-mix(in srgb, var(${token}) 6%, rgba(255,255,255,0.04))`,
         backdropFilter: "blur(16px)",
