@@ -848,8 +848,218 @@ for (const spec of closedLeagues) {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-18-win-celebration"
+        date="September 18, 2026"
+        title="Winning felt like nothing, so the record cheers — once"
+      >
+        <p>
+          The ledger was correct and the record was accurate and opening a bet
+          that won felt like reading a bank statement. A no-loss book should at
+          least let you enjoy the wins, so the record now celebrates them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Celebrate the win once, then shut up about it.
+        </h3>
+        <p className="text-muted">
+          The trick is &ldquo;first time seeing it,&rdquo; not &ldquo;every
+          visit.&rdquo; A device-local set holds the ids of wins I&rsquo;ve
+          already been shown; the celebration keys off the wins that aren&rsquo;t
+          in it, and dismissing adds them. So a fresh win pops, and the same win
+          never pops again.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const { ids, count, totalCents } = unseenWins(bets, seen);
+if (count === 0) return null;         // nothing new to cheer
+// "Nice!" → setSeen(prev => [...prev, ...ids])`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The number moves; the accessible one holds still.
+        </h3>
+        <p className="text-muted">
+          The big figure counts up in whole dollars for the pop, but that
+          animated number is <code>aria-hidden</code> — the real total is plain
+          static text a screen reader reads, and the whole card is a polite live
+          region. Ask for reduced motion and the count-up jumps straight to the
+          total and the sparkles don&rsquo;t render. The maths (win rate, net
+          profit, recent form, the unseen-wins total) is a pure module I could
+          unit-test without any of the animation.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-18-compare"
+        date="September 18, 2026"
+        title="How you stack up, without giving anyone away"
+      >
+        <p>
+          The leaderboard says who&rsquo;s on top; it doesn&rsquo;t say how I
+          measure up against one particular player. A Compare tab does &mdash;
+          pick someone from the board and our records line up side by side,
+          each measure flagged for who leads, with where I&rsquo;d rank by ROI.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The interesting half is the half I didn&rsquo;t build.
+        </h3>
+        <p className="text-muted">
+          What I actually wanted was &ldquo;which bets did we agree or disagree
+          on,&rdquo; and I deliberately didn&rsquo;t ship it. The board is
+          anonymised on purpose (a handle that can&rsquo;t be walked back to a
+          person) and everyone&rsquo;s picks are private, so surfacing another
+          player&rsquo;s individual bets to me would undo that. It needs a
+          consented, opt-in surface on the backend, not a clever client &mdash;
+          so this compares how we&rsquo;ve each done, not what we each took.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Comparing is pure; fetching is free.
+        </h3>
+        <p className="text-muted">
+          The &ldquo;who leads&rdquo; and &ldquo;where do I rank&rdquo; logic is
+          a pure module I could unit-test on its own, with null scores sinking
+          below any real number so an ungraded player doesn&rsquo;t top the
+          board. The panel reads the leaderboard and profile the lobby had
+          already fetched, so the tab costs no new request.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-18-past-fixtures"
+        date="September 18, 2026"
+        title="Letting the board look backwards, without a lower bound bug"
+      >
+        <p>
+          The board only ever showed upcoming games, and I wanted to glance back
+          at how a line moved or a matchup I&rsquo;d missed. Two things had to be
+          true: the backend had to serve finished games, and the board had to
+          stop pretending time only runs forward.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The horizon only had an upper bound.
+        </h3>
+        <p className="text-muted">
+          The board&rsquo;s day-horizon filter was <code>time &le; now +
+          daysAhead</code> &mdash; no lower bound at all. So the moment the
+          backend returned a past game, it would have shown, with no way to
+          limit how far back. The fix is symmetry: a <code>daysBack</code> that
+          mirrors <code>daysAhead</code>, defaulting to 0 so the everyday board
+          is unchanged, and growing as you load earlier &mdash; up to a 3-month
+          cap the backend enforces.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`time <= now + daysAhead * dayMs &&
+time >= now - daysBack  * dayMs`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A finished game isn&rsquo;t a bet button.
+        </h3>
+        <p className="text-muted">
+          Past fixtures render read-only &mdash; badged Final, their closing
+          lines shown as plain text instead of the pickable price buttons, so
+          there&rsquo;s no way to try to bet a game that already happened. The
+          backend serves finished games behind an opt-in{" "}
+          <code>?include=past&amp;pastDays=N</code>, reusing the same latest-line
+          join as the upcoming query. The board fetches only the window it shows
+          &mdash; a couple of weeks at first, widened as you load earlier up to
+          the 3-month cap &mdash; rather than pulling all 90 days at once.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-09-18-board-visuals"
+        date="September 18, 2026"
+        title="Dressing up the board — and the team colours I couldn't use"
+      >
+        <p>
+          The board worked but read as a grey list. I wanted highlight cards for
+          the games worth a glance, team colour on every fixture, some motion
+          when you place a bet, and for the bet to land the instant I hit place.
+          Most of that was straightforward. The team colours were not.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          First I hashed the name, because there was no table.
+        </h3>
+        <p className="text-muted">
+          I wanted Lakers purple and Celtics green, but the board spans NBA, NFL,
+          MLB and fantasy, and the events carry team <em>names</em>, not ids
+          &mdash; no logo URL or brand-colour table I could key off across all of
+          them. So the first cut hashed the name to a hue in the app&rsquo;s tone
+          band: not the real colour, but a stable one, and an <code>hsl()</code>
+          so it stayed inside the palette guard with no hard-coded hex.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// the fallback: stable, distinct, palette-safe
+return \`hsl(\${hueFromName(name)} 52% 48%)\`;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then I built the table anyway &mdash; scoped by league.
+        </h3>
+        <p className="text-muted">
+          A hash is fine, but Lakers purple is better, so I wrote the brand
+          colours out after all. The catch is that a nickname isn&rsquo;t unique:
+          the NFL and MLB both have a Cardinals and a Giants, and they don&rsquo;t
+          share a palette. So the table is keyed by league &mdash; derived from
+          the sport &mdash; and the lookup matches either the exact nickname or
+          the tail of the vendor&rsquo;s full name (<code>Boston Red Sox</code>).
+          Fantasy teams have no brand colour and fall back to the hash.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const league = leagueFromSport(sport); // nba | nfl | mlb | null
+for (const [nickname, color] of Object.entries(BRAND[league])) {
+  if (lower === nickname || lower.endsWith(\` \${nickname}\`)) return color;
+}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Animations I own, not a dependency.
+        </h3>
+        <p className="text-muted">
+          I liked effects from ReactBits and OriginKit and the iOS &ldquo;Liquid
+          Glass&rdquo; look, but I didn&rsquo;t want their libraries in the
+          bundle. So I rebuilt the ones I wanted &mdash; a click spark, a blur
+          reveal, a spinning conic border, a specular shine, a frosted glass
+          surface &mdash; as small components on my own tokens, in{" "}
+          <code>src/components/motion</code> (the cursor-follow spotlight was
+          already there, so I left it), with the keyframes in{" "}
+          <code>globals.css</code>. Each one stands down when the device asks
+          for reduced motion, so nothing on the board depends on
+          movement.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The bet should be on the board before the server answers.
+        </h3>
+        <p className="text-muted">
+          Placing a bet used to wait on the round-trip before the fixture showed
+          it. Now the mutation writes the bet into the bets cache first, so the
+          &ldquo;Your bet&rdquo; flag appears the moment I hit place; a failure
+          rolls it back, and the settler&rsquo;s real bet replaces it on the next
+          refetch.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`onMutate: async () => {
+  await queryClient.cancelQueries({ queryKey: bets });
+  const previous = queryClient.getQueryData(bets);
+  queryClient.setQueryData(bets, (old) => [...(old ?? []), optimistic]);
+  return { previous };
+},`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "A board with some life to it: highlight cards for the biggest underdog and the closest game, a team-tinted accent on every fixture, animations built on my own design tokens (spark, spotlight, blur reveal, conic border, shine, iOS liquid glass), and optimistic bet placement so a bet shows on its fixture the instant it's placed.",
+          "Look back at the board: a 'Show past fixtures' checkbox reveals recently-finished games read-only (badged Final, lines as text, not bet buttons), a couple of weeks at a time up to 3 months back via 'load earlier' or the date filter.",
+          "See how you stack up: a Compare tab puts your record next to a chosen leaderboard player — win rate, ROI, sharp score, record, volume — flagging who leads each and where you'd rank, with your open bets alongside.",
+          "Winning finally feels like something: the first time you open Your record after bets settle in your favour, a card counts up the new winnings over a glow and sparkles, then marks them seen so it only celebrates once — reduced-motion safe, per device.",
+          "More of the record at a glance: a win rate over graded bets, a signed net-profit figure across everything settled, and a recent-form row of the last eight results as win/loss/push chips.",
           "Fantasy matchups only open for betting once a league has drafted and its season is within a week of a real game — read from ESPN's pro schedule — so the board stops offering undrafted pre-season coin-flips a month early.",
           "Fantasy matchups are priced off ESPN's per-side win probability, or the projected-points gap when there's no probability yet, instead of a flat -110 pick'em — a real favourite and underdog, no vig.",
           "Bets placed on those invalid pre-season matchups are voided and refunded automatically as the sync runs: the stake comes back and the bet stays out of everyone's win-loss record.",
@@ -878,6 +1088,7 @@ for (const spec of closedLeagues) {
           "That tour is now a shared engine: the same consent-first coach-mark runs on Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, and the design-system gallery, each built from a small per-page step config.",
         ]}
         couldImprove={[
+          "The Compare tab is records only. A consented, opt-in surface would let it show which bets two players agreed or disagreed on, and each other's upcoming bets — the part I most wanted but wouldn't build over the board's anonymity.",
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
           "Results only match by the vendor's own event ids. An ESPN fallback would need fuzzy team-and-time matching, which I left as a deliberate later problem.",

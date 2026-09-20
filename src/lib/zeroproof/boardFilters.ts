@@ -45,6 +45,16 @@ export function isFantasySport(sport: string): boolean {
   return sport.startsWith("fantasy_");
 }
 
+/**
+ * A fixture that has already happened — final, or with a kickoff now in the
+ * past. The board renders these read-only when "past fixtures" is on.
+ */
+export function isPastFixture(event: ZeroproofEvent, now: number): boolean {
+  if (event.status === "final") return true;
+  const time = new Date(event.commenceTime).getTime();
+  return !Number.isNaN(time) && time < now;
+}
+
 const FANTASY_GAME_NAMES: Record<string, string> = {
   ffl: "Fantasy Football",
   fba: "Fantasy Basketball",
@@ -169,6 +179,8 @@ export function inDateRange(key: string, from: string, to: string): boolean {
 export interface HorizonContext {
   now: number;
   daysAhead: number;
+  /** How far back the board reaches, in days (0 = upcoming only). Up to 3 months. */
+  daysBack?: number;
   dayMs: number;
   betEventIds: Set<string>;
 }
@@ -193,7 +205,11 @@ export function filterBoardEvents(
     }
 
     const time = new Date(event.commenceTime).getTime();
-    const withinHorizon = !Number.isNaN(time) && time <= ctx.now + ctx.daysAhead * ctx.dayMs;
+    const daysBack = ctx.daysBack ?? 0;
+    const withinHorizon =
+      !Number.isNaN(time) &&
+      time <= ctx.now + ctx.daysAhead * ctx.dayMs &&
+      time >= ctx.now - daysBack * ctx.dayMs;
     return withinHorizon || ctx.betEventIds.has(event.id);
   });
 }

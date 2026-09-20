@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -236,16 +236,156 @@ export default function MotionComponentsContent() {
           </Bullet>
         </ul>
       </Section>
+      <Update
+        id="update-2026-09-18-reactbits-originkit"
+        date="September 18, 2026"
+        title="Twenty effects from ReactBits and OriginKit, rebuilt so the library still costs nothing to install"
+      >
+        <p>
+          Three surfaces became twenty. I went through the components I liked on
+          ReactBits and OriginKit and rebuilt the ones I wanted into the design
+          system &mdash; sparks, blur reveals, star borders, a liquid-glass
+          surface, a segmented control that rubber-bands, a lattice loader, a
+          drifting 3D wall, galleries, hero compositions, particle text. The
+          hard rule the whole batch had to obey: a consumer who imports a Button
+          shouldn&rsquo;t pay for any of it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Reimplement, don&rsquo;t install.
+        </h3>
+        <p className="text-muted">
+          The originals reach for libraries; the point of putting them in the
+          system is that mine don&rsquo;t. Each effect is a small React
+          component plus a token-driven stylesheet, and the animated parts are
+          CSS the tokens already describe. The star border, for instance, is a
+          conic gradient that takes its colour from <code>currentColor</code>,
+          so a caller tints it by setting the text colour &mdash; no prop, no
+          config, no dependency.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`.star-border__ring {
+  background: conic-gradient(from 0deg,
+    transparent, currentColor, transparent, currentColor, transparent);
+  animation: paul-star-spin 4s linear infinite;
+}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The WebGL ones became CSS.
+        </h3>
+        <p className="text-muted">
+          A few originals are fragment shaders or WebGL scenes &mdash; a light
+          bloom, a circular gallery. Pulling a renderer into a design system to
+          reproduce them exactly would break the rule above, so I reinterpreted
+          them: the bloom is a breathing radial gradient whose origin chases the
+          pointer, and the circular gallery is a <code>preserve-3d</code>{" "}
+          cylinder you spin with a drag. Not pixel-identical to a shader, but the
+          same idea with nothing to download.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// each card sits on the cylinder; the ring rotates in a rAF loop
+transform: rotateY(i * angleStep) translateZ(radius);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Canvas without a dependency, and a guard for the corners.
+        </h3>
+        <p className="text-muted">
+          Where an effect genuinely needs a canvas &mdash; particle text
+          assembling out of a cloud &mdash; the browser&rsquo;s built-in 2D
+          canvas does it, so there&rsquo;s still nothing to install. And once
+          every surface had rounded corners, I wanted them to be the Apple
+          squircle rather than a plain arc, everywhere and on purpose. A base
+          rule sets <code>corner-shape: squircle</code> system-wide, and a test
+          fails the build if any component ships a radius without a deliberate
+          corner shape beside it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// every rule with a border-radius must also declare a corner-shape;
+// a full-round radius must stay round, not a squircle of a circle
+if (!shape) missing.push(rule);
+expect(missing).toEqual([]);`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-09-18-corner-coverage"
+        date="September 18, 2026"
+        title="The corner rule existed, but half the entry points missed it"
+      >
+        <p>
+          I added a global squircle rule and tested that it existed. That proved
+          the declaration was in a file, not that the components imported it.
+          The components-only entry deliberately skips base.css, so buttons,
+          inputs, and cards used through that entry kept ordinary rounded corners.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The failing test needed to follow the public entry point.
+        </h3>
+        <p className="text-muted">
+          I replaced the base-file presence check with an AST audit of every
+          radius in the exported component styles. It found 68 declarations
+          without a corner shape. Each component now carries its own shape;
+          circles and capsules explicitly stay round, while overlays inherit.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`FAIL src/components/__tests__/squircle.test.ts
+AssertionError: expected [ …(68) ] to deeply equal []
+
+/* Components-only consumers now receive both declarations. */
+.btn {
+  border-radius: var(--paul-radius-md);
+  corner-shape: squircle;
+}`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The liquid button keeps its velocity when the pointer reverses.
+        </h3>
+        <p className="text-muted">
+          The unfinished button used a radial CSS mask and an always-running
+          animation loop. I replaced it with a subtractive SVG mask and separate
+          critically damped springs for position and radius. New input changes
+          the target without discarding velocity. The loop stops at rest and
+          cancels when the component unmounts, becomes disabled, or reduced
+          motion is enabled. Keyboard activation stays native.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The hero is a composition, so the copy and actions stay in charge.
+        </h3>
+        <p className="text-muted">
+          Hero06 arranges supplied images in a spiral; Hero13 uses CSS perspective
+          to interpret the public OriginKit poster. Both accept copy, navigation,
+          and action slots. The pointer moves only the decorative gallery by at
+          most ten pixels, and reduced motion keeps it still. Missing imagery
+          never removes the heading or actions. These are original token-based
+          interpretations, not imports of the vendor runtime.
+        </p>
+        <p className="mt-3 text-muted">
+          The implementation and verification live in{" "}
+          <a className="text-primary-600 hover:underline dark:text-primary-400"
+            href="https://github.com/gpbsumido/paul-design-system/pull/91">
+            paul-design-system PR 91
+          </a>. Native corner-shape support is still required for continuous
+          corners; unsupported browsers retain border-radius. A green source
+          test does not turn that into universal browser support, and an open PR
+          is not a deployed update.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Reduced motion as the default rather than a fallback, so the accessible path is the one that runs unless something opts out.",
           "Motion behind components rather than scattered animation calls, which is what makes a policy like that enforceable at all.",
+          "A batch of twenty effect components rebuilt from ReactBits and OriginKit onto the tokens — sparks, blur reveals, star borders, liquid glass, a rubber-band segmented control, a lattice loader, a drifting 3D wall, galleries, hero compositions, particle text — none of which add a runtime dependency.",
+          "Squircle corners system-wide via a base rule, with a guard test that fails the build if a component ships a radius without a deliberate corner shape.",
         ]}
         couldImprove={[
           "Adoption is incomplete, though less than I assumed. The 3D scenes animate in a render loop that never touches a motion component, so they answer the preference through their own hook instead — the world already did, the particle lab did not until it was fixed.",
           "There is no test that a new animation went through the components rather than around them.",
         ]}
         upcoming={[
+          "Review the liquid button, portrait sections, and component corner fix in paul-design-system PR 91 before merging and releasing. Seven renderer/library-heavy effects remain deferred; no new WebGL, physics, or icon dependency was added.",
           "A check that any new animated component answers prefers-reduced-motion somehow — through these components or its own hook — since the gap is not knowing, rather than any one page.",
         ]}
       />

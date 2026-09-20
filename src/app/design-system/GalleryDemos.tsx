@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, Chip, Modal } from "@/components/ui";
 // Spotlight, TiltCard, and Ticker use hooks but the package ships without
 // "use client" banners, so they can only render from inside a client module.
@@ -25,8 +25,106 @@ import {
   toast,
   useToast,
   type Command,
+  ClickSpark,
+  BlurReveal,
+  StarBorder,
+  ShineSweep,
+  LiquidGlass,
+  TextLoop,
+  SquishSwitch,
+  RubberSegment,
+  LiquidCarveButton,
+  LatticeLoader,
+  DriftWall,
+  CircularGallery,
+  PathGallery,
+  SmoothScrollSlider,
+  HoverImageReveal,
+  LinkPreview,
+  SpiralPortraitHero,
+  PerspectivePortraitHero,
+  CorridorPortraitHero,
+  LightBloom,
+  ParticleText,
+  RefineFrame,
+  FolderFloat,
+  BotanicalText,
 } from "@paul-portfolio/react";
 import { ACCENT_BAND } from "@/lib/accentBand";
+
+// Shared sample imagery for the gallery-style effects. Every tile carries a
+// title so the image links the components build get an accessible name.
+const DEMO_TILES = [
+  { image: "/landing/featured/operator-light.jpg", title: "Operator", href: "/operator" },
+  { image: "/landing/featured/design-system-light.jpg", title: "Design system", href: "/design-system" },
+  { image: "/landing/featured/world-light.jpg", title: "World", href: "/world" },
+  { image: "/landing/featured/vitals-light.jpg", title: "Vitals", href: "/thoughts/vitals" },
+  { image: "/landing/featured/flags-light.jpg", title: "Feature flags", href: "/thoughts/feature-flags" },
+  { image: "/landing/featured/work-portfolio-light.jpg", title: "Work", href: "/work-portfolio" },
+];
+
+const HERO_IMAGES = DEMO_TILES.map((t) => ({ src: t.image }));
+
+/**
+ * Renders a preview only once its card scrolls near the viewport, holding a
+ * fixed-height skeleton until then. The gallery mounts every visible card at
+ * once and defaults to showing all of them, so without this the two dozen
+ * animated effect previews would each start a requestAnimationFrame or canvas
+ * loop on load and peg the main thread — bad INP, wasted battery. Deferring the
+ * mount keeps that cost to the few cards actually on screen. The initial state
+ * is the skeleton, so the server renders the skeleton too (none of the heavy
+ * trees land in the initial HTML) and the reserved box means nothing shifts.
+ */
+export function DeferredPreview({
+  children,
+  minHeight = "8rem",
+}: {
+  children: ReactNode;
+  minHeight?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (shown) return;
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver !== "function") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time reveal when the browser can't observe intersection; there's nothing to watch, so mount now. The initial state stays false so the server still renders the skeleton.
+      setShown(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShown(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [shown]);
+
+  return (
+    <div
+      ref={ref}
+      className="flex w-full items-center justify-center"
+      style={{ minHeight }}
+    >
+      {shown ? (
+        children
+      ) : (
+        <div
+          className="h-full w-full animate-pulse rounded-lg bg-surface"
+          style={{ minHeight }}
+          aria-hidden
+        />
+      )}
+    </div>
+  );
+}
 
 const ACCENT = ACCENT_BAND.verdigris;
 
@@ -313,5 +411,313 @@ export function ToasterDemo() {
       </Button>
       <Toaster />
     </>
+  );
+}
+
+// --- Motion & effects previews -------------------------------------------
+// Each is wrapped in DeferredPreview so its animation only starts once the
+// card is on screen. Sample imagery is shared from DEMO_TILES above.
+
+export function ClickSparkDemo() {
+  return (
+    <DeferredPreview>
+      <ClickSpark>
+        <Button variant="secondary" size="sm">
+          Tap for a spark
+        </Button>
+      </ClickSpark>
+    </DeferredPreview>
+  );
+}
+
+export function BlurRevealDemo() {
+  return (
+    <DeferredPreview>
+      <BlurReveal className="text-lg font-semibold text-foreground">
+        Resolves from a blur
+      </BlurReveal>
+    </DeferredPreview>
+  );
+}
+
+export function StarBorderDemo() {
+  return (
+    <DeferredPreview>
+      <StarBorder className="text-primary-500">
+        <span className="block rounded-xl bg-surface-raised px-4 py-3 text-sm text-foreground">
+          Animated conic border
+        </span>
+      </StarBorder>
+    </DeferredPreview>
+  );
+}
+
+export function ShineSweepDemo() {
+  return (
+    <DeferredPreview>
+      <ShineSweep>
+        <Button size="sm">Glossy sweep</Button>
+      </ShineSweep>
+    </DeferredPreview>
+  );
+}
+
+export function LiquidGlassDemo() {
+  return (
+    <DeferredPreview>
+      <div className="w-full rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 p-4">
+        <LiquidGlass className="rounded-lg p-4 text-sm font-medium text-foreground">
+          Frosted liquid glass
+        </LiquidGlass>
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function TextLoopDemo() {
+  return (
+    <DeferredPreview>
+      <span className="text-lg font-semibold text-foreground">
+        Built for{" "}
+        <TextLoop
+          items={["speed", "clarity", "delight"]}
+          className="text-primary-600"
+        />
+      </span>
+    </DeferredPreview>
+  );
+}
+
+export function SquishSwitchDemo() {
+  const [on, setOn] = useState(true);
+  return (
+    <DeferredPreview>
+      <SquishSwitch checked={on} onChange={setOn} label="Notifications" />
+    </DeferredPreview>
+  );
+}
+
+export function RubberSegmentDemo() {
+  const [value, setValue] = useState("Week");
+  return (
+    <DeferredPreview>
+      <RubberSegment
+        segments={["Day", "Week", "Month"]}
+        value={value}
+        onChange={setValue}
+      />
+    </DeferredPreview>
+  );
+}
+
+export function LiquidCarveButtonDemo() {
+  return (
+    <DeferredPreview>
+      <LiquidCarveButton label="Hover the carve" />
+    </DeferredPreview>
+  );
+}
+
+export function LatticeLoaderDemo() {
+  return (
+    <DeferredPreview>
+      <LatticeLoader label="Working" showTimer />
+    </DeferredPreview>
+  );
+}
+
+export function DriftWallDemo() {
+  return (
+    <DeferredPreview minHeight="12rem">
+      <DriftWall
+        items={DEMO_TILES}
+        columns={3}
+        tileWidth={92}
+        tileHeight={64}
+        className="w-full"
+      />
+    </DeferredPreview>
+  );
+}
+
+export function CircularGalleryDemo() {
+  return (
+    <DeferredPreview minHeight="12rem">
+      <CircularGallery
+        items={DEMO_TILES}
+        radius={200}
+        cardWidth={110}
+        cardHeight={74}
+      />
+    </DeferredPreview>
+  );
+}
+
+export function PathGalleryDemo() {
+  return (
+    <DeferredPreview minHeight="11rem">
+      <PathGallery items={DEMO_TILES} itemSize={54} />
+    </DeferredPreview>
+  );
+}
+
+export function SmoothScrollSliderDemo() {
+  return (
+    <DeferredPreview minHeight="11rem">
+      <SmoothScrollSlider
+        slides={DEMO_TILES}
+        slideWidth={132}
+        slideHeight={88}
+      />
+    </DeferredPreview>
+  );
+}
+
+export function HoverImageRevealDemo() {
+  return (
+    <DeferredPreview minHeight="11rem">
+      <HoverImageReveal
+        items={DEMO_TILES.map((tile) => ({
+          label: tile.title,
+          image: tile.image,
+          href: tile.href,
+        }))}
+      />
+    </DeferredPreview>
+  );
+}
+
+export function LinkPreviewDemo() {
+  return (
+    <DeferredPreview>
+      <p className="text-sm text-foreground">
+        Explore the{" "}
+        <LinkPreview
+          href="/design-system"
+          image="/landing/featured/design-system-light.jpg"
+        >
+          design system
+        </LinkPreview>{" "}
+        in the app.
+      </p>
+    </DeferredPreview>
+  );
+}
+
+export function SpiralPortraitHeroDemo() {
+  return (
+    <DeferredPreview minHeight="16rem">
+      <div className="w-full overflow-hidden rounded-xl [&_.portrait-hero]:min-h-0 [&_.portrait-hero]:p-6">
+        <SpiralPortraitHero
+          heading="Build in the open"
+          description="Copy stays sharp and in charge while the portraits spiral behind it."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/work-portfolio">
+              See the work
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function PerspectivePortraitHeroDemo() {
+  return (
+    <DeferredPreview minHeight="16rem">
+      <div className="w-full overflow-hidden rounded-xl [&_.portrait-hero]:min-h-0 [&_.portrait-hero]:p-6">
+        <PerspectivePortraitHero
+          heading="Depth without a renderer"
+          description="Posters pasted on the walls of a one-point-perspective corridor."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/design-system">
+              Browse components
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function CorridorPortraitHeroDemo() {
+  return (
+    <DeferredPreview minHeight="16rem">
+      <div className="w-full overflow-hidden rounded-xl [&_.portrait-hero]:min-h-0 [&_.portrait-hero]:p-6">
+        <CorridorPortraitHero
+          heading="A wall of pictures either side"
+          description="The imagery fans out to both sides into a receding corridor."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/work-portfolio">
+              See the work
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function LightBloomDemo() {
+  return (
+    <DeferredPreview minHeight="11rem">
+      <LightBloom className="w-full rounded-xl" spread={60}>
+        <div className="grid h-40 place-items-center text-sm font-semibold text-foreground">
+          Light bloom
+        </div>
+      </LightBloom>
+    </DeferredPreview>
+  );
+}
+
+export function ParticleTextDemo() {
+  return (
+    <DeferredPreview>
+      <ParticleText text="Particles" fontSize={64} />
+    </DeferredPreview>
+  );
+}
+
+export function RefineFrameDemo() {
+  return (
+    <DeferredPreview minHeight="12rem">
+      <div className="w-full max-w-[220px]">
+        <RefineFrame status="refining">
+          <div
+            className="h-full w-full bg-cover bg-center"
+            style={{ backgroundImage: "url(/landing/featured/world-light.jpg)" }}
+          />
+        </RefineFrame>
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function FolderFloatDemo() {
+  return (
+    <DeferredPreview minHeight="11rem">
+      <FolderFloat
+        label="Projects"
+        items={[
+          { label: "Operator", href: "/operator" },
+          { label: "World", href: "/world" },
+          { label: "Vitals", href: "/thoughts/vitals" },
+        ]}
+      />
+    </DeferredPreview>
+  );
+}
+
+export function BotanicalTextDemo() {
+  return (
+    <DeferredPreview>
+      <BotanicalText text="Bloom" fontSize={64} />
+    </DeferredPreview>
   );
 }

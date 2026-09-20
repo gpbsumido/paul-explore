@@ -7,7 +7,12 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { queryKeys } from "@/lib/queryKeys";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
@@ -17,6 +22,13 @@ import OpenWalletActions from "./OpenWalletActions";
 import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
+import {
+  netProfitTotalCents,
+  winRatePct,
+  recentForm,
+} from "@/lib/zeroproof/analytics";
+import WinCelebration from "./WinCelebration";
+import ComparePanel from "./ComparePanel";
 import {
   eventsResponseSchema,
   leaderboardResponseSchema,
@@ -34,6 +46,7 @@ import type {
 import {
   formatAmerican,
   formatCents,
+  formatNetCents,
   formatPoint,
   formatRecord,
   formatSignedPct,
@@ -56,7 +69,15 @@ import {
   hasActiveFilters,
   hasMoreBeyondHorizon,
   isFantasySport,
+  isPastFixture,
 } from "@/lib/zeroproof/boardFilters";
+import { biggestUnderdog, closestGame } from "@/lib/zeroproof/boardHighlights";
+import { teamAccentColor } from "@/lib/zeroproof/teamAccent";
+import BlurReveal from "@/components/motion/BlurReveal";
+import ClickSpark from "@/components/motion/ClickSpark";
+import LiquidGlass from "@/components/motion/LiquidGlass";
+import ShineSweep from "@/components/motion/ShineSweep";
+import StarBorder from "@/components/motion/StarBorder";
 
 /**
  * The bankroll-trend chart, code-split out of the lobby's initial bundle. It's
@@ -117,24 +138,26 @@ function OutcomeButton({
 }) {
   const line = formatPoint(point);
   return (
-    <button
-      type="button"
-      onClick={onPick}
-      aria-pressed={selected}
-      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
-        selected
-          ? "border-primary-500 bg-primary-500/10"
-          : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
-      }`}
-    >
-      <span className="truncate text-foreground">
-        {name}
-        {line && <span className="ml-1 text-muted">{line}</span>}
-      </span>
-      <span className="font-mono tabular-nums text-foreground">
-        {formatAmerican(price)}
-      </span>
-    </button>
+    <ClickSpark className="w-full">
+      <button
+        type="button"
+        onClick={onPick}
+        aria-pressed={selected}
+        className={`flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${
+          selected
+            ? "scale-[1.02] border-primary-500 bg-primary-500/10 shadow-sm motion-reduce:scale-100"
+            : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
+        }`}
+      >
+        <span className="truncate text-foreground">
+          {name}
+          {line && <span className="ml-1 text-muted">{line}</span>}
+        </span>
+        <span className="font-mono tabular-nums text-foreground">
+          {formatAmerican(price)}
+        </span>
+      </button>
+    </ClickSpark>
   );
 }
 
@@ -151,17 +174,27 @@ function EventCard({
   selected,
   onPick,
   bets,
+  readOnly = false,
 }: {
   event: ZeroproofEvent;
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
   /** The caller's own bets on this fixture, if any. */
   bets: ZeroproofBet[];
+  /** A past fixture: shown for reference, with lines you can't bet. */
+  readOnly?: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
+  const accent = `linear-gradient(to bottom, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
-    <li className="rounded-2xl border border-border bg-surface/50 p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+    <li className="list-none">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pl-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-4 left-0 w-1 rounded-full"
+          style={{ background: accent }}
+        />
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-lg font-semibold text-foreground">
             <span>{event.away}</span>
@@ -178,6 +211,11 @@ function EventCard({
           {fantasyLabel(event.sport) && (
             <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
               {fantasyLabel(event.sport)}
+            </span>
+          )}
+          {readOnly && (
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+              Final
             </span>
           )}
         </div>
@@ -234,6 +272,24 @@ function EventCard({
               </h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {market.outcomes.map((outcome) => {
+                  const key = `${outcome.name}-${outcome.point ?? ""}`;
+                  if (readOnly) {
+                    const line = formatPoint(outcome.point);
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2 text-sm"
+                      >
+                        <span className="truncate text-muted">
+                          {outcome.name}
+                          {line && <span className="ml-1">{line}</span>}
+                        </span>
+                        <span className="font-mono tabular-nums text-muted">
+                          {formatAmerican(outcome.priceAmerican)}
+                        </span>
+                      </div>
+                    );
+                  }
                   const isSelected =
                     selected !== null &&
                     selected.eventId === event.id &&
@@ -241,7 +297,7 @@ function EventCard({
                     selected.selection === outcome.name;
                   return (
                     <OutcomeButton
-                      key={`${outcome.name}-${outcome.point ?? ""}`}
+                      key={key}
                       name={outcome.name}
                       point={outcome.point}
                       price={outcome.priceAmerican}
@@ -264,11 +320,23 @@ function EventCard({
           ))}
         </div>
       )}
+      </div>
     </li>
   );
 }
 
+/** American odds → a decimal payout multiple, e.g. +122 reads as "2.2×". */
+function payoutMultiple(american: number): string {
+  const mult =
+    american >= 0 ? 1 + american / 100 : 1 + 100 / Math.abs(american);
+  return `${mult.toFixed(1)}×`;
+}
+
 const HORIZON_STEP_DAYS = 3;
+// Past fixtures reveal in bigger steps than the upcoming horizon — it's browsing
+// history, not the active betting window — up to a 3-month cap the backend serves.
+const PAST_STEP_DAYS = 14;
+const MAX_PAST_DAYS = 90;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const controlButton =
   "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
@@ -292,6 +360,103 @@ function groupEventsByDay(
   return groups;
 }
 
+/**
+ * The two "look here first" cards above the board: the longest shot on the
+ * board (biggest payout if it lands) and the game closest to a coin flip. Both
+ * read from the events already loaded, so they stay in step with the board.
+ * "Bet this" on the underdog loads it straight into the slip.
+ */
+function BoardHighlights({
+  events,
+  now,
+  onPick,
+}: {
+  events: ZeroproofEvent[];
+  now: number;
+  onPick: (bet: SelectedBet) => void;
+}) {
+  const underdog = biggestUnderdog(events, now);
+  const close = closestGame(events, now);
+  if (!underdog && !close) return null;
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {underdog && (
+        <div
+          className="rounded-2xl"
+          style={{ color: teamAccentColor(underdog.selection, underdog.event.sport) }}
+        >
+          <StarBorder className="h-full rounded-2xl">
+            <div className="flex h-full flex-col rounded-2xl p-5 text-foreground">
+              <BlurReveal
+                as="h3"
+                className="text-xs font-semibold tracking-wide text-muted uppercase"
+              >
+                Biggest underdog
+              </BlurReveal>
+              <p className="mt-2 text-lg font-semibold text-foreground">
+                {underdog.selection}
+              </p>
+              <p className="text-sm text-muted">
+                {underdog.event.away} @ {underdog.event.home}
+              </p>
+              <p className="mt-1 text-sm text-foreground">
+                Pays{" "}
+                <span className="font-mono font-semibold tabular-nums">
+                  {payoutMultiple(underdog.priceAmerican)}
+                </span>{" "}
+                if it lands
+              </p>
+              <ShineSweep className="mt-4 self-start rounded-full">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onPick({
+                      eventId: underdog.event.id,
+                      eventLabel: `${underdog.event.away} @ ${underdog.event.home}`,
+                      market: "h2h",
+                      selection: underdog.selection,
+                      point: undefined,
+                      price: underdog.priceAmerican,
+                    })
+                  }
+                  className="inline-flex h-8 items-center rounded-full bg-primary-600 px-4 text-xs font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+                >
+                  Bet this
+                </button>
+              </ShineSweep>
+            </div>
+          </StarBorder>
+        </div>
+      )}
+
+      {close && (
+        <LiquidGlass className="rounded-2xl">
+          <div className="flex h-full flex-col rounded-2xl p-5">
+            <BlurReveal
+              as="h3"
+              delayMs={90}
+              className="text-xs font-semibold tracking-wide text-muted uppercase"
+            >
+              Closest game
+            </BlurReveal>
+            <p className="mt-2 text-lg font-semibold text-foreground">
+              {close.event.away} @ {close.event.home}
+            </p>
+            <p className="text-sm text-muted">
+              {close.outcomes.map((outcome) => outcome.name).join(" vs ")}
+            </p>
+            <p className="mt-1 text-sm text-foreground">
+              Practically a coin flip &mdash; the sides sit within{" "}
+              {Math.max(1, Math.round(close.spread * 100))} points
+            </p>
+          </div>
+        </LiquidGlass>
+      )}
+    </div>
+  );
+}
+
 function Slate({
   selected,
   onPick,
@@ -299,11 +464,25 @@ function Slate({
   selected: SelectedBet | null;
   onPick: (bet: SelectedBet) => void;
 }) {
+  // Whether the board also shows recent finished fixtures, and how far back —
+  // grown in steps as you load earlier, up to the 3-month cap.
+  const [includePast, setIncludePast] = useState(false);
+  const [daysBack, setDaysBack] = useState(0);
+
   const eventsQuery = useQuery({
-    queryKey: queryKeys.zeroproof.events(),
-    queryFn: () => getJson("/api/zeroproof/events"),
+    // daysBack is in the key so widening the past window refetches; the backend
+    // returns just that window (?pastDays), so we fetch what we show, not 3
+    // months up front. keepPreviousData holds the board steady while it loads.
+    queryKey: [...queryKeys.zeroproof.events(), { includePast, daysBack }],
+    queryFn: () =>
+      getJson(
+        includePast
+          ? `/api/zeroproof/events?include=past&pastDays=${daysBack}`
+          : "/api/zeroproof/events",
+      ),
     select: (json) => eventsResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   // How far out the board reaches, in days. Starts at 3 and grows by 3 each
@@ -334,9 +513,12 @@ function Slate({
   const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
   const allEvents = eventsQuery.data?.events ?? [];
 
-  const horizonCtx = { now, daysAhead, dayMs: DAY_MS, betEventIds };
+  const horizonCtx = { now, daysAhead, daysBack, dayMs: DAY_MS, betEventIds };
   const visibleEvents = filterBoardEvents(allEvents, boardFilters, horizonCtx);
   const hasMore = hasMoreBeyondHorizon(allEvents, boardFilters, horizonCtx);
+  // We only fetch the window we're showing, so the loaded data can't tell us
+  // whether older fixtures exist — offer "load earlier" until the 3-month cap.
+  const hasEarlier = includePast && daysBack < MAX_PAST_DAYS;
   const dayGroups = groupEventsByDay(visibleEvents);
 
   // The sport options are narrowed by the type filter, so the two can never
@@ -406,6 +588,8 @@ function Slate({
 
       {eventsQuery.data && allEvents.length > 0 && (
         <>
+          <BoardHighlights events={allEvents} now={now} onPick={onPick} />
+
           {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
               controls stay visible while you scroll the board. */}
           <div className="sticky top-14 z-20 mt-4 flex flex-col gap-2 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
@@ -499,6 +683,20 @@ function Slate({
                 <option value="even">Even matchups</option>
               </select>
 
+              <label className="flex items-center gap-2 text-xs text-foreground">
+                <input
+                  type="checkbox"
+                  checked={includePast}
+                  onChange={(event) => {
+                    const on = event.target.checked;
+                    setIncludePast(on);
+                    setDaysBack(on ? PAST_STEP_DAYS : 0);
+                  }}
+                  className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                />
+                Show past fixtures
+              </label>
+
               {filtersActive && (
                 <button type="button" onClick={clearFilters} className={controlButton}>
                   Clear filters
@@ -561,6 +759,7 @@ function Slate({
                         selected={selected}
                         onPick={onPick}
                         bets={betsByEvent.get(event.id) ?? []}
+                        readOnly={isPastFixture(event, now)}
                       />
                     ))}
                   </ul>
@@ -585,6 +784,22 @@ function Slate({
                   Load more games
                 </button>
               )}
+            </div>
+          )}
+
+          {hasEarlier && (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() =>
+                  setDaysBack((days) =>
+                    Math.min(days + PAST_STEP_DAYS, MAX_PAST_DAYS),
+                  )
+                }
+                className={controlButton}
+              >
+                Load earlier fixtures
+              </button>
             </div>
           )}
         </>
@@ -761,6 +976,44 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+const FORM_CHIP: Record<
+  string,
+  { letter: string; label: string; className: string }
+> = {
+  won: { letter: "W", label: "Win", className: "bg-success-500/15 text-success-600 dark:text-success-300" },
+  lost: { letter: "L", label: "Loss", className: "bg-error-500/15 text-error-600 dark:text-error-300" },
+  push: { letter: "P", label: "Push", className: "bg-surface-raised text-muted" },
+  void: { letter: "V", label: "Void", className: "bg-surface-raised text-muted" },
+};
+
+/** The last handful of settled bets as W/L/P chips, newest first. */
+function RecentForm({ bets }: { bets: ZeroproofBet[] }) {
+  const form = recentForm(bets, 8);
+  if (form.length === 0) return null;
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">Recent form</h3>
+      <ol
+        className="mt-2 flex flex-wrap gap-1.5"
+        aria-label="Recent settled bets, newest first"
+      >
+        {form.map(({ id, status }) => {
+          const chip = FORM_CHIP[status] ?? FORM_CHIP.push;
+          return (
+            <li
+              key={id}
+              className={`flex h-7 w-7 items-center justify-center rounded-md font-mono text-xs font-semibold ${chip.className}`}
+            >
+              <span className="sr-only">{chip.label}</span>
+              <span aria-hidden="true">{chip.letter}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
 function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
   return (
     <li className="rounded-xl border border-border bg-surface/50 p-4">
@@ -838,18 +1091,52 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       }
       return res.json();
     },
+    // Optimistic: drop the bet onto its board fixture straight away, so placing
+    // it feels instant rather than waiting on the round-trip. The settler's
+    // real bet replaces it when onSettled refetches; a failure rolls it back.
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.zeroproof.bets() });
+      const previous = queryClient.getQueryData<ZeroproofBet[]>(
+        queryKeys.zeroproof.bets(),
+      );
+      const optimistic: ZeroproofBet = {
+        id: `optimistic-${bet.eventId}-${bet.market}-${bet.selection}`,
+        walletId: activeWallet,
+        eventId: bet.eventId,
+        market: bet.market,
+        selection: bet.selection,
+        oddsAmerican: bet.price,
+        lineValue: bet.point ?? null,
+        closingOddsAmerican: null,
+        clv: null,
+        stakeCents: stakeCents ?? 0,
+        status: "open",
+        placedAt: new Date().toISOString(),
+        settledAt: null,
+      };
+      queryClient.setQueryData<ZeroproofBet[]>(
+        queryKeys.zeroproof.bets(),
+        (old) => [...(old ?? []), optimistic],
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(queryKeys.zeroproof.bets(), context.previous);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
       setStake("");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.bets() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
     },
   });
 
   return (
-    <div
-      role="region"
-      aria-label="Bet slip"
-      className="mt-6 rounded-2xl border border-primary-500/40 bg-surface p-5"
-    >
+    <div role="region" aria-label="Bet slip" className="mt-6">
+      <LiquidGlass className="rounded-2xl p-5 ring-1 ring-primary-500/30">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Bet slip</h2>
         <button
@@ -909,14 +1196,16 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
               className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => placeBet.mutate()}
-            disabled={stakeCents === null || placeBet.isPending}
-            className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
-          >
-            {placeBet.isPending ? "Placing…" : "Place bet"}
-          </button>
+          <ShineSweep className="rounded-full">
+            <button
+              type="button"
+              onClick={() => placeBet.mutate()}
+              disabled={stakeCents === null || placeBet.isPending}
+              className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
+            >
+              {placeBet.isPending ? "Placing…" : "Place bet"}
+            </button>
+          </ShineSweep>
         </div>
       )}
 
@@ -925,6 +1214,7 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
           Bet placed — your balance is updated below.
         </p>
       )}
+      </LiquidGlass>
     </div>
   );
 }
@@ -1038,6 +1328,19 @@ function Profile() {
       query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
 
+  const signedIn = Boolean(
+    profileQuery.data && !profileQuery.data.signedOut,
+  );
+  // Shares the bets cache with RecordTrend below (same query key); only fetches
+  // once signed in, so a signed-out visitor never hits the 401.
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+    enabled: signedIn,
+  });
+  const bets = betsQuery.data ?? [];
+
   return (
     <section aria-labelledby="profile-title" className="mt-12">
       <h2 id="profile-title" className="text-xl font-semibold text-foreground">
@@ -1074,12 +1377,23 @@ function Profile() {
 
       {profileQuery.data && !profileQuery.data.signedOut && (
         <div className="mt-6 space-y-6">
+          <WinCelebration bets={bets} />
+
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label="Record" value={formatRecord(profileQuery.data.stats)} />
+            <Stat
+              label="Win rate"
+              value={
+                winRatePct(profileQuery.data.stats) === null
+                  ? "—"
+                  : `${winRatePct(profileQuery.data.stats)}%`
+              }
+            />
             <Stat
               label="ROI"
               value={formatSignedPct(profileQuery.data.stats.roiPct)}
             />
+            <Stat label="Net profit" value={formatNetCents(netProfitTotalCents(bets))} />
             <Stat
               label="Sharp score"
               value={
@@ -1109,6 +1423,8 @@ function Profile() {
               value={String(profileQuery.data.stats.betCount)}
             />
           </dl>
+
+          <RecentForm bets={bets} />
 
           <RecordTrend wallets={profileQuery.data.wallets} />
 
@@ -1151,10 +1467,80 @@ function Profile() {
   );
 }
 
+/**
+ * How I stack up against the field: my stats next to a chosen leaderboard
+ * player, and my own open bets alongside. Signed in only — it needs my record.
+ */
+function CompareTab() {
+  const profileQuery = useQuery({
+    queryKey: queryKeys.zeroproof.me(),
+    queryFn: fetchProfile,
+    staleTime: 60 * 1000,
+  });
+  const signedIn = Boolean(
+    profileQuery.data && !profileQuery.data.signedOut,
+  );
+  const boardQuery = useQuery({
+    queryKey: queryKeys.zeroproof.leaderboard("roi"),
+    queryFn: () => getJson(`/api/zeroproof/leaderboard?board=roi`),
+    select: (json) => leaderboardResponseSchema.parse(json),
+    staleTime: 5 * 60 * 1000,
+    enabled: signedIn,
+  });
+  const betsQuery = useQuery({
+    queryKey: queryKeys.zeroproof.bets(),
+    queryFn: fetchBets,
+    staleTime: 30 * 1000,
+    enabled: signedIn,
+  });
+
+  if (profileQuery.isLoading) {
+    return (
+      <p className="mt-12 text-sm text-muted" role="status">
+        Loading your record…
+      </p>
+    );
+  }
+  if (profileQuery.isError) {
+    return (
+      <div className="mt-12">
+        <QueryError
+          message="Couldn't load your record right now."
+          onRetry={() => profileQuery.refetch()}
+        />
+      </div>
+    );
+  }
+  if (!profileQuery.data || profileQuery.data.signedOut) {
+    return (
+      <div className="mt-12 rounded-2xl border border-border bg-surface/50 p-6">
+        <p className="text-sm text-muted">
+          Sign in to compare your record against the rest of the board.
+        </p>
+        <Link
+          href="/auth/login"
+          className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <ComparePanel
+      myStats={profileQuery.data.stats}
+      entries={boardQuery.data?.entries ?? []}
+      openBets={(betsQuery.data ?? []).filter((bet) => bet.status === "open")}
+    />
+  );
+}
+
 const LOBBY_TABS = [
   { id: "board", label: "Board" },
   { id: "leagues", label: "Leagues" },
   { id: "leaderboard", label: "Leaderboard" },
+  { id: "compare", label: "Compare" },
   { id: "record", label: "Your record" },
 ] as const;
 type LobbyTab = (typeof LOBBY_TABS)[number]["id"];
@@ -1325,6 +1711,16 @@ export default function ZeroProofContent() {
         className="focus-visible:outline-none"
       >
         <Leaderboard />
+      </div>
+      <div
+        role="tabpanel"
+        id="zp-panel-compare"
+        aria-labelledby="zp-tab-compare"
+        tabIndex={0}
+        hidden={tab !== "compare"}
+        className="focus-visible:outline-none"
+      >
+        <CompareTab />
       </div>
       <div
         role="tabpanel"

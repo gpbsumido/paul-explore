@@ -59,6 +59,9 @@ export type ComponentDoc = {
 const AI_ELSEWHERE =
   "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.";
 
+const EFFECT_ELSEWHERE =
+  "A ReactBits/OriginKit effect rebuilt on the tokens with no runtime dependency. It ships in the shared package and is rendered in this gallery, but the app hasn't wired it into a product surface yet.";
+
 export const COMPONENTS: ComponentDoc[] = [
   {
     id: "chat-composer",
@@ -536,6 +539,366 @@ export const COMPONENTS: ComponentDoc[] = [
     usedOn: [],
     elsewhere:
       "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+  },
+  {
+    id: "click-spark",
+    category: "effects",
+    name: "ClickSpark",
+    importName: "ClickSpark",
+    tagline: "A ring of rays bursts from the press point.",
+    usage:
+      "Wrap it around a control to decorate a press with a spark. It doesn't intercept the child's own click — set count to change how many rays fly out.",
+    a11y: [
+      "Purely decorative, so it adds nothing to the accessibility tree and never intercepts the child's click",
+      "Spawns nothing under prefers-reduced-motion",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "blur-reveal",
+    category: "effects",
+    name: "BlurReveal",
+    importName: "BlurReveal",
+    tagline: "Content resolves from a soft blur as it rises in.",
+    usage:
+      "Wrap a heading or a line of copy to have it settle in from a blur. Pass delayMs to stagger several reveals, and as to change the element it renders.",
+    a11y: [
+      "Under prefers-reduced-motion the animation drops and the content is simply present",
+      "The effect is a class on the real element, not a wrapper that hides it from assistive tech",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "star-border",
+    category: "effects",
+    name: "StarBorder",
+    importName: "StarBorder",
+    tagline: "A conic gradient sweeps around the border.",
+    usage:
+      "Wrap a card or a button to give it an animated ring. The ring takes its colour from currentColor, so set the wrapper's text colour to tint it — no prop needed.",
+    a11y: [
+      "Under prefers-reduced-motion the ring is a static gradient frame that never rotates",
+      "Decorative border only; the wrapped content keeps its own semantics",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "shine-sweep",
+    category: "effects",
+    name: "ShineSweep",
+    importName: "ShineSweep",
+    tagline: "A specular bar sweeps across the surface.",
+    usage:
+      "Wrap a button or a badge to send a highlight travelling over it, the way a sheen crosses glossy hardware. Change the rendered element with as.",
+    a11y: [
+      "The sheen isn't rendered at all under prefers-reduced-motion",
+      "Decorative overlay; the wrapped control keeps its label and behaviour",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "liquid-glass",
+    category: "effects",
+    name: "LiquidGlass",
+    importName: "LiquidGlass",
+    tagline: "A frosted iOS glass surface with a drifting highlight.",
+    usage:
+      "Use as a translucent panel over a busy or coloured backdrop. It frosts what's behind it while a specular highlight drifts across; change the rendered element with as.",
+    a11y: [
+      "Under prefers-reduced-motion the highlight holds still and the frosted surface remains",
+      "The frost and sheen are decorative; content on top keeps its own contrast and semantics",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "text-loop",
+    category: "effects",
+    name: "TextLoop",
+    importName: "TextLoop",
+    tagline: "Cycles a list of phrases in place, each sliding up.",
+    usage:
+      "Drop it inline where one word should keep changing — 'built for speed / clarity / delight'. Pass items in order and intervalMs to set the hold.",
+    a11y: [
+      "Only the active phrase is exposed to assistive tech, so it reads as a single changing word rather than a run-on",
+      "Under prefers-reduced-motion the slide is dropped and the phrase simply swaps",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "squish-switch",
+    category: "effects",
+    name: "SquishSwitch",
+    importName: "SquishSwitch",
+    tagline: "A toggle whose thumb squishes as it slides.",
+    usage:
+      "Use as an on/off control where a tactile, springy feel is worth it. Controlled via checked and onChange; label is required for its accessible name.",
+    a11y: [
+      "A real role=switch button — keyboard operable and announces its on/off state",
+      "Under prefers-reduced-motion the squish and slide are dropped; the state still flips",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "rubber-segment",
+    category: "effects",
+    name: "RubberSegment",
+    importName: "RubberSegment",
+    tagline: "A segmented control whose indicator rubber-bands.",
+    usage:
+      "Use to switch between a few mutually exclusive views. The indicator overshoots and settles between segments; controlled via value and onChange.",
+    a11y: [
+      "A real role=radiogroup of radios, so arrow keys move the selection",
+      "Under prefers-reduced-motion the indicator jumps without the elastic travel",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "liquid-carve-button",
+    category: "effects",
+    name: "LiquidCarveButton",
+    importName: "LiquidCarveButton",
+    tagline: "A button with a liquid carve that springs to the pointer.",
+    usage:
+      "Use as a standout call to action. A subtractive SVG mask carves the label out of the fill and independent springs chase the pointer; pass href to render a link or onClick for a button.",
+    a11y: [
+      "Keyboard activation stays native — it's a real button or link underneath",
+      "The springs stop at rest, on disable, and under prefers-reduced-motion",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "lattice-loader",
+    category: "effects",
+    name: "LatticeLoader",
+    importName: "LatticeLoader",
+    tagline: "A grid that lights up while working, then resolves to a check or cross.",
+    usage:
+      "Use as a busy indicator for a discrete task. Drive it with status (working/done/error); it can show an elapsed timer and swap colours per state.",
+    a11y: [
+      "Renders role=status with an off-screen spoken update, so working/done/failed reaches assistive tech regardless of the animation",
+      "That spoken state is what lets the animation stand down under prefers-reduced-motion",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "drift-wall",
+    category: "effects",
+    name: "DriftWall",
+    importName: "DriftWall",
+    tagline: "A wall of image tiles drifting in 3D.",
+    usage:
+      "Use as a lively backdrop or a gallery. Each column scrolls at its own speed, the plane tilts toward the pointer, and the tile under the cursor lifts and brightens. Pass items with image and optional href.",
+    a11y: [
+      "Tiles with an href are real links, reachable by keyboard, and the focused tile lifts like a hovered one",
+      "Under prefers-reduced-motion the columns hold still and only the focus lift remains",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "circular-gallery",
+    category: "effects",
+    name: "CircularGallery",
+    importName: "CircularGallery",
+    tagline: "Cards on a rotating 3D cylinder you spin with a drag.",
+    usage:
+      "Use to show a set of images as a turntable. A drag flings it and it coasts; left alone it turns slowly. A CSS preserve-3d reinterpretation of the WebGL original — no renderer. Pass items with image and optional href.",
+    a11y: [
+      "Cards are real links inside a labelled role=group",
+      "Under prefers-reduced-motion the auto-spin and coast are dropped — it only turns while you drag",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "path-gallery",
+    category: "effects",
+    name: "PathGallery",
+    importName: "PathGallery",
+    tagline: "Images gliding evenly along a curved path.",
+    usage:
+      "Use for a looping strip of imagery that follows a shape. Travel runs on CSS offset-path; pass a closed SVG path in the 600x360 viewBox, and toggle showPath to draw or hide the track.",
+    a11y: [
+      "Items are real links inside a labelled role=group",
+      "Under prefers-reduced-motion the travel stops and the images rest along the path",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "smooth-scroll-slider",
+    category: "effects",
+    name: "SmoothScrollSlider",
+    importName: "SmoothScrollSlider",
+    tagline: "A horizontal rail of cards that grow toward centre and coast.",
+    usage:
+      "Use as a momentum carousel. Wheel, drag and keyboard drive it; a lerp between target and rendered offset gives the coast, and cards scale by distance from the centre. Pass slides with image and optional href; loop wraps it forever.",
+    a11y: [
+      "Keyboard drives the rail, not just wheel and drag",
+      "Under prefers-reduced-motion the coast is removed and the rail tracks input directly, keeping the spatial centre-scaling",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "hover-image-reveal",
+    category: "effects",
+    name: "HoverImageReveal",
+    importName: "HoverImageReveal",
+    tagline: "A text menu that reveals an image per row on hover.",
+    usage:
+      "Use as an index or a nav where each entry has a picture. The image window trails the cursor and swaps to the active row; pass items with label, image and optional href.",
+    a11y: [
+      "The rows are real links; the trailing images are decorative and hidden from assistive tech",
+      "Under prefers-reduced-motion the window stops trailing the pointer while hover and focus still swap the image",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "link-preview",
+    category: "effects",
+    name: "LinkPreview",
+    importName: "LinkPreview",
+    tagline: "An inline link that raises a thumbnail on hover.",
+    usage:
+      "Use in prose to preview where a link goes. Pass href, the child text, and a custom image (no external screenshot service); the card leans toward the pointer as it rises in.",
+    a11y: [
+      "The real anchor carries the link; the floating card is decorative and hidden from assistive tech",
+      "Under prefers-reduced-motion the lean is dropped and the card just fades in",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "portrait-spiral-hero",
+    category: "effects",
+    name: "Spiral Portrait Hero",
+    importName: "SpiralPortraitHero",
+    tagline: "A hero whose portraits orbit the copy like planets around the sun.",
+    usage:
+      "Use as a page hero. Supplied images orbit the centred copy on their own rings, behind slots for heading, description, actions, navigation and an optional centrepiece; missing imagery never removes the copy. Give an image href or onClick to make it a link or button.",
+    a11y: [
+      "Set headingLevel so the heading fits the page outline; images are decorative unless given href or onClick, and keyboard focus brings a linked one forward",
+      "The orbit holds still under prefers-reduced-motion, leaving a distributed still frame",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "perspective-hero",
+    category: "effects",
+    name: "Perspective Hero",
+    importName: "PerspectivePortraitHero",
+    tagline: "A one-point-perspective corridor with portraits as posters on the walls.",
+    usage:
+      "Use as a page hero with depth. A wireframe draws the far wall and edge lines to the corners, and the portraits are posters pasted on all four walls, streaming out of the centre. Same copy, navigation and action slots as the other heroes.",
+    a11y: [
+      "Set headingLevel so the heading fits the page outline; images are decorative unless given href or onClick, and keyboard focus brings a linked one forward",
+      "The corridor holds still under prefers-reduced-motion, leaving a distributed still frame",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "corridor-hero",
+    category: "effects",
+    name: "Corridor Hero",
+    importName: "CorridorPortraitHero",
+    tagline: "A hero whose portraits fan out to both sides into a receding wall.",
+    usage:
+      "Use as a page hero. The portraits stream out of the centre to the left and right walls, tilting into a receding corridor — the same idea as the perspective hero without the guide lines. Same copy, navigation and action slots.",
+    a11y: [
+      "Set headingLevel so the heading fits the page outline; images are decorative unless given href or onClick, and keyboard focus brings a linked one forward",
+      "The fan holds still under prefers-reduced-motion, leaving a distributed still frame",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "light-bloom",
+    category: "effects",
+    name: "LightBloom",
+    importName: "LightBloom",
+    tagline: "A soft glow blooming from one edge, breathing slowly.",
+    usage:
+      "Use as a decorative backdrop; pass content to layer over it. A CSS radial-bloom reinterpretation of the WebGL original, with an optional shaft variant and a spread control; the origin slides toward the pointer.",
+    a11y: [
+      "The glow is decorative and hidden from assistive tech",
+      "Under prefers-reduced-motion the breathing, drift and pointer-follow all stop",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "particle-text",
+    category: "effects",
+    name: "ParticleText",
+    importName: "ParticleText",
+    tagline: "Text assembled from a drifting cloud of particles.",
+    usage:
+      "Use for a headline with motion. The built-in 2D canvas draws the particles — no renderer or dependency — and they scatter away from the pointer. Pass text plus optional colour and fontSize.",
+    a11y: [
+      "The canvas is decorative; the container is role=img labelled with the text, so the words are read regardless",
+      "Under prefers-reduced-motion the particles are drawn at rest",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "refine-frame",
+    category: "effects",
+    name: "RefineFrame",
+    importName: "RefineFrame",
+    tagline: "Content resolving from blurred to sharp as its status advances.",
+    usage:
+      "Use as an image-generation preview. Drive it with status (queued, generating, refining, complete, error); CSS filter and scale sharpen per stage, with a glint while it works and a retry on error.",
+    a11y: [
+      "A role=status pill announces the current stage in words, not just colour",
+      "Under prefers-reduced-motion the sweep is dropped and the spinner pulses instead of spinning",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "folder-float",
+    category: "effects",
+    name: "FolderFloat",
+    importName: "FolderFloat",
+    tagline: "A folder whose contents fan out and gently bob.",
+    usage:
+      "Use as a playful grouping of links. Pass a label and items; give an item an href to make it a real link, and accent to set the folder colour.",
+    a11y: [
+      "A labelled role=group; chips are real links when given an href",
+      "Under prefers-reduced-motion the bob stops and the chips rest",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "botanical-text",
+    category: "effects",
+    name: "BotanicalText",
+    importName: "BotanicalText",
+    tagline: "Text grown from tiny swaying flowers and leaves.",
+    usage:
+      "Use for a decorative headline. The built-in 2D canvas samples the text and draws blooms at each point — no WebGL — and blooms near the pointer open larger. Tune bloomHue, leafHue and leafMix.",
+    a11y: [
+      "The canvas is decorative; the container is role=img labelled with the text",
+      "Under prefers-reduced-motion the sway stops and the blooms are drawn at rest",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
   },
   {
     id: "button",

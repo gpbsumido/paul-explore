@@ -36,6 +36,11 @@ const EXTRA_PAIRINGS: ReadonlyArray<{
 }> = [
   { href: "/to-do", thoughtsHref: "/thoughts/to-do", title: "The To-Do List" },
   { href: "/graphql", thoughtsHref: "/thoughts/graphql", title: "GraphQL Pokédex" },
+  {
+    href: "/interviewee",
+    thoughtsHref: "/thoughts/interviewee",
+    title: "Interviewee",
+  },
 ];
 
 /** Trim a trailing slash so "/craft/" and "/craft" match the same feature. */

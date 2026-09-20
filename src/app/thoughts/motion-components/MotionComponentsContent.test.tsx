@@ -14,6 +14,13 @@ vi.mock("@/components/PageHeader", () => ({
 const HREF = "/thoughts/motion-components";
 
 describe("Motion Components write-up", () => {
+  it("preserves the original reasoning and appends the corner coverage correction", () => {
+    render(<MotionComponentsContent />);
+    expect(screen.getByRole("heading", { name: "The corner rule existed, but half the entry points missed it" })).toBeInTheDocument();
+    expect(screen.getAllByText(/Update.*September 18, 2026/).length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: /one hook, shared/i })).toBeInTheDocument();
+    expect(screen.getByText(/Hero06/)).toBeInTheDocument();
+  });
   it("is registered in THOUGHTS with a preview and colour", () => {
     const entry = THOUGHTS.find((t) => t.href === HREF);
     expect(entry).toBeDefined();

@@ -204,6 +204,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "Interviewee",
+    href: "/thoughts/interviewee",
+    preview:
+      "An admin-only interview-prep deck organised by job interview and built around one data shape: topics fed from a markdown template, bullet-point answers with expandable detail, number and arrow-key navigation, and reviewed topics demoted but kept",
+    color: "#b07d3c",
+  },
+  {
     title: "Budget",
     href: "/thoughts/budget",
     preview:

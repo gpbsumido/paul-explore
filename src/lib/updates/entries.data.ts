@@ -11,6 +11,81 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-design-system-effects-gallery",
+    date: "2026-09-18",
+    version: "7.4.0",
+    category: "feature",
+    tags: ["design-system"],
+    title: "Two dozen new effects, live in the component gallery",
+    summary:
+      "The design-system gallery now shows every motion and effect component the shared package ships — sparks, blur reveals, glass, 3D and path galleries, particle text and more — each with a live, playable preview.",
+    body: [
+      "The shared UI package grew a batch of motion and effect components, and the gallery at /design-system now documents all of them: click sparks, blur reveals, star borders, liquid glass, a rubber-band segmented control, a lattice loader, a drifting 3D wall, spinning and path galleries, a momentum slider, hover and link image reveals, portrait heroes, a light bloom, particle and botanical canvas text, a refine frame, and a floating folder. Every one has a real, prop-accurate preview you can interact with, not a screenshot.",
+      "They're heavy — canvas loops, 3D transforms, animation frames — so each preview only starts once its card scrolls into view. Opening the gallery stays fast instead of firing two dozen animation loops at once.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-board-visuals",
+    date: "2026-09-18",
+    version: "7.3.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "The ZeroProof board got a glow-up",
+    summary:
+      "Highlight cards for the biggest underdog and the closest game, team-tinted fixtures, a set of new animations, and bets that show up the moment you place them.",
+    body: [
+      "The board used to be a flat list. Now, above the fixtures, two cards point you at the games worth a look: today's biggest underdog — the longest shot on the board, with what it pays if it lands and a button that drops it straight into your slip — and the closest game, the matchup nearest a coin flip. Every fixture also carries its team's real colour — the actual brand colour for the major leagues — so the board reads at a glance instead of as a wall of grey.",
+      "It moves, too: selecting a bet throws off a little spark, borders shimmer, headings resolve from a blur, and the bet slip sits on a frosted iOS-style glass surface — all of which stands down if you've asked your device for reduced motion. And placing a bet now shows on its fixture instantly, rather than after a round-trip to the server.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-past-fixtures",
+    date: "2026-09-18",
+    version: "7.2.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Look back at past fixtures on the ZeroProof board",
+    summary:
+      "A new checkbox on the board shows recently-finished games alongside the upcoming ones — read-only, and you can scroll back up to three months.",
+    body: [
+      "The board only ever showed what's coming up. Now there's a 'Show past fixtures' checkbox: turn it on and recently-finished games appear too, marked Final, with their closing lines shown for reference (you can't bet a game that's already happened). It reveals a couple of weeks at a time, and a 'Load earlier' button — or the date filter — walks back up to three months.",
+      "It's off by default, so the everyday board is exactly as it was. Handy for looking back at how a line moved, or a matchup you meant to bet and didn't.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-compare",
+    date: "2026-09-18",
+    version: "7.1.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "See how you stack up on ZeroProof",
+    summary:
+      "A new Compare tab lets you pick a player from the leaderboard and put your record next to theirs — win rate, ROI, sharp score and more, with who leads each and where you'd rank.",
+    body: [
+      "The leaderboard tells you who's on top, but not how you measure up against a particular player. The new Compare tab does: pick someone from the board and your stats line up beside theirs — win rate, ROI, sharp score, record, volume — with each measure flagging who's ahead and a running tally of who leads more of them, plus where you'd land on the board by ROI. Your own open bets sit right alongside.",
+      "It's records only, on purpose: the board is anonymous and everyone's individual picks stay private, so this compares how you've each done, not which side you each took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-win-celebration",
+    date: "2026-09-18",
+    version: "7.1.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "ZeroProof cheers your wins, and shows more of your record",
+    summary:
+      "Open Your record after a bet lands in your favour and ZeroProof adds up what you just won and celebrates it — once per win. The record also gained a win rate, a net-profit figure, and a recent-form strip of your last few results.",
+    body: [
+      "Winning should feel like something. Now the first time you check Your record after a bet settles in your favour, ZeroProof totals what you just won and celebrates it — a number that counts up, a glow, a few sparkles — then quietly remembers it, so the same win doesn't cheer at you every visit. Ask your device for reduced motion and it stays calm and just shows the total.",
+      "The record panel also tells you more at a glance: your win rate over graded bets, your net profit across everything that's settled, and a row of your last eight results as win/loss/push chips. It all reads off bets already loaded, so nothing new is fetched.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-1-0",
     date: "2026-09-15",
     version: "7.0.0",
