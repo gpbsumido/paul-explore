@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.5
+
+- Gitignored `.agents/` and `.codex/`, the skill and hook dumps other coding-agent tools leave in the repo root.
+
 ## 2026-09-20 - version 7.5.4
 
 - Moved the design-system dependency off the vendored preview archives and onto the published `@paul-portfolio/react` 0.12.9 and `css` 0.13.11, now that 0.9.14 is released to npm, and removed `vendor/`.
