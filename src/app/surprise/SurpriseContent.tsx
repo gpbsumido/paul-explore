@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { RubberSegment, Spotlight, TiltCard, ClickSpark, Button } from "@paul-portfolio/react";
 import { FEATURES } from "@/app/_shared/featureData.data";
+import { ArrowRight, ArrowUpRight, Refresh } from "../v6/arrows";
 import styles from "./surprise.module.css";
 
 type Feature = (typeof FEATURES)[number];
@@ -80,7 +81,7 @@ export default function SurpriseContent() {
         <section className={styles.spin} aria-label="Spin for a feature">
           <ClickSpark>
             <Button onClick={roll} variant="primary">
-              Surprise me <span aria-hidden="true">↻</span>
+              Surprise me <Refresh size={15} />
             </Button>
           </ClickSpark>
           <TiltCard maxTilt={5} glare={false} className={styles.spinTilt}>
@@ -97,7 +98,7 @@ export default function SurpriseContent() {
               <p className={styles.spinNote}>{feature.description}</p>
               <div className={styles.spinActions}>
                 <FeatureLink feature={feature} className={styles.take}>
-                  Take me there <span aria-hidden="true">→</span>
+                  Take me there <ArrowRight size={15} />
                 </FeatureLink>
                 {feature.thoughtsHref ? (
                   <Link href={feature.thoughtsHref} className={styles.read}>
@@ -125,7 +126,10 @@ export default function SurpriseContent() {
                   <span className={styles.cardTitle}>
                     {f.title}
                     {isExternal(f.href) ? (
-                      <span aria-hidden="true"> ↗</span>
+                      <>
+                        {" "}
+                        <ArrowUpRight size={13} />
+                      </>
                     ) : null}
                   </span>
                   <span className={styles.cardNote}>{f.description}</span>

@@ -6,6 +6,7 @@ import { BotanicalText, DriftWall } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
+import { ArrowUpRight } from "./arrows";
 import styles from "./playground.module.css";
 
 // Every feature with a capture. Each tile shows the app, is named after it, and
@@ -111,7 +112,7 @@ export default function FieldNotes() {
       </div>
       <p className={styles.fieldNotesLink}>
         <Link href="/thoughts">
-          Every write-up on this site <span aria-hidden="true">↗</span>
+          Every write-up on this site <ArrowUpRight size={14} />
         </Link>
       </p>
     </div>

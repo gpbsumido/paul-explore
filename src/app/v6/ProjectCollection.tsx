@@ -7,28 +7,7 @@ import { Button, ClickSpark, RubberSegment, Spotlight, TiltCard } from "@paul-po
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
-
-/** A crisp up-right arrow. The Unicode ↗ glyph renders thin and uneven,
- * especially small on mobile, so the cards use this instead. */
-function ArrowUpRight({ size = 16 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M4.5 11.5 11.5 4.5M6 4.5h5.5V10"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+import { ArrowUpRight } from "./arrows";
 
 const FILTERS = ["All", "Interfaces", "Systems", "Play"];
 const PICKS = [
@@ -148,7 +127,7 @@ export default function ProjectCollection() {
         </ul>
       </div>
     </section>
-    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/surprise" variant="outline">Surprise me <span aria-hidden="true">↗</span></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <span aria-hidden="true">↗</span></Button></div>
+    <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/surprise" variant="outline">Surprise me <ArrowUpRight size={14} /></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <ArrowUpRight size={14} /></Button></div>
     </>
   );
 }
