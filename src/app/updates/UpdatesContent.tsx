@@ -49,7 +49,7 @@ function EntryCard({ entry }: { entry: UpdateEntry }) {
   const panelId = useId();
 
   return (
-    <article className="glass-card rounded-xl p-0" style={{ borderLeftWidth: 3, borderLeftColor: CATEGORY_VAR[entry.category] }}>
+    <article className="glass-card rounded-xl p-0">
       <h2 className="m-0">
         <button
           type="button"

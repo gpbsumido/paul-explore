@@ -16,8 +16,12 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
       className={`glass-card flex h-full items-start gap-3 rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
         thought.deprecated ? " opacity-70" : ""
       }`}
-      style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
     >
+      <span
+        aria-hidden
+        className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+        style={{ backgroundColor: thought.color }}
+      />
       <div className="min-w-0">
         <p className="flex items-center gap-2 font-semibold text-foreground">
           <span className="truncate">{thought.title}</span>

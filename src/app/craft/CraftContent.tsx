@@ -52,10 +52,7 @@ function TraitCard({
   const headingId = `craft-heading-${trait.id}`;
 
   return (
-    <div
-      className="glass-card overflow-hidden rounded-xl"
-      style={{ borderLeftWidth: 3, borderLeftColor: trait.color }}
-    >
+    <div className="glass-card overflow-hidden rounded-xl">
       <button
         type="button"
         onClick={onToggle}
