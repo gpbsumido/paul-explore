@@ -8,6 +8,28 @@ import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
 
+/** A crisp up-right arrow. The Unicode ↗ glyph renders thin and uneven,
+ * especially small on mobile, so the cards use this instead. */
+function ArrowUpRight({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M4.5 11.5 11.5 4.5M6 4.5h5.5V10"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const FILTERS = ["All", "Interfaces", "Systems", "Play"];
 const PICKS = [
   { id: "work-portfolio", category: "Interfaces", note: "From shipped product to hands-on demo.", caption: "Product work", number: "01" },
@@ -109,11 +131,11 @@ export default function ProjectCollection() {
                 <TiltCard maxTilt={4} glare={false} className={styles.tilt}>
                   <Spotlight color="color-mix(in srgb, var(--paul-color-primary-400) 15%, transparent)" className={styles.projectSurface}>
                     <Link href={feature.href} className={styles.projectLink}>
-                      <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true">↗</span></div>
+                      <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true"><ArrowUpRight /></span></div>
                       <div className={styles.preview}>
                         <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.lightImage} />
                         <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.darkImage} />
-                        <span className={styles.openLabel} aria-hidden="true">Step inside ↗</span>
+                        <span className={styles.openLabel} aria-hidden="true">Step inside <ArrowUpRight size={13} /></span>
                       </div>
                       <div className={styles.projectTitle}><h3>{feature.title}</h3><span>{pick.category}</span></div>
                       <p className={styles.projectNote}>{pick.note}</p>

@@ -49,7 +49,7 @@
 :global([data-theme="dark"]) .lightImage { display:none; }
 .projectLink:hover .preview img, .projectLink:focus-visible .preview img { transform:scale(1.04); }
 .projectLink:hover .openArrow, .projectLink:focus-visible .openArrow { background:var(--play-accent); color:var(--paul-color-background); transform:rotate(45deg); }
-.openLabel { position:absolute; bottom:1rem; right:1rem; padding:.6rem 1rem; background:var(--paul-color-foreground); color:var(--paul-color-background); border-radius:5rem; font-size:.75rem; transform:translateY(4rem); transition:transform .25s var(--paul-easing-out); }
+.openLabel { position:absolute; bottom:1rem; right:1rem; display:inline-flex; align-items:center; gap:.35rem; padding:.6rem 1rem; background:var(--paul-color-foreground); color:var(--paul-color-background); border-radius:5rem; font-size:.75rem; transform:translateY(4rem); transition:transform .25s var(--paul-easing-out); }
 .projectLink:hover .openLabel, .projectLink:focus-visible .openLabel { transform:translateY(0); }
 .projectTitle { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.5rem; margin:1.25rem 0 .4rem; }
 .projectTitle h3 { font:600 clamp(1.5rem,2.5vw,2.3rem)/1.15 var(--font-display-face),sans-serif; letter-spacing:-.04em; }
