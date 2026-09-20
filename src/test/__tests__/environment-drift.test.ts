@@ -36,7 +36,13 @@ describe("installed dependencies match what package.json asks for", () => {
       const installed = JSON.parse(
         readFileSync(join(root, "node_modules", name, "package.json"), "utf-8"),
       ).version as string;
-      const min = range.replace(/^[\^~]/, "");
+      // A file: dependency pins an exact tarball, so its version lives in the
+      // archive name (paul-portfolio-css-0.13.11.tgz) rather than a semver
+      // range. Read it from there so a rebuilt-but-not-installed tarball still
+      // trips the guard.
+      const min = range.startsWith("file:")
+        ? (range.match(/-(\d+\.\d+\.\d+)\.tgz$/)?.[1] ?? installed)
+        : range.replace(/^[\^~]/, "");
 
       expect(
         compare(installed, min),
