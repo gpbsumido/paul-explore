@@ -89,7 +89,7 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)",
+                "linear-gradient(to right, transparent, rgba(33,155,132,0.05), transparent)",
             }}
           />
         }
