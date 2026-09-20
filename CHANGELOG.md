@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.13
+
+- Broke the signed-in feature-hub grid into the same irregular bento (a repeating wide tile, dense-packed) via an optional className on the feature card, so the main hub stops reading as an even three-up too.
+
 ## 2026-09-20 - version 7.5.12
 
 - Added a `/thoughts/design-detox` write-up documenting the design pass: dropping the colored-stripe tell, the shared page intro, Apple squircle corners, the inline-arrow fix whose first attempt missed the real cause, the film grain that did not help, and breaking the too-even grid into a bento. The wrong turns are kept in on purpose.
