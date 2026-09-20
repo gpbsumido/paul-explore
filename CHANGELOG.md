@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.9
+
+- Added a faint film grain over the whole site. Perfectly flat, even surfaces are one of the quiet "generated, not designed" tells; a subtle analog grain gives the paper some life. It's a fixed, non-interactive SVG-noise overlay blended with `overlay` so it textures the surfaces without touching text legibility, sits below modals and the cookie bar, and hides itself under `prefers-reduced-transparency`.
+
 ## 2026-09-20 - version 7.5.8
 
 - Gave the rounded corners the Apple squircle shape. The new CSS `corner-shape: squircle` draws a superellipse instead of a plain circular arc, which reads as crafted rather than the default-`border-radius` look every scaffold ships. It's progressive enhancement — Chromium draws the squircle, other browsers keep the normal rounded corner — and it's scoped to finite-radius surfaces, so circles, pills, dots and avatars (`rounded-full`) stay perfectly round.
