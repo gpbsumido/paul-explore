@@ -2,6 +2,7 @@
 
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
+import PageIntro from "@/components/PageIntro";
 import type { Interview } from "@/lib/interviewee/types";
 import { useAnswered } from "./useAnswered";
 import { answeredKey } from "./answeredKey";
@@ -50,18 +51,11 @@ export default function IntervieweeContent({
       />
 
       <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-        <header className="mb-8">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            Prep deck
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Interviewee
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            My interview prep, organised by job interview. Open one for its
-            topics, or search across every interview to jump straight to a topic.
-          </p>
-        </header>
+        <PageIntro
+          eyebrow="Prep deck"
+          title="Interviewee"
+          lede="My interview prep, organised by job interview. Open one for its topics, or search across every interview to jump straight to a topic."
+        />
 
         <div className="mb-8">
           <TopicSearchBox interviews={interviews} />
