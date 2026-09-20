@@ -44,6 +44,9 @@ import {
   SpiralPortraitHero,
   PerspectivePortraitHero,
   CorridorPortraitHero,
+  MobileReelHero,
+  MobileOrbitHero,
+  MobileLensHero,
   LightBloom,
   ParticleText,
   RefineFrame,
@@ -676,6 +679,66 @@ export function CorridorPortraitHeroDemo() {
         <CorridorPortraitHero
           heading="A wall of pictures either side"
           description="The imagery fans out to both sides into a receding corridor."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/work-portfolio">
+              See the work
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function MobileReelHeroDemo() {
+  return (
+    <DeferredPreview minHeight="20rem">
+      <div className="mx-auto w-full max-w-[24rem] overflow-hidden rounded-xl [&_.mobile-hero]:p-4 [&_.mobile-hero__heading]:text-3xl">
+        <MobileReelHero
+          heading="Scrub the reel"
+          description="Slide through the projects one frame at a time."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/work-portfolio">
+              See the work
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function MobileOrbitHeroDemo() {
+  return (
+    <DeferredPreview minHeight="20rem">
+      <div className="mx-auto w-full max-w-[24rem] overflow-hidden rounded-xl [&_.mobile-hero]:p-4 [&_.mobile-hero__heading]:text-3xl">
+        <MobileOrbitHero
+          heading="Turn the ring"
+          description="Spin the constellation with a thumb, or tap a numbered project."
+          images={HERO_IMAGES}
+          headingLevel={3}
+          actions={
+            <Button size="sm" href="/design-system">
+              Browse components
+            </Button>
+          }
+        />
+      </div>
+    </DeferredPreview>
+  );
+}
+
+export function MobileLensHeroDemo() {
+  return (
+    <DeferredPreview minHeight="20rem">
+      <div className="mx-auto w-full max-w-[24rem] overflow-hidden rounded-xl [&_.mobile-hero]:p-4 [&_.mobile-hero__heading]:text-3xl">
+        <MobileLensHero
+          heading="Move the lens"
+          description="Drag the magnifier over the contact sheet, or step through it."
           images={HERO_IMAGES}
           headingLevel={3}
           actions={
