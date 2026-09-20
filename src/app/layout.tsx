@@ -8,6 +8,7 @@ import AuthErrorToast from "@/components/AuthErrorToast";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import CookieConsent from "@/components/CookieConsent";
+import FilmGrain from "@/components/FilmGrain";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import "./globals.css";
 
@@ -122,6 +123,7 @@ export default function RootLayout({
             </Suspense>
           </ThemeProvider>
         </Providers>
+        <FilmGrain />
         <SpeedInsights />
         <WebVitalsReporter />
         <CookieConsent />
