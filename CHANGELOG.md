@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.4
+
+- Moved the design-system dependency off the vendored preview archives and onto the published `@paul-portfolio/react` 0.12.9 and `css` 0.13.11, now that 0.9.14 is released to npm, and removed `vendor/`.
+
+## 2026-09-20 - version 7.5.3
+
+- Updated the mobile hero preview packages with SVG controls. Verified Reel, Orbit and Lens at phone widths, including real pointer drags, theme changes, and the 700px transition back to the desktop heroes.
+- Documented Reel, Orbit and Lens in the `/design-system` gallery next to the desktop heroes, and moved the preview archives to plain release versions of `@paul-portfolio/react` (0.12.9) and `css` (0.13.11) so a frozen install resolves them.
+
+## 2026-09-20 - version 7.5.2
+
+- Added three mobile hero scenes from the design system: a scrubbed Reel, a rotary Orbit, and a draggable Lens. The switcher sits above the mobile introduction; desktop keeps Spiral, Perspective and Corridor. The viewport subscription also handles coarse-pointer phones in landscape without changing the static page cache.
+- Included portable design-system preview archives until the matching registry release is available.
+
 ## 2026-09-20 - version 7.5.1
 
 - **Tidied up the arrows.** Every Unicode arrow on the landing and the surprise page (`↗ ↘ ↑ → ↻`), which rendered thin and uneven especially small on mobile, is now a crisp shared SVG icon that inherits its colour. The work-portfolio prev/next arrows also overlay the demo on a narrow screen instead of flanking and squeezing it, so the demo gets the full width.

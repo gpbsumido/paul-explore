@@ -103,3 +103,31 @@
 /* Single-column projects: drop the two-column stagger so the scroll is even. */
 .project:nth-child(even) { margin-top:0; }
 .project:nth-child(4n + 3) { margin-left:0; }
+
+/* Mobile scenes own their composition; desktop portrait rules stay scoped above. */
+.mobileHero { padding: 1.75rem 0 1.5rem; background: transparent; gap: 1.5rem; }
+.mobileHero :global(.mobile-hero__heading), .staticHero h1 { font-family: var(--font-display-face),sans-serif; font-weight: 600; }
+.mobileHero .identity { text-align: left; margin: 0 0 1.25rem; max-width: none; font-size: .7rem; line-height: 1.6; }
+.mobileHero .identity > span { padding-inline: .25rem; }
+.mobileHero .headline { font-size: clamp(3rem, 13vw, 5.5rem); line-height: .94; }
+.mobileHero:global(.mobile-hero--orbit) .identity, .mobileHero:global(.mobile-hero--reel) .identity { text-align: center; }
+.mobileHero:global(.mobile-hero--lens) .headline { font-size: clamp(3rem, 12vw, 5.2rem); }
+.mobileHero :global(.mobile-hero__actions) { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: .5rem; }
+.mobileHero :global(.mobile-hero__actions .btn) { padding-inline: .9rem; font-size: .8125rem; min-height: 48px; white-space: normal; text-align: center; }
+.heroWrap[data-mobile="true"] .sceneBar { position: static; justify-content: space-between; padding-bottom: max(1rem,env(safe-area-inset-bottom)); }
+.heroWrap[data-mobile="true"] .sceneBar > div:first-child { width: auto; }
+.heroWrap[data-mobile="true"] .sceneBar p { display: none; }
+.heroWrap[data-mobile="true"] .sceneControl { margin-left: 0; }
+.heroWrap[data-mobile="true"] .sceneBar .eyebrow { font-size: .625rem; max-width: 8rem; display: block; }
+.staticHero { min-height: min(46rem,calc(100dvh - 13rem)); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 6rem 1rem; }
+.staticHero > p { max-width: 27rem; color: var(--paul-color-muted); line-height: 1.65; margin: 1.5rem 0; }
+.staticHero > div { display: flex; gap: .75rem; flex-wrap: wrap; }
+@media (max-width:700px), (max-width:1000px) and (hover:none) and (pointer:coarse) {
+  .staticHero { min-height: 38rem; padding: 2rem 0; justify-content: flex-start; }
+  .staticHero .headline { font-size: clamp(3rem,13vw,5.5rem); }
+  .heroWrap[data-mobile="pending"] .sceneBar { visibility: hidden; }
+  .heroMeta { font-size: .625rem; letter-spacing: .07em; }
+}
+.heroWrap[data-mobile="true"] .sceneBar { margin-top: 1rem; padding-block: .5rem; }
+.heroWrap[data-mobile="true"] .sceneBar .eyebrow { white-space: nowrap; }
+.heroWrap[data-mobile="true"] .heroMeta > span:last-child { display: inline-flex; align-items: center; gap: .25rem; white-space: nowrap; }

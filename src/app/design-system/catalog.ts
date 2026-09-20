@@ -826,6 +826,51 @@ export const COMPONENTS: ComponentDoc[] = [
     elsewhere: EFFECT_ELSEWHERE,
   },
   {
+    id: "mobile-reel-hero",
+    category: "effects",
+    name: "Mobile Reel Hero",
+    importName: "MobileReelHero",
+    tagline: "A film reel you scrub with a thumb, one project a frame.",
+    usage:
+      "Use as a small-screen page hero. Projects load into a single film frame with a labelled range scrubber underneath, so there is no autoplay and no precision dragging. Same heading, description and action slots as the portrait heroes.",
+    a11y: [
+      "The scrubber is a native range input with an aria-valuetext naming the project and its position, and a live region announces each frame",
+      "Set headingLevel so the heading fits the page outline; the frame stays put with no imagery and keeps the project action after one fails",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "mobile-orbit-hero",
+    category: "effects",
+    name: "Mobile Orbit Hero",
+    importName: "MobileOrbitHero",
+    tagline: "A project constellation you turn with a thumb or tap by number.",
+    usage:
+      "Use as a small-screen page hero. Projects sit as numbered satellites on a ring you rotate by dragging, with a preview in the centre; tapping a satellite selects it without a drag. Same heading, description and action slots as the portrait heroes.",
+    a11y: [
+      "The dial is a keyboard-rotatable slider with aria-valuenow, tappable numbered markers, and a live region naming the selected project",
+      "Set headingLevel so the heading fits the page outline; the ring holds still under prefers-reduced-motion and survives empty or failed imagery",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
+    id: "mobile-lens-hero",
+    category: "effects",
+    name: "Mobile Lens Hero",
+    importName: "MobileLensHero",
+    tagline: "A magnifying glass you drag across a contact sheet of work.",
+    usage:
+      "Use as a small-screen page hero. A movable lens floats over a grid of project thumbnails; drag it across the sheet to inspect one, or use the centred next control and keyboard moves instead of dragging. Same heading, description and action slots as the portrait heroes.",
+    a11y: [
+      "The lens offers a centred next control and keyboard moves as alternatives to dragging, and a live region names the project under it",
+      "Set headingLevel so the heading fits the page outline; the sheet holds up with empty or failed imagery",
+    ],
+    usedOn: [],
+    elsewhere: EFFECT_ELSEWHERE,
+  },
+  {
     id: "light-bloom",
     category: "effects",
     name: "LightBloom",

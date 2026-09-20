@@ -201,3 +201,6 @@ dist
 /e2e/.auth/
 # Harness scratch
 .harness/
+
+# Portable local design-system preview builds.
+!/vendor/*.tgz
