@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.11
+
+- Broke the fantasy hub grid into the same irregular bento as the thoughts index — a larger featured card plus a repeating wide tile, dense-packed — so it stops reading as an even three-up.
+
 ## 2026-09-20 - version 7.5.10
 
 - The "This site" work-portfolio demo now shows theme-matched screenshots. It only had dark-mode thumbnails, so a light-theme visitor saw dark screengrabs of pages that were actually light. Added a light capture for each of the nine linked pages and refreshed the dark ones to the current design, and the demo now swaps light/dark per theme (only the active one loads).
