@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.8
+
+- Gave the rounded corners the Apple squircle shape. The new CSS `corner-shape: squircle` draws a superellipse instead of a plain circular arc, which reads as crafted rather than the default-`border-radius` look every scaffold ships. It's progressive enhancement — Chromium draws the squircle, other browsers keep the normal rounded corner — and it's scoped to finite-radius surfaces, so circles, pills, dots and avatars (`rounded-full`) stay perfectly round.
+
 ## 2026-09-20 - version 7.5.7
 
 - Kept the icon arrows on the text line. The design-system reset renders a bare `svg` as `display:block`, which dropped a trailing arrow (↗) onto its own line in the header nav, the hero meta and the footer — buttons were fine because they use flex. The shared arrow component now sets `display:inline-block`, so every arrow across the landing sits inline again.
