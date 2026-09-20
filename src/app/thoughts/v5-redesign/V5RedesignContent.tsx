@@ -37,6 +37,11 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-20-mobile-heroes",
+            date: "September 20, 2026",
+            title: "Mobile got its own heroes, and shipping them early broke the install",
+          },
+          {
             id: "update-2026-09-19-shelf",
             date: "September 19, 2026",
             title: "Reviewing the playground live, and the two sections that fought back",
@@ -447,8 +452,74 @@ setFontSize(Math.max(30, Math.min(120, fitted)));`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-20-mobile-heroes"
+        date="September 20, 2026"
+        title="Mobile got its own heroes, and shipping them early broke the install"
+      >
+        <p>
+          The switchable scenes are a desktop pleasure. On a phone the
+          perspective and corridor tunnels turn their posters edge-on against a
+          receding wall, so they still move but read as frozen. Rather than
+          shrink a desktop hero, small screens now get three of their own.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Touch-first, with a tap for every gesture.
+        </h3>
+        <p className="text-muted">
+          Reel is a film strip you scrub with a native range slider. Orbit is a
+          ring of numbered projects you spin with a thumb or tap by number. Lens
+          is a magnifier you drag across a contact sheet, with a next control for
+          anyone not dragging. All three carry a live region and keyboard moves,
+          so the gesture is the shortcut and never the only way in. They swap in
+          below 700px and on coarse-pointer phones held in landscape, and the
+          scene switcher moves above the hero so all three are reachable without
+          a scroll.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const MOBILE_QUERY =
+  "(max-width: 700px), (max-width: 1000px) and (hover: none) and (pointer: coarse)";
+const isMobile = useSyncExternalStore(subscribeMobile, mobileSnapshot, serverSnapshot);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A prerelease version tag is not just a label.
+        </h3>
+        <p className="text-muted">
+          The heroes live in the design system, which was not published yet, so
+          the app installs the built archives straight from the repo. I marked
+          them <code className={code}>0.13.11-mobile.0</code> to flag them as a
+          local preview, and that suffix quietly failed the install: npm&rsquo;s
+          semver leaves a prerelease out of a plain range, so the sibling Angular
+          package&rsquo;s <code className={code}>&gt;=0.1.0</code> peer could no
+          longer see the CSS package at all.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`npm error Could not resolve dependency:
+npm error peer @paul-portfolio/css@">=0.1.0" from @paul-portfolio/angular@0.3.0
+npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Plain <code className={code}>0.13.11</code> and{" "}
+          <code className={code}>0.12.9</code> fixed it, and the app&rsquo;s own
+          drift guard learned to read a version out of a{" "}
+          <code className={code}>file:</code> archive name instead of choking on
+          it. One more guard had the last word: the design-system gallery tests
+          that every shipped component is documented, so it wanted a card for
+          each new hero before it would go green.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`AssertionError: expected [ Array(73) ] to deeply equal [ Array(76) ]
+-   "MobileLensHero",
+-   "MobileOrbitHero",
+-   "MobileReelHero",`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Three touch-first mobile heroes: a scrubbed Reel, a rotary Orbit and a draggable Lens. They replace the tunnel scenes on a phone, each with a tap and keyboard path, and they are documented on /design-system.",
           "A portfolio playground built with the published design-system heroes and motion components. V5 remains at /discover?version=v5, and the new root still renders statically.",
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
