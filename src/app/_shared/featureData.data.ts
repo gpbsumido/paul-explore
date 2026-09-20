@@ -204,6 +204,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "Design detox",
+    href: "/thoughts/design-detox",
+    preview:
+      "Making the site read as designed, not generated: dropping the colored-stripe card tell, one editorial page intro, Apple squircle corners, the inline-arrow fix whose first attempt missed the real cause, a film grain that didn't help, and breaking the too-even grid into a bento",
+    color: "#4a9c72",
+  },
+  {
     title: "Interviewee",
     href: "/thoughts/interviewee",
     preview:
