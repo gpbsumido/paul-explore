@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.3
+
+- Updated the mobile hero preview packages with SVG controls. Verified Reel, Orbit and Lens at phone widths, including real pointer drags, theme changes, and the 700px transition back to the desktop heroes.
+
 ## 2026-09-20 - version 7.5.2
 
 - Added three mobile hero scenes from the design system: a scrubbed Reel, a rotary Orbit, and a draggable Lens. The switcher sits above the mobile introduction; desktop keeps Spiral, Perspective and Corridor. The viewport subscription also handles coarse-pointer phones in landscape without changing the static page cache.
