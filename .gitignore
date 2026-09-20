@@ -30,6 +30,8 @@ package-lock.json
 *.pem
 CLAUDE.md
 .claude
+.agents
+.codex
 old_resumes
 resumes
 
