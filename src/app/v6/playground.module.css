@@ -37,12 +37,12 @@
 .project { flex:0 0 min(26rem, 82vw); }
 .project:nth-child(even) { margin-top:5rem; }
 .project:nth-child(4n + 3) { margin-left:1.5rem; }
-.tilt, .projectSurface { border-radius:1rem; }
+.tilt, .projectSurface { border-radius:1rem; corner-shape:squircle; }
 .projectSurface { border:1px solid var(--paul-color-border); background:var(--paul-color-surface); }
-.projectLink { display:block; padding:1.25rem; border-radius:1rem; }
+.projectLink { display:block; padding:1.25rem; border-radius:1rem; corner-shape:squircle; }
 .projectTop { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--paul-color-muted); }
 .openArrow { display:grid; place-items:center; width:2.5rem; height:2.5rem; border:1px solid var(--paul-color-border); border-radius:50%; color:var(--paul-color-foreground); font-size:1.2rem; transition:background .2s, color .2s, transform .2s; }
-.preview { position:relative; aspect-ratio:1.5; overflow:hidden; border-radius:.5rem; background:var(--paul-color-background); border:1px solid var(--paul-color-border); }
+.preview { position:relative; aspect-ratio:1.5; overflow:hidden; border-radius:.5rem; corner-shape:squircle; background:var(--paul-color-background); border:1px solid var(--paul-color-border); }
 .preview img { width:100%; height:100%; object-fit:cover; object-position:top; transition:transform .5s var(--paul-easing-out); }
 .darkImage { display:none; }
 :global([data-theme="dark"]) .darkImage { display:block; }
@@ -75,7 +75,7 @@
 }
 
 .fieldNotes { padding:0; }
-.fieldNotesStage { position:relative; height:min(34rem,72vh); overflow:hidden; border-radius:1.25rem; border:1px solid var(--paul-color-border); background:var(--paul-color-surface); }
+.fieldNotesStage { position:relative; height:min(34rem,72vh); overflow:hidden; border-radius:1.25rem; corner-shape:squircle; border:1px solid var(--paul-color-border); background:var(--paul-color-surface); }
 .driftWall { position:absolute; inset:0; }
 .bloom { position:absolute; inset:0; display:grid; grid-template-columns:minmax(0,1fr); align-items:center; justify-items:stretch; z-index:2; pointer-events:none; padding:0 1rem; overflow:hidden; transition:opacity .35s var(--paul-easing-out); }
 /* Fade the lettering out when a tile is hovered so the image underneath reads. */
