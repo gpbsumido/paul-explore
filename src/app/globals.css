@@ -708,6 +708,21 @@
     margin: 0;
   }
 
+  /* Apple-style continuous corners (the squircle). corner-shape is progressive
+     enhancement — Chromium draws the superellipse, everything else ignores it
+     and keeps the plain rounded corner, so there's no fallback to manage. It's
+     scoped to the finite-radius rounded utilities: rounded-full (circles, pills,
+     dots, avatars) and rounded-none are excluded because a squircle visibly
+     distorts a corner whose radius is half the side. Specificity is kept at 0
+     with :where() so any component can opt back out. Landing cards use CSS-module
+     radii instead of these utilities and get the same treatment in
+     playground.module.css. */
+  :where([class*="rounded"]):not([class*="rounded-full"]):not(
+      [class*="rounded-none"]
+    ) {
+    corner-shape: squircle;
+  }
+
   a {
     color: inherit;
     text-decoration: none;
