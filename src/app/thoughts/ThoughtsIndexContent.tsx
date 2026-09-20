@@ -15,15 +15,17 @@ import type { ThoughtItem } from "@/types/hub";
 function ThoughtCard({
   thought,
   featured = false,
+  wide = false,
 }: {
   thought: ThoughtItem;
   featured?: boolean;
+  wide?: boolean;
 }) {
   return (
     <Link
       href={thought.href}
       className={`glass-card flex h-full items-start gap-3 rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
-        featured ? " sm:col-span-2 sm:p-6" : ""
+        featured ? " sm:col-span-2 sm:p-6" : wide ? " sm:col-span-2" : ""
       }${thought.deprecated ? " opacity-70" : ""}`}
     >
       <span
@@ -99,14 +101,21 @@ export default function ThoughtsIndexContent() {
                 </span>
                 {group.name}
               </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {group.items.map((thought, j) => (
-                  <ThoughtCard
-                    key={thought.href}
-                    thought={thought}
-                    featured={i === 0 && j === 0}
-                  />
-                ))}
+              {/* grid-flow-dense + a repeating wide tile turns the rigid
+                  three-up into an irregular bento so the index stops reading as
+                  a perfectly even grid. */}
+              <div className="grid grid-flow-row-dense grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {group.items.map((thought, j) => {
+                  const isFeatured = i === 0 && j === 0;
+                  return (
+                    <ThoughtCard
+                      key={thought.href}
+                      thought={thought}
+                      featured={isFeatured}
+                      wide={!isFeatured && j % 4 === 0}
+                    />
+                  );
+                })}
               </div>
             </section>
           ))}
