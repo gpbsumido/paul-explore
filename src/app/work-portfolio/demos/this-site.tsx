@@ -97,13 +97,23 @@ export default function ThisSiteDemo({ feature }: { feature: WorkFeature }) {
                 } as React.CSSProperties
               }
             >
+              {/* One shot per theme so the thumbnail matches the site the
+                  visitor is actually looking at. Each is display:none in the
+                  other theme, so only the active one lazy-loads. */}
               <span className="relative block aspect-[16/10] overflow-hidden bg-surface">
+                <Image
+                  src={l.shot.replace(/\.png$/, "-light.png")}
+                  alt={`Screenshot of the ${l.name} page`}
+                  fill
+                  sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 90vw"
+                  className="object-cover object-top transition-transform duration-300 group-hover:scale-105 dark:hidden"
+                />
                 <Image
                   src={l.shot}
                   alt={`Screenshot of the ${l.name} page`}
                   fill
                   sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 90vw"
-                  className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                  className="hidden object-cover object-top transition-transform duration-300 group-hover:scale-105 dark:block"
                 />
               </span>
               <span className="flex items-start justify-between gap-2 p-3">
