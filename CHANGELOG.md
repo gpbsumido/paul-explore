@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.9
+
+- An editorial pass to make the site read less like an even, generated template and more like it was laid out by hand.
+  - **Broke the uniform grid.** The thoughts index is now an irregular bento — a repeating wide tile plus dense packing — instead of a perfectly even three-up. The whole point: it should not look like every card was stamped from the same cell.
+  - **Bolder display titles.** The shared `PageIntro` heading moved to a `clamp(2.6rem … 4.25rem)` bold, tight-tracked display size.
+  - **Signature link underline.** Wherever a link underlines it now draws as a chunky, offset accent rule that fills in on hover, not the thin browser default.
+  - **Numbered sections.** The thoughts categories read `01 / …`, `02 / …` in the accent.
+  - **Killed a stray purple.** The signed-in hub header had a faint violet wash (`rgba(139,92,246,…)`), the classic vibecode gradient — now verdigris.
+
 ## 2026-09-20 - version 7.5.8
 
 - Gave the rounded corners the Apple squircle shape. The new CSS `corner-shape: squircle` draws a superellipse instead of a plain circular arc, which reads as crafted rather than the default-`border-radius` look every scaffold ships. It's progressive enhancement — Chromium draws the squircle, other browsers keep the normal rounded corner — and it's scoped to finite-radius surfaces, so circles, pills, dots and avatars (`rounded-full`) stay perfectly round.
