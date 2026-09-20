@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.4
+
+- Moved the design-system dependency off the vendored preview archives and onto the published `@paul-portfolio/react` 0.12.9 and `css` 0.13.11, now that 0.9.14 is released to npm, and removed `vendor/`.
+
 ## 2026-09-20 - version 7.5.3
 
 - Updated the mobile hero preview packages with SVG controls. Verified Reel, Orbit and Lens at phone widths, including real pointer drags, theme changes, and the 700px transition back to the desktop heroes.

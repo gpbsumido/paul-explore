@@ -18,11 +18,11 @@ dependencies:
     specifier: ^6.3.1
     version: 6.3.1(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/css':
-    specifier: file:vendor/paul-portfolio-css-0.13.11.tgz
-    version: file:vendor/paul-portfolio-css-0.13.11.tgz(@paul-portfolio/tokens@0.4.1)
+    specifier: ^0.13.11
+    version: 0.13.11(@paul-portfolio/tokens@0.4.1)
   '@paul-portfolio/react':
-    specifier: file:vendor/paul-portfolio-react-0.12.9.tgz
-    version: file:vendor/paul-portfolio-react-0.12.9.tgz(@paul-portfolio/css@0.13.11)(@paul-portfolio/tokens@0.4.1)(react-dom@19.2.3)(react@19.2.3)
+    specifier: ^0.12.9
+    version: 0.12.9(@paul-portfolio/css@0.13.11)(@paul-portfolio/tokens@0.4.1)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
     specifier: ^0.4.1
     version: 0.4.1
@@ -1961,6 +1961,28 @@ packages:
 
   /@panva/hkdf@1.2.1:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
+    dev: false
+
+  /@paul-portfolio/css@0.13.11(@paul-portfolio/tokens@0.4.1):
+    resolution: {integrity: sha512-iY7t3NaSlFn/i0Ht85kBpwcEtW4XVmQ1hnixlvq1TkJYknXKdqPDamZ1003AK4fNm6kfLe37X9T6SjroLsFaKQ==}
+    peerDependencies:
+      '@paul-portfolio/tokens': '>=0.1.0'
+    dependencies:
+      '@paul-portfolio/tokens': 0.4.1
+    dev: false
+
+  /@paul-portfolio/react@0.12.9(@paul-portfolio/css@0.13.11)(@paul-portfolio/tokens@0.4.1)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-sMfCGniiVvVqhlBa5lDT/qxP9ai4mqnONIEzlpaAdETf68S2VUzdhKIr85mhESTZ6+WKWLrfy5RoZrx24oytfg==}
+    peerDependencies:
+      '@paul-portfolio/css': '>=0.1.0'
+      '@paul-portfolio/tokens': '>=0.1.0'
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+    dependencies:
+      '@paul-portfolio/css': 0.13.11(@paul-portfolio/tokens@0.4.1)
+      '@paul-portfolio/tokens': 0.4.1
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
     dev: false
 
   /@paul-portfolio/tokens@0.4.1:
@@ -10973,32 +10995,4 @@ packages:
       '@types/react': 19.0.0
       react: 19.2.3
       use-sync-external-store: 1.4.0(react@19.2.3)
-    dev: false
-
-  file:vendor/paul-portfolio-css-0.13.11.tgz(@paul-portfolio/tokens@0.4.1):
-    resolution: {integrity: sha512-iY7t3NaSlFn/i0Ht85kBpwcEtW4XVmQ1hnixlvq1TkJYknXKdqPDamZ1003AK4fNm6kfLe37X9T6SjroLsFaKQ==, tarball: file:vendor/paul-portfolio-css-0.13.11.tgz}
-    id: file:vendor/paul-portfolio-css-0.13.11.tgz
-    name: '@paul-portfolio/css'
-    version: 0.13.11
-    peerDependencies:
-      '@paul-portfolio/tokens': '>=0.1.0'
-    dependencies:
-      '@paul-portfolio/tokens': 0.4.1
-    dev: false
-
-  file:vendor/paul-portfolio-react-0.12.9.tgz(@paul-portfolio/css@0.13.11)(@paul-portfolio/tokens@0.4.1)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-sMfCGniiVvVqhlBa5lDT/qxP9ai4mqnONIEzlpaAdETf68S2VUzdhKIr85mhESTZ6+WKWLrfy5RoZrx24oytfg==, tarball: file:vendor/paul-portfolio-react-0.12.9.tgz}
-    id: file:vendor/paul-portfolio-react-0.12.9.tgz
-    name: '@paul-portfolio/react'
-    version: 0.12.9
-    peerDependencies:
-      '@paul-portfolio/css': '>=0.1.0'
-      '@paul-portfolio/tokens': '>=0.1.0'
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
-    dependencies:
-      '@paul-portfolio/css': file:vendor/paul-portfolio-css-0.13.11.tgz(@paul-portfolio/tokens@0.4.1)
-      '@paul-portfolio/tokens': 0.4.1
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
     dev: false

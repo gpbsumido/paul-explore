@@ -515,6 +515,12 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
 -   "MobileOrbitHero",
 -   "MobileReelHero",`}
         </pre>
+        <p className="mt-3 text-muted">
+          Once the design system released, the app dropped the vendored archives
+          and now installs the published{" "}
+          <code className={code}>@paul-portfolio/react</code> 0.12.9 and{" "}
+          <code className={code}>css</code> 0.13.11 like every other dependency.
+        </p>
       </Update>
 
       <WhatsNext
