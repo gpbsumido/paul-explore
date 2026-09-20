@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.2
+
+- Added three mobile hero scenes from the design system: a scrubbed Reel, a rotary Orbit, and a draggable Lens. The switcher sits above the mobile introduction; desktop keeps Spiral, Perspective and Corridor. The viewport subscription also handles coarse-pointer phones in landscape without changing the static page cache.
+- Included portable design-system preview archives until the matching registry release is available.
+
 ## 2026-09-20 - version 7.5.1
 
 - **Tidied up the arrows.** Every Unicode arrow on the landing and the surprise page (`↗ ↘ ↑ → ↻`), which rendered thin and uneven especially small on mobile, is now a crisp shared SVG icon that inherits its colour. The work-portfolio prev/next arrows also overlay the demo on a narrow screen instead of flanking and squeezing it, so the demo gets the full width.

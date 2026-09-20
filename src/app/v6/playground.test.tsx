@@ -57,3 +57,38 @@ describe("portfolio playground", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe("mobile hero scenes", () => {
+  it("uses touch-first scenes and keeps one heading as the viewport changes", async () => {
+    const { vi } = await import("vitest");
+    const { act } = await import("@testing-library/react");
+    let mobile = true;
+    const listeners = new Set<() => void>();
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes("700px") ? mobile : false, media: query,
+      addEventListener: (_: string, listener: () => void) => { if (query.includes("700px")) listeners.add(listener); },
+      removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+    }));
+    try {
+      const { container, unmount } = render(<ThemeProvider><PlaygroundHero /></ThemeProvider>);
+      expect(screen.getByRole("slider", { name: "Scrub projects" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Pause motion" })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("radio", { name: "Orbit" }));
+      expect(screen.getByRole("slider", { name: "Rotate project dial" })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("radio", { name: "Lens" }));
+      expect(screen.getByRole("button", { name: "Move magnifying lens" })).toBeInTheDocument();
+      expect(container.querySelector(".portrait-hero")).toBeNull();
+      expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+      expect(screen.getByRole("link", { name: /Resume/ })).toHaveAttribute("href", "/resume");
+      act(() => { mobile = false; listeners.forEach(listener => listener()); });
+      expect(screen.getByRole("radio", { name: "Spiral" })).toBeInTheDocument();
+      expect(container.querySelector(".portrait-hero--spiral")).not.toBeNull();
+      expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+      act(() => { mobile = true; listeners.forEach(listener => listener()); });
+      expect(screen.getByRole("button", { name: "Move magnifying lens" })).toBeInTheDocument();
+      unmount();
+      expect(listeners.size).toBe(0);
+    } finally { window.matchMedia = original; }
+  });
+});
