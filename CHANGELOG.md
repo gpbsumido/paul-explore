@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.6
+
+- Retired the colored left-border stripe on cards, the single most-cited "AI-generated" design tell. The category colour now sits in a small dot beside the title on the thoughts index, fantasy hub and countdown cards, and the redundant stripe is gone from the write-up, craft and updates cards. Left rails that actually mean something stay put: calendar event chips, the operator state rails, team-colour pick cards, and the neutral rails in `/learn`. First step of a wider design detox.
+- Gave interior pages the landing's editorial heading. A shared `PageIntro` (eyebrow, confident display title, lede) replaces the timid `text-3xl` header that was hand-rolled on each page, so the whole site reads in one type language instead of a stack of separately styled screens. Adopted on the thoughts index, updates, craft and interviewee pages, and on every write-up through `ThoughtLayout`.
+
 ## 2026-09-20 - version 7.5.5
 
 - Gitignored `.agents/` and `.codex/`, the skill and hook dumps other coding-agent tools leave in the repo root.

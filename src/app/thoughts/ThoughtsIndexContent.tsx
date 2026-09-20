@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import PageIntro from "@/components/PageIntro";
 import { THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
@@ -16,8 +17,12 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
       className={`glass-card flex h-full items-start gap-3 rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
         thought.deprecated ? " opacity-70" : ""
       }`}
-      style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
     >
+      <span
+        aria-hidden
+        className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+        style={{ backgroundColor: thought.color }}
+      />
       <div className="min-w-0">
         <p className="flex items-center gap-2 font-semibold text-foreground">
           <span className="truncate">{thought.title}</span>
@@ -58,18 +63,11 @@ export default function ThoughtsIndexContent() {
       />
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-        <header className="mb-10">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            Dev notes
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Thoughts
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            Deep-dives into the architecture decisions, trade-offs, and lessons
-            behind everything in this project, grouped by area.
-          </p>
-        </header>
+        <PageIntro
+          eyebrow="Dev notes"
+          title="Thoughts"
+          lede="Deep-dives into the architecture decisions, trade-offs, and lessons behind everything in this project, grouped by area."
+        />
 
         <div className="space-y-12">
           {groups.map((group) => (

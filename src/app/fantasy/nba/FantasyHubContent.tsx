@@ -119,9 +119,15 @@ export default function FantasyHubContent() {
               key={p.href}
               href={p.href}
               className="glass-card flex h-full flex-col rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
-              style={{ borderLeftWidth: 3, borderLeftColor: p.color }}
             >
-              <p className="font-semibold text-foreground">{p.title}</p>
+              <p className="flex items-center gap-2 font-semibold text-foreground">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: p.color }}
+                />
+                {p.title}
+              </p>
               <p className="mt-1 text-sm leading-relaxed text-muted">
                 {p.description}
               </p>
