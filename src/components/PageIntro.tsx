@@ -30,7 +30,7 @@ export default function PageIntro({ eyebrow, title, lede, className }: Props) {
           {eyebrow}
         </p>
       ) : null}
-      <h1 className="text-[clamp(2.25rem,4.5vw,3.25rem)] font-semibold leading-[1.05] text-foreground">
+      <h1 className="text-[clamp(2.6rem,6vw,4.25rem)] font-bold leading-[0.98] tracking-[-0.03em] text-foreground">
         {title}
       </h1>
       {lede ? (
