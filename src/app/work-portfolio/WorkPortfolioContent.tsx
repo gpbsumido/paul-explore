@@ -101,28 +101,30 @@ export default function WorkPortfolioContent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <Ticker
-        label="Projects ticker"
-        edge="top"
-        direction="left"
-        className="bg-surface/30"
-      >
-        {PROJECTS.map((project) => (
-          <ProjectChip
-            key={project.id}
-            project={project}
-            active={project.id === selectedProjectId}
-            onSelect={() => selectProject(project.id)}
-            onInfo={() =>
-              setExplainer({
-                subject: { kind: "project", project },
-                edge: "top",
-              })
-            }
-            onInfoHover={hoverIntent({ kind: "project", project }, "top")}
-          />
-        ))}
-      </Ticker>
+      <div id="wp-projects-ticker">
+        <Ticker
+          label="Projects ticker"
+          edge="top"
+          direction="left"
+          className="bg-surface/30"
+        >
+          {PROJECTS.map((project) => (
+            <ProjectChip
+              key={project.id}
+              project={project}
+              active={project.id === selectedProjectId}
+              onSelect={() => selectProject(project.id)}
+              onInfo={() =>
+                setExplainer({
+                  subject: { kind: "project", project },
+                  edge: "top",
+                })
+              }
+              onInfoHover={hoverIntent({ kind: "project", project }, "top")}
+            />
+          ))}
+        </Ticker>
+      </div>
       <main
         className="relative flex min-h-0 flex-1 items-center gap-1 px-1 py-1.5"
         aria-label="Demo stage"
@@ -207,36 +209,38 @@ export default function WorkPortfolioContent() {
         </div>
         <StageArrow dir="next" onClick={() => step(1)} />
       </main>
-      <Ticker
-        label="Features ticker"
-        edge="bottom"
-        direction="right"
-        className="bg-surface/30"
-      >
-        {FEATURES.map((feature, i) => (
-          <FeatureChip
-            key={feature.slug}
-            feature={feature}
-            project={projectFor(feature)}
-            active={i === selectedIndex}
-            onSelect={() => setSelectedIndex(i)}
-            onInfo={() =>
-              setExplainer({
-                subject: {
-                  kind: "feature",
-                  feature,
-                  project: projectFor(feature),
-                },
-                edge: "bottom",
-              })
-            }
-            onInfoHover={hoverIntent(
-              { kind: "feature", feature, project: projectFor(feature) },
-              "bottom",
-            )}
-          />
-        ))}
-      </Ticker>
+      <div id="wp-features-ticker">
+        <Ticker
+          label="Features ticker"
+          edge="bottom"
+          direction="right"
+          className="bg-surface/30"
+        >
+          {FEATURES.map((feature, i) => (
+            <FeatureChip
+              key={feature.slug}
+              feature={feature}
+              project={projectFor(feature)}
+              active={i === selectedIndex}
+              onSelect={() => setSelectedIndex(i)}
+              onInfo={() =>
+                setExplainer({
+                  subject: {
+                    kind: "feature",
+                    feature,
+                    project: projectFor(feature),
+                  },
+                  edge: "bottom",
+                })
+              }
+              onInfoHover={hoverIntent(
+                { kind: "feature", feature, project: projectFor(feature) },
+                "bottom",
+              )}
+            />
+          ))}
+        </Ticker>
+      </div>
       {explainer && (
         <ExplainerWindow
           subject={explainer.subject}
