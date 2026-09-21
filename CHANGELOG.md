@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.16
+
+- Logged the site-wide design pass in the public Updates feed — the first curated entry since the 7.5.0 landing rebuild, covering the cleaner cards, editorial headings, squircle corners, and irregular bento grids.
+
 ## 2026-09-20 - version 7.5.15
 
 - Deprecated seven dev-thoughts write-ups whose features are superseded — Route Restructure, Risk-scoring API, the v2/v3/v4/v5 redesign notes, and the Landing Page preview. They move into the Deprecated group on the thoughts index and keep their history, rather than sitting in the active categories.
