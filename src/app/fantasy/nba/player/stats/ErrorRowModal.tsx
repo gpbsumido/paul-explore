@@ -9,6 +9,7 @@ export default function ErrorRowModal({
 }) {
   return (
     <Modal open={open} onClose={onClose} aria-label="Stats error info">
+      <Modal.Body>
       <div className="flex flex-col gap-3">
         <h3 className="text-[17px] font-semibold text-foreground">
           Why did this fail?
@@ -25,6 +26,7 @@ export default function ErrorRowModal({
           OK
         </Button>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

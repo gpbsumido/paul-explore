@@ -317,6 +317,7 @@ export default function WorkflowEditorDemo({
           onClose={() => setEditing(null)}
           aria-label={`Configure ${editNode.label}`}
         >
+          <Modal.Body>
           <div className="flex flex-col gap-3">
             <p className="font-display text-lg font-bold text-foreground">
               Configure step
@@ -363,6 +364,7 @@ export default function WorkflowEditorDemo({
               </button>
             </div>
           </div>
+          </Modal.Body>
         </Modal>
       )}
 

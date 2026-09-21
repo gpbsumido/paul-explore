@@ -59,6 +59,7 @@ function ComposerModal({
   const isPost = composer.mode === "post";
   return (
     <Modal open onClose={onClose} aria-label={isPost ? "New post" : "Reply"}>
+      <Modal.Body>
       <div className="flex flex-col gap-3">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
           {isPost ? "New post" : "Reply"}
@@ -83,6 +84,7 @@ function ComposerModal({
           </Button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }
@@ -130,6 +132,7 @@ function AnalyticsModal({
   const engagement = Math.round((post.likes / (post.likes + 40)) * 100);
   return (
     <Modal open onClose={onClose} aria-label={`Analytics for ${post.author}`}>
+      <Modal.Body>
       <div className="flex flex-col gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
@@ -165,6 +168,7 @@ function AnalyticsModal({
           </Button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

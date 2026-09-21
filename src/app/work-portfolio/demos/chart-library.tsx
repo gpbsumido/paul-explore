@@ -621,6 +621,7 @@ function ChartSettingsModal({
   const [accent, setAccent] = useState(current.accent ?? PALETTE[0]);
   return (
     <Modal open onClose={onClose} aria-label="Chart settings">
+      <Modal.Body>
       <div className="flex flex-col gap-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
           Chart settings
@@ -665,6 +666,7 @@ function ChartSettingsModal({
           </Button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

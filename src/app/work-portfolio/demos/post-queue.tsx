@@ -182,6 +182,7 @@ function EditPostModal({
 
   return (
     <Modal open onClose={onClose} aria-label={`Edit ${post.title}`}>
+      <Modal.Body>
       <div className="flex flex-col gap-3">
         <p className={`${poster} text-[13px]`}>Edit post</p>
         <Input
@@ -231,6 +232,7 @@ function EditPostModal({
           </Button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

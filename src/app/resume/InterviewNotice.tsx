@@ -29,6 +29,7 @@ export default function InterviewNotice() {
       aria-labelledby="interview-notice-title"
       aria-describedby="interview-notice-body"
     >
+      <Modal.Body>
       <h2
         id="interview-notice-title"
         className="text-lg font-bold text-foreground"
@@ -66,6 +67,7 @@ export default function InterviewNotice() {
           {EMAIL}
         </a>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

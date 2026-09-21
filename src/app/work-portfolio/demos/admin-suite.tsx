@@ -211,6 +211,7 @@ function CreateModal({
 
   return (
     <Modal open onClose={onClose} aria-label={`New ${tab}`}>
+      <Modal.Body>
       <div className="flex flex-col gap-3">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
           New {tab.replace(/s$/, "").toLowerCase()}
@@ -306,6 +307,7 @@ function CreateModal({
           </Button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

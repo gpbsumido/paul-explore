@@ -132,6 +132,7 @@ function CreateCharacterModal({
 
   return (
     <Modal open onClose={onClose} aria-label="Create character">
+      <Modal.Body>
       <div className="flex flex-col gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
@@ -228,6 +229,7 @@ function CreateCharacterModal({
           )}
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }
