@@ -8,6 +8,7 @@ export const TOUR_SEEN_KEYS = [
   "vitals-tour-seen",
   "operator-tour-seen",
   "design-system-tour-seen",
+  "work-portfolio-tour-seen",
 ];
 
 /**
