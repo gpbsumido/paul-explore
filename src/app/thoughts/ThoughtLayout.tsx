@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import PageIntro from "@/components/PageIntro";
 import ThoughtChatShell from "@/app/thoughts/ThoughtChatShell";
 
 type Props = {
@@ -53,15 +54,7 @@ export default function ThoughtLayout({
 
   const summary = (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-      <header className="mb-10">
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-          Dev notes
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          {title}
-        </h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">{intro}</p>
-      </header>
+      <PageIntro eyebrow="Dev notes" title={title} lede={intro} />
 
       <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
         {children}

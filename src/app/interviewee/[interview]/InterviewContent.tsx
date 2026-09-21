@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
+import PageIntro from "@/components/PageIntro";
 import type { Interview, IntervieweeTopic } from "@/lib/interviewee/types";
 import { isDueForReview } from "@/lib/interviewee/reviewState";
 import { useAnswered } from "../useAnswered";
@@ -113,14 +114,7 @@ export default function InterviewContent({
           </Link>
         </div>
 
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {interview.title}
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            {interview.summary}
-          </p>
-        </header>
+        <PageIntro title={interview.title} lede={interview.summary} />
 
         <section aria-label="To review" className="mb-10">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted">

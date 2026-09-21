@@ -1,5 +1,102 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.16
+
+- Logged the site-wide design pass in the public Updates feed — the first curated entry since the 7.5.0 landing rebuild, covering the cleaner cards, editorial headings, squircle corners, and irregular bento grids.
+
+## 2026-09-20 - version 7.5.15
+
+- Deprecated seven dev-thoughts write-ups whose features are superseded — Route Restructure, Risk-scoring API, the v2/v3/v4/v5 redesign notes, and the Landing Page preview. They move into the Deprecated group on the thoughts index and keep their history, rather than sitting in the active categories.
+
+## 2026-09-20 - version 7.5.14
+
+- Fixed the landing contact section: its drifting-blob background was boxed inside the max-width shell, leaving black bars down the sides. The background now bleeds to the full section width while the copy stays in the shell frame, and the heading now reads "If you are hiring a frontend dev".
+
+## 2026-09-20 - version 7.5.13
+
+- Broke the signed-in feature-hub grid into the same irregular bento (a repeating wide tile, dense-packed) via an optional className on the feature card, so the main hub stops reading as an even three-up too.
+
+## 2026-09-20 - version 7.5.12
+
+- Added a `/thoughts/design-detox` write-up documenting the design pass: dropping the colored-stripe tell, the shared page intro, Apple squircle corners, the inline-arrow fix whose first attempt missed the real cause, the film grain that did not help, and breaking the too-even grid into a bento. The wrong turns are kept in on purpose.
+
+## 2026-09-20 - version 7.5.11
+
+- Broke the fantasy hub grid into the same irregular bento as the thoughts index — a larger featured card plus a repeating wide tile, dense-packed — so it stops reading as an even three-up.
+
+## 2026-09-20 - version 7.5.10
+
+- The "This site" work-portfolio demo now shows theme-matched screenshots. It only had dark-mode thumbnails, so a light-theme visitor saw dark screengrabs of pages that were actually light. Added a light capture for each of the nine linked pages and refreshed the dark ones to the current design, and the demo now swaps light/dark per theme (only the active one loads).
+
+## 2026-09-20 - version 7.5.9
+
+- An editorial pass to make the site read less like an even, generated template and more like it was laid out by hand.
+  - **Broke the uniform grid.** The thoughts index is now an irregular bento — a repeating wide tile plus dense packing — instead of a perfectly even three-up. The whole point: it should not look like every card was stamped from the same cell.
+  - **Bolder display titles.** The shared `PageIntro` heading moved to a `clamp(2.6rem … 4.25rem)` bold, tight-tracked display size.
+  - **Signature link underline.** Wherever a link underlines it now draws as a chunky, offset accent rule that fills in on hover, not the thin browser default.
+  - **Numbered sections.** The thoughts categories read `01 / …`, `02 / …` in the accent.
+  - **Killed a stray purple.** The signed-in hub header had a faint violet wash (`rgba(139,92,246,…)`), the classic vibecode gradient — now verdigris.
+
+## 2026-09-20 - version 7.5.8
+
+- Gave the rounded corners the Apple squircle shape. The new CSS `corner-shape: squircle` draws a superellipse instead of a plain circular arc, which reads as crafted rather than the default-`border-radius` look every scaffold ships. It's progressive enhancement — Chromium draws the squircle, other browsers keep the normal rounded corner — and it's scoped to finite-radius surfaces, so circles, pills, dots and avatars (`rounded-full`) stay perfectly round.
+
+## 2026-09-20 - version 7.5.7
+
+- Kept the icon arrows on the text line. The design-system reset renders a bare `svg` as `display:block`, which dropped a trailing arrow (↗) onto its own line in the header nav, the hero meta and the footer — buttons were fine because they use flex. The shared arrow component now sets `display:inline-block`, so every arrow across the landing sits inline again.
+- Finished the `PageIntro` rollout onto the ticket board and gallery wall, so those two pages now carry the same editorial heading as the rest of the site.
+
+## 2026-09-20 - version 7.5.6
+
+- Retired the colored left-border stripe on cards, the single most-cited "AI-generated" design tell. The category colour now sits in a small dot beside the title on the thoughts index, fantasy hub and countdown cards, and the redundant stripe is gone from the write-up, craft and updates cards. Left rails that actually mean something stay put: calendar event chips, the operator state rails, team-colour pick cards, and the neutral rails in `/learn`. First step of a wider design detox.
+- Gave interior pages the landing's editorial heading. A shared `PageIntro` (eyebrow, confident display title, lede) replaces the timid `text-3xl` header that was hand-rolled on each page, so the whole site reads in one type language instead of a stack of separately styled screens. Adopted on the thoughts index, updates, craft and interviewee pages, and on every write-up through `ThoughtLayout`.
+
+## 2026-09-20 - version 7.5.5
+
+- Gitignored `.agents/` and `.codex/`, the skill and hook dumps other coding-agent tools leave in the repo root.
+
+## 2026-09-20 - version 7.5.4
+
+- Moved the design-system dependency off the vendored preview archives and onto the published `@paul-portfolio/react` 0.12.9 and `css` 0.13.11, now that 0.9.14 is released to npm, and removed `vendor/`.
+
+## 2026-09-20 - version 7.5.3
+
+- Updated the mobile hero preview packages with SVG controls. Verified Reel, Orbit and Lens at phone widths, including real pointer drags, theme changes, and the 700px transition back to the desktop heroes.
+- Documented Reel, Orbit and Lens in the `/design-system` gallery next to the desktop heroes, and moved the preview archives to plain release versions of `@paul-portfolio/react` (0.12.9) and `css` (0.13.11) so a frozen install resolves them.
+
+## 2026-09-20 - version 7.5.2
+
+- Added three mobile hero scenes from the design system: a scrubbed Reel, a rotary Orbit, and a draggable Lens. The switcher sits above the mobile introduction; desktop keeps Spiral, Perspective and Corridor. The viewport subscription also handles coarse-pointer phones in landscape without changing the static page cache.
+- Included portable design-system preview archives until the matching registry release is available.
+
+## 2026-09-20 - version 7.5.1
+
+- **Tidied up the arrows.** Every Unicode arrow on the landing and the surprise page (`↗ ↘ ↑ → ↻`), which rendered thin and uneven especially small on mobile, is now a crisp shared SVG icon that inherits its colour. The work-portfolio prev/next arrows also overlay the demo on a narrow screen instead of flanking and squeezing it, so the demo gets the full width.
+
+## 2026-09-19 - version 7.5.0
+
+- **Rebuilt the home page as a portfolio playground.** The landing at `/` is a new v6 design: a scene-switching portrait hero, a horizontally scroll-jacked project shelf where scrolling down travels the work sideways (with a rubber-band category filter), a "Serious about the ___" heading that loops through details, tests, accessibility and performance, a live LinkPreview on the Core Web Vitals line, and a Field Notes stage where "docs and thoughts" blooms in flowers over a drifting wall of app tiles that name themselves on hover. The hero and the wall swap their light and dark captures with the theme, and every earlier edition still lives behind `/discover?version=`.
+- **Made the scroll shelf sturdier.** The work section has a fixed height so switching the category filter no longer jumps the page, the shortlist footer sits above its own divider instead of overlapping the next section, and the section titles share one side inset so 01/02/03/04 line up. The field-notes bloom scales to the stage width so the whole phrase stays centred on resize, and it darkens in light mode to read against the pale stage.
+- **Linked the design system page out to npm and GitHub.** `/design-system` now carries "View on npm" and "Source on GitHub" next to the write-up link.
+- **Fixed the heatmap demo's duplicate React key.** Its columns were labelled `M T W T F`, so the two `T`s collided on the key `col-T`; they are now `Mo Tu We Th Fr`.
+- **Added a surprise page.** The "Surprise me" button opens `/surprise`, which toggles between spinning to a random feature and a creative, interactive list of every feature on the site, including the ones the discover reel leaves out.
+- **Filled out the project shelf.** Section 2 now travels past fourteen works with captured light and dark previews, and on small screens it side-scrolls as a swipeable row instead of stacking into a column.
+- **Light mode reaches the demos.** The particle lab and every work-portfolio demo (bar the retro-arcade game, which stays dark on purpose) now follow the theme through a shared `--wp-surface` and foreground-tinted overlays, instead of staying dark on a light page. The closing section swaps its cursor spotlight for a drifting blob background and gains a Calendly booking link.
+
+## 2026-09-19 - version 7.4.2
+
+- Enlarged the BotanicalText gallery demo so its lettering is legible, and gave the TiltCard demo a matching corner radius.
+- Bumped the design system to `react@0.12.6` / `css@0.13.8`, which keeps the PathGallery images on the drawn path at any width and clips the TiltCard glare to the card's rounded corners.
+
+## 2026-09-18 - version 7.4.1
+
+- **Gallery polish from testing the effects on develop.** The big compositions — the three portrait heroes and the botanical canvas text — each get their own full-width row instead of a cramped grid cell. Every effect preview is now clipped to its card, so the galleries, sliders and 3D wall stay inside their frame rather than spilling across the grid.
+- **Friendlier effect demos.** BlurReveal has a replay button and RefineFrame a loading/done toggle; the lattice loader shows its done and failed states next to working; the circular gallery's cards sit closer together; and the hover-image-reveal menu is a shorter list.
+- **Fixed two demos that used their component wrong.** The star border now carries its own rounding so the animated edge follows the corner, and the tilt card's frame sits on a child so the whole card tilts rather than just the text.
+- The drifting 3D wall gets a definite-height wrapper so it actually renders — it's `height: 100%` and a `min-height`-only parent collapsed it to nothing.
+- Dropped the source-library names from the gallery card provenance note.
+- Bumped the design system to `react@0.12.5` / `css@0.13.7`, which brings the dark-mode fixes for the rubber-band segmented control and the liquid-carve button.
+
 ## 2026-09-18 - version 7.4.0
 
 - **The design-system gallery now covers the full effect set.** Bumped `@paul-portfolio/react` to 0.12.4 (and `css`/`tokens` alongside) and documented the two dozen new motion and effect components in the live gallery at `/design-system` — sparks, blur reveals, star borders, liquid glass, a rubber-band segmented control, a lattice loader, a drifting 3D wall, spinning and path galleries, a momentum slider, hover/link image reveals, portrait heroes, light bloom, particle and botanical canvas text, a refine frame, and a floating folder. Each gets a catalog entry (the gallery's integrity test requires documenting every export the package ships) and a live, prop-real preview. The animated previews only mount once their card scrolls on screen, so opening the gallery doesn't kick off two dozen animation loops at once.

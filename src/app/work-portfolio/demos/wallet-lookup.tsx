@@ -146,7 +146,7 @@ export default function WalletLookupDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(220 40% 8%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(218 68% 60% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(218 68% 60% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
@@ -199,7 +199,7 @@ export default function WalletLookupDemo({
               setInput(s);
               submit(s);
             }}
-            className="paul-touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
+            className="paul-touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-foreground/10"
             style={
               address === s
                 ? { borderColor: ACCENT, color: ACCENT }
@@ -334,7 +334,7 @@ export default function WalletLookupDemo({
                         <span className="hidden w-24 shrink-0 truncate text-[11px] text-muted sm:block">
                           {t.name}
                         </span>
-                        <span className="h-2 flex-1 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                        <span className="h-2 flex-1 overflow-hidden rounded-full bg-black/5 dark:bg-foreground/10">
                           <span
                             className="block h-full rounded-full"
                             style={{ width: `${t.pct}%`, backgroundColor: ACCENT }}
@@ -357,7 +357,7 @@ export default function WalletLookupDemo({
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-16 animate-pulse rounded-lg bg-black/5 dark:bg-white/10"
+                    className="h-16 animate-pulse rounded-lg bg-black/5 dark:bg-foreground/10"
                   />
                 ))}
               </div>

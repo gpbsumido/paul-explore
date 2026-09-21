@@ -4,6 +4,7 @@ import { useState, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import * as THREE from "three";
 import { ACCENT_BAND } from "@/lib/accentBand";
+import { useTheme } from "@/components/ThemeProvider";
 import type { ParticleSceneProps } from "./ParticleScene";
 
 // Canvas loaded client-only — WebGL requires the browser.
@@ -80,6 +81,7 @@ function Slider({
   step,
   onChange,
   display,
+  dark,
 }: {
   label: string;
   value: number;
@@ -88,14 +90,15 @@ function Slider({
   step: number;
   onChange: (v: number) => void;
   display: string;
+  dark: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
           {label}
         </span>
-        <span className="font-mono text-[10px] text-white/70">{display}</span>
+        <span className="font-mono text-[10px] text-muted">{display}</span>
       </div>
       <input
         type="range"
@@ -105,7 +108,11 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="paul-touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
+        className="paul-touch-target h-1 w-full cursor-pointer appearance-none rounded-full"
+        style={{
+          backgroundColor: dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.14)",
+          accentColor: dark ? "#ffffff" : "var(--color-primary-600)",
+        }}
       />
     </div>
   );
@@ -116,6 +123,8 @@ function Slider({
 // ---------------------------------------------------------------------------
 
 export default function ParticlesPage() {
+  const { theme } = useTheme();
+  const dark = theme !== "light";
   const [speedMult, setSpeedMult] = useState(1.5);
   const [connectDist, setConnectDist] = useState(1.5);
   const [paletteIndex, setPaletteIndex] = useState(0);
@@ -148,7 +157,7 @@ export default function ParticlesPage() {
 
   return (
     <main
-      className="relative bg-black"
+      className="relative bg-background"
       style={{ height: "calc(100dvh - 3.5rem)" }}
       onPointerMove={handlePointerMove}
     >
@@ -161,18 +170,20 @@ export default function ParticlesPage() {
       <div
         className="absolute bottom-6 left-1/2 w-[min(360px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4"
         style={{
-          background: "rgba(0,0,0,0.55)",
+          background: dark ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          border: dark
+            ? "1px solid rgba(255,255,255,0.1)"
+            : "1px solid rgba(0,0,0,0.08)",
         }}
       >
         {/* Header row */}
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-white/60">
+          <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             Controls
           </span>
-          <span className="font-mono text-[10px] text-white/70">
+          <span className="font-mono text-[10px] text-muted">
             {PARTICLE_COUNT} particles
           </span>
         </div>
@@ -186,6 +197,7 @@ export default function ParticlesPage() {
             step={0.1}
             onChange={setSpeedMult}
             display={speedMult.toFixed(1) + "×"}
+            dark={dark}
           />
           <Slider
             label="Connection Distance"
@@ -195,11 +207,12 @@ export default function ParticlesPage() {
             step={0.1}
             onChange={setConnectDist}
             display={connectDist.toFixed(1)}
+            dark={dark}
           />
 
           {/* Color theme picker */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
               Color Theme
             </span>
             <div className="flex gap-2">
@@ -214,13 +227,13 @@ export default function ParticlesPage() {
                     backgroundColor: dot,
                     outline:
                       paletteIndex === i
-                        ? "2px solid rgba(255,255,255,0.7)"
+                        ? `2px solid ${dark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)"}`
                         : "2px solid transparent",
                     outlineOffset: "2px",
                   }}
                 />
               ))}
-              <span className="ml-1 flex items-center text-[10px] text-white/70">
+              <span className="ml-1 flex items-center text-[10px] text-muted">
                 {PALETTE_LABELS[paletteIndex]}
               </span>
             </div>
@@ -228,7 +241,7 @@ export default function ParticlesPage() {
 
           {/* Mouse attraction toggle */}
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
               Mouse Attraction
             </span>
             <button
@@ -238,14 +251,19 @@ export default function ParticlesPage() {
               className="paul-touch-target flex h-5 w-9 items-center rounded-full transition-colors"
               style={{
                 background: mouseAttraction
-                  ? "rgba(255,255,255,0.25)"
-                  : "rgba(255,255,255,0.1)",
+                  ? dark
+                    ? "rgba(255,255,255,0.25)"
+                    : "var(--color-primary-600)"
+                  : dark
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.12)",
               }}
               aria-pressed={mouseAttraction}
             >
               <span
-                className="h-4 w-4 rounded-full bg-white transition-transform"
+                className="h-4 w-4 rounded-full transition-transform"
                 style={{
+                  background: dark ? "#ffffff" : mouseAttraction ? "#ffffff" : "var(--color-muted)",
                   transform: mouseAttraction
                     ? "translateX(20px)"
                     : "translateX(2px)",

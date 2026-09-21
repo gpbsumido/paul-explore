@@ -220,7 +220,7 @@ export default function CampaignManagerDemo({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2.5">
         <div
-          className="inline-flex gap-1 rounded-xl border border-border bg-white/5 p-1"
+          className="inline-flex gap-1 rounded-xl border border-border bg-foreground/5 p-1"
           role="group"
           aria-label="View"
         >
@@ -233,7 +233,7 @@ export default function CampaignManagerDemo({
               className={`${posterFont} rounded-lg px-3.5 py-1.5 text-[12px] tracking-wide transition-colors ${
                 view === v
                   ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-white/5"
+                  : "text-foreground hover:bg-foreground/5"
               }`}
             >
               {v === "dial" ? "Dial" : "Run of show"}
@@ -286,7 +286,7 @@ export default function CampaignManagerDemo({
 
       {/* Layout */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
-        <div className="overflow-hidden rounded-2xl border border-border bg-white/5 p-4 backdrop-blur-sm">
+        <div className="overflow-hidden rounded-2xl border border-border bg-foreground/5 p-4 backdrop-blur-sm">
           {view === "dial" ? (
             <Dial
               shown={shown}
@@ -509,11 +509,11 @@ function Strip({
       <StageTitle title="Run of show">drag bars to reschedule</StageTitle>
       <div className="overflow-x-auto pb-2.5">
         <div className="relative min-w-[1000px]">
-          <div className="ml-[170px] flex border-b-[1.5px] border-white/20">
+          <div className="ml-[170px] flex border-b-[1.5px] border-foreground/20">
             {cols.map((m) => (
               <div
                 key={m.label}
-                className="border-l border-white/10 py-2 font-display text-[11px] font-bold uppercase text-muted"
+                className="border-l border-foreground/10 py-2 font-display text-[11px] font-bold uppercase text-muted"
                 style={{ flex: `0 0 ${m.w}%`, letterSpacing: "0.09em" }}
               >
                 {m.label}
@@ -615,8 +615,8 @@ function StripRow({
   };
 
   return (
-    <div className="grid grid-cols-[170px_1fr] border-t border-white/10">
-      <div className="flex flex-col justify-center gap-0.5 border-r-[1.5px] border-white/15 py-3.5 pr-3">
+    <div className="grid grid-cols-[170px_1fr] border-t border-foreground/10">
+      <div className="flex flex-col justify-center gap-0.5 border-r-[1.5px] border-foreground/15 py-3.5 pr-3">
         <b className="text-[13px] font-bold leading-tight">{c.name}</b>
         <small className="text-[11px] text-muted">
           {c.status} — {fmt(c.start)} to {fmt(c.end)}
@@ -627,7 +627,7 @@ function StripRow({
           {cols.map((m, i) => (
             <span
               key={i}
-              className="border-l border-white/[0.055]"
+              className="border-l border-foreground/[0.055]"
               style={{ flex: `0 0 ${m.w}%` }}
             />
           ))}
@@ -728,7 +728,7 @@ function Inspector({
 }) {
   if (!current) {
     return (
-      <section className="rounded-2xl border border-border bg-white/5 p-5 backdrop-blur-sm">
+      <section className="rounded-2xl border border-border bg-foreground/5 p-5 backdrop-blur-sm">
         <h3 className={`${posterFont} text-[17px]`}>Nothing selected</h3>
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
           Pick an arc on the dial, a bar on the run of show, or a row from the
@@ -761,7 +761,7 @@ function Inspector({
   );
 
   return (
-    <section className="rounded-2xl border border-border bg-white/5 p-5 backdrop-blur-sm">
+    <section className="rounded-2xl border border-border bg-foreground/5 p-5 backdrop-blur-sm">
       <input
         aria-label="Campaign name"
         value={current.name}
@@ -807,14 +807,14 @@ function Inspector({
         <button
           type="button"
           onClick={() => onDuplicate(current)}
-          className="rounded-lg border border-border bg-white/5 px-3.5 py-2 text-[13px] font-semibold text-foreground hover:bg-white/10"
+          className="rounded-lg border border-border bg-foreground/5 px-3.5 py-2 text-[13px] font-semibold text-foreground hover:bg-foreground/10"
         >
           Duplicate
         </button>
         <button
           type="button"
           onClick={onDeselect}
-          className="rounded-lg border border-border bg-white/5 px-3.5 py-2 text-[13px] font-semibold text-foreground hover:bg-white/10"
+          className="rounded-lg border border-border bg-foreground/5 px-3.5 py-2 text-[13px] font-semibold text-foreground hover:bg-foreground/10"
         >
           Deselect
         </button>
@@ -842,7 +842,7 @@ function CampaignList({
 }) {
   if (!campaigns.length) {
     return (
-      <div className="rounded-2xl border border-border bg-white/5 p-10 text-center text-[13px] text-muted backdrop-blur-sm">
+      <div className="rounded-2xl border border-border bg-foreground/5 p-10 text-center text-[13px] text-muted backdrop-blur-sm">
         No campaigns yet. Start the year with one.
       </div>
     );
@@ -853,7 +853,7 @@ function CampaignList({
   return (
     <ul
       aria-label="Campaigns"
-      className="max-h-[340px] overflow-auto rounded-2xl border border-border bg-white/5 p-2 backdrop-blur-sm"
+      className="max-h-[340px] overflow-auto rounded-2xl border border-border bg-foreground/5 p-2 backdrop-blur-sm"
     >
       {sorted.map((c) => (
         <li key={c.id}>
@@ -863,8 +863,8 @@ function CampaignList({
             onClick={() => onPick(c.id)}
             className={`grid w-full grid-cols-[7px_1fr_auto] items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
               selected === c.id
-                ? "border-border bg-white/10"
-                : "border-transparent hover:bg-white/5"
+                ? "border-border bg-foreground/10"
+                : "border-transparent hover:bg-foreground/5"
             }`}
           >
             <span

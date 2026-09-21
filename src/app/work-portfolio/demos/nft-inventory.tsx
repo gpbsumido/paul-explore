@@ -481,7 +481,7 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
                 <button
                   type="button"
                   onClick={() => setPhase("idle")}
-                  className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-white/5"
+                  className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-foreground/5"
                 >
                   Cancel
                 </button>
@@ -502,7 +502,7 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
           {phase === "sending" && (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <span
-                className="h-8 w-8 rounded-full border-2 border-white/15 motion-safe:animate-spin"
+                className="h-8 w-8 rounded-full border-2 border-foreground/15 motion-safe:animate-spin"
                 style={{ borderTopColor: "hsl(272 90% 66%)" }}
               />
               <p className="text-[13px] text-muted">
@@ -552,7 +552,7 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
               key={item.id}
               type="button"
               onClick={() => setSelected(item)}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] text-left backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-white/25"
+              className="group relative overflow-hidden rounded-xl border border-foreground/10 bg-foreground/[0.05] text-left backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-foreground/25"
             >
               {/* holographic sheen */}
               <span

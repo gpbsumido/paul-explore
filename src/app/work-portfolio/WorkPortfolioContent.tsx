@@ -124,7 +124,7 @@ export default function WorkPortfolioContent() {
         ))}
       </Ticker>
       <main
-        className="flex min-h-0 flex-1 items-center gap-1 px-1 py-1.5"
+        className="relative flex min-h-0 flex-1 items-center gap-1 px-1 py-1.5"
         aria-label="Demo stage"
       >
         <StageArrow dir="prev" onClick={() => step(-1)} />

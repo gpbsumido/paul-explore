@@ -395,7 +395,7 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
     <div
       className="flex min-h-full flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(288 22% 7%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(324 52% 55% / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(324 52% 55% / 0.05) 1px, transparent 1px)",
         backgroundSize: "28px 28px",
@@ -427,7 +427,7 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
 
       <div
         role="tablist"
-        className="flex gap-1 border-b border-white/10 bg-black/20"
+        className="flex gap-1 border-b border-foreground/10 bg-black/20"
       >
         {TABS.map((t) => (
           <button
@@ -511,7 +511,7 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[11px] text-foreground dark:bg-white/10">
+                  <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[11px] text-foreground dark:bg-foreground/10">
                     {revealed.has(k.id) ? k.key : "•".repeat(28)}
                   </code>
                   <Button

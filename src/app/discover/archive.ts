@@ -10,7 +10,7 @@
  */
 
 /** Every retired landing generation, oldest first. */
-export const ARCHIVED_VERSIONS = ["v1", "v2", "v3", "v4"] as const;
+export const ARCHIVED_VERSIONS = ["v1", "v2", "v3", "v4", "v5"] as const;
 
 export type ArchivedVersion = (typeof ARCHIVED_VERSIONS)[number];
 

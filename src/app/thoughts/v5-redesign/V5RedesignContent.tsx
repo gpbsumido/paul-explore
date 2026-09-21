@@ -37,6 +37,21 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-20-mobile-heroes",
+            date: "September 20, 2026",
+            title: "Mobile got its own heroes, and shipping them early broke the install",
+          },
+          {
+            id: "update-2026-09-19-shelf",
+            date: "September 19, 2026",
+            title: "Reviewing the playground live, and the two sections that fought back",
+          },
+          {
+            id: "update-2026-09-19-playground",
+            date: "September 19, 2026",
+            title: "The components became the homepage",
+          },
+          {
             id: "update-2026-08-15-everywhere",
             date: "Aug 15, 2026",
             title: "The palette stopped being a landing-page feature",
@@ -318,16 +333,207 @@ export default function V5RedesignContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-19-playground"
+        date="September 19, 2026"
+        title="The components became the homepage"
+      >
+        <p>
+          I moved v5 into the archive and built the next homepage around the
+          components in my design system: three switchable hero scenes, an
+          elastic project filter, and real screenshots on tilting surfaces.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The motion has controls now.
+        </h3>
+        <p className="text-muted">
+          Spiral, perspective and corridor are the published hero components,
+          not copies. A pause button stops their ambient motion; reduced-motion
+          preferences also stop the scenes. The project links work with a
+          keyboard or touch, without needing to hover a moving image.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`import { SpiralPortraitHero, PerspectivePortraitHero,
+  CorridorPortraitHero, RubberSegment, TiltCard, Spotlight }
+  from "@paul-portfolio/react";`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A passing interaction test still missed hydration.
+        </h3>
+        <p className="text-muted">
+          The browser checks could switch scenes while React recovered from a
+          render mismatch. The same error appeared on the archived v5 page:
+          the shared toaster created a portal on its first client render but
+          rendered nothing on the server. Mounting it client-only fixes that
+          boundary, and a browser test now checks for page errors as well as
+          working controls.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Minified React error #418`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-09-19-shelf"
+        date="September 19, 2026"
+        title="Reviewing the playground live, and the two sections that fought back"
+      >
+        <p>
+          The homepage shipped, then I sat with it on the running site and fed
+          changes back as I scrolled. Most were a line of CSS. Two sections
+          argued.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The projects scroll sideways as you scroll down.
+        </h3>
+        <p className="text-muted">
+          The work shelf is not a vertical list any more. A tall section pins a
+          viewport, and vertical scroll through it drives the row of cards left,
+          so eight projects travel past as you move down the page. Reduced
+          motion and narrow screens fall back to a wrapping grid, so no one gets
+          scroll-jacked where it would hurt.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const scrollable = section.offsetHeight - window.innerHeight;
+const progress = -section.getBoundingClientRect().top / scrollable;
+track.style.transform = \`translate3d(\${-progress * distance}px,0,0)\`;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Filtering the shelf threw the page to the bottom.
+        </h3>
+        <p className="text-muted">
+          The first cut set the section&rsquo;s height from JavaScript to match
+          the track&rsquo;s overflow. Switching the category re-measured a
+          shorter track, the section shrank under my scroll position, and the
+          page lurched to the bottom. The fix was to stop measuring the height
+          at all: a fixed CSS height, with the scroll maths reading that.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- section.style.height = \`\${innerHeight + distance}px\`;  // jumped on filter
++ .workScroll { height: 240vh; }                          // stable`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;docs and thoughts&rdquo; grew off the edge of the screen.
+        </h3>
+        <p className="text-muted">
+          Field notes became a bloom of flowers spelling{" "}
+          <em>docs and thoughts</em> over a drifting wall of app tiles that name
+          themselves on hover. The bloom draws at a fixed pixel size, so on a
+          narrower window it overflowed the stage instead of centering. Sizing
+          the font to the stage width, re-measured on resize, keeps the whole
+          phrase in frame.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const fitted = Math.round((width * 1.5) / "docs and thoughts".length);
+setFontSize(Math.max(30, Math.min(120, fitted)));`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A heatmap demo tripped a duplicate-key warning.
+        </h3>
+        <p className="text-muted">
+          The design-system gallery labelled its heatmap columns M T W T F.
+          React keys the labels by their text, so the two single-letter
+          Tuesdays and Thursdays collided. Two-letter labels settle it, and the
+          gallery grew{" "}
+          <Link
+            href="/design-system"
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            View on npm and Source on GitHub
+          </Link>{" "}
+          links in the same pass.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Encountered two children with the same key, \`col-T\`.`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-09-20-mobile-heroes"
+        date="September 20, 2026"
+        title="Mobile got its own heroes, and shipping them early broke the install"
+      >
+        <p>
+          The switchable scenes are a desktop pleasure. On a phone the
+          perspective and corridor tunnels turn their posters edge-on against a
+          receding wall, so they still move but read as frozen. Rather than
+          shrink a desktop hero, small screens now get three of their own.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Touch-first, with a tap for every gesture.
+        </h3>
+        <p className="text-muted">
+          Reel is a film strip you scrub with a native range slider. Orbit is a
+          ring of numbered projects you spin with a thumb or tap by number. Lens
+          is a magnifier you drag across a contact sheet, with a next control for
+          anyone not dragging. All three carry a live region and keyboard moves,
+          so the gesture is the shortcut and never the only way in. They swap in
+          below 700px and on coarse-pointer phones held in landscape, and the
+          scene switcher moves above the hero so all three are reachable without
+          a scroll.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const MOBILE_QUERY =
+  "(max-width: 700px), (max-width: 1000px) and (hover: none) and (pointer: coarse)";
+const isMobile = useSyncExternalStore(subscribeMobile, mobileSnapshot, serverSnapshot);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A prerelease version tag is not just a label.
+        </h3>
+        <p className="text-muted">
+          The heroes live in the design system, which was not published yet, so
+          the app installs the built archives straight from the repo. I marked
+          them <code className={code}>0.13.11-mobile.0</code> to flag them as a
+          local preview, and that suffix quietly failed the install: npm&rsquo;s
+          semver leaves a prerelease out of a plain range, so the sibling Angular
+          package&rsquo;s <code className={code}>&gt;=0.1.0</code> peer could no
+          longer see the CSS package at all.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`npm error Could not resolve dependency:
+npm error peer @paul-portfolio/css@">=0.1.0" from @paul-portfolio/angular@0.3.0
+npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Plain <code className={code}>0.13.11</code> and{" "}
+          <code className={code}>0.12.9</code> fixed it, and the app&rsquo;s own
+          drift guard learned to read a version out of a{" "}
+          <code className={code}>file:</code> archive name instead of choking on
+          it. One more guard had the last word: the design-system gallery tests
+          that every shipped component is documented, so it wanted a card for
+          each new hero before it would go green.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`AssertionError: expected [ Array(73) ] to deeply equal [ Array(76) ]
+-   "MobileLensHero",
+-   "MobileOrbitHero",
+-   "MobileReelHero",`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Once the design system released, the app dropped the vendored archives
+          and now installs the published{" "}
+          <code className={code}>@paul-portfolio/react</code> 0.12.9 and{" "}
+          <code className={code}>css</code> 0.13.11 like every other dependency.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "A root page that states the role, backs it with the full craft matrix and its evidence links, and closes with a way to get in touch. The old landing is one click away and still runs.",
+          "Three touch-first mobile heroes: a scrubbed Reel, a rotary Orbit and a draggable Lens. They replace the tunnel scenes on a phone, each with a tap and keyboard path, and they are documented on /design-system.",
+          "A portfolio playground built with the published design-system heroes and motion components. V5 remains at /discover?version=v5, and the new root still renders statically.",
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
+          "A project shelf that scrolls sideways as you scroll down, past eight works with real light and dark screenshots, and a field-notes bloom over a drifting wall of app tiles.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
           "There is no way to tell whether this page actually converts better than the slot machine did, because nothing measures where visitors go from the root.",
-          "The site-wide social-card alt text still describes this as a personal playground and portfolio, which is the positioning the new landing moves away from.",
         ]}
         upcoming={[
           "Real field data on the new landing, since the whole hero is built around an LCP rule and the only honest check on that is the number /vitals collects from real loads.",

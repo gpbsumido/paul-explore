@@ -42,6 +42,22 @@ describe("DesignSystemShowcaseContent", () => {
     expect(calendarLinks[0]).toHaveAttribute("href", "/calendar");
   });
 
+  it("links out to the published npm package and its source", () => {
+    render(<DesignSystemShowcaseContent />);
+    const npm = screen.getByRole("link", { name: /view on npm/i });
+    expect(npm).toHaveAttribute(
+      "href",
+      "https://www.npmjs.com/package/@paul-portfolio/react",
+    );
+    expect(npm).toHaveAttribute("target", "_blank");
+    const github = screen.getByRole("link", { name: /source on github/i });
+    expect(github).toHaveAttribute(
+      "href",
+      "https://github.com/gpbsumido/paul-design-system",
+    );
+    expect(github).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+
   describe("Button playground", () => {
     it("shows the minimal snippet for default props", () => {
       render(<DesignSystemShowcaseContent />);
@@ -145,7 +161,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
       ).not.toBeInTheDocument();
-      expect(within(grid()).getByText(/1 of 73/)).toBeInTheDocument();
+      expect(within(grid()).getByText(/1 of 76/)).toBeInTheDocument();
     });
 
     it("filters by category chip and marks it pressed", async () => {
@@ -161,7 +177,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
       ).not.toBeInTheDocument();
-      expect(within(grid()).getByText(/14 of 73/)).toBeInTheDocument();
+      expect(within(grid()).getByText(/14 of 76/)).toBeInTheDocument();
     });
 
     it("offers to clear filters instead of a blank grid when nothing matches", async () => {
@@ -182,7 +198,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).getByRole("heading", { level: 3, name: "Avatar" }),
       ).toBeInTheDocument();
-      expect(within(grid()).getByText(/73 of 73/)).toBeInTheDocument();
+      expect(within(grid()).getByText(/76 of 76/)).toBeInTheDocument();
     });
 
     it("sorts the grid alphabetically on request", async () => {

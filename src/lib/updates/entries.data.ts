@@ -11,6 +11,36 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-design-detox",
+    date: "2026-09-20",
+    version: "7.5.9",
+    category: "improvement",
+    tags: ["design"],
+    title: "A site-wide design pass",
+    summary:
+      "The whole site got a going-over to read as designed rather than generated: cleaner cards, bolder editorial headings, Apple-style squircle corners, and grids that break out of the rigid three-up into an irregular bento.",
+    body: [
+      "Cards dropped the colored left stripe — the most-cited 'this was generated' tell — and carry their category colour as a small dot instead. Every page now opens with one confident display heading and a numbered section marker, so the site reads like it belongs together rather than a stack of separately styled screens.",
+      "Rounded corners became Apple-style squircles (a superellipse instead of a plain arc) wherever the browser supports it, and the card grids stopped being perfectly even — a featured card plus a repeating wide tile turn the thoughts index and the hubs into an irregular bento. Smaller fixes rode along: the little arrows now sit on the text line, and the work-portfolio 'this site' thumbnails match your theme.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-portfolio-playground",
+    date: "2026-09-19",
+    version: "7.5.0",
+    category: "feature",
+    tags: ["landing"],
+    title: "The home page is a portfolio playground now",
+    summary:
+      "A rebuilt landing: a switchable portrait hero, a shelf of projects you scroll sideways through, a heading that keeps restating itself, and a field-notes wall that blooms in flowers. Plus a new Surprise page, and light mode in the corners it used to miss.",
+    body: [
+      "The root of the site is a new design. A portrait hero you can flip between three scenes and pause; a shelf of fifteen projects that travels left as you scroll down (and swipes on a phone); a heading that keeps restating what the polish is hiding — details, tests, accessibility, performance; and a Field Notes section where 'docs and thoughts' grows out of flowers over a drifting wall of app screenshots that name themselves as you hover. Every earlier edition still lives at /discover.",
+      "The 'Surprise me' button opens a new /surprise page that spins you to a random feature or lays them all out in an interactive list. And light mode now reaches the particle lab and the work-portfolio demos, which used to stay dark on a light page.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-design-system-effects-gallery",
     date: "2026-09-18",
     version: "7.4.0",

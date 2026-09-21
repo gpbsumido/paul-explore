@@ -264,7 +264,7 @@ export default function CommunityModeDemo({
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] text-muted tabular-nums">
+          <span className="rounded-full border border-foreground/10 bg-foreground/[0.05] px-2.5 py-1 text-[11px] text-muted tabular-nums">
             {total.toLocaleString()} total likes
           </span>
           <button
@@ -287,7 +287,7 @@ export default function CommunityModeDemo({
         {posts.map((p) => (
           <li
             key={p.id}
-            className="flex gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-left backdrop-blur-sm"
+            className="flex gap-2.5 rounded-2xl border border-foreground/10 bg-foreground/[0.04] p-3 text-left backdrop-blur-sm"
           >
             <span
               aria-hidden
@@ -337,7 +337,7 @@ export default function CommunityModeDemo({
               >
                 💬 {p.replies.length}
               </button>
-              <span className="ml-auto h-1.5 w-24 overflow-hidden rounded-full bg-white/10">
+              <span className="ml-auto h-1.5 w-24 overflow-hidden rounded-full bg-foreground/10">
                 <span
                   className="block h-full rounded-full"
                   style={{

@@ -9,15 +9,21 @@ import { archiveLabel, isArchived, type ArchivedVersion } from "./archive";
 // Version registry
 // ---------------------------------------------------------------------------
 // Each version maps to a Landing (guest) and Hub (authenticated) component.
-// Every one of them is history now: v5 owns / , so nothing here is the current
-// landing and all four carry the archive banner. v4 is the default when no
-// ?version= param is present, since it is the one that just retired.
-// Use next/dynamic throughout to keep four generations of deps out of the
+// Every one of them is history now: v6 owns /, and all five carry the
+// archive banner. Keep v4 as the default slot-machine discovery experience.
+// Use next/dynamic throughout to keep five generations of deps out of the
 // default bundle.
 
 type MeData = { name: string | null; email: string | null };
 
 const DEFAULT_VERSION = "v4";
+
+const ArchivedV5 = nextDynamic(async () => {
+  const { default: Landing } = await import("../v5/LandingContentV5");
+  return function V5Archive() {
+    return <Landing />;
+  };
+});
 
 const VERSIONS = {
   v1: {
@@ -36,6 +42,10 @@ const VERSIONS = {
     Landing: nextDynamic(() => import("../v4/LandingContentV4")),
     Hub: nextDynamic(() => import("../v4/FeatureHubV4")),
   },
+  v5: {
+    Landing: ArchivedV5,
+    Hub: ArchivedV5,
+  },
 } satisfies Record<
   string,
   {
@@ -44,7 +54,7 @@ const VERSIONS = {
   }
 >;
 
-/** Reads the ?version= param, falling back to the newest retired one for anything unknown. */
+/** Reads the ?version= param, falling back to the slot machine for anything unknown. */
 function resolveVersion(param: string | string[] | undefined): ArchivedVersion {
   return typeof param === "string" && isArchived(param)
     ? param
@@ -87,7 +97,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 /**
  * The landing page museum. Renders whichever generation ?version= asks for,
- * defaulting to the current one, in its guest or signed-in form.
+ * defaulting to the slot machine, in its guest or signed-in form.
  */
 export default async function DiscoverPage({
   searchParams,

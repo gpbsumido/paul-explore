@@ -130,7 +130,7 @@ export default function AiContentEngineDemo({
     <div
       className="flex min-h-full flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(288 22% 7%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(324 52% 55% / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(324 52% 55% / 0.05) 1px, transparent 1px)",
         backgroundSize: "28px 28px",
@@ -188,7 +188,7 @@ export default function AiContentEngineDemo({
       </div>
 
       {/* Settings: where it posts, its personality, and extras */}
-      <div className="grid gap-2 rounded-lg border border-border bg-white/[0.03] p-2.5 sm:grid-cols-2">
+      <div className="grid gap-2 rounded-lg border border-border bg-foreground/[0.03] p-2.5 sm:grid-cols-2">
         <div>
           <p className={`${console_} mb-1 text-[10px] text-muted`}>Post to</p>
           <div className="flex flex-wrap gap-1" role="group" aria-label="Platform">
@@ -202,7 +202,7 @@ export default function AiContentEngineDemo({
                 className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
                   platform.id === p.id
                     ? "border-transparent text-white"
-                    : "border-border text-muted hover:bg-white/5"
+                    : "border-border text-muted hover:bg-foreground/5"
                 }`}
                 style={
                   platform.id === p.id ? { backgroundColor: ACCENT } : undefined
@@ -226,7 +226,7 @@ export default function AiContentEngineDemo({
                 className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
                   voice.id === v.id
                     ? "border-transparent text-white"
-                    : "border-border text-muted hover:bg-white/5"
+                    : "border-border text-muted hover:bg-foreground/5"
                 }`}
                 style={voice.id === v.id ? { backgroundColor: ACCENT } : undefined}
               >
@@ -258,7 +258,7 @@ export default function AiContentEngineDemo({
         className="h-36 overflow-y-auto rounded-lg border p-3 font-mono text-[13px] leading-relaxed text-foreground"
         style={{
           borderColor: "color-mix(in srgb, var(--wp-accent, hsl(324 52% 55%)) 40%, transparent)",
-          background: "hsl(288 26% 4%)",
+          background: "var(--wp-surface)",
         }}
       >
         <span aria-hidden style={{ color: ACCENT }}>

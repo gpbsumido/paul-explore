@@ -117,7 +117,7 @@ export default function UaCampaignBuilderDemo({
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
+        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-foreground/10 bg-foreground/[0.04] p-4 backdrop-blur-sm">
           <div className="space-y-2">
             {step === 0 && (
               <>
@@ -223,7 +223,7 @@ export default function UaCampaignBuilderDemo({
 
         <div
           aria-label="Campaign preview"
-          className="flex flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05] p-4 backdrop-blur-sm"
+          className="flex flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.05] p-4 backdrop-blur-sm"
         >
           <div>
             <div className="flex items-center justify-between gap-2">
@@ -265,7 +265,7 @@ export default function UaCampaignBuilderDemo({
                   ${campaign.budget.toLocaleString()}
                 </span>
               </div>
-              <span className="mt-1 block h-2 overflow-hidden rounded-full bg-white/10">
+              <span className="mt-1 block h-2 overflow-hidden rounded-full bg-foreground/10">
                 <span
                   className="block h-full rounded-full transition-all"
                   style={{ width: `${budgetPct}%`, background: GROWTH }}
@@ -280,7 +280,7 @@ export default function UaCampaignBuilderDemo({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] py-2"
+                  className="rounded-xl border border-foreground/10 bg-foreground/[0.04] py-2"
                 >
                   <p className="text-[9px] uppercase tracking-wider text-muted">
                     {label}

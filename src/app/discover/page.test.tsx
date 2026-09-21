@@ -63,6 +63,12 @@ const sessionFor = (name: string | null, email: string | null) =>
   >;
 
 describe("/discover", () => {
+  it("keeps the retired v5 landing accessible", async () => {
+    getSession.mockResolvedValue(null);
+    await renderDiscover({ version: "v5" });
+    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Paul Sumido");
+    expect(screen.getByText(/Landing-page history: v5/)).toBeInTheDocument();
+  });
   beforeEach(() => {
     getSession.mockReset();
     getSession.mockResolvedValue(null);

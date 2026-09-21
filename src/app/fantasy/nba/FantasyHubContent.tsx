@@ -110,23 +110,41 @@ export default function FantasyHubContent() {
           />
         </header>
 
+        {/* Irregular bento: a larger featured first card plus a repeating wide
+            tile, dense-packed, so the hub stops reading as an even three-up. */}
         <div
           id="fx-page-grid"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-flow-row-dense grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {PAGES.map((p) => (
-            <Link
-              key={p.href}
-              href={p.href}
-              className="glass-card flex h-full flex-col rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
-              style={{ borderLeftWidth: 3, borderLeftColor: p.color }}
-            >
-              <p className="font-semibold text-foreground">{p.title}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted">
-                {p.description}
-              </p>
-            </Link>
-          ))}
+          {PAGES.map((p, j) => {
+            const featured = j === 0;
+            const wide = !featured && j % 4 === 0;
+            return (
+              <Link
+                key={p.href}
+                href={p.href}
+                className={`glass-card flex h-full flex-col rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
+                  featured ? " sm:col-span-2 sm:p-6" : wide ? " sm:col-span-2" : ""
+                }`}
+              >
+                <p
+                  className={`flex items-center gap-2 font-semibold text-foreground${featured ? " text-lg" : ""}`}
+                >
+                  <span
+                    aria-hidden
+                    className={`shrink-0 rounded-full ${featured ? "h-3 w-3" : "h-2.5 w-2.5"}`}
+                    style={{ backgroundColor: p.color }}
+                  />
+                  {p.title}
+                </p>
+                <p
+                  className={`mt-1 leading-relaxed text-muted${featured ? " text-[15px]" : " text-sm"}`}
+                >
+                  {p.description}
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </main>
     </PageShell>

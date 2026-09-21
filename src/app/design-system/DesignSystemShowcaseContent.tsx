@@ -107,6 +107,9 @@ import {
   SpiralPortraitHeroDemo,
   PerspectivePortraitHeroDemo,
   CorridorPortraitHeroDemo,
+  MobileReelHeroDemo,
+  MobileOrbitHeroDemo,
+  MobileLensHeroDemo,
   LightBloomDemo,
   ParticleTextDemo,
   RefineFrameDemo,
@@ -409,7 +412,7 @@ const PREVIEWS: Record<string, ReactNode> = {
   "heatmap-chart": (
     <HeatmapChart
       label="Commits by day and week"
-      colLabels={["M", "T", "W", "T", "F"]}
+      colLabels={["Mo", "Tu", "We", "Th", "Fr"]}
       rows={[
         { label: "W1", values: [1, 4, 2, 6, 3] },
         { label: "W2", values: [5, 2, 7, 3, 8] },
@@ -475,6 +478,9 @@ const PREVIEWS: Record<string, ReactNode> = {
   "portrait-spiral-hero": <SpiralPortraitHeroDemo />,
   "perspective-hero": <PerspectivePortraitHeroDemo />,
   "corridor-hero": <CorridorPortraitHeroDemo />,
+  "mobile-reel-hero": <MobileReelHeroDemo />,
+  "mobile-orbit-hero": <MobileOrbitHeroDemo />,
+  "mobile-lens-hero": <MobileLensHeroDemo />,
   "light-bloom": <LightBloomDemo />,
   "particle-text": <ParticleTextDemo />,
   "refine-frame": <RefineFrameDemo />,
@@ -605,6 +611,14 @@ const PREVIEWS: Record<string, ReactNode> = {
   ),
 };
 
+/** Big compositions that read better on their own full-width row than in a cell. */
+const WIDE_COMPONENT_IDS = new Set([
+  "portrait-spiral-hero",
+  "perspective-hero",
+  "corridor-hero",
+  "botanical-text",
+]);
+
 function ComponentCard({ component }: { component: ComponentDoc }) {
   return (
     <article
@@ -624,7 +638,7 @@ function ComponentCard({ component }: { component: ComponentDoc }) {
       {/* The live component. The tagline already sits above it and the ⓘ carries
           usage, so the preview isn't wrapped in another tooltip — that stacked a
           second popover on the Tooltip/InfoTip cards and read as a glitch. */}
-      <div className="flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4">
+      <div className="flex min-h-16 w-full items-center overflow-hidden rounded-xl border border-border bg-surface/60 p-4">
         {PREVIEWS[component.id]}
       </div>
 
@@ -815,6 +829,22 @@ export default function DesignSystemShowcaseContent({
             <Button variant="outline" href="/thoughts/design-system-showcase">
               Read the write-up
             </Button>
+            <a
+              className="btn btn--ghost"
+              href="https://www.npmjs.com/package/@paul-portfolio/react"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on npm <span aria-hidden="true">↗</span>
+            </a>
+            <a
+              className="btn btn--ghost"
+              href="https://github.com/gpbsumido/paul-design-system"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Source on GitHub <span aria-hidden="true">↗</span>
+            </a>
             <FeatureTour
               label="Design system"
               storageKey="design-system-tour-seen"
@@ -919,6 +949,9 @@ export default function DesignSystemShowcaseContent({
               adoption: component.usedOn.length,
               haystack:
                 `${component.name} ${component.tagline} ${component.usage}`.toLowerCase(),
+              // The big compositions get a full-width row rather than a cramped
+              // grid cell.
+              wide: WIDE_COMPONENT_IDS.has(component.id),
               card: <ComponentCard key={component.id} component={component} />,
             }))}
           />

@@ -181,7 +181,7 @@ export default function EmailCampaignsDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(258 36% 8%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(258 78% 66% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(258 78% 66% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
@@ -234,7 +234,7 @@ export default function EmailCampaignsDemo({
                   aria-label={`${d} preview`}
                   aria-pressed={device === d}
                   onClick={() => setDevice(d)}
-                  className={`px-2 py-0.5 ${device === d ? "bg-white/15 text-foreground" : "text-muted"}`}
+                  className={`px-2 py-0.5 ${device === d ? "bg-foreground/15 text-foreground" : "text-muted"}`}
                 >
                   {d === "desktop" ? "🖥️" : "📱"}
                 </button>

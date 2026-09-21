@@ -81,7 +81,7 @@ export default function StandardAnalyticsDemo({
     <div
       className="flex h-full min-h-64 flex-col gap-3 p-5 text-foreground"
       style={{
-        background: "hsl(215 42% 8%)",
+        background: "var(--wp-surface)",
         backgroundImage:
           "linear-gradient(hsl(205 85% 60% / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(205 85% 60% / 0.06) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
@@ -107,7 +107,7 @@ export default function StandardAnalyticsDemo({
                 onClick={() => setRange(r)}
                 className={`px-2 py-1 ${
                   range === r
-                    ? "bg-black/10 text-foreground dark:bg-white/15"
+                    ? "bg-black/10 text-foreground dark:bg-foreground/15"
                     : "text-muted"
                 }`}
               >
