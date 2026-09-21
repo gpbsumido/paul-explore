@@ -44,9 +44,16 @@ describe("buildGraphData", () => {
 
   it("bridges a feature to its own write-up for every thoughtsHref", () => {
     const bridges = data.edges.filter((e) => e.bridge);
-    const featuresWithNotes = FEATURES.filter((f) => f.thoughtsHref);
-    expect(bridges).toHaveLength(featuresWithNotes.length);
-    for (const f of featuresWithNotes) {
+    // A bridge only reaches a non-deprecated write-up, so a feature linking to a
+    // deprecated one (discover -> v5-redesign) has no bridge.
+    const deprecatedHrefs = new Set(
+      THOUGHTS.filter((t) => t.deprecated).map((t) => t.href),
+    );
+    const featuresWithLiveNotes = FEATURES.filter(
+      (f) => f.thoughtsHref && !deprecatedHrefs.has(f.thoughtsHref),
+    );
+    expect(bridges).toHaveLength(featuresWithLiveNotes.length);
+    for (const f of featuresWithLiveNotes) {
       const slug = f.thoughtsHref!.replace(/^\/thoughts\//, "");
       const bridge = bridges.find((b) => b.target === `thought:${slug}`);
       expect(bridge, `bridge for ${f.title}`).toBeDefined();

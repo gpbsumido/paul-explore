@@ -106,19 +106,22 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
           </p>
         </div>
 
-        {/* Feature grid — cards stagger in with cardFlipIn via Framer variants */}
+        {/* Feature grid — an irregular bento (a repeating wide tile, dense-packed)
+            so it stops reading as an even three-up. Cards stagger in with
+            cardFlipIn via Framer variants. */}
         <m.div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-flow-row-dense gap-4 sm:grid-cols-2 lg:grid-cols-3"
           style={{ perspective: "1000px" }}
           variants={staggerContainer(0.07)}
           initial="hidden"
           animate="visible"
         >
-          {FEATURES.map((feature) => (
+          {FEATURES.map((feature, j) => (
             <FeatureCard
               key={feature.id}
               feature={feature}
               prefersReduced={prefersReduced}
+              className={j % 6 === 0 ? "sm:col-span-2" : ""}
             />
           ))}
         </m.div>

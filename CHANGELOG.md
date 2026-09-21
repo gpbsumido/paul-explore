@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-20 - version 7.5.16
+
+- Logged the site-wide design pass in the public Updates feed — the first curated entry since the 7.5.0 landing rebuild, covering the cleaner cards, editorial headings, squircle corners, and irregular bento grids.
+
+## 2026-09-20 - version 7.5.15
+
+- Deprecated seven dev-thoughts write-ups whose features are superseded — Route Restructure, Risk-scoring API, the v2/v3/v4/v5 redesign notes, and the Landing Page preview. They move into the Deprecated group on the thoughts index and keep their history, rather than sitting in the active categories.
+
+## 2026-09-20 - version 7.5.14
+
+- Fixed the landing contact section: its drifting-blob background was boxed inside the max-width shell, leaving black bars down the sides. The background now bleeds to the full section width while the copy stays in the shell frame, and the heading now reads "If you are hiring a frontend dev".
+
+## 2026-09-20 - version 7.5.13
+
+- Broke the signed-in feature-hub grid into the same irregular bento (a repeating wide tile, dense-packed) via an optional className on the feature card, so the main hub stops reading as an even three-up too.
+
+## 2026-09-20 - version 7.5.12
+
+- Added a `/thoughts/design-detox` write-up documenting the design pass: dropping the colored-stripe tell, the shared page intro, Apple squircle corners, the inline-arrow fix whose first attempt missed the real cause, the film grain that did not help, and breaking the too-even grid into a bento. The wrong turns are kept in on purpose.
+
+## 2026-09-20 - version 7.5.11
+
+- Broke the fantasy hub grid into the same irregular bento as the thoughts index — a larger featured card plus a repeating wide tile, dense-packed — so it stops reading as an even three-up.
+
+## 2026-09-20 - version 7.5.10
+
+- The "This site" work-portfolio demo now shows theme-matched screenshots. It only had dark-mode thumbnails, so a light-theme visitor saw dark screengrabs of pages that were actually light. Added a light capture for each of the nine linked pages and refreshed the dark ones to the current design, and the demo now swaps light/dark per theme (only the active one loads).
+
 ## 2026-09-20 - version 7.5.9
 
 - An editorial pass to make the site read less like an even, generated template and more like it was laid out by hand.

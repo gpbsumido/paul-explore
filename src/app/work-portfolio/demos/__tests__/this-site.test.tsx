@@ -24,9 +24,10 @@ describe("this site demo", () => {
     }
   });
 
-  it("shows a screengrab for each linked page", () => {
+  it("shows a light and dark screengrab for each linked page", () => {
     render(<ThisSiteDemo feature={feature} />);
     const shots = screen.getAllByRole("img", { name: /Screenshot of the/i });
-    expect(shots.length).toBe(screen.getAllByRole("link").length);
+    // One light + one dark thumbnail per link; CSS shows the theme-matched one.
+    expect(shots.length).toBe(screen.getAllByRole("link").length * 2);
   });
 });

@@ -204,6 +204,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "Design detox",
+    href: "/thoughts/design-detox",
+    preview:
+      "Making the site read as designed, not generated: dropping the colored-stripe card tell, one editorial page intro, Apple squircle corners, the inline-arrow fix whose first attempt missed the real cause, a film grain that didn't help, and breaking the too-even grid into a bento",
+    color: "#4a9c72",
+  },
+  {
     title: "Interviewee",
     href: "/thoughts/interviewee",
     preview:
@@ -282,6 +289,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "Landing Page",
     href: "/thoughts/landing-page",
+    deprecated: true,
     preview: "Section layout and functionality preview",
     color: "#cc4e4e",
   },
@@ -348,6 +356,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "Route Restructure",
     href: "/thoughts/routing",
+    deprecated: true,
     preview:
       "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
     color: "#5072a3",
@@ -460,6 +469,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "V2 Redesign",
     href: "/thoughts/v2-redesign",
+    deprecated: true,
     preview:
       "URL-based version routing with next/dynamic bundle splitting — Three.js out of the default path, v2 ships a clean slate",
     color: "#b951c9",
@@ -467,6 +477,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "V3 Redesign",
     href: "/thoughts/v3-redesign",
+    deprecated: true,
     preview:
       "The whole site as a node graph — a hand-rolled force sim, fit-to-viewport rendering, the drag/hover bugs, and an a11y audit",
     color: "#704ac6",
@@ -474,6 +485,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "V5 Redesign",
     href: "/thoughts/v5-redesign",
+    deprecated: true,
     preview:
       "Retiring the slot machine from the root: a warm editorial palette measured against WCAG before it was written down, eight in-house motion primitives held to a no-opacity-zero-above-the-fold rule, and a landing page briefed against my own defaults",
     color: "#3da692",
@@ -481,6 +493,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "V4 Redesign",
     href: "/thoughts/v4-redesign",
+    deprecated: true,
     preview:
       "The landing and hub as a slot machine: three dependent reels (category, option, write-up) derived from the same data as the graph, dependent-reel selection, a decelerating spin, and a listbox-based a11y model",
     color: "#c7508e",
@@ -586,6 +599,7 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "Risk-scoring API",
     href: "/thoughts/risk-scoring-api",
+    deprecated: true,
     preview:
       "Learning Go by building a real-time transaction risk-scoring API: a rules engine, a weighted score and band, and a live SSE feed, with the language and the risk concepts learned side by side",
     color: "#3b93ba",

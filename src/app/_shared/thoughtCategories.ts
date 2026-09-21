@@ -36,6 +36,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   {
     name: "Design & UI",
     slugs: [
+      "design-detox",
       "design-system",
       "design-system-charts",
       "design-system-showcase",

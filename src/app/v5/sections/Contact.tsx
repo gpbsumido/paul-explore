@@ -34,7 +34,7 @@ export default function Contact({
           as="h2"
           className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
         >
-          If you are hiring a frontend lead
+          If you are hiring a frontend dev
         </TextReveal>
         <p className="mt-5 text-lg leading-relaxed text-muted">
           The resume is one page and the evidence for all of it is on this
@@ -77,29 +77,37 @@ export default function Contact({
   );
 
   return (
-    <section id="contact" className={`${BAND} border-t border-border`}>
-      <div className={SHELL}>
+    <section
+      id="contact"
+      className={`${BAND} relative overflow-hidden border-t border-border`}
+    >
+      {/* Blob variant: the drifting-blob background bleeds to the full section
+          width instead of sitting in a boxed card, and only the copy stays in
+          the SHELL frame. */}
+      {variant === "blob" ? (
+        <>
+          <BlobBackground
+            seeds={[3, 7]}
+            colors={[
+              "light-dark(var(--color-primary-600), var(--color-primary-400))",
+              "light-dark(var(--color-secondary-600), var(--color-secondary-400))",
+            ]}
+            parallax={40}
+          />
+          {/* Scrim so the drifting blobs never eat the copy's contrast. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                "color-mix(in srgb, var(--color-background) 42%, transparent)",
+            }}
+          />
+        </>
+      ) : null}
+      <div className={`${SHELL} relative`}>
         {variant === "blob" ? (
-          <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12">
-            <BlobBackground
-              seeds={[3, 7]}
-              colors={[
-                "light-dark(var(--color-primary-600), var(--color-primary-400))",
-                "light-dark(var(--color-secondary-600), var(--color-secondary-400))",
-              ]}
-              parallax={40}
-            />
-            {/* Scrim so the drifting blobs never eat the copy's contrast. */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{
-                background:
-                  "color-mix(in srgb, var(--color-background) 42%, transparent)",
-              }}
-            />
-            <div className="relative">{body}</div>
-          </div>
+          body
         ) : (
           <SpotlightCard
             accent="var(--color-secondary-500)"
