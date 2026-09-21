@@ -294,8 +294,9 @@ export default function UaCampaignBuilderDemo({
       </div>
 
       <Modal open={launched} onClose={closeLaunch} aria-label="Launch campaign">
+        <Modal.Body>
         {confirmed ? (
-          <div className="p-1 text-center">
+          <div className="text-center">
             <p className="text-3xl" aria-hidden>
               🚀
             </p>
@@ -310,7 +311,7 @@ export default function UaCampaignBuilderDemo({
             </Button>
           </div>
         ) : (
-          <div className="p-1">
+          <div>
             <p className="text-[15px] font-bold text-foreground">
               Launch “{campaign.name || "Untitled"}”?
             </p>
@@ -328,6 +329,7 @@ export default function UaCampaignBuilderDemo({
             </div>
           </div>
         )}
+        </Modal.Body>
       </Modal>
     </div>
   );

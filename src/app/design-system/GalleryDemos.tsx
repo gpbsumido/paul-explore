@@ -150,6 +150,7 @@ export function ModalDemo() {
         onClose={() => setOpen(false)}
         aria-labelledby="ds-modal-title"
       >
+        <Modal.Body>
         <h4 id="ds-modal-title" className="text-lg font-bold text-foreground">
           Example dialog
         </h4>
@@ -162,6 +163,7 @@ export function ModalDemo() {
             Close
           </Button>
         </div>
+        </Modal.Body>
       </Modal>
     </>
   );

@@ -342,6 +342,7 @@ export default function StylingContent() {
             onClose={() => setModalOpen(false)}
             aria-label="Example modal"
           >
+            <Modal.Body>
             <div
               style={{
                 display: "flex",
@@ -382,6 +383,7 @@ export default function StylingContent() {
                 <Button onClick={() => setModalOpen(false)}>Confirm</Button>
               </div>
             </div>
+            </Modal.Body>
           </Modal>
 
           <Sent pos="first">
