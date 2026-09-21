@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-design-detox",
+    date: "2026-09-20",
+    version: "7.5.9",
+    category: "improvement",
+    tags: ["design"],
+    title: "A site-wide design pass",
+    summary:
+      "The whole site got a going-over to read as designed rather than generated: cleaner cards, bolder editorial headings, Apple-style squircle corners, and grids that break out of the rigid three-up into an irregular bento.",
+    body: [
+      "Cards dropped the colored left stripe — the most-cited 'this was generated' tell — and carry their category colour as a small dot instead. Every page now opens with one confident display heading and a numbered section marker, so the site reads like it belongs together rather than a stack of separately styled screens.",
+      "Rounded corners became Apple-style squircles (a superellipse instead of a plain arc) wherever the browser supports it, and the card grids stopped being perfectly even — a featured card plus a repeating wide tile turn the thoughts index and the hubs into an irregular bento. Smaller fixes rode along: the little arrows now sit on the text line, and the work-portfolio 'this site' thumbnails match your theme.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-portfolio-playground",
     date: "2026-09-19",
     version: "7.5.0",
