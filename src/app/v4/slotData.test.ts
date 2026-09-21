@@ -48,9 +48,10 @@ describe("buildSlots", () => {
   });
 
   it("drops the bridge when a feature's write-up is deprecated", () => {
-    // No feature currently points at a deprecated write-up, so this assertion
-    // is vacuous today. It's kept so the bridge rule is enforced the moment a
-    // feature's notes get deprecated.
+    // discover points at the now-deprecated v5-redesign write-up, so the bridge
+    // rule fires here. A stale feature that is also a reel option shows no
+    // bridge; discover itself is the slot page, so it is not a reel option at
+    // all and there is nothing to assert for it.
     const deprecatedHrefs = new Set(
       THOUGHTS.filter((t) => t.deprecated).map((t) => t.href),
     );
@@ -59,7 +60,7 @@ describe("buildSlots", () => {
     );
     for (const feature of stale) {
       const option = apps.options.find((o) => o.id === `feat:${feature.id}`);
-      expect(option?.thoughts).toEqual([]);
+      if (option) expect(option.thoughts).toEqual([]);
     }
   });
 

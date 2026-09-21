@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { groupThoughts } from "@/app/_shared/thoughtCategories";
+import {
+  groupThoughts,
+  DEPRECATED_GROUP,
+} from "@/app/_shared/thoughtCategories";
 import { THOUGHTS } from "@/app/_shared/featureData";
 import RiskScoringApiContent from "./RiskScoringApiContent";
 
@@ -12,11 +15,11 @@ describe("RiskScoringApiContent", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
-  it("is filed under Architecture & Backend, not left uncategorized", () => {
+  it("is now deprecated and filed under the Deprecated group", () => {
     const group = groupThoughts(THOUGHTS).find((g) =>
       g.items.some((t) => t.href === "/thoughts/risk-scoring-api"),
     );
-    expect(group?.name).toBe("Architecture & Backend");
+    expect(group?.name).toBe(DEPRECATED_GROUP);
   });
 
   it("explains the rules engine behind one interface", () => {
