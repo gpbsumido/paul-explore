@@ -108,6 +108,20 @@ export const queryKeys = {
       ["nba", "playoffs", "picks", sub] as const,
   },
 
+  nfl: {
+    /** Fantasy football scoreboard for a season and week. */
+    scoreboard: (season: number, week: number) =>
+      ["nfl", "scoreboard", season, week] as const,
+
+    /**
+     * Live scoring plays for the given rostered teams in a season/week.
+     * `teamIds` is sorted by the caller so the same roster always produces
+     * the same cache entry regardless of iteration order.
+     */
+    plays: (season: number, week: number, teamIds: number[]) =>
+      ["nfl", "plays", season, week, teamIds] as const,
+  },
+
   tcg: {
     /**
      * TCG card list. Params include any combination of search query, type

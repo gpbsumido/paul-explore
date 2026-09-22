@@ -55,6 +55,11 @@ describe("world exhibits", () => {
       // would walk someone to their own empty ledger, with nothing shared to
       // look at until they start logging.
       "budget",
+      // The NBA fantasy exhibit already covers this block of the city; a
+      // second fantasy-sport booth right next to it would read as filler
+      // rather than a distinct landmark. Revisit once the plays ticker gives
+      // it something a walk-up visitor can actually watch happen live.
+      "fantasy-nfl",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));
