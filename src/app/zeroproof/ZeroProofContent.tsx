@@ -745,6 +745,22 @@ function Slate({
             </div>
           </div>
 
+          {hasEarlier && (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() =>
+                  setDaysBack((days) =>
+                    Math.min(days + PAST_STEP_DAYS, MAX_PAST_DAYS),
+                  )
+                }
+                className={controlButton}
+              >
+                Load earlier fixtures
+              </button>
+            </div>
+          )}
+
           {visibleEvents.length === 0 ? (
             <p className="mt-6 text-sm text-muted">
               {hasMore
@@ -793,22 +809,6 @@ function Slate({
                   Load more games
                 </button>
               )}
-            </div>
-          )}
-
-          {hasEarlier && (
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={() =>
-                  setDaysBack((days) =>
-                    Math.min(days + PAST_STEP_DAYS, MAX_PAST_DAYS),
-                  )
-                }
-                className={controlButton}
-              >
-                Load earlier fixtures
-              </button>
             </div>
           )}
         </>
