@@ -324,7 +324,12 @@ export default function MatchupContent() {
         </div>
       </FilterBar>
 
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
+      <main
+        className={`mx-auto max-w-5xl px-4 sm:px-6 py-6 ${
+          matchups.length > 0 ? "pb-[42vh] sm:pb-60" : ""
+        }`}
+        aria-live="polite"
+      >
         <h1 className="sr-only">NFL Fantasy Matchups</h1>
 
         {query.isLoading && (

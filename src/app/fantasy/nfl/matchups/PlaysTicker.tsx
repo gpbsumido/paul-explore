@@ -92,8 +92,11 @@ export default function PlaysTicker({
   const attributed = query.data ? attributePlays(query.data.plays, rosterNames(matchups)) : [];
 
   return (
-    <section className="mt-6 overflow-hidden rounded-xl border border-border bg-surface">
-      <h2 className="border-b border-border px-4 py-3 text-[13px] font-semibold text-foreground">
+    <section
+      aria-label="Recent scoring plays"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-h-[40vh] w-full max-w-5xl overflow-y-auto border-t border-border bg-surface shadow-[0_-4px_16px_rgba(0,0,0,0.08)] sm:max-h-56 sm:rounded-t-xl sm:border-x"
+    >
+      <h2 className="sticky top-0 border-b border-border bg-surface px-4 py-3 text-[13px] font-semibold text-foreground">
         Recent scoring plays
       </h2>
       {query.isLoading && (
