@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-22 - version 7.5.18
+
+- Moved the ZeroProof board's "Load earlier fixtures" button to the top of the list. Now that past fixtures sort oldest-first, the control that widens the list backwards belongs above the earliest game, not pinned to the bottom — "Load more games" still sits at the bottom for the forward direction.
+
 ## 2026-09-21 - version 7.5.17
 
 - Fixed five things on the ZeroProof board I hit while testing it. Betting now closes the moment a matchup starts — a fantasy matchup keeps a synthetic commence time ~48h out, so the kickoff check never closed it, and a matchup I'd already bet on stayed on the board (it's always shown once I have a bet on it) with live outcome buttons after it had started. The board now mirrors the backend's bettable rule and renders anything that isn't upcoming-and-ahead read-only, badged "Live" or "Final".
