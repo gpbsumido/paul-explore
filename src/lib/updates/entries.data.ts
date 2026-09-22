@@ -13,7 +13,7 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
     id: "e-fantasy-nfl",
     date: "2026-09-22",
-    version: "7.6.0",
+    version: "7.7.0",
     category: "feature",
     tags: ["fantasy", "nfl"],
     title: "Fantasy NFL matchups",
