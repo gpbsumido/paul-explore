@@ -1,10 +1,10 @@
 # Changelog
 
+## 2026-09-22 - version 7.8.0
+
+- Added a live scoring-plays ticker to the NFL fantasy matchups page. Real ESPN play text ("Dyami Brown 9 Yd pass from Trevor Lawrence") tagged with whichever fantasy team rosters the player it mentions — no computed fantasy-point delta, since that would mean reimplementing my league's scoring rules as a second source of truth that could drift from ESPN's own numbers. Pinned to the bottom of the viewport so it stays visible while browsing the matchups.
+
 ## 2026-09-22 - version 7.7.0
-
-- Added a live scoring-plays ticker to the NFL fantasy matchups page. Real ESPN play text ("Dyami Brown 9 Yd pass from Trevor Lawrence") tagged with whichever fantasy team rosters the player it mentions — no computed fantasy-point delta, since that would mean reimplementing my league's scoring rules as a second source of truth that could drift from ESPN's own numbers.
-
-## 2026-09-22 - version 7.6.0
 
 - Added Fantasy NFL: head-to-head weekly matchups for my ESPN fantasy football league, at `/fantasy/nfl/matchups`. Team scores, every starter's actual and projected fantasy points, and a win probability I derived myself, since ESPN's API has no fantasy win-prob field. It reads the current scoring period straight from the payload rather than guessing the week from the calendar date, which also sidesteps a set-state-in-effect lint failure. The plays ticker is deliberately deferred to a follow-up PR.
 
