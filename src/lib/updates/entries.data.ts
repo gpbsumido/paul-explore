@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-multi-bet-slip",
+    date: "2026-09-22",
+    version: "7.6.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Build a whole slip of bets at once",
+    summary:
+      "The ZeroProof bet slip holds as many picks as you like now — tap outcomes to add them, give each its own stake, and place them together. The slip stays docked at the bottom while you browse, and the board's day headers stick as you scroll.",
+    body: [
+      "Picking an outcome used to replace whatever was on the slip. Now every tap adds a leg — bet both sides, several games, a mix of moneylines and totals — each with its own stake, all placed in one go; a leg drops off as it lands. The slip is docked to the bottom of the screen so it stays in reach while you scroll for more.",
+      "Two board tweaks rode along: the 'Sunday, Sep 27' day label now sticks just under the filters as you scroll, so it's always clear which day you're looking at, and a fixture's team colour moved from a thin left bar to a thick strip along the bottom of the card. Betting also closes the moment a game starts, so a live matchup can't be bet by mistake.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-design-detox",
     date: "2026-09-20",
     version: "7.5.9",
