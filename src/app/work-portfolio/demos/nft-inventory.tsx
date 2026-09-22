@@ -108,7 +108,8 @@ function AssetDetail({
       aria-label={`${asset.name} details`}
       className="w-[22rem] max-w-[92vw]"
     >
-      <div className="flex flex-col gap-3 p-4">
+      <Modal.Body>
+      <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-sm font-semibold text-foreground">
@@ -184,6 +185,7 @@ function AssetDetail({
           </ol>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }
@@ -468,6 +470,7 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
           onClose={closeTransferModal}
           aria-label="Transfer"
         >
+          <Modal.Body>
           {phase === "confirm" && (
             <div className="flex flex-col gap-3">
               <p className="font-display text-lg font-bold text-foreground">
@@ -538,6 +541,7 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
               </button>
             </div>
           )}
+          </Modal.Body>
         </Modal>
         </>
       ) : (

@@ -257,6 +257,7 @@ export default function EventModal({
       aria-label={isEdit ? "Edit event" : "New event"}
       className="overflow-y-auto max-h-[90vh] sm:max-w-2xl"
     >
+      <Modal.Body>
       {/* header */}
       <div className="flex items-center justify-between mb-5">
         {isEdit || !onSwitchToCountdown ? (
@@ -459,6 +460,7 @@ export default function EventModal({
           </Button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

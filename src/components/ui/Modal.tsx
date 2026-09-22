@@ -31,3 +31,7 @@ interface ModalProps {
 export default function Modal(props: ModalProps) {
   return <PaulModal {...props} />;
 }
+
+Modal.Header = PaulModal.Header;
+Modal.Body = PaulModal.Body;
+Modal.Footer = PaulModal.Footer;

@@ -457,6 +457,7 @@ export default function CalendarModal({
       }}
       aria-label={isEdit ? "Edit calendar" : "New calendar"}
     >
+      <Modal.Body>
       {/* header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-foreground">
@@ -727,6 +728,7 @@ export default function CalendarModal({
           )}
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

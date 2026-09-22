@@ -3,7 +3,12 @@ import { render, screen, within, fireEvent, act } from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { PROJECTS, FEATURES, projectFor } from "../_data/catalog";
 
-beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
+beforeEach(() => {
+  window.history.replaceState(null, "", "/work-portfolio");
+  // Otherwise the guided tour auto-opens its own consent dialog on mount,
+  // colliding with the bare screen.getByRole("dialog") queries below.
+  window.localStorage.setItem("work-portfolio-tour-seen", "true");
+});
 afterEach(() => vi.useRealTimers());
 
 describe("explainer window", () => {

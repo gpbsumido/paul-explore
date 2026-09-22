@@ -1924,7 +1924,8 @@ function AskBox({
         onClose={() => setBlocked(false)}
         aria-labelledby="ask-beta-title"
       >
-        <div className="max-w-sm p-6">
+        <Modal.Body>
+        <div className="max-w-sm">
           <h2 id="ask-beta-title" className="text-lg font-bold text-foreground">
             Beta users only
           </h2>
@@ -1943,6 +1944,7 @@ function AskBox({
             Got it
           </Button>
         </div>
+        </Modal.Body>
       </Modal>
     </div>
   );

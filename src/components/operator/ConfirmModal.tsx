@@ -26,6 +26,7 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <Modal open={open} onClose={onClose} aria-label={title}>
+      <Modal.Body>
       <div className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-foreground">{title}</h2>
@@ -50,6 +51,7 @@ export default function ConfirmModal({
           </button>
         </div>
       </div>
+      </Modal.Body>
     </Modal>
   );
 }

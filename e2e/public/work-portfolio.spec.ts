@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { disableTours } from "../helpers/tours";
 
 /**
  * Public smoke coverage for the work-portfolio page: the tickers, stage
@@ -19,6 +20,9 @@ test.describe("work portfolio", () => {
   // apply to matchMedia in this setup.)
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
+    // The first-run tour would auto-open a modal over the stage this suite
+    // drives; its behaviour is covered by the unit tests.
+    await disableTours(page);
   });
 
   test("opens on the intro and both tickers are present", async ({ page }) => {
