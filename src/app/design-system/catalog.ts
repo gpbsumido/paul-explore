@@ -251,8 +251,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The number and the band word both show, so the tier never rides on colour alone",
       "Band tints reuse the Badge ramp/label token pairs, which are checked for contrast",
     ],
-    usedOn: [],
-    elsewhere: AI_ELSEWHERE,
+    usedOn: [{ label: "Risk scoring API", href: "/thoughts/risk-scoring-api" }],
   },
   {
     id: "agent-decision-card",
@@ -267,8 +266,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The decision is a Badge word, not a bare colour, and the rationale is a real list",
       "Confidence is spelled out as text, not implied by a bar alone",
     ],
-    usedOn: [],
-    elsewhere: AI_ELSEWHERE,
+    usedOn: [{ label: "Risk scoring API", href: "/thoughts/risk-scoring-api" }],
   },
   {
     id: "timeline",
@@ -502,9 +500,10 @@ export const COMPONENTS: ComponentDoc[] = [
       "The tilt is decorative and marked aria-hidden, so it adds nothing to the accessibility tree",
       "Content inside keeps its own semantics and focus behaviour",
     ],
-    usedOn: [],
-    elsewhere:
-      "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+    usedOn: [
+      { label: "Home", href: "/" },
+      { label: "Surprise", href: "/surprise" },
+    ],
   },
   {
     id: "spotlight",
@@ -519,9 +518,10 @@ export const COMPONENTS: ComponentDoc[] = [
       "Purely decorative and marked aria-hidden, so screen readers never announce it",
       "Pointer-only by design, so it never traps focus or interferes with keyboard use",
     ],
-    usedOn: [],
-    elsewhere:
-      "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+    usedOn: [
+      { label: "Home", href: "/" },
+      { label: "Surprise", href: "/surprise" },
+    ],
   },
   {
     id: "gradient-background",
@@ -552,8 +552,10 @@ export const COMPONENTS: ComponentDoc[] = [
       "Purely decorative, so it adds nothing to the accessibility tree and never intercepts the child's click",
       "Spawns nothing under prefers-reduced-motion",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [
+      { label: "Home", href: "/" },
+      { label: "Surprise", href: "/surprise" },
+    ],
   },
   {
     id: "blur-reveal",
@@ -627,8 +629,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Only the active phrase is exposed to assistive tech, so it reads as a single changing word rather than a run-on",
       "Under prefers-reduced-motion the slide is dropped and the phrase simply swaps",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "squish-switch",
@@ -657,8 +658,10 @@ export const COMPONENTS: ComponentDoc[] = [
       "A real role=radiogroup of radios, so arrow keys move the selection",
       "Under prefers-reduced-motion the indicator jumps without the elastic travel",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [
+      { label: "Home", href: "/" },
+      { label: "Surprise", href: "/surprise" },
+    ],
   },
   {
     id: "liquid-carve-button",
@@ -702,8 +705,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Tiles with an href are real links, reachable by keyboard, and the focused tile lifts like a hovered one",
       "Under prefers-reduced-motion the columns hold still and only the focus lift remains",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "circular-gallery",
@@ -777,8 +779,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The real anchor carries the link; the floating card is decorative and hidden from assistive tech",
       "Under prefers-reduced-motion the lean is dropped and the card just fades in",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "portrait-spiral-hero",
@@ -792,8 +793,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Set headingLevel so the heading fits the page outline; images are decorative unless given href or onClick, and keyboard focus brings a linked one forward",
       "The orbit holds still under prefers-reduced-motion, leaving a distributed still frame",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "perspective-hero",
@@ -807,8 +807,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Set headingLevel so the heading fits the page outline; images are decorative unless given href or onClick, and keyboard focus brings a linked one forward",
       "The corridor holds still under prefers-reduced-motion, leaving a distributed still frame",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "corridor-hero",
@@ -822,8 +821,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Set headingLevel so the heading fits the page outline; images are decorative unless given href or onClick, and keyboard focus brings a linked one forward",
       "The fan holds still under prefers-reduced-motion, leaving a distributed still frame",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "mobile-reel-hero",
@@ -837,8 +835,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The scrubber is a native range input with an aria-valuetext naming the project and its position, and a live region announces each frame",
       "Set headingLevel so the heading fits the page outline; the frame stays put with no imagery and keeps the project action after one fails",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "mobile-orbit-hero",
@@ -852,8 +849,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The dial is a keyboard-rotatable slider with aria-valuenow, tappable numbered markers, and a live region naming the selected project",
       "Set headingLevel so the heading fits the page outline; the ring holds still under prefers-reduced-motion and survives empty or failed imagery",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "mobile-lens-hero",
@@ -867,8 +863,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The lens offers a centred next control and keyboard moves as alternatives to dragging, and a live region names the project under it",
       "Set headingLevel so the heading fits the page outline; the sheet holds up with empty or failed imagery",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "light-bloom",
@@ -942,8 +937,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "The canvas is decorative; the container is role=img labelled with the text",
       "Under prefers-reduced-motion the sway stops and the blooms are drawn at rest",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "Home", href: "/" }],
   },
   {
     id: "button",
@@ -1175,9 +1169,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Status is never carried by colour alone — text backs it up",
       "Decorative dot is hidden from assistive tech",
     ],
-    usedOn: [],
-    elsewhere:
-      "Ships in the shared package; this app renders local status pills for now.",
+    usedOn: [{ label: "Card Lab", href: "/fantasy/nba/cards" }],
   },
   {
     id: "avatar",
@@ -1207,8 +1199,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "role=switch with aria-checked announces its state",
       "Keyboard operable with a visible focus ring",
     ],
-    usedOn: [],
-    elsewhere: "Ships in the shared package; not yet adopted in this app.",
+    usedOn: [{ label: "Feature flags", href: "/flags" }],
   },
   {
     id: "spinner",
