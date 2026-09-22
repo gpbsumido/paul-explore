@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync, readdirSync, statSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import * as Pkg from "@paul-portfolio/react";
 import {
   COMPONENTS,
@@ -13,6 +16,51 @@ import {
   buildButtonSnippet,
   type ButtonPlaygroundState,
 } from "./buttonSnippet";
+
+/**
+ * Every identifier this app actually imports from @paul-portfolio/react,
+ * anywhere outside this gallery. Template literals are stripped first so a
+ * dev-thoughts write-up quoting an import statement as a code sample (a real
+ * false positive that showed up once already) doesn't count as usage.
+ */
+function findRealImports(): Set<string> {
+  const srcRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+  const names = new Set<string>();
+  const importRe =
+    /import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+["']@paul-portfolio\/react["']/g;
+
+  function walk(dir: string) {
+    for (const entry of readdirSync(dir)) {
+      if (entry.startsWith(".") || entry === "node_modules") continue;
+      const full = join(dir, entry);
+      if (full === join(srcRoot, "app", "design-system")) continue;
+      const stat = statSync(full);
+      if (stat.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.(tsx|ts)$/.test(entry) || /\.(test|spec)\./.test(entry)) continue;
+      const stripped = readFileSync(full, "utf8").replace(
+        /`(?:[^`\\]|\\.)*`/g,
+        "",
+      );
+      let m: RegExpExecArray | null;
+      importRe.lastIndex = 0;
+      while ((m = importRe.exec(stripped))) {
+        for (const raw of m[1].split(",")) {
+          const name = raw
+            .replace(/^type\s+/, "")
+            .trim()
+            .split(/\s+as\s+/)[0]
+            .trim();
+          if (name) names.add(name);
+        }
+      }
+    }
+  }
+  walk(srcRoot);
+  return names;
+}
 
 /** Package exports that aren't renderable primitives, so the gallery skips them. */
 const NON_COMPONENT_EXPORTS = [
@@ -70,6 +118,14 @@ describe("design system catalog integrity", () => {
       expect(component.a11y.length).toBeGreaterThan(0);
       expect(component.usage.length).toBeGreaterThan(0);
     }
+  });
+
+  it("never claims 'not adopted here' for a component the app already imports", () => {
+    const realImports = findRealImports();
+    const wronglyElsewhere = COMPONENTS.filter(
+      (c) => c.usedOn.length === 0 && realImports.has(c.importName),
+    ).map((c) => c.id);
+    expect(wronglyElsewhere).toEqual([]);
   });
 });
 
