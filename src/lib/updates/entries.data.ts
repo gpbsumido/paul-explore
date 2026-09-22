@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-fantasy-nfl-plays-ticker",
+    date: "2026-09-22",
+    version: "7.7.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "A live plays ticker for Fantasy NFL",
+    summary:
+      "The NFL matchups page now shows the real scoring plays behind each score, tagged with whose fantasy team the player belongs to.",
+    body: [
+      "Real ESPN play-by-play text — not a computed number — tagged with the fantasy team that rosters whichever player it mentions. No fantasy-point delta per play; that would mean reimplementing my league's scoring rules against raw stats, a second source of truth that could quietly drift from ESPN's own total.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-fantasy-nfl",
     date: "2026-09-22",
     version: "7.6.0",

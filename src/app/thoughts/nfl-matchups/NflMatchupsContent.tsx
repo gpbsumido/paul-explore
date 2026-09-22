@@ -1,5 +1,9 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -149,6 +153,16 @@ export default function NflMatchupsContent() {
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-09-22-plays-ticker",
+            date: "Sept 22, 2026",
+            title: "The plays ticker this page said was deferred",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">Points, not categories</h2>
         <p className="text-muted">
@@ -257,30 +271,94 @@ export default function NflMatchupsContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">Deferred: the plays ticker</h2>
         <p className="text-muted">
-          A live ticker of the plays contributing to each score is out of
-          scope for this PR. It needs a second, unrelated ESPN surface — the
+          A live ticker of the plays contributing to each score was out of
+          scope for this PR. It needed a second, unrelated ESPN surface — the
           public game-summary API rather than the fantasy league endpoint —
-          stitched to each rostered player&apos;s actual NFL game, with a
-          fantasy-point delta attributed per scoring play. It&apos;s also
-          only meaningful while games are live, which makes it harder to
-          verify than everything else here. Shipping the scores and win
-          probability first, and building the ticker as its own stacked PR,
-          kept this one small enough to actually finish.
+          and it&apos;s only meaningful while games are live, which makes it
+          harder to verify than everything else here. Shipping the scores and
+          win probability first, and building the ticker as its own stacked
+          PR, kept this one small enough to actually finish. It shipped
+          shortly after — see the update below.
         </p>
       </section>
+
+      <Update
+        id="update-2026-09-22-plays-ticker"
+        date="Sept 22, 2026"
+        title="The plays ticker this page said was deferred"
+      >
+        <p>
+          Shipped as a stacked follow-up, and it landed simpler than the plan
+          for it described.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I planned a fantasy-point delta per play. I built a name tag instead.
+        </h3>
+        <p className="text-muted">
+          The original plan for this ticker said each play would carry the
+          fantasy points it contributed — &quot;+6.4 pts&quot; next to the
+          play text. Once I actually looked at what ESPN&apos;s public
+          game-summary API returns, that number doesn&apos;t exist anywhere
+          upstream. Computing it would mean re-implementing my league&apos;s
+          entire scoring-rule table (points per passing yard, per rushing
+          touchdown, per reception, and so on) against each play&apos;s raw
+          stat line — a second scoring engine, running client-side, that
+          could silently drift from the number ESPN&apos;s own fantasy API
+          already reports. That&apos;s a worse trade than just not having
+          the number.
+        </p>
+        <p className="mt-3 text-muted">
+          What shipped instead: the real play text ESPN already writes —{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            &quot;Dyami Brown 9 Yd pass from Trevor Lawrence (Cam Little
+            Kick)&quot;
+          </code>{" "}
+          — tagged with whichever fantasy team rosters the player it
+          mentions. Attribution is a plain substring match against each
+          starter&apos;s exact name, not a player-id join, because the
+          play-by-play text carries names, not ids. It&apos;s honest about
+          what it is: the actual event, not a derived number I&apos;d have
+          to keep in sync with ESPN&apos;s.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Q1 10:51  TD  Dyami Brown 9 Yd pass from Trevor Lawrence (Cam Little Kick)
+                Paul's Perfect Team`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One team&apos;s own numbering, reused for free
+        </h3>
+        <p className="text-muted">
+          The scoring-play feed lives on a completely different ESPN host (
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            site.api.espn.com
+          </code>
+          ) from the fantasy league endpoint, and it identifies teams by
+          abbreviation, not the fantasy payload&apos;s numeric{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            proTeamId
+          </code>
+          . I expected to need a lookup table hand-built from a reference
+          site. Instead the public site API&apos;s own team-list endpoint
+          uses the identical numbering — id 4 is CIN on both surfaces,
+          confirmed against a real rostered Bengals player — so the map is
+          just those 32 pairs, not a scraped or guessed table.
+        </p>
+      </Update>
 
       <WhatsNext
         nowShipped={[
           "Weekly matchups for my ESPN fantasy football league: team totals, and every starter's actual vs. projected points for the week.",
           "A win-probability bar derived from projected final scores, with a spread that narrows as a week's games finish rather than reading a mid-week blowout as a certainty.",
           "The week selector reads ESPN's own current-period default instead of guessing from the calendar date, which is also what got the page past a set-state-in-effect lint failure.",
+          "A live scoring-plays ticker: real ESPN play text tagged with the fantasy team it belongs to, stacked on this PR once the core matchups page shipped.",
         ]}
         couldImprove={[
           "The win-probability model is a hand-picked spread function, not fit to any real outcome data — it's directionally right, not calibrated.",
           "Bench players parse and store correctly but the card doesn't surface them; only starters render.",
+          "The ticker attributes a play by matching a rostered starter's exact name as a substring, so a short-form or nickname mismatch would miss a mention.",
         ]}
         upcoming={[
-          "A live plays ticker, stacked on this PR: NFL scoring plays mapped back to the rostered player they belong to, with the fantasy-point delta each one contributed.",
+          "A playoff-week ticker (the plays feed is regular-season only right now — seasontype=2 — since the league's schedule already bounds most use to it).",
         ]}
       />
     </ThoughtLayout>
