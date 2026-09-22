@@ -55,6 +55,19 @@ export function isPastFixture(event: ZeroproofEvent, now: number): boolean {
   return !Number.isNaN(time) && time < now;
 }
 
+/**
+ * Whether an event still takes bets — mirrors the backend's `isEventBettable`:
+ * it must be 'upcoming' with a kickoff still ahead. A fantasy matchup keeps a
+ * synthetic commence time ~48h out, so the time check alone never closes it;
+ * the sync flips its status to 'started' once points are scored, and that's what
+ * shuts betting off here. The board renders anything not bettable read-only.
+ */
+export function isEventBettable(event: ZeroproofEvent, now: number): boolean {
+  if (event.status !== "upcoming") return false;
+  const time = new Date(event.commenceTime).getTime();
+  return !Number.isNaN(time) && time > now;
+}
+
 const FANTASY_GAME_NAMES: Record<string, string> = {
   ffl: "Fantasy Football",
   fba: "Fantasy Basketball",

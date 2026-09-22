@@ -86,6 +86,9 @@ export const accoladeSchema = z.object({
 });
 
 export const profileResponseSchema = z.object({
+  // The caller's own subject, so the compare panel can drop me from the field.
+  // Nullish so a payload from before the backend deploy still parses.
+  userSub: z.string().nullish(),
   stats: profileStatsSchema,
   wallets: z.array(walletSchema),
   accolades: z.array(accoladeSchema),
@@ -107,6 +110,11 @@ export const betSchema = z.object({
   eventId: z.string(),
   market: z.string(),
   selection: z.string(),
+  // The matchup the backend joins onto each bet, so the record and god's view
+  // name both teams. Nullish so a payload from before the backend deploy parses.
+  home: z.string().nullish(),
+  away: z.string().nullish(),
+  sport: z.string().nullish(),
   oddsAmerican: z.number(),
   lineValue: z.number().nullable(),
   closingOddsAmerican: z.number().nullable(),
