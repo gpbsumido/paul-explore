@@ -873,6 +873,30 @@ describe("ZeroProofContent — bet slip", () => {
     ).toHaveAttribute("href", "/auth/login");
   });
 
+  it("holds multiple picks on the slip and places them together", async () => {
+    const placed: Record<string, unknown>[] = [];
+    server.use(
+      http.post("/api/zeroproof/bets", async ({ request }) => {
+        placed.push((await request.json()) as Record<string, unknown>);
+        return HttpResponse.json({ id: `bet-${placed.length}` });
+      }),
+    );
+    renderPage(() => HttpResponse.json(PROFILE));
+    // Two picks off the same board card are two independent legs on the slip.
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    expect(within(slip).getByText("Celtics")).toBeInTheDocument();
+    expect(within(slip).getByText("Lakers")).toBeInTheDocument();
+    const stakes = within(slip).getAllByLabelText(/stake/i);
+    expect(stakes).toHaveLength(2);
+    fireEvent.change(stakes[0], { target: { value: "25" } });
+    fireEvent.change(stakes[1], { target: { value: "10" } });
+    fireEvent.click(within(slip).getByRole("button", { name: /place 2 bets/i }));
+    await waitFor(() => expect(placed).toHaveLength(2));
+    expect(placed.map((p) => p.selection).sort()).toEqual(["Celtics", "Lakers"]);
+  });
+
   it("places a bet from a signed-in wallet with the picked outcome and stake", async () => {
     let placed: Record<string, unknown> | null = null;
     server.use(
@@ -1230,6 +1254,12 @@ describe("ZeroProofContent — past fixtures", () => {
     const celtics = screen.getByRole("heading", { name: /Celtics/ });
     expect(
       nuggets.compareDocumentPosition(celtics) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // "Load earlier fixtures" widens the list backwards, so it sits at the top —
+    // above the earliest fixture — not buried at the bottom of the board.
+    const loadEarlier = screen.getByRole("button", { name: /load earlier/i });
+    expect(
+      loadEarlier.compareDocumentPosition(nuggets) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     // The first past fetch asked for just the initial 2-week window.
     expect(pastDaysRequested).toContain("14");

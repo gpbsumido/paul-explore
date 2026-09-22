@@ -3,6 +3,16 @@
 ## 2026-09-22 - version 7.7.0
 
 - Added Fantasy NFL: head-to-head weekly matchups for my ESPN fantasy football league, at `/fantasy/nfl/matchups`. Team scores, every starter's actual and projected fantasy points, and a win probability I derived myself, since ESPN's API has no fantasy win-prob field. It reads the current scoring period straight from the payload rather than guessing the week from the calendar date, which also sidesteps a set-state-in-effect lint failure. The plays ticker is deliberately deferred to a follow-up PR.
+## 2026-09-22 - version 7.6.0
+
+- Reworked the ZeroProof bet slip to hold multiple bets at once. Picking an outcome adds a leg (tap again, or the leg's ✕, to remove it) instead of replacing the slip; each leg takes its own stake and they're placed together, dropping off as they land. A failed leg toasts through the app-wide handler and leaves the rest to retry.
+- Docked the slip to the bottom of the viewport (sticky) so it stays visible while scrolling the board.
+- Made the board's day-section headers sticky, offset just under the sticky filter bar — the bar's height is measured into a CSS var so the two stack cleanly rather than collide.
+- Moved a fixture's team-colour accent from a left bar to a thick bottom border.
+
+## 2026-09-22 - version 7.5.18
+
+- Moved the ZeroProof board's "Load earlier fixtures" button to the top of the list. Now that past fixtures sort oldest-first, the control that widens the list backwards belongs above the earliest game, not pinned to the bottom — "Load more games" still sits at the bottom for the forward direction.
 
 ## 2026-09-21 - version 7.5.17
 
