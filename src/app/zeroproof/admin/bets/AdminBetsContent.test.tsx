@@ -109,8 +109,8 @@ describe("AdminBetsContent", () => {
       http.get("/api/zeroproof/admin/bets", () =>
         HttpResponse.json({
           bets: [
-            bet({ id: "resolved", selection: "Celtics", status: "won" }),
-            bet({ id: "live", selection: "Lakers", status: "open", settledAt: null }),
+            bet({ id: "resolved", selection: "Celtics", status: "won", home: "Bulls", away: "Knicks" }),
+            bet({ id: "live", selection: "Lakers", status: "open", settledAt: null, home: "Suns", away: "Kings" }),
           ],
         }),
       ),

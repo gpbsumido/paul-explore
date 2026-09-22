@@ -8,6 +8,7 @@ import {
   adminBetsResponseSchema,
 } from "@/lib/zeroproof/schemas";
 import {
+  betMatchup,
   formatAmerican,
   formatCents,
   formatRecord,
@@ -134,6 +135,7 @@ function BetsTable({ bets, view }: { bets: ZeroproofAdminBet[]; view: StatusView
       <thead>
         <tr className="text-left text-xs text-muted">
           <th scope="col" className="py-2 pr-3 font-medium">Player</th>
+          <th scope="col" className="py-2 pr-3 font-medium">Matchup</th>
           <th scope="col" className="py-2 pr-3 font-medium">Selection</th>
           <th scope="col" className="py-2 pr-3 font-medium">Market</th>
           <th scope="col" className="py-2 pr-3 font-medium">Odds</th>
@@ -148,6 +150,7 @@ function BetsTable({ bets, view }: { bets: ZeroproofAdminBet[]; view: StatusView
         {rows.map((bet) => (
           <tr key={bet.id} className="border-t border-border text-foreground">
             <td className="py-2 pr-3">{bettorName(bet)}</td>
+            <td className="py-2 pr-3 text-muted">{betMatchup(bet) ?? "—"}</td>
             <td className="py-2 pr-3">{bet.selection}</td>
             <td className="py-2 pr-3 text-muted">{marketLabel(bet.market)}</td>
             <td className="py-2 pr-3 tabular-nums">{formatAmerican(bet.oddsAmerican)}</td>
