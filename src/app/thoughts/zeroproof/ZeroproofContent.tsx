@@ -1141,8 +1141,67 @@ Over  Total 210.5      $25.00   -110`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-22-multi-bet-slip"
+        date="September 22, 2026"
+        title="A slip that holds more than one bet, and stays where I can see it"
+      >
+        <p>
+          Betting the board, three things nagged at me: I could only line up one
+          pick at a time, the slip scrolled away the moment I looked for a second
+          game, and once I&rsquo;d scrolled I&rsquo;d lost track of which day I was
+          on.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One pick was a design choice I&rsquo;d quietly made and never revisited.
+        </h3>
+        <p className="text-muted">
+          The slip was a single <code>SelectedBet | null</code>, so picking a new
+          outcome replaced the old one. Making it a list &mdash; keyed by
+          event/market/selection so a tap toggles a leg on or off &mdash; was most
+          of the work; the rest was giving each leg its own stake and placing them
+          in a loop, dropping each off the slip as it lands.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`for (const { leg, cents } of staked) {
+  await placeLeg.mutateAsync({ leg, stakeCents: cents });
+  onRemove(betLegKey(leg));   // it's placed — take it off the slip
+}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;Sticky&rdquo; is easy until two things want the same edge.
+        </h3>
+        <p className="text-muted">
+          I wanted the slip always in view and the day header always in view. The
+          slip was easy &mdash; dock it to the bottom with{" "}
+          <code>sticky bottom-4</code>, an edge nothing else competes for. The day
+          header wanted the top, where the filter bar already sticks at{" "}
+          <code>top-14</code>; stacking both there just overlaps them. There&rsquo;s
+          no pure-CSS way to offset one sticky element by another&rsquo;s height,
+          so I measure the bar and hand the headers the number:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`section.style.setProperty(
+  "--zp-day-top",
+  \`calc(3.5rem + \${bar.offsetHeight}px)\`,
+);
+// h3: style={{ top: "var(--zp-day-top)" }}`}
+        </pre>
+        <p className="text-muted">
+          Imperative on purpose &mdash; writing a CSS variable in a{" "}
+          <code>ResizeObserver</code> sets no React state, so it never triggers a
+          re-render and the lint rule against state-in-effect stays happy. And the
+          left colour bar became a thick bottom border while I was in there, which
+          reads better under the sticky header.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "A multi-bet slip, docked: pick as many outcomes as you like (tap to add, tap or ✕ to remove), give each its own stake, and place them together — the slip stays pinned to the bottom of the screen while you scroll, so it's always in reach.",
+          "Stickier board: the day-section header sticks just under the filter bar (its height measured into a CSS var so the two don't collide), and a fixture's team colour reads as a thick bottom border rather than a left bar.",
           "Betting closes the instant a match starts: the board mirrors the backend's bettable rule (upcoming and still ahead), so a matchup you've bet on — pinned to the board — renders read-only and badged Live or Final once its game is underway, instead of keeping live outcome buttons.",
           "A bet names its matchup: your record and the god's view show 'Away @ Home' next to the selection, market and stake, joined from the event on the backend — so a totals pick isn't a mystery.",
           "You can't compare against yourself: /me returns your subject, so the Compare picker and the ROI rank both leave you out of the field.",

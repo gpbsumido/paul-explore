@@ -125,6 +125,15 @@ type SelectedBet = {
   price: number;
 };
 
+/** A stable key for a slip leg — one bet per outcome of a market on an event. */
+function betLegKey(bet: {
+  eventId: string;
+  market: string;
+  selection: string;
+}): string {
+  return `${bet.eventId}|${bet.market}|${bet.selection}`;
+}
+
 function OutcomeButton({
   name,
   point,
@@ -179,7 +188,7 @@ function EventCard({
   readOnly = false,
 }: {
   event: ZeroproofEvent;
-  selected: SelectedBet | null;
+  selected: SelectedBet[];
   onPick: (bet: SelectedBet) => void;
   /** The caller's own bets on this fixture, if any. */
   bets: ZeroproofBet[];
@@ -187,13 +196,15 @@ function EventCard({
   readOnly?: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
-  const accent = `linear-gradient(to bottom, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
+  // Away on the left, home on the right — a thick tinted strip along the card's
+  // bottom edge, following its rounded corners.
+  const accent = `linear-gradient(to right, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
     <li className="list-none">
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pl-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
         <span
           aria-hidden="true"
-          className="absolute inset-y-4 left-0 w-1 rounded-full"
+          className="absolute inset-x-0 bottom-0 h-1.5 rounded-b-2xl"
           style={{ background: accent }}
         />
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -292,11 +303,12 @@ function EventCard({
                       </div>
                     );
                   }
-                  const isSelected =
-                    selected !== null &&
-                    selected.eventId === event.id &&
-                    selected.market === market.market &&
-                    selected.selection === outcome.name;
+                  const isSelected = selected.some(
+                    (leg) =>
+                      leg.eventId === event.id &&
+                      leg.market === market.market &&
+                      leg.selection === outcome.name,
+                  );
                   return (
                     <OutcomeButton
                       key={key}
@@ -463,7 +475,7 @@ function Slate({
   selected,
   onPick,
 }: {
-  selected: SelectedBet | null;
+  selected: SelectedBet[];
   onPick: (bet: SelectedBet) => void;
 }) {
   // Whether the board also shows recent finished fixtures, and how far back —
@@ -492,6 +504,11 @@ function Slate({
   const [daysAhead, setDaysAhead] = useState(HORIZON_STEP_DAYS);
   const [autoLoad, setAutoLoad] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  // The filter bar and the day headers both stick under the site header. The bar
+  // sits at top-14; the day headers must clear it, so we measure its height into
+  // a CSS var the headers read for their own sticky offset (see the effect below).
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const filterBarRef = useRef<HTMLDivElement | null>(null);
 
   // The caller's bets, so a fixture they've already bet on is flagged on the
   // board — and always shown, even past the horizon. Reuses the profile's query
@@ -569,8 +586,29 @@ function Slate({
     return () => observer.disconnect();
   }, [autoLoad, hasMore, visibleEvents.length]);
 
+  // Keep the day headers stacking just under the sticky filter bar: measure the
+  // bar and expose its height as a CSS var the headers read for their sticky
+  // top. Imperative (no state) so it never triggers a re-render, and guarded for
+  // environments without ResizeObserver.
+  useEffect(() => {
+    const bar = filterBarRef.current;
+    const section = sectionRef.current;
+    if (!bar || !section) return;
+    const apply = () => {
+      section.style.setProperty(
+        "--zp-day-top",
+        `calc(3.5rem + ${bar.offsetHeight}px)`,
+      );
+    };
+    apply();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(apply);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [allEvents.length]);
+
   return (
-    <section aria-labelledby="slate-title" className="mt-10">
+    <section ref={sectionRef} aria-labelledby="slate-title" className="mt-10">
       <h2 id="slate-title" className="text-xl font-semibold text-foreground">
         The board
       </h2>
@@ -604,7 +642,10 @@ function Slate({
 
           {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
               controls stay visible while you scroll the board. */}
-          <div className="sticky top-14 z-20 mt-4 flex flex-col gap-2 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur">
+          <div
+            ref={filterBarRef}
+            className="sticky top-14 z-20 mt-4 flex flex-col gap-2 rounded-lg border border-border bg-background/85 px-3 py-2 backdrop-blur"
+          >
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted">Filter</span>
               <label className="sr-only" htmlFor="board-filter-type">
@@ -745,6 +786,22 @@ function Slate({
             </div>
           </div>
 
+          {hasEarlier && (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() =>
+                  setDaysBack((days) =>
+                    Math.min(days + PAST_STEP_DAYS, MAX_PAST_DAYS),
+                  )
+                }
+                className={controlButton}
+              >
+                Load earlier fixtures
+              </button>
+            </div>
+          )}
+
           {visibleEvents.length === 0 ? (
             <p className="mt-6 text-sm text-muted">
               {hasMore
@@ -757,7 +814,12 @@ function Slate({
             <div className="mt-6 space-y-8">
               {dayGroups.map((group) => (
                 <div key={group.key}>
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">
+                  {/* Sticks just under the filter bar (offset measured into
+                      --zp-day-top) so the day you're scrolling is always named. */}
+                  <h3
+                    className="sticky z-10 mb-3 -mx-1 bg-background/85 px-1 py-1 text-sm font-semibold text-foreground backdrop-blur"
+                    style={{ top: "var(--zp-day-top, 3.5rem)" }}
+                  >
                     {group.label}
                   </h3>
                   <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -793,22 +855,6 @@ function Slate({
                   Load more games
                 </button>
               )}
-            </div>
-          )}
-
-          {hasEarlier && (
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={() =>
-                  setDaysBack((days) =>
-                    Math.min(days + PAST_STEP_DAYS, MAX_PAST_DAYS),
-                  )
-                }
-                className={controlButton}
-              >
-                Load earlier fixtures
-              </button>
             </div>
           )}
         </>
@@ -1056,7 +1102,15 @@ function centsFromDollars(input: string): number | null {
   return Math.round(n * 100);
 }
 
-function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
+function BetSlip({
+  slip,
+  onClear,
+  onRemove,
+}: {
+  slip: SelectedBet[];
+  onClear: () => void;
+  onRemove: (legKey: string) => void;
+}) {
   const queryClient = useQueryClient();
   const profileQuery = useQuery({
     queryKey: queryKeys.zeroproof.me(),
@@ -1068,7 +1122,7 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
     refetchInterval: (query) =>
       query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
-  const [stake, setStake] = useState("");
+  const [stakes, setStakes] = useState<Record<string, string>>({});
   const [walletId, setWalletId] = useState("");
 
   const signedOut = profileQuery.data?.signedOut ?? false;
@@ -1077,18 +1131,29 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       ? profileQuery.data.wallets
       : [];
   const activeWallet = walletId || wallets[0]?.id || "";
-  const stakeCents = centsFromDollars(stake);
 
-  const placeBet = useMutation({
-    mutationFn: async () => {
+  const setStake = (legKey: string, value: string) =>
+    setStakes((cur) => ({ ...cur, [legKey]: value }));
+
+  // One placement, reused for each leg. Its optimistic write flags the fixture
+  // the instant a bet is placed, and the app-wide MutationCache (providers.tsx)
+  // toasts any error, so a failed leg surfaces without its own inline message.
+  const placeLeg = useMutation({
+    mutationFn: async ({
+      leg,
+      stakeCents,
+    }: {
+      leg: SelectedBet;
+      stakeCents: number;
+    }) => {
       const res = await fetch("/api/zeroproof/bets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           walletId: activeWallet,
-          eventId: bet.eventId,
-          market: bet.market,
-          selection: bet.selection,
+          eventId: leg.eventId,
+          market: leg.market,
+          selection: leg.selection,
           stakeCents,
         }),
       });
@@ -1102,25 +1167,22 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
       }
       return res.json();
     },
-    // Optimistic: drop the bet onto its board fixture straight away, so placing
-    // it feels instant rather than waiting on the round-trip. The settler's
-    // real bet replaces it when onSettled refetches; a failure rolls it back.
-    onMutate: async () => {
+    onMutate: async ({ leg, stakeCents }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.zeroproof.bets() });
       const previous = queryClient.getQueryData<ZeroproofBet[]>(
         queryKeys.zeroproof.bets(),
       );
       const optimistic: ZeroproofBet = {
-        id: `optimistic-${bet.eventId}-${bet.market}-${bet.selection}`,
+        id: `optimistic-${betLegKey(leg)}`,
         walletId: activeWallet,
-        eventId: bet.eventId,
-        market: bet.market,
-        selection: bet.selection,
-        oddsAmerican: bet.price,
-        lineValue: bet.point ?? null,
+        eventId: leg.eventId,
+        market: leg.market,
+        selection: leg.selection,
+        oddsAmerican: leg.price,
+        lineValue: leg.point ?? null,
         closingOddsAmerican: null,
         clv: null,
-        stakeCents: stakeCents ?? 0,
+        stakeCents,
         status: "open",
         placedAt: new Date().toISOString(),
         settledAt: null,
@@ -1136,95 +1198,142 @@ function BetSlip({ bet, onClear }: { bet: SelectedBet; onClear: () => void }) {
         queryClient.setQueryData(queryKeys.zeroproof.bets(), context.previous);
       }
     },
-    onSuccess: () => {
-      setStake("");
-    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.bets() });
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.me() });
     },
   });
 
+  // The legs that carry a valid stake — the ones "place" will send.
+  const staked = slip
+    .map((leg) => ({ leg, cents: centsFromDollars(stakes[betLegKey(leg)] ?? "") }))
+    .filter((s): s is { leg: SelectedBet; cents: number } => s.cents !== null);
+
+  // Place every staked leg together, dropping each from the slip as it lands.
+  // Stops at the first failure (its error toasts) so the rest stay to retry.
+  const placeAll = async () => {
+    for (const { leg, cents } of staked) {
+      try {
+        await placeLeg.mutateAsync({ leg, stakeCents: cents });
+        onRemove(betLegKey(leg));
+        setStakes((cur) => {
+          const next = { ...cur };
+          delete next[betLegKey(leg)];
+          return next;
+        });
+      } catch {
+        break;
+      }
+    }
+  };
+
+  const placeLabel =
+    staked.length > 1 ? `Place ${staked.length} bets` : "Place bet";
+
   return (
-    <div role="region" aria-label="Bet slip" className="mt-6">
-      <LiquidGlass className="rounded-2xl p-5 ring-1 ring-primary-500/30">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground">Bet slip</h2>
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-sm text-muted hover:text-foreground"
-        >
-          Clear
-        </button>
-      </div>
-      <p className="mt-2 text-sm text-muted">{bet.eventLabel}</p>
-      <p className="text-foreground">
-        <span className="font-medium">{bet.selection}</span>{" "}
-        {formatPoint(bet.point) && (
-          <span className="text-muted">{formatPoint(bet.point)} </span>
-        )}
-        <span className="font-mono tabular-nums">{formatAmerican(bet.price)}</span>
-      </p>
-
-      {signedOut ? (
-        <Link
-          href="/auth/login"
-          className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
-        >
-          Sign in to bet
-        </Link>
-      ) : wallets.length === 0 ? (
-        <div className="mt-4 space-y-3">
-          <p className="text-sm text-muted">Open a wallet to place this bet.</p>
-          <OpenWalletActions />
+    // Docked to the bottom of the viewport so the slip stays in view while you
+    // scroll the board picking outcomes; it settles in place at the end.
+    <div role="region" aria-label="Bet slip" className="sticky bottom-4 z-40 mt-6">
+      <LiquidGlass className="max-h-[60vh] overflow-y-auto rounded-2xl p-5 ring-1 ring-primary-500/30">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">
+            Bet slip{slip.length > 1 ? ` (${slip.length})` : ""}
+          </h2>
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-sm text-muted hover:text-foreground"
+          >
+            Clear
+          </button>
         </div>
-      ) : (
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          {wallets.length > 1 && (
-            <label className="text-xs text-muted">
-              Wallet
-              <select
-                value={activeWallet}
-                onChange={(e) => setWalletId(e.target.value)}
-                className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
-              >
-                {wallets.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.mode} — {formatCents(w.balanceCents)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <label className="text-xs text-muted">
-            Stake
-            <input
-              inputMode="decimal"
-              value={stake}
-              onChange={(e) => setStake(e.target.value)}
-              placeholder="$0.00"
-              className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
-            />
-          </label>
-          <ShineSweep className="rounded-full">
-            <button
-              type="button"
-              onClick={() => placeBet.mutate()}
-              disabled={stakeCents === null || placeBet.isPending}
-              className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
+
+        <ul className="mt-3 space-y-3">
+          {slip.map((leg) => (
+            <li
+              key={betLegKey(leg)}
+              className="rounded-lg border border-border bg-surface/40 p-3"
             >
-              {placeBet.isPending ? "Placing…" : "Place bet"}
-            </button>
-          </ShineSweep>
-        </div>
-      )}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm text-muted">{leg.eventLabel}</p>
+                  <p className="text-foreground">
+                    <span className="font-medium">{leg.selection}</span>{" "}
+                    {formatPoint(leg.point) && (
+                      <span className="text-muted">{formatPoint(leg.point)} </span>
+                    )}
+                    <span className="font-mono tabular-nums">
+                      {formatAmerican(leg.price)}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemove(betLegKey(leg))}
+                  aria-label={`Remove ${leg.selection} from slip`}
+                  className="text-muted hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+              {!signedOut && wallets.length > 0 && (
+                <label className="mt-2 block text-xs text-muted">
+                  Stake
+                  <input
+                    inputMode="decimal"
+                    value={stakes[betLegKey(leg)] ?? ""}
+                    onChange={(e) => setStake(betLegKey(leg), e.target.value)}
+                    placeholder="$0.00"
+                    className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+                  />
+                </label>
+              )}
+            </li>
+          ))}
+        </ul>
 
-      {placeBet.isSuccess && (
-        <p className="mt-2 text-xs text-success-600 dark:text-success-300">
-          Bet placed — your balance is updated below.
-        </p>
-      )}
+        {signedOut ? (
+          <Link
+            href="/auth/login"
+            className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+          >
+            Sign in to bet
+          </Link>
+        ) : wallets.length === 0 ? (
+          <div className="mt-4 space-y-3">
+            <p className="text-sm text-muted">Open a wallet to place these bets.</p>
+            <OpenWalletActions />
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            {wallets.length > 1 && (
+              <label className="text-xs text-muted">
+                Wallet
+                <select
+                  value={activeWallet}
+                  onChange={(e) => setWalletId(e.target.value)}
+                  className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+                >
+                  {wallets.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.mode} — {formatCents(w.balanceCents)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <ShineSweep className="rounded-full">
+              <button
+                type="button"
+                onClick={placeAll}
+                disabled={staked.length === 0 || placeLeg.isPending}
+                className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
+              >
+                {placeLeg.isPending ? "Placing…" : placeLabel}
+              </button>
+            </ShineSweep>
+          </div>
+        )}
       </LiquidGlass>
     </div>
   );
@@ -1573,7 +1682,17 @@ type LobbyTab = (typeof LOBBY_TABS)[number]["id"];
  * the accessibility tree.
  */
 export default function ZeroProofContent() {
-  const [selectedBet, setSelectedBet] = useState<SelectedBet | null>(null);
+  // The bet slip holds a list of picks — tap an outcome to add it, tap again (or
+  // the leg's ✕) to remove it — each placed with its own stake, together.
+  const [slip, setSlip] = useState<SelectedBet[]>([]);
+  const togglePick = (bet: SelectedBet) =>
+    setSlip((cur) =>
+      cur.some((leg) => betLegKey(leg) === betLegKey(bet))
+        ? cur.filter((leg) => betLegKey(leg) !== betLegKey(bet))
+        : [...cur, bet],
+    );
+  const removeLeg = (legKey: string) =>
+    setSlip((cur) => cur.filter((leg) => betLegKey(leg) !== legKey));
   const [tab, setTab] = useState<LobbyTab>("board");
   const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
 
@@ -1707,10 +1826,14 @@ export default function ZeroProofContent() {
         hidden={tab !== "board"}
         className="focus-visible:outline-none"
       >
-        {selectedBet && (
-          <BetSlip bet={selectedBet} onClear={() => setSelectedBet(null)} />
+        <Slate selected={slip} onPick={togglePick} />
+        {slip.length > 0 && (
+          <BetSlip
+            slip={slip}
+            onClear={() => setSlip([])}
+            onRemove={removeLeg}
+          />
         )}
-        <Slate selected={selectedBet} onPick={setSelectedBet} />
       </div>
       <div
         role="tabpanel"
