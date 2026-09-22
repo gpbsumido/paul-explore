@@ -44,6 +44,7 @@ import type {
   ZeroproofBet,
 } from "@/lib/zeroproof/schemas";
 import {
+  betMatchup,
   formatAmerican,
   formatCents,
   formatNetCents,
@@ -68,8 +69,8 @@ import {
   filterBoardEvents,
   hasActiveFilters,
   hasMoreBeyondHorizon,
+  isEventBettable,
   isFantasySport,
-  isPastFixture,
 } from "@/lib/zeroproof/boardFilters";
 import { biggestUnderdog, closestGame } from "@/lib/zeroproof/boardHighlights";
 import { teamAccentColor } from "@/lib/zeroproof/teamAccent";
@@ -78,6 +79,7 @@ import ClickSpark from "@/components/motion/ClickSpark";
 import LiquidGlass from "@/components/motion/LiquidGlass";
 import ShineSweep from "@/components/motion/ShineSweep";
 import StarBorder from "@/components/motion/StarBorder";
+import { SquishSwitch } from "@paul-portfolio/react";
 
 /**
  * The bankroll-trend chart, code-split out of the lobby's initial bundle. It's
@@ -215,7 +217,7 @@ function EventCard({
           )}
           {readOnly && (
             <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
-              Final
+              {event.status === "final" ? "Final" : "Live"}
             </span>
           )}
         </div>
@@ -514,7 +516,17 @@ function Slate({
   const allEvents = eventsQuery.data?.events ?? [];
 
   const horizonCtx = { now, daysAhead, daysBack, dayMs: DAY_MS, betEventIds };
-  const visibleEvents = filterBoardEvents(allEvents, boardFilters, horizonCtx);
+  // The backend returns upcoming ascending then past descending, so sort by
+  // kickoff before grouping — otherwise past fixtures land at the bottom in
+  // reverse order instead of slotting in chronologically. An unparseable date
+  // sinks to the end rather than scrambling the order.
+  const commenceMs = (event: ZeroproofEvent) => {
+    const time = new Date(event.commenceTime).getTime();
+    return Number.isNaN(time) ? Infinity : time;
+  };
+  const visibleEvents = [...filterBoardEvents(allEvents, boardFilters, horizonCtx)].sort(
+    (a, b) => commenceMs(a) - commenceMs(b),
+  );
   const hasMore = hasMoreBeyondHorizon(allEvents, boardFilters, horizonCtx);
   // We only fetch the window we're showing, so the loaded data can't tell us
   // whether older fixtures exist — offer "load earlier" until the 3-month cap.
@@ -683,19 +695,17 @@ function Slate({
                 <option value="even">Even matchups</option>
               </select>
 
-              <label className="flex items-center gap-2 text-xs text-foreground">
-                <input
-                  type="checkbox"
+              <div className="flex items-center gap-2 text-xs text-foreground">
+                <SquishSwitch
                   checked={includePast}
-                  onChange={(event) => {
-                    const on = event.target.checked;
+                  onChange={(on) => {
                     setIncludePast(on);
                     setDaysBack(on ? PAST_STEP_DAYS : 0);
                   }}
-                  className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                  label="Show past fixtures"
                 />
-                Show past fixtures
-              </label>
+                <span>Show past fixtures</span>
+              </div>
 
               {filtersActive && (
                 <button type="button" onClick={clearFilters} className={controlButton}>
@@ -722,15 +732,14 @@ function Slate({
                       Show only next 3 days
                     </button>
                   )}
-                  <label className="flex items-center gap-2 text-xs text-foreground">
-                    <input
-                      type="checkbox"
+                  <div className="flex items-center gap-2 text-xs text-foreground">
+                    <SquishSwitch
                       checked={autoLoad}
-                      onChange={(event) => setAutoLoad(event.target.checked)}
-                      className="h-4 w-4 rounded border-border text-primary-600 focus-visible:ring-2 focus-visible:ring-primary-600"
+                      onChange={setAutoLoad}
+                      label="Auto-load as I scroll"
                     />
-                    Auto-load as I scroll
-                  </label>
+                    <span>Auto-load as I scroll</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -759,7 +768,7 @@ function Slate({
                         selected={selected}
                         onPick={onPick}
                         bets={betsByEvent.get(event.id) ?? []}
-                        readOnly={isPastFixture(event, now)}
+                        readOnly={!isEventBettable(event, now)}
                       />
                     ))}
                   </ul>
@@ -952,6 +961,8 @@ type ProfileResult =
   | { signedOut: true }
   | {
       signedOut: false;
+      /** My own subject, for dropping me from the compare field. Nullish pre-backend-deploy. */
+      userSub?: string | null;
       stats: ProfileStats;
       wallets: ZeroproofWallet[];
       accolades: Accolade[];
@@ -1247,9 +1258,17 @@ function BetHistory() {
             key={bet.id}
             className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2 text-sm"
           >
-            <span className="text-foreground">
-              {bet.selection}{" "}
-              <span className="text-muted">{marketLabel(bet.market)}</span>
+            <span className="flex flex-col text-foreground">
+              {betMatchup(bet) && (
+                <span className="text-xs text-muted">{betMatchup(bet)}</span>
+              )}
+              <span>
+                <span className="font-medium">{bet.selection}</span>{" "}
+                <span className="text-muted">
+                  {marketLabel(bet.market)}
+                  {bet.lineValue !== null ? ` ${formatPoint(bet.lineValue ?? undefined)}` : ""}
+                </span>
+              </span>
             </span>
             <span className="flex items-center gap-3 font-mono tabular-nums">
               <span className="text-muted">{formatCents(bet.stakeCents)}</span>
@@ -1530,6 +1549,7 @@ function CompareTab() {
   return (
     <ComparePanel
       myStats={profileQuery.data.stats}
+      myUserSub={profileQuery.data.userSub}
       entries={boardQuery.data?.entries ?? []}
       openBets={(betsQuery.data ?? []).filter((bet) => bet.status === "open")}
     />
