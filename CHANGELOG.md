@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-22 - version 7.6.0
+
+- Added Fantasy NFL: head-to-head weekly matchups for my ESPN fantasy football league, at `/fantasy/nfl/matchups`. Team scores, every starter's actual and projected fantasy points, and a win probability I derived myself, since ESPN's API has no fantasy win-prob field. It reads the current scoring period straight from the payload rather than guessing the week from the calendar date, which also sidesteps a set-state-in-effect lint failure. The plays ticker is deliberately deferred to a follow-up PR.
+
 ## 2026-09-21 - version 7.5.17
 
 - Fixed five things on the ZeroProof board I hit while testing it. Betting now closes the moment a matchup starts — a fantasy matchup keeps a synthetic commence time ~48h out, so the kickoff check never closed it, and a matchup I'd already bet on stayed on the board (it's always shown once I have a bet on it) with live outcome buttons after it had started. The board now mirrors the backend's bettable rule and renders anything that isn't upcoming-and-ahead read-only, badged "Live" or "Final".

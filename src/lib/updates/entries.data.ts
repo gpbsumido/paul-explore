@@ -11,6 +11,22 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-fantasy-nfl",
+    date: "2026-09-22",
+    version: "7.6.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "Fantasy NFL matchups",
+    summary:
+      "Head-to-head weekly matchups for my ESPN fantasy football league, with per-player points and a win probability ESPN doesn't provide.",
+    body: [
+      "A new NFL sibling to the fantasy basketball matchups page: each week's head-to-head games, team totals, and every starter's actual and projected fantasy points for that week.",
+      "ESPN carries no win-probability field for a fantasy matchup, so it's computed from each side's projected final score, with a spread that narrows as a week's games finish rather than reading a mid-week lead as a certainty.",
+      "The live plays ticker — a feed of the scoring plays behind each score — is intentionally out of this release; it needs a second ESPN API and only means anything during live games, so it's shipping as its own follow-up.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-design-detox",
     date: "2026-09-20",
     version: "7.5.9",
