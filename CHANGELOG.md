@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-21 - version 7.5.18
+
+- Added a "Take the tour" walkthrough to Work Portfolio's intro state, matching the guided-tour pattern already on the design system, fantasy hub, TCG browse, and vitals pages: consent, the hero heading, the projects ticker, then the features ticker.
+
+## 2026-09-21 - version 7.5.17
+
+- Restored padding on every modal in the app. The design system moved `Modal`'s padding onto `Modal.Header`/`Modal.Body`/`Modal.Footer`, but the app's `Modal` wrapper never re-exposed those, and every call site rendered raw children — so every modal had gone edge-to-edge. Wrapped content at all 17 call sites in `Modal.Body` and bumped `@paul-portfolio/react` to 0.12.10, which now pads plain children by default so a future call site can't reintroduce this by omission.
+
 ## 2026-09-20 - version 7.5.16
 
 - Logged the site-wide design pass in the public Updates feed — the first curated entry since the 7.5.0 landing rebuild, covering the cleaner cards, editorial headings, squircle corners, and irregular bento grids.
