@@ -62,6 +62,27 @@ describe("ComparePanel", () => {
     expect(screen.getByText("+14.2%")).toBeInTheDocument();
   });
 
+  it("leaves me out of the players I can compare against", () => {
+    // The leaderboard includes me; I can't stack up against myself.
+    const withMe: LeaderboardEntry[] = [
+      { userSub: "auth0|me", wins: 18, losses: 11, pushes: 2, betCount: 29, roiPct: 8.4, sharpScore: 72.5 },
+      ...entries,
+    ];
+    render(
+      <ComparePanel
+        myStats={myStats}
+        myUserSub="auth0|me"
+        entries={withMe}
+        openBets={openBets}
+      />,
+    );
+    const select = screen.getByRole("combobox", { name: /compare against/i });
+    expect(within(select).queryByText(playerHandle("auth0|me"))).toBeNull();
+    expect(within(select).getByText(playerHandle("auth0|sharp-one"))).toBeInTheDocument();
+    // Ranking counts the field once: me plus the two others.
+    expect(screen.getByText("#2 of 3")).toBeInTheDocument();
+  });
+
   it("lets me pick a different player to compare against", async () => {
     const user = userEvent.setup();
     render(<ComparePanel myStats={myStats} entries={entries} openBets={openBets} />);

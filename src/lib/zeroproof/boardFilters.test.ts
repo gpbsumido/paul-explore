@@ -8,6 +8,7 @@ import {
   filterBoardEvents,
   hasMoreBeyondHorizon,
   inDateRange,
+  isEventBettable,
   isFantasySport,
   isPastFixture,
   localDayKey,
@@ -267,6 +268,33 @@ describe("isPastFixture", () => {
 
   it("is false for an upcoming event still ahead of now", () => {
     expect(isPastFixture(ev({ commenceTime: "2026-10-21T00:00:00Z" }), NOW)).toBe(false);
+  });
+})
+
+describe("isEventBettable", () => {
+  const NOW = new Date("2026-10-20T12:00:00.000Z").getTime();
+
+  it("is true only for an upcoming event still ahead of now", () => {
+    expect(
+      isEventBettable(ev({ status: "upcoming", commenceTime: "2026-10-21T00:00:00Z" }), NOW),
+    ).toBe(true);
+  });
+
+  it("is false once a matchup has started, even with a future synthetic commence time", () => {
+    // A fantasy matchup keeps a commence time ~48h out, so the time check alone
+    // never closes it — the 'started' status is what shuts betting off.
+    expect(
+      isEventBettable(ev({ status: "started", commenceTime: "2026-10-25T00:00:00Z" }), NOW),
+    ).toBe(false);
+  });
+
+  it("is false for a final event and for a kickoff already in the past", () => {
+    expect(
+      isEventBettable(ev({ status: "final", commenceTime: "2026-10-25T00:00:00Z" }), NOW),
+    ).toBe(false);
+    expect(
+      isEventBettable(ev({ status: "upcoming", commenceTime: "2026-10-19T00:00:00Z" }), NOW),
+    ).toBe(false);
   });
 })
 

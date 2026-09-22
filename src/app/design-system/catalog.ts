@@ -643,8 +643,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "A real role=switch button — keyboard operable and announces its on/off state",
       "Under prefers-reduced-motion the squish and slide are dropped; the state still flips",
     ],
-    usedOn: [],
-    elsewhere: EFFECT_ELSEWHERE,
+    usedOn: [{ label: "ZeroProof", href: "/zeroproof" }],
   },
   {
     id: "rubber-segment",

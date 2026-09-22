@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-21 - version 7.5.17
+
+- Fixed five things on the ZeroProof board I hit while testing it. Betting now closes the moment a matchup starts — a fantasy matchup keeps a synthetic commence time ~48h out, so the kickoff check never closed it, and a matchup I'd already bet on stayed on the board (it's always shown once I have a bet on it) with live outcome buttons after it had started. The board now mirrors the backend's bettable rule and renders anything that isn't upcoming-and-ahead read-only, badged "Live" or "Final".
+- Bets now name both teams. A pick read as "Over Total" with no way to tell who was playing; my record and the admin god's view now show the matchup ("Away @ Home") next to the selection, the market and the stake. Reads the home/away/sport the backend joins onto each bet, and falls back to the old display until that ships.
+- Can't compare against myself in the Compare tab any more — the picker listed every leaderboard row including me. `/me` returns my subject now, so I'm dropped from the field (and counted once in the ROI rank).
+- "Show past fixtures" works properly: the events route was dropping the `pastDays` window so "load earlier" never widened the query, and past fixtures now sort in chronologically instead of piling up at the bottom in reverse.
+- The two board toggles are the design system's bouncy SquishSwitch now, not bare checkboxes.
+
 ## 2026-09-20 - version 7.5.16
 
 - Logged the site-wide design pass in the public Updates feed — the first curated entry since the 7.5.0 landing rebuild, covering the cleaner cards, editorial headings, squircle corners, and irregular bento grids.

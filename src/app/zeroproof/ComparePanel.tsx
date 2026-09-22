@@ -7,6 +7,7 @@ import {
   rankByMetric,
 } from "@/lib/zeroproof/compare";
 import {
+  betMatchup,
   formatAmerican,
   formatCents,
   playerHandle,
@@ -27,18 +28,24 @@ const WINNER = "font-semibold text-success-600 dark:text-success-300";
  */
 export default function ComparePanel({
   myStats,
+  myUserSub,
   entries,
   openBets,
 }: {
   myStats: ProfileStats;
+  /** My own subject, so I'm dropped from the field — I can't compare to myself. */
+  myUserSub?: string | null;
   entries: LeaderboardEntry[];
   openBets: ZeroproofBet[];
 }) {
+  // The leaderboard includes me; comparing me to myself is meaningless, so the
+  // field I stack up against is everyone but me — for both the picker and the rank.
+  const others = entries.filter((entry) => entry.userSub !== myUserSub);
   const [selectedSub, setSelectedSub] = useState(
-    entries[0]?.userSub ?? "",
+    others[0]?.userSub ?? "",
   );
 
-  if (entries.length === 0) {
+  if (others.length === 0) {
     return (
       <section aria-labelledby="compare-title" className="mt-12">
         <h2 id="compare-title" className="text-xl font-semibold text-foreground">
@@ -53,11 +60,11 @@ export default function ComparePanel({
   }
 
   const opponent =
-    entries.find((entry) => entry.userSub === selectedSub) ?? entries[0];
+    others.find((entry) => entry.userSub === selectedSub) ?? others[0];
   const opponentHandle = playerHandle(opponent.userSub);
   const metrics = compareStats(myStats, opponent);
   const { mineLeads, theirsLeads, comparable } = leadSummary(metrics);
-  const roiRank = rankByMetric(entries, myStats, "roiPct");
+  const roiRank = rankByMetric(others, myStats, "roiPct");
 
   const summary =
     mineLeads > theirsLeads
@@ -94,7 +101,7 @@ export default function ComparePanel({
           onChange={(event) => setSelectedSub(event.target.value)}
           className="mt-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
         >
-          {entries.map((entry) => (
+          {others.map((entry) => (
             <option key={entry.userSub} value={entry.userSub}>
               {playerHandle(entry.userSub)}
             </option>
@@ -168,7 +175,12 @@ export default function ComparePanel({
                 key={bet.id}
                 className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/50 px-3 py-2 text-sm"
               >
-                <span className="text-foreground">{bet.selection}</span>
+                <span className="flex flex-col text-foreground">
+                  {betMatchup(bet) && (
+                    <span className="text-xs text-muted">{betMatchup(bet)}</span>
+                  )}
+                  <span>{bet.selection}</span>
+                </span>
                 <span className="font-mono tabular-nums text-muted">
                   {formatAmerican(bet.oddsAmerican)} · {formatCents(bet.stakeCents)}
                 </span>

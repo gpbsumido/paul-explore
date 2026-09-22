@@ -253,6 +253,38 @@ describe("ZeroProofContent — compare", () => {
   });
 });
 
+describe("ZeroProofContent — record names the matchup", () => {
+  const totalBet = {
+    id: "bet-1",
+    walletId: "w1",
+    eventId: "evt-1",
+    market: "total",
+    selection: "Over",
+    home: "Celtics",
+    away: "Heat",
+    sport: "basketball_nba",
+    oddsAmerican: -110,
+    lineValue: 210.5,
+    closingOddsAmerican: null,
+    clv: null,
+    stakeCents: 2500,
+    status: "open",
+    placedAt: "2026-09-05T00:00:00.000Z",
+    settledAt: null,
+  };
+
+  it("shows both teams next to the pick, not just 'Over Total'", async () => {
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => HttpResponse.json({ bets: [totalBet] }),
+    );
+    fireEvent.click(await screen.findByRole("tab", { name: "Your record" }));
+    const panel = await screen.findByRole("tabpanel", { name: "Your record" });
+    // The matchup travels with the bet now, so a totals pick names who's playing.
+    expect(await within(panel).findByText(/Heat @ Celtics/)).toBeInTheDocument();
+  });
+});
+
 describe("ZeroProofContent — board horizon", () => {
   const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
   const boardEvent = (id: string, iso: string, home: string, away: string) => ({
@@ -332,7 +364,7 @@ describe("ZeroProofContent — board horizon", () => {
       screen.getByRole("button", { name: /load more games/i }),
     ).toBeInTheDocument();
     fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-load as i scroll/i }),
+      screen.getByRole("switch", { name: /auto-load as i scroll/i }),
     );
     await waitFor(() =>
       expect(
@@ -601,6 +633,25 @@ describe("ZeroProofContent — board days and existing bets", () => {
       await screen.findByRole("heading", { name: /Bears/ }),
     ).toBeInTheDocument();
     expect(screen.getByText(/your bet/i)).toBeInTheDocument();
+  });
+
+  it("locks a fixture you've bet on once its game has started", async () => {
+    // A fantasy matchup keeps a future synthetic commence time, so only its
+    // 'started' status closes it — the board must respect that, not just kickoff.
+    const started = {
+      ...ev("evt-live", "2026-09-20T18:00:00.000Z", "Alpha", "Bravo"),
+      sport: "fantasy_fba",
+      status: "started",
+    };
+    renderPage(
+      () => HttpResponse.json(PROFILE),
+      () => HttpResponse.json({ bets: [betOn("evt-live")] }),
+      () => HttpResponse.json({ events: [started] }),
+    );
+    await screen.findByRole("heading", { name: /Alpha/ });
+    // Started → its outcomes are read-only, so there's no button to add a bet.
+    expect(screen.queryByRole("button", { name: /Alpha/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Bravo/ })).toBeNull();
   });
 });
 
@@ -1166,15 +1217,20 @@ describe("ZeroProofContent — past fixtures", () => {
     expect(screen.queryByRole("heading", { name: /Nuggets/ })).toBeNull();
 
     fireEvent.click(
-      await screen.findByRole("checkbox", { name: /show past fixtures/i }),
+      await screen.findByRole("switch", { name: /show past fixtures/i }),
     );
 
     // It shows up, badged Final, with static lines (no bet button for it).
-    expect(
-      await screen.findByRole("heading", { name: /Nuggets/ }),
-    ).toBeInTheDocument();
+    const nuggets = await screen.findByRole("heading", { name: /Nuggets/ });
+    expect(nuggets).toBeInTheDocument();
     expect(screen.getByText("Final")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Suns/ })).toBeNull();
+    // And it slots in chronologically — the finished game (Sep 2) sits above the
+    // upcoming one (Sep 10), not buried below it in reverse order.
+    const celtics = screen.getByRole("heading", { name: /Celtics/ });
+    expect(
+      nuggets.compareDocumentPosition(celtics) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     // The first past fetch asked for just the initial 2-week window.
     expect(pastDaysRequested).toContain("14");
 

@@ -25,6 +25,9 @@ const bet = (overrides: Record<string, unknown> = {}) => ({
   email: "greg@example.com",
   handle: "Greg the Sharp",
   mode: "season",
+  home: "Celtics",
+  away: "Heat",
+  sport: "basketball_nba",
   ...overrides,
 });
 
@@ -68,6 +71,20 @@ describe("AdminBetsContent", () => {
     expect(table).toHaveTextContent("Yankees");
   });
 
+  it("names the matchup for each bet, not just the selection", async () => {
+    server.use(
+      http.get("/api/zeroproof/admin/bets", () =>
+        HttpResponse.json({
+          bets: [bet({ selection: "Over", market: "total", lineValue: 210.5 })],
+        }),
+      ),
+    );
+    renderAdmin();
+    const table = await screen.findByRole("table", { name: /all bets/i });
+    // The god's view names who's playing, so a totals bet isn't a mystery matchup.
+    expect(table).toHaveTextContent("Heat @ Celtics");
+  });
+
   it("summarises each player's win-loss-push record and live count", async () => {
     server.use(
       http.get("/api/zeroproof/admin/bets", () =>
@@ -92,8 +109,8 @@ describe("AdminBetsContent", () => {
       http.get("/api/zeroproof/admin/bets", () =>
         HttpResponse.json({
           bets: [
-            bet({ id: "resolved", selection: "Celtics", status: "won" }),
-            bet({ id: "live", selection: "Lakers", status: "open", settledAt: null }),
+            bet({ id: "resolved", selection: "Celtics", status: "won", home: "Bulls", away: "Knicks" }),
+            bet({ id: "live", selection: "Lakers", status: "open", settledAt: null, home: "Suns", away: "Kings" }),
           ],
         }),
       ),
