@@ -752,6 +752,7 @@ export function WorldPreview() {
 export const FEATURE_TOKEN: Record<string, string> = {
   world: "--color-feature-world",
   "fantasy-nba": "--color-feature-nba",
+  "fantasy-nfl": "--color-feature-nfl",
   pokemon: "--color-feature-tcg",
   calendar: "--color-feature-calendar",
   vitals: "--color-feature-vitals",
@@ -839,9 +840,36 @@ export function ZeroproofPreview() {
   );
 }
 
+// Keyed by feature.id so FeatureCard can look up the right preview without a switch.
+const NFL_MATCHUP_PREVIEW = [
+  { away: "PPT", home: "GGT", awayPts: "24.5", homePts: "30.0" },
+];
+
+export function NflMatchupsPreview() {
+  return (
+    <div className="space-y-1.5">
+      {NFL_MATCHUP_PREVIEW.map((m) => (
+        <div
+          key={m.home}
+          className="flex items-center gap-2 rounded-lg border border-black/10 bg-black/5 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/5"
+        >
+          <span className="flex-1 truncate text-[9px] font-semibold text-[var(--color-feature-nfl)]">
+            {m.away} {m.awayPts}
+          </span>
+          <span className="text-[8px] text-black/30 dark:text-white/30">vs</span>
+          <span className="flex-1 truncate text-right text-[9px] font-semibold text-black/70 dark:text-white/70">
+            {m.homePts} {m.home}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   world: WorldPreview,
   "fantasy-nba": PlayoffsPreview,
+  "fantasy-nfl": NflMatchupsPreview,
   pokemon: PokemonPreview,
   calendar: CalendarPreview,
   vitals: VitalsPreview,
