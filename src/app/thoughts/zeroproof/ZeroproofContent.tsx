@@ -1053,10 +1053,103 @@ for (const [nickname, color] of Object.entries(BRAND[league])) {
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-09-21-board-fixes"
+        date="September 21, 2026"
+        title="Five things I found wrong the moment I actually bet on the board"
+      >
+        <p>
+          I sat down to place real bets on the live board and hit five things in
+          a row. Four were small. The first was the one that mattered: I could
+          still bet a fantasy matchup that had already tipped off.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A started matchup that I&rsquo;d bet on still had live buttons.
+        </h3>
+        <p className="text-muted">
+          The backend closes a matchup the moment points hit the board, and the
+          board hides anything not <code>upcoming</code>. But a fixture I&rsquo;ve
+          already bet on is pinned to the board on purpose &mdash; and there my
+          read-only check was only catching <em>final</em> or a kickoff in the
+          past. A fantasy matchup keeps a synthetic commence time about 48 hours
+          out, so the kickoff clause never fires; only its <code>started</code>{" "}
+          status closes it, and the board wasn&rsquo;t looking at that. So it kept
+          showing live outcome buttons on a game already underway. I mirrored the
+          backend&rsquo;s exact rule instead:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`export function isEventBettable(event, now) {
+  if (event.status !== "upcoming") return false;
+  const time = new Date(event.commenceTime).getTime();
+  return !Number.isNaN(time) && time > now;
+}
+// board: readOnly={!isEventBettable(event, now)} — badged "Live" or "Final"`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;Over Total&rdquo; &mdash; over which total, between whom?
+        </h3>
+        <p className="text-muted">
+          A totals or spread pick in my record and in the god&rsquo;s view read as
+          a bare &ldquo;Over Total&rdquo; with no teams attached, because the bet
+          row only carried the selection and market. The event has the teams; the
+          bet just wasn&rsquo;t joined to it. I joined <code>zeroproof_events</code>{" "}
+          onto both bet reads and carried <code>home</code>/<code>away</code>/
+          <code>sport</code> through, so a bet finally names the matchup:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Heat @ Celtics
+Over  Total 210.5      $25.00   -110`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I was in my own compare list.
+        </h3>
+        <p className="text-muted">
+          The Compare tab listed every leaderboard row to stack myself against
+          &mdash; including me, so I could compare myself to myself and land an
+          even &ldquo;0 apiece&rdquo;. The frontend never knew its own subject to
+          drop it, so <code>/me</code> returns it now and the field is everyone
+          but me, for both the picker and the rank.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const others = entries.filter((e) => e.userSub !== myUserSub);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;Show past fixtures&rdquo; looked broken, twice over.
+        </h3>
+        <p className="text-muted">
+          The proxy route was dropping the <code>pastDays</code> window, so
+          &ldquo;load earlier&rdquo; never actually widened the backend query. And
+          the backend hands back upcoming ascending, then past descending &mdash;
+          so once revealed, finished games piled up at the very bottom in reverse
+          order rather than slotting in where they belong. I forwarded the window
+          and sorted the visible board by kickoff before grouping, so a game from
+          Tuesday sits above tonight&rsquo;s.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          And they were checkboxes.
+        </h3>
+        <p className="text-muted">
+          The two board toggles were bare checkboxes. They&rsquo;re the design
+          system&rsquo;s <code>SquishSwitch</code> now &mdash; the springy one
+          whose thumb squishes as it slides &mdash; a real <code>role=&quot;switch&quot;</code>
+          {" "}button that still flips cleanly under reduced motion.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Betting closes the instant a match starts: the board mirrors the backend's bettable rule (upcoming and still ahead), so a matchup you've bet on — pinned to the board — renders read-only and badged Live or Final once its game is underway, instead of keeping live outcome buttons.",
+          "A bet names its matchup: your record and the god's view show 'Away @ Home' next to the selection, market and stake, joined from the event on the backend — so a totals pick isn't a mystery.",
+          "You can't compare against yourself: /me returns your subject, so the Compare picker and the ROI rank both leave you out of the field.",
+          "'Show past fixtures' works: the proxy forwards the pastDays window so 'load earlier' widens the query, and revealed fixtures sort in chronologically instead of piling up at the bottom in reverse.",
+          "The board toggles are the design system's bouncy SquishSwitch now, not checkboxes.",
           "A board with some life to it: highlight cards for the biggest underdog and the closest game, a team-tinted accent on every fixture, animations built on my own design tokens (spark, spotlight, blur reveal, conic border, shine, iOS liquid glass), and optimistic bet placement so a bet shows on its fixture the instant it's placed.",
-          "Look back at the board: a 'Show past fixtures' checkbox reveals recently-finished games read-only (badged Final, lines as text, not bet buttons), a couple of weeks at a time up to 3 months back via 'load earlier' or the date filter.",
+          "Look back at the board: a 'Show past fixtures' toggle reveals recently-finished games read-only (badged Final, lines as text, not bet buttons), a couple of weeks at a time up to 3 months back via 'load earlier' or the date filter.",
           "See how you stack up: a Compare tab puts your record next to a chosen leaderboard player — win rate, ROI, sharp score, record, volume — flagging who leads each and where you'd rank, with your open bets alongside.",
           "Winning finally feels like something: the first time you open Your record after bets settle in your favour, a card counts up the new winnings over a glow and sparkles, then marks them seen so it only celebrates once — reduced-motion safe, per device.",
           "More of the record at a glance: a win rate over graded bets, a signed net-profit figure across everything settled, and a recent-form row of the last eight results as win/loss/push chips.",
