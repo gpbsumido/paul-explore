@@ -1231,6 +1231,12 @@ describe("ZeroProofContent — past fixtures", () => {
     expect(
       nuggets.compareDocumentPosition(celtics) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    // "Load earlier fixtures" widens the list backwards, so it sits at the top —
+    // above the earliest fixture — not buried at the bottom of the board.
+    const loadEarlier = screen.getByRole("button", { name: /load earlier/i });
+    expect(
+      loadEarlier.compareDocumentPosition(nuggets) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     // The first past fetch asked for just the initial 2-week window.
     expect(pastDaysRequested).toContain("14");
 
