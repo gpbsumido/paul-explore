@@ -17,6 +17,7 @@ import {
   type NflPlayerLine,
 } from "@/types/espn-nfl";
 import FantasyNflNav from "../FantasyNflNav";
+import PlaysTicker from "./PlaysTicker";
 
 // ---- Constants ----
 
@@ -382,6 +383,10 @@ export default function MatchupContent() {
           <div className="flex items-center justify-center text-muted text-[15px] py-20 text-center">
             No matchups for this week
           </div>
+        )}
+
+        {!query.isLoading && !query.isError && matchups.length > 0 && (
+          <PlaysTicker matchups={matchups} season={season} week={displayedWeek} />
         )}
       </main>
     </div>
