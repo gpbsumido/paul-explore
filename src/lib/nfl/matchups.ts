@@ -163,16 +163,22 @@ function buildSide(
   };
 }
 
-/** Parse a league payload into one week's matchups and the selector bounds. */
+/**
+ * Parse a league payload into one week's matchups and the selector bounds.
+ * `week` null means "the week ESPN returned" — the payload's current matchup
+ * period, which is what the endpoint defaults to when no scoringPeriodId is
+ * passed. That period's rosters are the ones ESPN populated, so it also drives
+ * the schedule filter and the per-player stat lookup.
+ */
 export function parseNflScoreboard(
   payload: unknown,
-  { season, week }: { season: number; week: number },
+  { season, week }: { season: number; week: number | null },
 ): NflScoreboard {
   const parsed = leagueSchema.safeParse(payload);
   if (!parsed.success) {
     return {
       season,
-      currentWeek: week,
+      currentWeek: week ?? 1,
       regularSeasonWeeks: 0,
       totalWeeks: 0,
       matchups: [],
@@ -184,21 +190,24 @@ export function parseNflScoreboard(
   const members = league.members ?? [];
   const schedule = league.schedule ?? [];
 
+  const currentWeek = league.status?.currentMatchupPeriod ?? week ?? 1;
+  const filterWeek = week ?? currentWeek;
+
   const matchups: NflMatchup[] = [];
   for (const s of schedule) {
-    if (s.matchupPeriodId !== week || !s.home || !s.away) continue;
+    if (s.matchupPeriodId !== filterWeek || !s.home || !s.away) continue;
     matchups.push({
       id: s.id ?? 0,
-      matchupPeriodId: week,
+      matchupPeriodId: filterWeek,
       winner: s.winner ?? "UNDECIDED",
-      away: buildSide(s.away, week, teams, members),
-      home: buildSide(s.home, week, teams, members),
+      away: buildSide(s.away, filterWeek, teams, members),
+      home: buildSide(s.home, filterWeek, teams, members),
     });
   }
 
   return {
     season,
-    currentWeek: league.status?.currentMatchupPeriod ?? week,
+    currentWeek,
     regularSeasonWeeks: league.settings?.scheduleSettings?.matchupPeriodCount ?? 0,
     totalWeeks: schedule.reduce(
       (max, s) => Math.max(max, s.matchupPeriodId ?? 0),

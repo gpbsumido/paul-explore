@@ -130,6 +130,13 @@ describe("parseNflScoreboard", () => {
     expect(board.regularSeasonWeeks).toBe(13);
   });
 
+  it("falls back to the payload's current week when none is requested", () => {
+    const board = parseNflScoreboard(payload(3), { season: 2026, week: null });
+    expect(board.currentWeek).toBe(3);
+    expect(board.matchups).toHaveLength(1);
+    expect(board.matchups[0].home.totalPoints).toBe(30);
+  });
+
   it("degrades to an empty board on a payload that isn't a league", () => {
     const board = parseNflScoreboard({ nope: true }, { season: 2026, week: 3 });
     expect(board.matchups).toEqual([]);

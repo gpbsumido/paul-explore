@@ -108,6 +108,12 @@ export const queryKeys = {
       ["nba", "playoffs", "picks", sub] as const,
   },
 
+  nfl: {
+    /** Fantasy football scoreboard for a season and week. */
+    scoreboard: (season: number, week: number) =>
+      ["nfl", "scoreboard", season, week] as const,
+  },
+
   tcg: {
     /**
      * TCG card list. Params include any combination of search query, type
