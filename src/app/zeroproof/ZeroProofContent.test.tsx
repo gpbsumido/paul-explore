@@ -873,7 +873,23 @@ describe("ZeroProofContent — bet slip", () => {
     ).toHaveAttribute("href", "/auth/login");
   });
 
-  it("holds multiple picks on the slip and places them together", async () => {
+  it("keeps multiple picks compact until review, then allows removing one", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    const review = within(slip).getByRole("button", { name: /review 2 picks/i });
+
+    expect(review).toHaveAttribute("aria-expanded", "false");
+    expect(within(slip).queryByRole("list", { name: /selected picks/i })).toBeNull();
+    fireEvent.click(review);
+    expect(within(slip).getByRole("list", { name: /selected picks/i })).toBeInTheDocument();
+    fireEvent.click(within(slip).getByRole("button", { name: /remove Lakers from slip/i }));
+    expect(within(slip).getByRole("heading", { name: /bet slip \(1\)/i })).toBeInTheDocument();
+    expect(within(slip).queryByRole("button", { name: /review .* picks/i })).toBeNull();
+  });
+
+  it("uses one stake per bet and one action to place every selected pick", async () => {
     const placed: Record<string, unknown>[] = [];
     server.use(
       http.post("/api/zeroproof/bets", async ({ request }) => {
@@ -886,15 +902,17 @@ describe("ZeroProofContent — bet slip", () => {
     fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
     fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
     const slip = await screen.findByRole("region", { name: /bet slip/i });
-    expect(within(slip).getByText("Celtics")).toBeInTheDocument();
-    expect(within(slip).getByText("Lakers")).toBeInTheDocument();
-    const stakes = within(slip).getAllByLabelText(/stake/i);
-    expect(stakes).toHaveLength(2);
-    fireEvent.change(stakes[0], { target: { value: "25" } });
-    fireEvent.change(stakes[1], { target: { value: "10" } });
+    expect(within(slip).getByRole("button", { name: /review 2 picks/i })).toHaveAttribute("aria-expanded", "false");
+    expect(within(slip).getAllByRole("textbox", { name: /stake per bet/i })).toHaveLength(1);
+    fireEvent.change(within(slip).getByRole("textbox", { name: /stake per bet/i }), {
+      target: { value: "25" },
+    });
+    expect(within(slip).getByText("$50.00 total stake")).toBeInTheDocument();
+    expect(within(slip).getAllByRole("button", { name: /place 2 bets/i })).toHaveLength(1);
     fireEvent.click(within(slip).getByRole("button", { name: /place 2 bets/i }));
     await waitFor(() => expect(placed).toHaveLength(2));
     expect(placed.map((p) => p.selection).sort()).toEqual(["Celtics", "Lakers"]);
+    expect(placed.map((p) => p.stakeCents)).toEqual([2500, 2500]);
   });
 
   it("places a bet from a signed-in wallet with the picked outcome and stake", async () => {
