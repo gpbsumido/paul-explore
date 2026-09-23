@@ -2,7 +2,7 @@
 
 ## 2026-09-22 - version 7.9.1
 
-- Made the ZeroProof bet slip opaque and narrower so the board remains readable while picks are docked. Multiple picks now collapse behind a review control; each pick has its own stake amount, the combined stake is shown, and a single button places the batch. On phones the dock leaves room for the floating page control.
+- Made the ZeroProof bet slip opaque and narrower so the board remains readable while picks are docked. Multiple picks now collapse behind a review control; each pick has its own stake amount, the combined stake is shown, and a single button places the batch. On phones the dock leaves room for the floating page control. Fixture cards now match the height of neighboring cards in their grid row, with a consistent title and metadata layout that contains longer team names.
 
 ## 2026-09-22 - version 7.9.0
 

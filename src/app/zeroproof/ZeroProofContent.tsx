@@ -160,11 +160,11 @@ function OutcomeButton({
             : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
         }`}
       >
-        <span className="truncate text-foreground">
+        <span className="min-w-0 flex-1 truncate text-left text-foreground" title={name}>
           {name}
           {line && <span className="ml-1 text-muted">{line}</span>}
         </span>
-        <span className="font-mono tabular-nums text-foreground">
+        <span className="shrink-0 font-mono tabular-nums text-foreground">
           {formatAmerican(price)}
         </span>
       </button>
@@ -200,44 +200,46 @@ function EventCard({
   // bottom edge, following its rounded corners.
   const accent = `linear-gradient(to right, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
-    <li className="list-none">
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <li className="h-full list-none">
+      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
         <span
           aria-hidden="true"
           className="absolute inset-x-0 bottom-0 h-1.5 rounded-b-2xl"
           style={{ background: accent }}
         />
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-lg font-semibold text-foreground">
-            <span>{event.away}</span>
-            <span className="mx-2 text-muted" aria-label="at">
-              @
-            </span>
-            <span>{event.home}</span>
-          </h3>
-          {bets.length > 0 && (
-            <span className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
-              Your bet
-            </span>
-          )}
-          {fantasyLabel(event.sport) && (
-            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
-              {fantasyLabel(event.sport)}
-            </span>
-          )}
-          {readOnly && (
-            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
-              {event.status === "final" ? "Final" : "Live"}
-            </span>
-          )}
+        <div className="space-y-2">
+          <div className="flex min-h-14 items-start gap-2">
+            <h3 title={label} className="line-clamp-2 min-w-0 flex-1 break-words text-lg font-semibold leading-7 text-foreground">
+              <span>{event.away}</span>
+              <span className="mx-2 text-muted" aria-label="at">
+                @
+              </span>
+              <span>{event.home}</span>
+            </h3>
+            {bets.length > 0 && (
+              <span className="shrink-0 rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
+                Your bet
+              </span>
+            )}
+          </div>
+          <div className="flex min-h-6 flex-wrap items-center gap-2">
+            {fantasyLabel(event.sport) && (
+              <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                {fantasyLabel(event.sport)}
+              </span>
+            )}
+            {readOnly && (
+              <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                {event.status === "final" ? "Final" : "Live"}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted">
+            <time dateTime={event.commenceTime}>
+              {formatKickoff(event.commenceTime)}
+            </time>
+          </p>
         </div>
-        <p className="text-xs text-muted">
-          <time dateTime={event.commenceTime}>
-            {formatKickoff(event.commenceTime)}
-          </time>
-        </p>
-      </div>
 
       {bets.length > 0 && (
         <ul
@@ -293,11 +295,11 @@ function EventCard({
                         key={key}
                         className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2 text-sm"
                       >
-                        <span className="truncate text-muted">
+                        <span className="min-w-0 flex-1 truncate text-muted" title={outcome.name}>
                           {outcome.name}
                           {line && <span className="ml-1">{line}</span>}
                         </span>
-                        <span className="font-mono tabular-nums text-muted">
+                        <span className="shrink-0 font-mono tabular-nums text-muted">
                           {formatAmerican(outcome.priceAmerican)}
                         </span>
                       </div>
