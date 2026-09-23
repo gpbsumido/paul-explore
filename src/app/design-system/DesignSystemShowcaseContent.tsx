@@ -72,50 +72,7 @@ import { MOTION_PRIMITIVES, type MotionPrimitiveDoc } from "./motionPrimitives";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import ButtonPlayground from "./ButtonPlayground";
 import MotionPrimitiveDemo from "./MotionPrimitiveDemo";
-import {
-  ChatComposerDemo,
-  ChipDemo,
-  CodeBlockPreview,
-  ComboboxDemo,
-  CommandPaletteDemo,
-  ModalDemo,
-  GuidedTourDemo,
-  RichTextEditorDemo,
-  SpotlightPreview,
-  StreamingTextPreview,
-  SwitchDemo,
-  TickerPreview,
-  TiltCardPreview,
-  ToastDemo,
-  ToasterDemo,
-  ClickSparkDemo,
-  BlurRevealDemo,
-  StarBorderDemo,
-  ShineSweepDemo,
-  LiquidGlassDemo,
-  TextLoopDemo,
-  SquishSwitchDemo,
-  RubberSegmentDemo,
-  LiquidCarveButtonDemo,
-  LatticeLoaderDemo,
-  DriftWallDemo,
-  CircularGalleryDemo,
-  PathGalleryDemo,
-  SmoothScrollSliderDemo,
-  HoverImageRevealDemo,
-  LinkPreviewDemo,
-  SpiralPortraitHeroDemo,
-  PerspectivePortraitHeroDemo,
-  CorridorPortraitHeroDemo,
-  MobileReelHeroDemo,
-  MobileOrbitHeroDemo,
-  MobileLensHeroDemo,
-  LightBloomDemo,
-  ParticleTextDemo,
-  RefineFrameDemo,
-  FolderFloatDemo,
-  BotanicalTextDemo,
-} from "./GalleryDemos";
+import DeferredGalleryDemo from "./DeferredGalleryDemo";
 import { ACCENT_BAND } from "@/lib/accentBand";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
@@ -280,7 +237,7 @@ const PREVIEWS: Record<string, ReactNode> = {
   // frame where the component should be. They sit first in the catalog, so the
   // page opened on a column of blank boxes and only looked alive further down.
   // Sample data is small and hand-written so each shape reads at preview size.
-  "chat-composer": <ChatComposerDemo />,
+  "chat-composer": <DeferredGalleryDemo name="ChatComposerDemo" />,
   "chat-message": (
     <div className="w-full space-y-2">
       {/* role here is ChatMessage's own domain prop (user/assistant/system),
@@ -295,13 +252,13 @@ const PREVIEWS: Record<string, ReactNode> = {
       </ChatMessage>
     </div>
   ),
-  "code-block": <CodeBlockPreview />,
-  combobox: <ComboboxDemo />,
-  "command-palette": <CommandPaletteDemo />,
-  "rich-text-editor": <RichTextEditorDemo />,
-  "streaming-text": <StreamingTextPreview />,
-  toast: <ToastDemo />,
-  toaster: <ToasterDemo />,
+  "code-block": <DeferredGalleryDemo name="CodeBlockPreview" />,
+  combobox: <DeferredGalleryDemo name="ComboboxDemo" />,
+  "command-palette": <DeferredGalleryDemo name="CommandPaletteDemo" />,
+  "rich-text-editor": <DeferredGalleryDemo name="RichTextEditorDemo" />,
+  "streaming-text": <DeferredGalleryDemo name="StreamingTextPreview" />,
+  toast: <DeferredGalleryDemo name="ToastDemo" />,
+  toaster: <DeferredGalleryDemo name="ToasterDemo" />,
   "token-usage-meter": (
     <div className="w-full">
       <TokenUsageMeter
@@ -452,40 +409,40 @@ const PREVIEWS: Record<string, ReactNode> = {
       ]}
     />
   ),
-  "tilt-card": <TiltCardPreview />,
-  spotlight: <SpotlightPreview />,
+  "tilt-card": <DeferredGalleryDemo name="TiltCardPreview" />,
+  spotlight: <DeferredGalleryDemo name="SpotlightPreview" />,
   "gradient-background": (
     <GradientBackground className="w-full rounded-xl p-4 text-sm text-foreground">
       Animated gradient
     </GradientBackground>
   ),
-  "click-spark": <ClickSparkDemo />,
-  "blur-reveal": <BlurRevealDemo />,
-  "star-border": <StarBorderDemo />,
-  "shine-sweep": <ShineSweepDemo />,
-  "liquid-glass": <LiquidGlassDemo />,
-  "text-loop": <TextLoopDemo />,
-  "squish-switch": <SquishSwitchDemo />,
-  "rubber-segment": <RubberSegmentDemo />,
-  "liquid-carve-button": <LiquidCarveButtonDemo />,
-  "lattice-loader": <LatticeLoaderDemo />,
-  "drift-wall": <DriftWallDemo />,
-  "circular-gallery": <CircularGalleryDemo />,
-  "path-gallery": <PathGalleryDemo />,
-  "smooth-scroll-slider": <SmoothScrollSliderDemo />,
-  "hover-image-reveal": <HoverImageRevealDemo />,
-  "link-preview": <LinkPreviewDemo />,
-  "portrait-spiral-hero": <SpiralPortraitHeroDemo />,
-  "perspective-hero": <PerspectivePortraitHeroDemo />,
-  "corridor-hero": <CorridorPortraitHeroDemo />,
-  "mobile-reel-hero": <MobileReelHeroDemo />,
-  "mobile-orbit-hero": <MobileOrbitHeroDemo />,
-  "mobile-lens-hero": <MobileLensHeroDemo />,
-  "light-bloom": <LightBloomDemo />,
-  "particle-text": <ParticleTextDemo />,
-  "refine-frame": <RefineFrameDemo />,
-  "folder-float": <FolderFloatDemo />,
-  "botanical-text": <BotanicalTextDemo />,
+  "click-spark": <DeferredGalleryDemo name="ClickSparkDemo" />,
+  "blur-reveal": <DeferredGalleryDemo name="BlurRevealDemo" />,
+  "star-border": <DeferredGalleryDemo name="StarBorderDemo" />,
+  "shine-sweep": <DeferredGalleryDemo name="ShineSweepDemo" />,
+  "liquid-glass": <DeferredGalleryDemo name="LiquidGlassDemo" />,
+  "text-loop": <DeferredGalleryDemo name="TextLoopDemo" />,
+  "squish-switch": <DeferredGalleryDemo name="SquishSwitchDemo" />,
+  "rubber-segment": <DeferredGalleryDemo name="RubberSegmentDemo" />,
+  "liquid-carve-button": <DeferredGalleryDemo name="LiquidCarveButtonDemo" />,
+  "lattice-loader": <DeferredGalleryDemo name="LatticeLoaderDemo" />,
+  "drift-wall": <DeferredGalleryDemo name="DriftWallDemo" />,
+  "circular-gallery": <DeferredGalleryDemo name="CircularGalleryDemo" />,
+  "path-gallery": <DeferredGalleryDemo name="PathGalleryDemo" />,
+  "smooth-scroll-slider": <DeferredGalleryDemo name="SmoothScrollSliderDemo" />,
+  "hover-image-reveal": <DeferredGalleryDemo name="HoverImageRevealDemo" />,
+  "link-preview": <DeferredGalleryDemo name="LinkPreviewDemo" />,
+  "portrait-spiral-hero": <DeferredGalleryDemo name="SpiralPortraitHeroDemo" />,
+  "perspective-hero": <DeferredGalleryDemo name="PerspectivePortraitHeroDemo" />,
+  "corridor-hero": <DeferredGalleryDemo name="CorridorPortraitHeroDemo" />,
+  "mobile-reel-hero": <DeferredGalleryDemo name="MobileReelHeroDemo" />,
+  "mobile-orbit-hero": <DeferredGalleryDemo name="MobileOrbitHeroDemo" />,
+  "mobile-lens-hero": <DeferredGalleryDemo name="MobileLensHeroDemo" />,
+  "light-bloom": <DeferredGalleryDemo name="LightBloomDemo" />,
+  "particle-text": <DeferredGalleryDemo name="ParticleTextDemo" />,
+  "refine-frame": <DeferredGalleryDemo name="RefineFrameDemo" />,
+  "folder-float": <DeferredGalleryDemo name="FolderFloatDemo" />,
+  "botanical-text": <DeferredGalleryDemo name="BotanicalTextDemo" />,
   button: (
     <div className="flex flex-wrap gap-2">
       <Button size="sm">Primary</Button>
@@ -529,9 +486,9 @@ const PREVIEWS: Record<string, ReactNode> = {
       </Select>
     </FilterBar>
   ),
-  chip: <ChipDemo />,
-  modal: <ModalDemo />,
-  "guided-tour": <GuidedTourDemo />,
+  chip: <DeferredGalleryDemo name="ChipDemo" />,
+  modal: <DeferredGalleryDemo name="ModalDemo" />,
+  "guided-tour": <DeferredGalleryDemo name="GuidedTourDemo" />,
   tooltip: (
     <Tooltip content="Fixed-position, keyboard reachable" delay={120}>
       <Button variant="outline" size="sm">
@@ -548,7 +505,7 @@ const PREVIEWS: Record<string, ReactNode> = {
       </InfoTip>
     </span>
   ),
-  ticker: <TickerPreview />,
+  ticker: <DeferredGalleryDemo name="TickerPreview" />,
   card: (
     <Card variant="elevated" className="w-full">
       <Card.Header>
@@ -581,7 +538,7 @@ const PREVIEWS: Record<string, ReactNode> = {
       <Avatar size="lg" fallback="AB" alt="Ada B" />
     </div>
   ),
-  switch: <SwitchDemo />,
+  switch: <DeferredGalleryDemo name="SwitchDemo" />,
   spinner: <Spinner />,
   skeleton: (
     <div className="w-full space-y-2">
