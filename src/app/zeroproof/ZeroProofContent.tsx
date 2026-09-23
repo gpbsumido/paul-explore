@@ -1257,8 +1257,7 @@ function BetSlip({
           </div>
         </div>
 
-        {(reviewOpen || slip.length === 1) && (
-          <ul id="zeroproof-slip-picks" aria-label="Selected picks" className="max-h-[35dvh] divide-y divide-border overflow-y-auto border-t border-border px-4">
+          <ul id="zeroproof-slip-picks" aria-label="Selected picks" hidden={!reviewOpen && slip.length > 1} className="max-h-[35dvh] divide-y divide-border overflow-y-auto border-t border-border px-4">
             {slip.map((leg) => (
               <li key={betLegKey(leg)} className="flex items-center justify-between gap-3 py-2">
                 <div className="min-w-0 text-xs">
@@ -1278,7 +1277,6 @@ function BetSlip({
               </li>
             ))}
           </ul>
-        )}
 
         {signedOut ? (
           <Link

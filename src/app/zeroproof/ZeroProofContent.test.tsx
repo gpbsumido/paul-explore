@@ -889,6 +889,28 @@ describe("ZeroProofContent — bet slip", () => {
     expect(within(slip).queryByRole("button", { name: /review .* picks/i })).toBeNull();
   });
 
+  it("keeps sign-in and clearing available in a compact signed-out slip", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+
+    expect(within(slip).getByRole("link", { name: /sign in to bet/i })).toBeInTheDocument();
+    fireEvent.click(within(slip).getByRole("button", { name: /clear/i }));
+    expect(screen.queryByRole("region", { name: /bet slip/i })).toBeNull();
+  });
+
+  it("keeps the collapsed and expanded slip free of accessibility violations", async () => {
+    const { container } = renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+
+    expect(await axe(container)).toHaveNoViolations();
+    fireEvent.click(within(slip).getByRole("button", { name: /review 2 picks/i }));
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
   it("uses one stake per bet and one action to place every selected pick", async () => {
     const placed: Record<string, unknown>[] = [];
     server.use(
