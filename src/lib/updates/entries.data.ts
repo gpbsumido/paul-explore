@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-9-0",
+    date: "2026-09-22",
+    version: "7.9.0",
+    category: "feature",
+    tags: ["fantasy", "nfl", "zeroproof"],
+    title: "Fantasy NFL and a more useful ZeroProof board",
+    summary:
+      "Fantasy NFL matchups now show scores, starters, win chances and live plays; ZeroProof lets you build a multi-bet slip and browse a clearer board.",
+    body: [
+      "The new Fantasy NFL page brings weekly head-to-head matchups, each starter's actual and projected points, a calculated win probability and a live scoring-plays ticker that stays in view as you scroll.",
+      "ZeroProof now lets you add several picks to one slip, give each its own stake and place them together. Day headers stay visible while browsing, and live or final fixtures close their betting controls. The design-system catalog also reflects 18 components already in use across the site.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-fantasy-nfl-plays-ticker",
     date: "2026-09-22",
     version: "7.8.0",
