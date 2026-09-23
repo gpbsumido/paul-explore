@@ -1,12 +1,19 @@
 # Changelog
 
+## 2026-09-22 - version 7.9.0
+
+- Released the Fantasy NFL matchups page with weekly head-to-head scores, starter breakdowns, projected totals, win probability, and a live scoring-plays ticker pinned to the viewport.
+- Released the ZeroProof board updates: a multi-bet slip, sticky day headers, clearer matchup labels, and betting controls that close once a fixture starts.
+- Corrected the design-system catalog to show 18 components already used across the site.
+
 ## 2026-09-22 - version 7.8.0
 
 - Added a live scoring-plays ticker to the NFL fantasy matchups page. Real ESPN play text ("Dyami Brown 9 Yd pass from Trevor Lawrence") tagged with whichever fantasy team rosters the player it mentions — no computed fantasy-point delta, since that would mean reimplementing my league's scoring rules as a second source of truth that could drift from ESPN's own numbers. Pinned to the bottom of the viewport so it stays visible while browsing the matchups.
 
 ## 2026-09-22 - version 7.7.0
 
-- Added Fantasy NFL: head-to-head weekly matchups for my ESPN fantasy football league, at `/fantasy/nfl/matchups`. Team scores, every starter's actual and projected fantasy points, and a win probability I derived myself, since ESPN's API has no fantasy win-prob field. It reads the current scoring period straight from the payload rather than guessing the week from the calendar date, which also sidesteps a set-state-in-effect lint failure. The plays ticker is deliberately deferred to a follow-up PR.
+- Added Fantasy NFL: head-to-head weekly matchups for my ESPN fantasy football league, at `/fantasy/nfl/matchups`. Team scores, every starter's actual and projected fantasy points, and a win probability I derived myself, since ESPN's API has no fantasy win-prob field. It reads the current scoring period straight from the payload rather than guessing the week from the calendar date, which also sidesteps a set-state-in-effect lint failure. The plays ticker was deferred to the 7.8.0 follow-up.
+
 ## 2026-09-22 - version 7.6.0
 
 - Reworked the ZeroProof bet slip to hold multiple bets at once. Picking an outcome adds a leg (tap again, or the leg's ✕, to remove it) instead of replacing the slip; each leg takes its own stake and they're placed together, dropping off as they land. A failed leg toasts through the app-wide handler and leaves the rest to retry.
@@ -16,22 +23,17 @@
 
 ## 2026-09-22 - version 7.5.18
 
+- Added a "Take the tour" walkthrough to Work Portfolio's intro state, matching the guided-tour pattern already on the design system, fantasy hub, TCG browse, and vitals pages: consent, the hero heading, the projects ticker, then the features ticker.
 - Moved the ZeroProof board's "Load earlier fixtures" button to the top of the list. Now that past fixtures sort oldest-first, the control that widens the list backwards belongs above the earliest game, not pinned to the bottom — "Load more games" still sits at the bottom for the forward direction.
 
-## 2026-09-21 - version 7.5.17
+## 2026-09-22 - version 7.5.17
 
+- Restored padding on every modal in the app. The design system moved `Modal`'s padding onto `Modal.Header`/`Modal.Body`/`Modal.Footer`, but the app's `Modal` wrapper never re-exposed those, and every call site rendered raw children — so every modal had gone edge-to-edge. Wrapped content at all 17 call sites in `Modal.Body` and bumped `@paul-portfolio/react` to 0.12.10, which now pads plain children by default so a future call site can't reintroduce this by omission.
 - Fixed five things on the ZeroProof board I hit while testing it. Betting now closes the moment a matchup starts — a fantasy matchup keeps a synthetic commence time ~48h out, so the kickoff check never closed it, and a matchup I'd already bet on stayed on the board (it's always shown once I have a bet on it) with live outcome buttons after it had started. The board now mirrors the backend's bettable rule and renders anything that isn't upcoming-and-ahead read-only, badged "Live" or "Final".
 - Bets now name both teams. A pick read as "Over Total" with no way to tell who was playing; my record and the admin god's view now show the matchup ("Away @ Home") next to the selection, the market and the stake. Reads the home/away/sport the backend joins onto each bet, and falls back to the old display until that ships.
 - Can't compare against myself in the Compare tab any more — the picker listed every leaderboard row including me. `/me` returns my subject now, so I'm dropped from the field (and counted once in the ROI rank).
 - "Show past fixtures" works properly: the events route was dropping the `pastDays` window so "load earlier" never widened the query, and past fixtures now sort in chronologically instead of piling up at the bottom in reverse.
 - The two board toggles are the design system's bouncy SquishSwitch now, not bare checkboxes.
-## 2026-09-21 - version 7.5.18
-
-- Added a "Take the tour" walkthrough to Work Portfolio's intro state, matching the guided-tour pattern already on the design system, fantasy hub, TCG browse, and vitals pages: consent, the hero heading, the projects ticker, then the features ticker.
-
-## 2026-09-21 - version 7.5.17
-
-- Restored padding on every modal in the app. The design system moved `Modal`'s padding onto `Modal.Header`/`Modal.Body`/`Modal.Footer`, but the app's `Modal` wrapper never re-exposed those, and every call site rendered raw children — so every modal had gone edge-to-edge. Wrapped content at all 17 call sites in `Modal.Body` and bumped `@paul-portfolio/react` to 0.12.10, which now pads plain children by default so a future call site can't reintroduce this by omission.
 
 ## 2026-09-20 - version 7.5.16
 
