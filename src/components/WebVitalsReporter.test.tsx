@@ -47,6 +47,7 @@ const metric = (name: string) => ({
 });
 
 beforeEach(() => {
+  delete (window as Window & { __pageStartedVisible?: boolean }).__pageStartedVisible;
   beacon.mockClear();
   for (const k of Object.keys(handlers)) delete handlers[k];
 });
@@ -59,6 +60,21 @@ describe("WebVitalsReporter", () => {
 
     handlers.LCP?.(metric("LCP"));
     handlers.FCP?.(metric("FCP"));
+    handlers.TTFB?.(metric("TTFB"));
+
+    expect(beacon).not.toHaveBeenCalled();
+  });
+
+  it("drops load metrics when a background tab becomes visible before hydration", () => {
+    setEnv("visible");
+    Object.defineProperty(window, "__pageStartedVisible", {
+      configurable: true,
+      value: false,
+    });
+    render(<WebVitalsReporter />);
+
+    handlers.FCP?.(metric("FCP"));
+    handlers.LCP?.(metric("LCP"));
     handlers.TTFB?.(metric("TTFB"));
 
     expect(beacon).not.toHaveBeenCalled();

@@ -6,6 +6,12 @@ import { version } from "../../package.json";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 import type { MetricType } from "web-vitals";
 
+declare global {
+  interface Window {
+    __pageStartedVisible?: boolean;
+  }
+}
+
 // what gets sent to /api/vitals on each metric report
 type VitalPayload = {
   metric: string;
@@ -77,7 +83,9 @@ function sendVital(metric: MetricType, page: string) {
  * be minutes, timings nobody actually waited through. Those are what dragged
  * the dashboard's P75 into the Poor band. So load metrics are only sent when
  * the page was visible at load; CLS and INP are interaction-scoped and sent
- * regardless.
+ * regardless. RootLayout records that visibility in its first head script:
+ * checking it at hydration time is too late for a background tab that became
+ * visible while its scripts were still loading.
  */
 export default function WebVitalsReporter() {
   const pathname = usePathname();
@@ -93,9 +101,10 @@ export default function WebVitalsReporter() {
     if (host === "localhost" || host === "127.0.0.1") return;
 
     // captured once, at registration — the page this document load is for, and
-    // whether that load was in the foreground
+    // whether that load began in the foreground
     const loadPage = pathnameRef.current;
-    const loadedVisible = document.visibilityState === "visible";
+    const loadedVisible =
+      window.__pageStartedVisible ?? document.visibilityState === "visible";
 
     const reportLoad = (metric: MetricType) => {
       if (loadedVisible) sendVital(metric, loadPage);
