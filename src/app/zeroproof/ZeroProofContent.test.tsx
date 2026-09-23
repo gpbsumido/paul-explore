@@ -873,7 +873,45 @@ describe("ZeroProofContent — bet slip", () => {
     ).toHaveAttribute("href", "/auth/login");
   });
 
-  it("holds multiple picks on the slip and places them together", async () => {
+  it("keeps multiple picks compact until review, then allows removing one", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    const review = within(slip).getByRole("button", { name: /review 2 picks/i });
+
+    expect(review).toHaveAttribute("aria-expanded", "false");
+    expect(within(slip).queryByRole("list", { name: /selected picks/i })).toBeNull();
+    fireEvent.click(review);
+    expect(within(slip).getByRole("list", { name: /selected picks/i })).toBeInTheDocument();
+    fireEvent.click(within(slip).getByRole("button", { name: /remove Lakers from slip/i }));
+    expect(within(slip).getByRole("heading", { name: /bet slip \(1\)/i })).toBeInTheDocument();
+    expect(within(slip).queryByRole("button", { name: /review .* picks/i })).toBeNull();
+  });
+
+  it("keeps sign-in and clearing available in a compact signed-out slip", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+
+    expect(within(slip).getByRole("link", { name: /sign in to bet/i })).toBeInTheDocument();
+    fireEvent.click(within(slip).getByRole("button", { name: /clear/i }));
+    expect(screen.queryByRole("region", { name: /bet slip/i })).toBeNull();
+  });
+
+  it("keeps the collapsed and expanded slip free of accessibility violations", async () => {
+    const { container } = renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+
+    expect(await axe(container)).toHaveNoViolations();
+    fireEvent.click(within(slip).getByRole("button", { name: /set 2 stakes/i }));
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("places different stakes for two picks with one action", async () => {
     const placed: Record<string, unknown>[] = [];
     server.use(
       http.post("/api/zeroproof/bets", async ({ request }) => {
@@ -882,19 +920,29 @@ describe("ZeroProofContent — bet slip", () => {
       }),
     );
     renderPage(() => HttpResponse.json(PROFILE));
-    // Two picks off the same board card are two independent legs on the slip.
     fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
     fireEvent.click(await screen.findByRole("button", { name: /Lakers/ }));
     const slip = await screen.findByRole("region", { name: /bet slip/i });
-    expect(within(slip).getByText("Celtics")).toBeInTheDocument();
-    expect(within(slip).getByText("Lakers")).toBeInTheDocument();
-    const stakes = within(slip).getAllByLabelText(/stake/i);
-    expect(stakes).toHaveLength(2);
-    fireEvent.change(stakes[0], { target: { value: "25" } });
-    fireEvent.change(stakes[1], { target: { value: "10" } });
-    fireEvent.click(within(slip).getByRole("button", { name: /place 2 bets/i }));
+    const place = within(slip).getByRole("button", { name: /place 2 bets/i });
+    expect(place).toBeDisabled();
+    fireEvent.click(within(slip).getByRole("button", { name: /set 2 stakes/i }));
+    fireEvent.change(within(slip).getByRole("textbox", { name: /stake for Celtics/i }), {
+      target: { value: "25" },
+    });
+    expect(place).toBeDisabled();
+    fireEvent.change(within(slip).getByRole("textbox", { name: /stake for Lakers/i }), {
+      target: { value: "10" },
+    });
+    expect(within(slip).getByText("$35.00 total stake")).toBeInTheDocument();
+    fireEvent.click(within(slip).getByRole("button", { name: /hide picks/i }));
+    expect(within(slip).queryByRole("list", { name: /selected picks/i })).toBeNull();
+    expect(place).toBeEnabled();
+    fireEvent.click(place);
     await waitFor(() => expect(placed).toHaveLength(2));
-    expect(placed.map((p) => p.selection).sort()).toEqual(["Celtics", "Lakers"]);
+    expect(placed).toEqual([
+      expect.objectContaining({ selection: "Celtics", stakeCents: 2500 }),
+      expect.objectContaining({ selection: "Lakers", stakeCents: 1000 }),
+    ]);
   });
 
   it("places a bet from a signed-in wallet with the picked outcome and stake", async () => {
