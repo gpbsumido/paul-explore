@@ -1122,7 +1122,7 @@ function BetSlip({
     refetchInterval: (query) =>
       query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
-  const [stake, setStake] = useState("");
+  const [stakes, setStakes] = useState<Record<string, string>>({});
   const [walletId, setWalletId] = useState("");
   const [reviewOpen, setReviewOpen] = useState(false);
 
@@ -1202,11 +1202,19 @@ function BetSlip({
     },
   });
 
-  // One clearly labeled amount applies to every pick in this slip.
-  const stakeCents = centsFromDollars(stake);
-  const staked = stakeCents === null
-    ? []
-    : slip.map((leg) => ({ leg, cents: stakeCents }));
+  const staked = slip
+    .map((leg) => ({ leg, cents: centsFromDollars(stakes[betLegKey(leg)] ?? "") }))
+    .filter((item): item is { leg: SelectedBet; cents: number } => item.cents !== null);
+  const allStaked = staked.length === slip.length;
+  const totalStakeCents = staked.reduce((total, item) => total + item.cents, 0);
+  const removeLeg = (legKey: string) => {
+    onRemove(legKey);
+    setStakes((current) => {
+      const next = { ...current };
+      delete next[legKey];
+      return next;
+    });
+  };
 
   // Place every staked leg together, dropping each from the slip as it lands.
   // Stops at the first failure (its error toasts) so the rest stay to retry.
@@ -1214,7 +1222,7 @@ function BetSlip({
     for (const { leg, cents } of staked) {
       try {
         await placeLeg.mutateAsync({ leg, stakeCents: cents });
-        onRemove(betLegKey(leg));
+        removeLeg(betLegKey(leg));
       } catch {
         break;
       }
@@ -1222,6 +1230,9 @@ function BetSlip({
   };
 
   const placeLabel = slip.length > 1 ? `Place ${slip.length} bets` : "Place bet";
+  const reviewLabel = wallets.length > 0 && !allStaked
+    ? `Set ${slip.length} stakes`
+    : `Review ${slip.length} picks`;
 
   return (
     // Docked to the bottom of the viewport so the slip stays in view while you
@@ -1244,7 +1255,7 @@ function BetSlip({
                 onClick={() => setReviewOpen((open) => !open)}
                 className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold text-foreground hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
               >
-                {reviewOpen ? "Hide picks" : `Review ${slip.length} picks`}
+                {reviewOpen ? "Hide picks" : reviewLabel}
               </button>
             )}
             <button
@@ -1259,16 +1270,29 @@ function BetSlip({
 
           <ul id="zeroproof-slip-picks" aria-label="Selected picks" hidden={!reviewOpen && slip.length > 1} className="max-h-[35dvh] divide-y divide-border overflow-y-auto border-t border-border px-4">
             {slip.map((leg) => (
-              <li key={betLegKey(leg)} className="flex items-center justify-between gap-3 py-2">
+              <li key={betLegKey(leg)} className="flex items-center justify-between gap-2 py-2">
                 <div className="min-w-0 text-xs">
                   <p className="truncate text-muted">{leg.eventLabel}</p>
                   <p className="truncate font-semibold text-foreground">
                     {leg.selection} {formatPoint(leg.point)} <span className="font-mono tabular-nums">{formatAmerican(leg.price)}</span>
                   </p>
                 </div>
+                {wallets.length > 0 && (
+                  <label className="shrink-0 text-[11px] font-medium text-muted">
+                    <span aria-hidden="true">Stake</span>
+                    <span className="sr-only">Stake for {leg.selection}</span>
+                    <input
+                      inputMode="decimal"
+                      value={stakes[betLegKey(leg)] ?? ""}
+                      onChange={(event) => setStakes((current) => ({ ...current, [betLegKey(leg)]: event.target.value }))}
+                      placeholder="$0.00"
+                      className="mt-1 block h-11 w-20 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+                    />
+                  </label>
+                )}
                 <button
                   type="button"
-                  onClick={() => onRemove(betLegKey(leg))}
+                  onClick={() => removeLeg(betLegKey(leg))}
                   aria-label={`Remove ${leg.selection} from slip`}
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
                 >
@@ -1292,16 +1316,6 @@ function BetSlip({
           </div>
         ) : (
           <div className="flex flex-wrap items-end gap-2 border-t border-border px-4 py-3">
-            <label className="text-xs font-medium text-muted">
-              Stake per bet
-              <input
-                inputMode="decimal"
-                value={stake}
-                onChange={(e) => setStake(e.target.value)}
-                placeholder="$0.00"
-                className="mt-1 block h-11 w-28 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
-              />
-            </label>
             {wallets.length > 1 && (
               <label className="text-xs text-muted">
                 Wallet
@@ -1322,15 +1336,17 @@ function BetSlip({
               <button
                 type="button"
                 onClick={placeAll}
-                disabled={staked.length === 0 || placeLeg.isPending}
+                disabled={!allStaked || placeLeg.isPending}
                 className="inline-flex h-11 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
               >
                 {placeLeg.isPending ? "Placing…" : placeLabel}
               </button>
             </ShineSweep>
-            {stakeCents !== null && slip.length > 1 && (
+            {slip.length > 1 && (
               <p className="w-full text-right text-xs text-muted">
-                {formatCents(stakeCents * slip.length)} total stake
+                {allStaked
+                  ? `${formatCents(totalStakeCents)} total stake`
+                  : `${staked.length} of ${slip.length} stakes set`}
               </p>
             )}
           </div>
