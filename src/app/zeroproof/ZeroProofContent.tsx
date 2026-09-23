@@ -160,11 +160,11 @@ function OutcomeButton({
             : "border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised"
         }`}
       >
-        <span className="truncate text-foreground">
+        <span className="min-w-0 flex-1 truncate text-left text-foreground" title={name}>
           {name}
           {line && <span className="ml-1 text-muted">{line}</span>}
         </span>
-        <span className="font-mono tabular-nums text-foreground">
+        <span className="shrink-0 font-mono tabular-nums text-foreground">
           {formatAmerican(price)}
         </span>
       </button>
@@ -200,44 +200,46 @@ function EventCard({
   // bottom edge, following its rounded corners.
   const accent = `linear-gradient(to right, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
-    <li className="list-none">
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <li className="h-full list-none">
+      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
         <span
           aria-hidden="true"
           className="absolute inset-x-0 bottom-0 h-1.5 rounded-b-2xl"
           style={{ background: accent }}
         />
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-lg font-semibold text-foreground">
-            <span>{event.away}</span>
-            <span className="mx-2 text-muted" aria-label="at">
-              @
-            </span>
-            <span>{event.home}</span>
-          </h3>
-          {bets.length > 0 && (
-            <span className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
-              Your bet
-            </span>
-          )}
-          {fantasyLabel(event.sport) && (
-            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
-              {fantasyLabel(event.sport)}
-            </span>
-          )}
-          {readOnly && (
-            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
-              {event.status === "final" ? "Final" : "Live"}
-            </span>
-          )}
+        <div className="space-y-2">
+          <div className="flex min-h-14 items-start gap-2">
+            <h3 title={label} className="line-clamp-2 min-w-0 flex-1 break-words text-lg font-semibold leading-7 text-foreground">
+              <span>{event.away}</span>
+              <span className="mx-2 text-muted" aria-label="at">
+                @
+              </span>
+              <span>{event.home}</span>
+            </h3>
+            {bets.length > 0 && (
+              <span className="shrink-0 rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:text-primary-300">
+                Your bet
+              </span>
+            )}
+          </div>
+          <div className="flex min-h-6 flex-wrap items-center gap-2">
+            {fantasyLabel(event.sport) && (
+              <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                {fantasyLabel(event.sport)}
+              </span>
+            )}
+            {readOnly && (
+              <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                {event.status === "final" ? "Final" : "Live"}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted">
+            <time dateTime={event.commenceTime}>
+              {formatKickoff(event.commenceTime)}
+            </time>
+          </p>
         </div>
-        <p className="text-xs text-muted">
-          <time dateTime={event.commenceTime}>
-            {formatKickoff(event.commenceTime)}
-          </time>
-        </p>
-      </div>
 
       {bets.length > 0 && (
         <ul
@@ -293,11 +295,11 @@ function EventCard({
                         key={key}
                         className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2 text-sm"
                       >
-                        <span className="truncate text-muted">
+                        <span className="min-w-0 flex-1 truncate text-muted" title={outcome.name}>
                           {outcome.name}
                           {line && <span className="ml-1">{line}</span>}
                         </span>
-                        <span className="font-mono tabular-nums text-muted">
+                        <span className="shrink-0 font-mono tabular-nums text-muted">
                           {formatAmerican(outcome.priceAmerican)}
                         </span>
                       </div>
@@ -1124,6 +1126,7 @@ function BetSlip({
   });
   const [stakes, setStakes] = useState<Record<string, string>>({});
   const [walletId, setWalletId] = useState("");
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const signedOut = profileQuery.data?.signedOut ?? false;
   const wallets =
@@ -1131,9 +1134,6 @@ function BetSlip({
       ? profileQuery.data.wallets
       : [];
   const activeWallet = walletId || wallets[0]?.id || "";
-
-  const setStake = (legKey: string, value: string) =>
-    setStakes((cur) => ({ ...cur, [legKey]: value }));
 
   // One placement, reused for each leg. Its optimistic write flags the fixture
   // the instant a bet is placed, and the app-wide MutationCache (providers.tsx)
@@ -1204,10 +1204,19 @@ function BetSlip({
     },
   });
 
-  // The legs that carry a valid stake — the ones "place" will send.
   const staked = slip
     .map((leg) => ({ leg, cents: centsFromDollars(stakes[betLegKey(leg)] ?? "") }))
-    .filter((s): s is { leg: SelectedBet; cents: number } => s.cents !== null);
+    .filter((item): item is { leg: SelectedBet; cents: number } => item.cents !== null);
+  const allStaked = staked.length === slip.length;
+  const totalStakeCents = staked.reduce((total, item) => total + item.cents, 0);
+  const removeLeg = (legKey: string) => {
+    onRemove(legKey);
+    setStakes((current) => {
+      const next = { ...current };
+      delete next[legKey];
+      return next;
+    });
+  };
 
   // Place every staked leg together, dropping each from the slip as it lands.
   // Stops at the first failure (its error toasts) so the rest stay to retry.
@@ -1215,104 +1224,107 @@ function BetSlip({
     for (const { leg, cents } of staked) {
       try {
         await placeLeg.mutateAsync({ leg, stakeCents: cents });
-        onRemove(betLegKey(leg));
-        setStakes((cur) => {
-          const next = { ...cur };
-          delete next[betLegKey(leg)];
-          return next;
-        });
+        removeLeg(betLegKey(leg));
       } catch {
         break;
       }
     }
   };
 
-  const placeLabel =
-    staked.length > 1 ? `Place ${staked.length} bets` : "Place bet";
+  const placeLabel = slip.length > 1 ? `Place ${slip.length} bets` : "Place bet";
+  const reviewLabel = wallets.length > 0 && !allStaked
+    ? `Set ${slip.length} stakes`
+    : `Review ${slip.length} picks`;
 
   return (
     // Docked to the bottom of the viewport so the slip stays in view while you
     // scroll the board picking outcomes; it settles in place at the end.
-    <div role="region" aria-label="Bet slip" className="sticky bottom-4 z-40 mt-6">
-      <LiquidGlass className="max-h-[60vh] overflow-y-auto rounded-2xl p-5 ring-1 ring-primary-500/30">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">
-            Bet slip{slip.length > 1 ? ` (${slip.length})` : ""}
-          </h2>
-          <button
-            type="button"
-            onClick={onClear}
-            className="text-sm text-muted hover:text-foreground"
-          >
-            Clear
-          </button>
+    <div role="region" aria-label="Bet slip" className="sticky bottom-3 z-40 mr-auto mt-4 w-[calc(100%-4rem)] max-w-md pb-[env(safe-area-inset-bottom)] sm:ml-auto sm:mr-0 sm:w-full">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-[0_16px_48px_rgba(0,0,0,0.2)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground">Bet slip <span className="font-normal text-muted">({slip.length})</span></h2>
+            <p className={`truncate text-xs text-muted ${slip.length > 1 ? "hidden sm:block" : ""}`}>
+              {slip.map((leg) => `${leg.selection} ${formatAmerican(leg.price)}`).join(" · ")}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {slip.length > 1 && (
+              <button
+                type="button"
+                aria-expanded={reviewOpen}
+                aria-controls="zeroproof-slip-picks"
+                onClick={() => setReviewOpen((open) => !open)}
+                className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold text-foreground hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+              >
+                {reviewOpen ? "Hide picks" : reviewLabel}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClear}
+              className="min-h-11 rounded-full px-2 text-xs font-medium text-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
-        <ul className="mt-3 space-y-3">
-          {slip.map((leg) => (
-            <li
-              key={betLegKey(leg)}
-              className="rounded-lg border border-border bg-surface/40 p-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-muted">{leg.eventLabel}</p>
-                  <p className="text-foreground">
-                    <span className="font-medium">{leg.selection}</span>{" "}
-                    {formatPoint(leg.point) && (
-                      <span className="text-muted">{formatPoint(leg.point)} </span>
-                    )}
-                    <span className="font-mono tabular-nums">
-                      {formatAmerican(leg.price)}
-                    </span>
+          <ul id="zeroproof-slip-picks" aria-label="Selected picks" hidden={!reviewOpen && slip.length > 1} className="max-h-[35dvh] divide-y divide-border overflow-y-auto border-t border-border px-4">
+            {slip.map((leg) => (
+              <li key={betLegKey(leg)} className="flex items-center justify-between gap-2 py-2">
+                <div className="min-w-0 text-xs">
+                  <p className="truncate text-muted">{leg.eventLabel}</p>
+                  <p className="truncate font-semibold text-foreground">
+                    {leg.selection} {formatPoint(leg.point)} <span className="font-mono tabular-nums">{formatAmerican(leg.price)}</span>
                   </p>
                 </div>
+                {wallets.length > 0 && (
+                  <label className="shrink-0 text-[11px] font-medium text-muted">
+                    <span aria-hidden="true">Stake</span>
+                    <span className="sr-only">Stake for {leg.selection}</span>
+                    <input
+                      inputMode="decimal"
+                      value={stakes[betLegKey(leg)] ?? ""}
+                      onChange={(event) => setStakes((current) => ({ ...current, [betLegKey(leg)]: event.target.value }))}
+                      placeholder="$0.00"
+                      className="mt-1 block h-11 w-20 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+                    />
+                  </label>
+                )}
                 <button
                   type="button"
-                  onClick={() => onRemove(betLegKey(leg))}
+                  onClick={() => removeLeg(betLegKey(leg))}
                   aria-label={`Remove ${leg.selection} from slip`}
-                  className="text-muted hover:text-foreground"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
                 >
                   ✕
                 </button>
-              </div>
-              {!signedOut && wallets.length > 0 && (
-                <label className="mt-2 block text-xs text-muted">
-                  Stake
-                  <input
-                    inputMode="decimal"
-                    value={stakes[betLegKey(leg)] ?? ""}
-                    onChange={(e) => setStake(betLegKey(leg), e.target.value)}
-                    placeholder="$0.00"
-                    className="mt-1 block w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
-                  />
-                </label>
-              )}
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
 
         {signedOut ? (
           <Link
             href="/auth/login"
-            className="mt-4 inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+            className="mx-4 mb-3 inline-flex h-11 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
           >
             Sign in to bet
           </Link>
         ) : wallets.length === 0 ? (
-          <div className="mt-4 space-y-3">
+          <div className="border-t border-border px-4 py-3">
             <p className="text-sm text-muted">Open a wallet to place these bets.</p>
             <OpenWalletActions />
           </div>
         ) : (
-          <div className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-end gap-2 border-t border-border px-4 py-3">
             {wallets.length > 1 && (
               <label className="text-xs text-muted">
                 Wallet
                 <select
                   value={activeWallet}
                   onChange={(e) => setWalletId(e.target.value)}
-                  className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+                  className="mt-1 block h-11 rounded-lg border border-border bg-surface px-3 text-sm text-foreground"
                 >
                   {wallets.map((w) => (
                     <option key={w.id} value={w.id}>
@@ -1322,19 +1334,26 @@ function BetSlip({
                 </select>
               </label>
             )}
-            <ShineSweep className="rounded-full">
+            <ShineSweep className="ml-auto rounded-full">
               <button
                 type="button"
                 onClick={placeAll}
-                disabled={staked.length === 0 || placeLeg.isPending}
-                className="inline-flex h-10 items-center rounded-full bg-primary-600 px-5 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
+                disabled={!allStaked || placeLeg.isPending}
+                className="inline-flex h-11 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60"
               >
                 {placeLeg.isPending ? "Placing…" : placeLabel}
               </button>
             </ShineSweep>
+            {slip.length > 1 && (
+              <p className="w-full text-right text-xs text-muted">
+                {allStaked
+                  ? `${formatCents(totalStakeCents)} total stake`
+                  : `${staked.length} of ${slip.length} stakes set`}
+              </p>
+            )}
           </div>
         )}
-      </LiquidGlass>
+      </div>
     </div>
   );
 }
