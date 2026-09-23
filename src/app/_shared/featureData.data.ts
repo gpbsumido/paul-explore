@@ -129,6 +129,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/playoffs",
   },
   {
+    id: "fantasy-nfl",
+    title: "Fantasy NFL",
+    description:
+      "My ESPN fantasy football league, week by week: head-to-head matchups with team scores, every starter's actual and projected points, and a win probability I had to derive myself.",
+    href: "/fantasy/nfl",
+    color: "#3a8a5c",
+    thoughtsHref: "/thoughts/nfl-matchups",
+  },
+  {
     id: "pokemon",
     title: "Pokémon",
     description:
@@ -318,6 +327,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "TDD with MSW, derived state, TBD resolution, submit vs. auto-save design, and leaderboard before results",
     color: "#c44359",
+  },
+  {
+    title: "NFL Fantasy Matchups",
+    href: "/thoughts/nfl-matchups",
+    preview:
+      "A weekly points scoreboard next to the NBA's category one, a date guess deleted for a payload read, and a win probability derived from projected finals since ESPN doesn't provide one",
+    color: "#3a8a5c",
   },
   {
     title: "Fantasy TCG",

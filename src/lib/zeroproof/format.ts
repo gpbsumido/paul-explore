@@ -25,6 +25,18 @@ export function marketLabel(market: string): string {
   return MARKET_LABELS[market] ?? market;
 }
 
+/**
+ * "Away @ Home" for a bet that carries its matchup, or null when it doesn't —
+ * so a totals or spread pick names who's playing instead of reading as a bare
+ * "Over Total". Null for a payload from before the backend joined the event on.
+ */
+export function betMatchup(bet: {
+  home?: string | null;
+  away?: string | null;
+}): string | null {
+  return bet.home && bet.away ? `${bet.away} @ ${bet.home}` : null;
+}
+
 /** Orders markets the way a book lists them, unknown ones last. */
 const MARKET_ORDER = ["h2h", "spread", "total"];
 export function sortMarkets(markets: ZeroproofMarket[]): ZeroproofMarket[] {

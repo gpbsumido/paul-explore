@@ -11,6 +11,66 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-9-0",
+    date: "2026-09-22",
+    version: "7.9.0",
+    category: "feature",
+    tags: ["fantasy", "nfl", "zeroproof"],
+    title: "Fantasy NFL and a more useful ZeroProof board",
+    summary:
+      "Fantasy NFL matchups now show scores, starters, win chances and live plays; ZeroProof lets you build a multi-bet slip and browse a clearer board.",
+    body: [
+      "The new Fantasy NFL page brings weekly head-to-head matchups, each starter's actual and projected points, a calculated win probability and a live scoring-plays ticker that stays in view as you scroll.",
+      "ZeroProof now lets you add several picks to one slip, give each its own stake and place them together. Day headers stay visible while browsing, and live or final fixtures close their betting controls. The design-system catalog also reflects 18 components already in use across the site.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-fantasy-nfl-plays-ticker",
+    date: "2026-09-22",
+    version: "7.8.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "A live plays ticker for Fantasy NFL",
+    summary:
+      "The NFL matchups page now shows the real scoring plays behind each score, tagged with whose fantasy team the player belongs to.",
+    body: [
+      "Real ESPN play-by-play text — not a computed number — tagged with the fantasy team that rosters whichever player it mentions. No fantasy-point delta per play; that would mean reimplementing my league's scoring rules against raw stats, a second source of truth that could quietly drift from ESPN's own total.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-fantasy-nfl",
+    date: "2026-09-22",
+    version: "7.7.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "Fantasy NFL matchups",
+    summary:
+      "Head-to-head weekly matchups for my ESPN fantasy football league, with per-player points and a win probability ESPN doesn't provide.",
+    body: [
+      "A new NFL sibling to the fantasy basketball matchups page: each week's head-to-head games, team totals, and every starter's actual and projected fantasy points for that week.",
+      "ESPN carries no win-probability field for a fantasy matchup, so it's computed from each side's projected final score, with a spread that narrows as a week's games finish rather than reading a mid-week lead as a certainty.",
+      "The live plays ticker — a feed of the scoring plays behind each score — is intentionally out of this release; it needs a second ESPN API and only means anything during live games, so it's shipping as its own follow-up.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-zeroproof-multi-bet-slip",
+    date: "2026-09-22",
+    version: "7.6.0",
+    category: "feature",
+    tags: ["zeroproof"],
+    title: "Build a whole slip of bets at once",
+    summary:
+      "The ZeroProof bet slip holds as many picks as you like now — tap outcomes to add them, give each its own stake, and place them together. The slip stays docked at the bottom while you browse, and the board's day headers stick as you scroll.",
+    body: [
+      "Picking an outcome used to replace whatever was on the slip. Now every tap adds a leg — bet both sides, several games, a mix of moneylines and totals — each with its own stake, all placed in one go; a leg drops off as it lands. The slip is docked to the bottom of the screen so it stays in reach while you scroll for more.",
+      "Two board tweaks rode along: the 'Sunday, Sep 27' day label now sticks just under the filters as you scroll, so it's always clear which day you're looking at, and a fixture's team colour moved from a thin left bar to a thick strip along the bottom of the card. Betting also closes the moment a game starts, so a live matchup can't be bet by mistake.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-design-detox",
     date: "2026-09-20",
     version: "7.5.9",
