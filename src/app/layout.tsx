@@ -74,9 +74,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Runs synchronously before any CSS or React hydration so dark-mode users
-// never see a light flash. Must be a self-contained IIFE — no imports allowed.
-const ANTI_FOUC_SCRIPT = `(function(){try{var p=localStorage.getItem('theme-preference')||'system';var t=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+// Runs synchronously before CSS or React hydration. It records whether the
+// navigation began in a visible tab for WebVitalsReporter, then applies the
+// saved theme before paint. Must be a self-contained IIFE — no imports allowed.
+const ANTI_FOUC_SCRIPT = `(function(){window.__pageStartedVisible=document.visibilityState==='visible';try{var p=localStorage.getItem('theme-preference')||'system';var t=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
 
 export default function RootLayout({
   children,

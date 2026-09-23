@@ -85,18 +85,33 @@ describe("DesignSystemShowcaseContent", () => {
 
   describe("Modal demo", () => {
     it("opens and closes the live dialog from the keyboard", async () => {
-      const user = userEvent.setup();
-      render(<DesignSystemShowcaseContent />);
+      // The live demo bundle loads when this card reaches the viewport.
+      vi.stubGlobal("IntersectionObserver", class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe(element: Element) {
+          if (element.closest("#modal")) {
+            this.callback([{ isIntersecting: true }] as IntersectionObserverEntry[], this as unknown as IntersectionObserver);
+          }
+        }
+        disconnect() {}
+        unobserve() {}
+      });
+      try {
+        const user = userEvent.setup();
+        render(<DesignSystemShowcaseContent />);
 
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-      await user.click(
-        screen.getByRole("button", { name: /open the dialog/i }),
-      );
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
+        await user.click(
+          await screen.findByRole("button", { name: /open the dialog/i }),
+        );
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
 
-      await user.keyboard("{Escape}");
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        await user.keyboard("{Escape}");
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      } finally {
+        vi.unstubAllGlobals();
+      }
     });
   });
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-23 - version 7.9.2
+
+- Fixed web-vitals field data reading LCP and FCP as high as 30s+ on `/design-system` and `/thoughts` when real loads were fast: a page opened in a background tab and only brought forward later was reported as a foreground load, because the visibility check ran at hydration instead of at navigation start. The anti-FOUC head script now records visibility before any React runs, and `WebVitalsReporter` reads that instead.
+- Deferred the design-system gallery's ~35 interactive component demos behind an intersection observer, so visiting the page no longer pulls every demo's JS into the initial bundle. Each demo loads once its card nears the viewport, with a placeholder holding its layout height until then.
+
 ## 2026-09-22 - version 7.9.1
 
 - Updating spacing/styling for landing page work section
