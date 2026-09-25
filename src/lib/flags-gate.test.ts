@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { isFeatureEnabled, loadPocketGate, POCKET_TCG_FLAG } from "./flags-gate";
+import {
+  isFeatureEnabled,
+  loadPocketGate,
+  loadWorkPortfolioRemoteGate,
+  POCKET_TCG_FLAG,
+  WORK_PORTFOLIO_REMOTE_FLAG,
+} from "./flags-gate";
 import {
   buildFlag,
   buildEnvironmentConfig,
@@ -56,5 +62,48 @@ describe("loadPocketGate", () => {
   it("resolves the seeded pocket-tcg flag to enabled for any visitor by default", async () => {
     const decision = await loadPocketGate("visitor-1");
     expect(decision.enabled).toBe(true);
+  });
+});
+
+describe("loadWorkPortfolioRemoteGate", () => {
+  const remoteFlag = (percent: number) =>
+    buildFlag({
+      key: WORK_PORTFOLIO_REMOTE_FLAG,
+      environments: {
+        development: buildEnvironmentConfig({ fallthrough: percentRollout(percent) }),
+        staging: buildEnvironmentConfig({ fallthrough: percentRollout(percent) }),
+        production: buildEnvironmentConfig({ fallthrough: percentRollout(percent) }),
+      },
+    });
+
+  it("fails closed: with the flag nowhere, visitors keep the in-repo portfolio", async () => {
+    const decision = await loadWorkPortfolioRemoteGate("visitor-1", "production", {
+      fleet: async () => ({ flags: [], source: "api" }),
+      seed: () => undefined,
+    });
+    expect(decision).toEqual({ enabled: false, source: "default" });
+  });
+
+  it("serves the remote when the live flag is fully rolled out", async () => {
+    const decision = await loadWorkPortfolioRemoteGate("visitor-1", "production", {
+      fleet: async () => ({ flags: [remoteFlag(100)], source: "api" }),
+      seed: () => undefined,
+    });
+    expect(decision).toEqual({ enabled: true, source: "api" });
+  });
+
+  it("keeps the in-repo portfolio at 0%", async () => {
+    const decision = await loadWorkPortfolioRemoteGate("visitor-1", "production", {
+      fleet: async () => ({ flags: [remoteFlag(0)], source: "api" }),
+      seed: () => undefined,
+    });
+    expect(decision.enabled).toBe(false);
+  });
+
+  it("ships seeded off in production, so merging this changes nothing for visitors", async () => {
+    const decision = await loadWorkPortfolioRemoteGate("visitor-1", "production", {
+      fleet: async () => ({ flags: [], source: "api" }),
+    });
+    expect(decision).toEqual({ enabled: false, source: "seed" });
   });
 });
