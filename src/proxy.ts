@@ -14,6 +14,7 @@ import {
 } from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
+import { workPortfolioRemote } from "@/lib/mfe/remotes";
 import { API_URL } from "@/lib/apiUrl";
 import { isSessionProtectedPath } from "@/lib/protectedPaths";
 import { RATE_LIMITS } from "@/lib/rateLimitRules";
@@ -60,9 +61,15 @@ import { CONSENT_COOKIE, hasAcceptedConsent } from "@/lib/consent";
 // API_URL rather than the raw env var: it carries the localhost fallback, so
 // connect-src allows wherever the app will actually fetch from even when
 // NEXT_PUBLIC_API_URL is unset.
+// The work-portfolio remote's origin, when one is configured, so the page can
+// load its scripts, stylesheet, images and manifest. Allowed site-wide rather
+// than per route: the policy is built once per process, and the remote is
+// this site's own deployment.
+const REMOTE = workPortfolioRemote();
 const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   dev: process.env.NODE_ENV === "development",
   apiUrl: API_URL,
+  remoteOrigins: REMOTE ? [REMOTE.origin] : [],
 });
 
 const RATE_WINDOW_MS = 60_000;
