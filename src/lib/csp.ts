@@ -66,13 +66,22 @@ export function toOrigin(raw: string | undefined): string | null {
  * meant that demo was blocked by our own CSP on every local checkout, since
  * the README points you at localhost:3001. Following the same variable the app
  * fetches from keeps the policy allowing exactly where the app actually goes.
+ *
+ * `remoteOrigins` are micro-frontend remotes this page loads at runtime (the
+ * work portfolio). Each one needs its scripts, its stylesheet, its images and
+ * its manifest fetch allowed, and nothing more.
  */
 export function buildCsp(
   media?: string,
-  { dev = false, apiUrl }: { dev?: boolean; apiUrl?: string } = {},
+  {
+    dev = false,
+    apiUrl,
+    remoteOrigins = [],
+  }: { dev?: boolean; apiUrl?: string; remoteOrigins?: string[] } = {},
 ): string {
   const origin = toOrigin(media);
   const api = toOrigin(apiUrl);
+  const remotes = remoteOrigins.map((r) => ` ${r}`).join("");
   const img = [...IMG_ORIGINS, ...(origin ? [origin] : [])];
   const connect = [
     ...CONNECT_ORIGINS,
@@ -90,11 +99,11 @@ export function buildCsp(
 
   return [
     `default-src 'self'`,
-    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${evalSource} https://vercel.live https://va.vercel-scripts.com`,
-    `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' blob: data: ${img.join(" ")}`,
+    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${evalSource} https://vercel.live https://va.vercel-scripts.com${remotes}`,
+    `style-src 'self' 'unsafe-inline'${remotes}`,
+    `img-src 'self' blob: data: ${img.join(" ")}${remotes}`,
     `font-src 'self'`,
-    `connect-src 'self' blob: ${connect.join(" ")}`,
+    `connect-src 'self' blob: ${connect.join(" ")}${remotes}`,
     // 'self' lets the résumé page embed its own PDF in an iframe; frame-ancestors
     // below still stops anyone else from framing us.
     `frame-src 'self' https://vercel.live https://verify.walletconnect.org https://verify.walletconnect.com`,

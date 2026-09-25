@@ -17,6 +17,9 @@ dependencies:
   '@dnd-kit/core':
     specifier: ^6.3.1
     version: 6.3.1(react-dom@19.2.3)(react@19.2.3)
+  '@module-federation/runtime':
+    specifier: 2.9.1
+    version: 2.9.1
   '@paul-portfolio/css':
     specifier: ^0.13.11
     version: 0.13.11(@paul-portfolio/tokens@0.4.1)
@@ -26,6 +29,9 @@ dependencies:
   '@paul-portfolio/tokens':
     specifier: ^0.4.1
     version: 0.4.1
+  '@paul-portfolio/work-portfolio-contract':
+    specifier: link:../work-portfolio-mfe/packages/contract
+    version: link:../work-portfolio-mfe/packages/contract
   '@rainbow-me/rainbowkit':
     specifier: ^2.2.11
     version: 2.2.11(@tanstack/react-query@5.90.21)(@types/react@19.0.0)(react-dom@19.2.3)(react@19.2.3)(typescript@5.9.3)(viem@2.55.4)(wagmi@2.16.0)
@@ -1707,6 +1713,29 @@ packages:
       uuid: 14.0.2
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /@module-federation/error-codes@2.9.1:
+    resolution: {integrity: sha512-5lqrIZTeMiKdn4uuX/+X8uN/4C0yqI8P3WO42DNRR7B9gCA4HMDCHrrxU8odQup9bzRsN5TJSz3av6d2iNmPgA==}
+    dev: false
+
+  /@module-federation/runtime-core@2.9.1:
+    resolution: {integrity: sha512-HMdsiTQoWqOXFr9Boki+U99piC00C7GLBZN05t+sXcutHq99oXZ8ONjvPL/h2pu7VAuPXgCjuCE3iqUQXv54EQ==}
+    dependencies:
+      '@module-federation/error-codes': 2.9.1
+      '@module-federation/sdk': 2.9.1
+    dev: false
+
+  /@module-federation/runtime@2.9.1:
+    resolution: {integrity: sha512-dRCy2HpUinPnk2b6GB/R6t2iJTHkSFGv83sbrEKylXkR2ATH0V47WpUdoNsZCEUOTQlAIHwZzDCVocA5FbcsBA==}
+    dependencies:
+      '@module-federation/error-codes': 2.9.1
+      '@module-federation/runtime-core': 2.9.1
+      '@module-federation/sdk': 2.9.1
+    dev: false
+
+  /@module-federation/sdk@2.9.1:
+    resolution: {integrity: sha512-JneBWSHr9ZCZHa5geNUleVK2vBTugWXLIXlV72UAhgHm1cTMYKZljnhRSX59n7Xssz4Yk+m+W3rYg6Eb4ouL8w==}
     dev: false
 
   /@monogrid/gainmap-js@3.4.0(three@0.183.2):
