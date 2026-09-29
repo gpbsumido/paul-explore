@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-29 - version 7.9.3
+
+- Added a Rush Street Interactive hiring-manager interview to my interviewee prep deck at `/interviewee`. Seven topics — the fit map, the event SDK, designing an event taxonomy, React + Angular and micro-frontends, performance and mobile, motivations, and my questions — each transformed from my prep notes into the same question/points/details shape the Sardine deck already uses. Admin-gated and noindex, like the rest of the deck.
+
 ## 2026-09-23 - version 7.9.2
 
 - Fixed web-vitals field data reading LCP and FCP as high as 30s+ on `/design-system` and `/thoughts` when real loads were fast: a page opened in a background tab and only brought forward later was reported as a foreground load, because the visibility check ran at hydration instead of at navigation start. The anti-FOUC head script now records visibility before any React runs, and `WebVitalsReporter` reads that instead.
