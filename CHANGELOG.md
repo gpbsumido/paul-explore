@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-28 - version 7.10.0
+
+- Added the host side of the work portfolio's move to a micro-frontend. The portfolio now lives in its own repo (`gpbsumido/work-portfolio-mfe`), and `/work-portfolio` can mount it at runtime over Module Federation 2.0 with `@module-federation/runtime`, no bundler plugin (Turbopack has none for the App Router). The host lends its React as a singleton, owns `?feature=`, and lends the remote the referral client as a service, so the remote never learns the API URL.
+- `RemoteMount` keeps a remote's failures on its side of the page: a load error, an 8s timeout or a contract major it doesn't know all end in a fallback card with Retry. A header chip names the mounted remote release.
+- Strangler cutover: a `work-portfolio-remote` flag, seeded at 0% in production, that fails closed (unlike `pocket-tcg`), plus `WORK_PORTFOLIO_REMOTE_URL` and a `WORK_PORTFOLIO_REMOTE_OVERRIDE` kill switch. With nothing configured this release changes nothing for visitors. `/work-portfolio` is force-dynamic while the flag decides.
+- The CSP allows the remote's origin in `script-src`, `style-src`, `img-src` and `connect-src`, and nowhere else.
+
 ## 2026-09-23 - version 7.9.2
 
 - Fixed web-vitals field data reading LCP and FCP as high as 30s+ on `/design-system` and `/thoughts` when real loads were fast: a page opened in a background tab and only brought forward later was reported as a foreground load, because the visibility check ran at hydration instead of at navigation start. The anti-FOUC head script now records visibility before any React runs, and `WebVitalsReporter` reads that instead.
