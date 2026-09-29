@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-29 - version 7.10.1
+
+- Added `/thoughts/micro-frontends`, the write-up on moving the work portfolio into its own repo and mounting it at runtime: the contract package, Next's canary React and the spike that checked it, the host owning the URL and the data, the Tailwind class collision only a real mount found, the a11y test that had never scanned a demo, and the fail-closed strangler flag.
+- Added a dated update to the work-portfolio write-up about the move, and what the per-file demo registry made easy.
+
 ## 2026-09-28 - version 7.10.0
 
 - Added the host side of the work portfolio's move to a micro-frontend. The portfolio now lives in its own repo (`gpbsumido/work-portfolio-mfe`), and `/work-portfolio` can mount it at runtime over Module Federation 2.0 with `@module-federation/runtime`, no bundler plugin (Turbopack has none for the App Router). The host lends its React as a singleton, owns `?feature=`, and lends the remote the referral client as a service, so the remote never learns the API URL.
