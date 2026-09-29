@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-29 - version 7.10.2
+
+- Fixed a hydration mismatch on every route for visitors who prefer reduced motion. The server can't see the preference, but framer-motion's `useReducedMotion` read `matchMedia` on the client's first render, so the app-wide reduced-motion flag disagreed between the server HTML and hydration, and `template.tsx` (which drops its fade wrapper under reduced motion) rendered a different tree. The provider now reads the preference through `useSyncExternalStore` with a server snapshot of `false`, so hydration matches and the real preference applies on the next render.
+
 ## 2026-09-29 - version 7.10.1
 
 - Added `/thoughts/micro-frontends`, the write-up on moving the work portfolio into its own repo and mounting it at runtime: the contract package, Next's canary React and the spike that checked it, the host owning the URL and the data, the Tailwind class collision only a real mount found, the a11y test that had never scanned a demo, and the fail-closed strangler flag.

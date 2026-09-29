@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
-import { LazyMotion, useReducedMotion } from "framer-motion";
+import { createContext, useContext, useState, useSyncExternalStore } from "react";
+import { LazyMotion } from "framer-motion";
 import {
   QueryClient,
   QueryClientProvider,
@@ -30,9 +30,28 @@ const ReactQueryDevtools =
 // ---------------------------------------------------------------------------
 // ReducedMotionProvider — reads prefers-reduced-motion once at the app root
 // so every animated component can access it without calling the hook itself.
+//
+// Read through useSyncExternalStore rather than framer-motion's
+// useReducedMotion. The server can't see the preference, so it renders
+// "full motion"; framer's hook read matchMedia on the client's very first
+// render, which made a reduced-motion visitor's hydration disagree with that
+// HTML, and template.tsx turned it into a mismatch on every route. The server
+// snapshot below is what React uses while hydrating, so both sides agree, and
+// the real preference lands on the render straight after.
 // ---------------------------------------------------------------------------
 
 const ReducedMotionContext = createContext(false);
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeToMotionPreference(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+const prefersReducedMotion = () =>
+  window.matchMedia(REDUCED_MOTION_QUERY).matches;
 
 /** Returns true when the user has requested reduced motion. */
 export function useHubReducedMotion() {
@@ -40,7 +59,11 @@ export function useHubReducedMotion() {
 }
 
 function ReducedMotionProvider({ children }: { children: React.ReactNode }) {
-  const prefersReduced = useReducedMotion() ?? false;
+  const prefersReduced = useSyncExternalStore(
+    subscribeToMotionPreference,
+    prefersReducedMotion,
+    () => false,
+  );
   return (
     <ReducedMotionContext.Provider value={prefersReduced}>
       {children}
