@@ -3,6 +3,7 @@
 ## 2026-09-29 - version 7.9.3
 
 - Added a Rush Street Interactive hiring-manager interview to my interviewee prep deck at `/interviewee`. Seven topics — the fit map, the event SDK, designing an event taxonomy, React + Angular and micro-frontends, performance and mobile, motivations, and my questions — each transformed from my prep notes into the same question/points/details shape the Sardine deck already uses. Admin-gated and noindex, like the rest of the deck.
+- Fixed a WCAG AA contrast failure on the Fantasy NFL matchups starter rows: the projected-points text dropped to `text-muted/60` once a game had scores, which fell below the minimum contrast ratio. It now stays `text-muted` in both states — still visibly secondary next to the bold actual score, but legible.
 
 ## 2026-09-23 - version 7.9.2
 
