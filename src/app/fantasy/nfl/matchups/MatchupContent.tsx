@@ -78,7 +78,6 @@ function WinBar({ awayPct }: { awayPct: number }) {
 // ---- Roster breakdown ----
 
 function StarterRow({ line, align }: { line: NflPlayerLine; align: "left" | "right" }) {
-  const scored = line.actual > 0 || line.projected === 0;
   return (
     <div
       className={`flex items-baseline gap-2 px-3 py-1.5 text-[12px] ${
@@ -92,11 +91,7 @@ function StarterRow({ line, align }: { line: NflPlayerLine; align: "left" | "rig
       <span className="font-mono tabular-nums font-semibold text-foreground">
         {fmt(line.actual)}
       </span>
-      <span
-        className={`font-mono tabular-nums text-[11px] ${
-          scored ? "text-muted/60" : "text-muted"
-        }`}
-      >
+      <span className="font-mono tabular-nums text-[11px] text-muted">
         proj {fmt(line.projected)}
       </span>
     </div>

@@ -847,7 +847,278 @@ const SARDINE_TOPICS: IntervieweeTopic[] = [
   },
 ];
 
+/**
+ * RSI (Rush Street Interactive), round 1 (hiring manager). Transformed from my
+ * prep notes: the round is a deep dive on what I've built, what motivates me,
+ * and what I'm looking for. Points are the senior answer; details carry the
+ * junior plain version and the honest "could've done better" I volunteer.
+ * Re-angled toward what RSI is buying: event instrumentation, SDKs, shared
+ * client frameworks across React and Angular, and mobile reliability.
+ */
+const RSI_TOPICS: IntervieweeTopic[] = [
+  {
+    id: "fit-map",
+    title: "The RSI fit map",
+    summary: "What the JD asks for, mapped to my strongest evidence. Read first.",
+    entries: [
+      {
+        question: "Why are you a fit for this role?",
+        points: [
+          "I've worked both ends of their pipeline: I authored a public player-event SDK AND built the dashboards that consumed those events. RSI is building the layer in between, so I know the whole pipe.",
+          "React AND Angular from one base: the Paul Design System ships 33 React and 33 standalone Angular components from a single token layer — rare to fit a JD that wants both.",
+          "Event instrumentation and consent are my actual craft: helika-web-sdk did client event tracking, session handling, hashed anonymous identity, a PII toggle, and UTM/referral attribution.",
+          "Data integrity maps straight across: at PeopleInsight automated SQL verification queries cut analytics QA time 80%, which is the same shape as event reconciliation.",
+        ],
+        details: [
+          "The JD is two jobs in one: a senior React/Angular engineer, and the engineer who builds the client side of an instrumentation pipeline (events to CDP to analytics to lifecycle messaging). The second half is rarer, and it's where I have a real card.",
+        ],
+      },
+      {
+        question: "Three RSI-specific threads to weave in naturally",
+        points: [
+          "I've worked both ends of the pipeline they're building — at Helika the customers were studios trying to understand players; I built the SDK that emitted the events and the dashboards that turned them into decisions. Their CRM runs on Optimove, so it's the same pipeline from the operator's side.",
+          "React and Angular is the point, not a footnote — my design system exists because I wanted one visual language and one logic layer across both. In a mixed micro-frontend estate that's what makes it feel like one product.",
+          "This is a build moment, not a maintenance seat — record Q2 2026 (+46% revenue), North American MAUs +51%, Alberta launched tracking ~2x Ontario, and open instrumentation PM and analyst roles. It looks like the taxonomy is being defined now, which is when this role has the most leverage.",
+        ],
+      },
+      {
+        question: "What are your gaps here, and how do you own them?",
+        points: [
+          "Runtime micro-frontends: I've built shared libraries consumed by several separately deployed apps (the build-time half). I haven't run module-federation-style runtime composition in production. I know the hard parts — shared dependency singletons, cross-app communication, consistent styling — and the last one is what my token-based design system solves.",
+          "Production mobile: my mobile work is responsive web plus personal native projects. Mobile reliability is where event delivery gets hard (flaky networks, backgrounded apps), and it's the part of this role I'd most want to learn.",
+          "Commercial CDP: I built the kind of SDK a CDP ships rather than integrating Segment or mParticle, so I know what's happening inside the black box — identity, sessions, delivery, consent.",
+        ],
+        details: [
+          "Landmine: do NOT volunteer the 'micro-frontends are overrated' opinion here — RSI runs micro-frontends. If asked what's overrated, pick something else (snapshot testing, or premature React Server Components adoption).",
+        ],
+      },
+    ],
+    related: ["event-sdk", "motivations", "my-questions"],
+  },
+  {
+    id: "event-sdk",
+    title: "helika-web-sdk as event instrumentation",
+    summary: "The centerpiece here — assume 15+ minutes. Authored the public SDK end to end.",
+    entries: [
+      {
+        question: "Walk me through what the SDK actually did.",
+        points: [
+          "I was primary author of the public web SDK studios dropped into their games (175 of 197 commits, 84 merged PRs, published to npm as helika-sdk), plus the React and Next.js reference integrations.",
+          "It captured player events, sessions, anonymous identity and referral/UTM attribution, and fed the analytics platform whose dashboards I also built — so I owned the event from track() in a studio's code to a chart an analyst looked at.",
+        ],
+        details: [
+          "Verified from source: identity was a hashed anonymous id in localStorage, not raw identifiers; session id plus expiry also in localStorage so sessions survived reloads; events went out as direct HTTP sends (axios). Privacy was API surface — a piiTracking constructor flag plus a runtime setPIITracking() toggle, so the host flips collection on only after its consent flow says yes.",
+        ],
+      },
+      {
+        question: "The JD says batching, offline handling, reliability. How did yours batch?",
+        points: [
+          "Honest answer: it didn't. Direct sends per event, no offline queue, no sendBeacon flush on tab close — events in flight when the user left could drop, which is silent data loss at exactly the moment you most want measured.",
+          "What I'd build, because that's the actual job here: a persistent queue, size/time-based batching, retry with backoff, a sendBeacon flush on visibilitychange, and a per-session sequence number so the backend can detect loss instead of guessing.",
+        ],
+        details: [
+          "This is the single biggest thing I'd change, and it's the heart of this JD — so I say it first, before they ask.",
+          "Junior: sending every event the moment it happens is like mailing a letter per sentence. Batching bundles them, a queue on disk means a subway tunnel doesn't lose your events, and numbering each event lets the receiver say 'I got 1, 2, 4 — where's 3?'",
+        ],
+      },
+      {
+        question: "How were event schemas defined, and how would you govern them?",
+        points: [
+          "Honest: stringly-typed at the edges. Event names and properties were strings, so an integrator typo produced a silently empty dashboard instead of a compile error.",
+          "The fix I'd lead with at RSI: a typed event catalog — one source file defining every event name and its properties, generated into TypeScript types for integrators and JSON Schema for the backend, so the typo fails the integrator's build. That is exactly what 'define, version, and govern structured event schemas' means.",
+        ],
+        details: [
+          "Junior: with strings, 'bet_plcaed' is a perfectly valid event nobody will ever query. With a typed catalog, that typo is a red squiggle in the editor before it ships.",
+        ],
+      },
+      {
+        question: "How do you keep an SDK from hurting the host app's performance?",
+        points: [
+          "Never crash the host (every entry point catches its own errors), a graceful no-op on bad config, small bundle, no framework assumptions.",
+          "The RSI point: analytics is a performance tax on every page, and tag-manager sprawl is a common cause of bad INP. Instrumentation should do its work off the critical path — batch, defer to idle time, never block a tap.",
+        ],
+      },
+    ],
+    related: ["fit-map", "event-taxonomy", "performance-mobile"],
+  },
+  {
+    id: "event-taxonomy",
+    title: "Designing an event taxonomy",
+    summary: "How I'd approach a company-wide taxonomy, each piece grounded in what I've shipped.",
+    entries: [
+      {
+        question: "How would you design and govern event schemas across web and mobile?",
+        points: [
+          "One envelope, many payloads: every event shares a standard envelope (id, name, schema version, timestamps, session, anonymous id, consent state, platform, app version); only the payload varies.",
+          "Naming convention object_action, past tense (bet_placed, deposit_completed), enforced by tooling, not a wiki page.",
+          "Versioning: additive changes are a minor bump; removing or renaming is a new version, and both coexist through a deprecation window.",
+          "Governance: the schema registry is a repo — new events arrive by PR, CI validates the schema, Product and Analytics review. Validate at the edge and fail safe: unknown events are quarantined and counted, never silently dropped.",
+        ],
+        details: [
+          "Same pattern as the Helika AI artifact envelope: read the label first, validate the content against that label's schema. And 'standards live in tooling' is the same instinct as the shared query layer.",
+        ],
+      },
+      {
+        question: "Where does consent get enforced — client, server, or CDP?",
+        points: [
+          "All three, but the client is the first gate: an event the user didn't consent to shouldn't leave the device. The consent state rides in the envelope so downstream systems can enforce routing too (analytics allowed, marketing activation not).",
+          "In a regulated market this is a compliance boundary, not a nicety. Grounding: I shipped the PII toggle as API surface for the same reason.",
+        ],
+      },
+      {
+        question: "How would you know the event data is reliable?",
+        points: [
+          "Reconcile what the client sent against what landed downstream, using the per-session sequence numbers to find gaps.",
+          "Bridge to PeopleInsight: I cut analytics QA time 80% with automated verification queries that recomputed numbers independently and diffed them — the same idea, applied to events.",
+        ],
+        details: [
+          "Junior: the client numbers its events 1, 2, 3. The warehouse checks for holes. A hole is lost data, found automatically instead of by an analyst noticing a weird dip three weeks later.",
+        ],
+      },
+    ],
+    related: ["event-sdk", "fit-map", "react-angular"],
+  },
+  {
+    id: "react-angular",
+    title: "React + Angular and micro-frontends",
+    summary: "Both frameworks from one base, and the runtime micro-frontend gap, handled.",
+    entries: [
+      {
+        question: "Tell me about building across React and Angular.",
+        points: [
+          "Paul Design System: design tokens to CSS custom properties to 33 React and 33 standalone Angular components, including 11 chart types from a shared SVG geometry layer with no charting library. Zero runtime dependencies, 82 test files, Storybook.",
+          "The design point: the expensive, bug-prone part (geometry, logic) is plain framework-free functions written and tested once; React and Angular are thin bindings on top.",
+          "angular-paul keeps my Angular current: Angular 21, standalone components, signals, zoneless change detection, SSR with incremental hydration.",
+        ],
+      },
+      {
+        question: "Have you worked with micro-frontends?",
+        points: [
+          "Honest: I've built shared libraries consumed by multiple separately deployed apps (helika-ui-sdk, consumed by four). That's build-time sharing. I haven't run runtime composition — module federation, single-spa — in production.",
+          "Where my experience applies: a token layer compiled to CSS custom properties is framework-neutral, so a React micro-frontend and an Angular one read the same --color-primary. Shared dependencies (React as a singleton, version skew) are the same class as versioning a library five apps consume. Keep cross-app communication to events and contracts, not shared mutable state.",
+          "The instrumentation angle: one shared event client (singleton) so every micro-frontend emits through the same envelope, consent gate and queue — otherwise you get N copies of the SDK with N session ids.",
+        ],
+        details: [
+          "Could've done better: helika-ui-sdk grew out of MUI with tokens bolted on, which made it React-only and tied to MUI's majors. My personal system fixed both — tokens first, framework-agnostic core, zero runtime deps — which is the design I'd bring to a mixed estate.",
+        ],
+      },
+    ],
+    related: ["fit-map", "event-taxonomy", "performance-mobile"],
+  },
+  {
+    id: "performance-mobile",
+    title: "Performance, observability, and mobile",
+    summary: "The performance work I've done, re-angled toward mobile event reliability.",
+    entries: [
+      {
+        question: "Tell me about performance work you've done.",
+        points: [
+          "Refmint: ~40% page-load improvement through lazy loading and caching, with route-level code splitting the biggest win.",
+          "Helika: rewrote the API/query layer (net code reduction over 15%), eliminated redundant network calls (one endpoint was fetched from 11 files), modularized monolithic components.",
+          "My own RUM pipeline on paulsumido.com: real-user Core Web Vitals, P75 by route and release, so a regression shows up as a step change attributable to a deploy.",
+        ],
+        details: [
+          "Could've done better: Refmint's 40% was a lab number with no field data to confirm users felt it. That gap is why I built the RUM pipeline — lab proves the mechanism, field proves the outcome.",
+        ],
+      },
+      {
+        question: "Our focus is mobile reliability. What changes on mobile?",
+        points: [
+          "Lifecycle: mobile browsers and webviews background and kill pages without firing unload, so visibilitychange to hidden is the reliable last chance to flush events.",
+          "Networks: flaky and offline is normal — queue, persist, retry, and treat 'online' as a hint, not a guarantee.",
+          "CPU: low-end devices turn heavy JS into bad INP, so budget the instrumentation too and keep it off the tap handler's critical path.",
+          "Hybrid apps: a native shell plus a webview is two event sources that must share one identity and one session, or one player looks like two users.",
+        ],
+      },
+      {
+        question: "How do you debug a client event pipeline?",
+        points: [
+          "Layers, in order: is the event emitted (debug overlay), sent (network tab, batch contents), accepted (server validation counts, quarantine), landed (warehouse reconciliation by sequence)? Each question halves the search space.",
+          "I wired Sentry into the Helika product for monitoring; client errors inside the instrumentation layer should report there too, because a silently broken tracker is the worst kind of bug.",
+        ],
+      },
+    ],
+    related: ["event-sdk", "event-taxonomy", "react-angular"],
+  },
+  {
+    id: "motivations",
+    title: "Motivations and what I'm looking for",
+    summary: "The core of this round: will I stay and grow, and does what I want match the role.",
+    entries: [
+      {
+        question: "Why RSI?",
+        points: [
+          "It's the other end of the pipeline I've been building — I authored a player-event SDK and built the analytics that consumed it. RSI is building the instrumentation layer between client, CDP, analytics and lifecycle engagement, at bigger scale, in a regulated market where consent and data integrity really matter.",
+          "The stack fits unusually well: React and Angular and TypeScript, shared client frameworks, SDKs, performance. My design system is literally a one-token-layer, two-framework system.",
+          "The timing: record Q2 2026, North American MAUs +51%, Alberta tracking ~2x the Ontario launch, and open instrumentation PM and analyst roles. It looks like the practice is being built now — I'd rather help define the taxonomy than inherit one.",
+        ],
+        details: [
+          "Avoid: 'I'm passionate about sports betting' unless it's true and I can back it; generic 'great culture'; anything about compensation or remote work as a reason.",
+        ],
+      },
+      {
+        question: "Walk me through your background.",
+        points: [
+          "Frontend engineer, 9 years, almost all of it on data-heavy React and TypeScript products. Started at PeopleInsight building HR analytics dashboards, then Refmint, then Helika.",
+          "Helika is one arc: referral platform to web3 user-acquisition tooling to gaming analytics, and I stayed top frontend contributor through both pivots. There I led frontend — the charting library, a production conversational-AI analytics assistant, and the public SDK studios used to send us player events.",
+          "The thread through all of it: I tend to end up building the layer other people build on — the SDK, the component library, the charting library, the query layer.",
+        ],
+      },
+      {
+        question: "What are you looking for, and why did you leave Helika?",
+        points: [
+          "A senior role with real architectural ownership — owning a surface like an instrumentation framework or a shared client framework, and defining how it's built.",
+          "Staying hands-on while growing into technical leadership: lead toward staff, not away from code into pure management.",
+          "Problems I haven't solved yet — runtime micro-frontends at scale, a CDP/identity pipeline, mobile reliability. This role has all three, which is a big part of why it's interesting.",
+          "Why I left Helika: Helika restructured in early 2026 and my role was cut with a chunk of the team — web3 gaming has been a volatile sector. One plain sentence, said identically in every interview, then pivot forward.",
+        ],
+        details: [
+          "Before the call: rewrite these in my own words — they're grounded drafts, not something I've said yet — and decide my honest answer on working in gambling, because a hesitant answer is worse than a considered one.",
+        ],
+      },
+      {
+        question: "What would you do in your first 90 days?",
+        points: [
+          "Listen and trace first: follow one real event end to end, from a tap in the app to the CDP to an Optimove campaign. Where it breaks, drops or gets renamed is the map of the real problems.",
+          "Ship something small end-to-end early, to learn the real path to production and the micro-frontend deploy model.",
+          "Then propose the leverage point with measurements, the way I argued the query-layer refactor — likely a typed event catalog with CI validation, or the shared delivery layer (queue, batching, consent gate), whichever the trace shows hurts most.",
+          "The expensive mistake to name: prescribing the Helika medicine before diagnosing their patient.",
+        ],
+      },
+    ],
+    related: ["fit-map", "event-sdk", "my-questions"],
+  },
+  {
+    id: "my-questions",
+    title: "My questions for the hiring manager",
+    summary: "These signal seniority and get me the data I need to decide.",
+    entries: [
+      {
+        question: "The questions to ask",
+        points: [
+          "Is the instrumentation framework greenfield, or am I retrofitting a taxonomy onto existing tracking? What's the current mix of tag manager, CDP and in-house tracking?",
+          "How is the micro-frontend estate composed today, and how do React and Angular split across it? Is there a shared event client, or does each micro-frontend track on its own?",
+          "On mobile: native apps with webviews, fully hybrid, or both? Where do events come from on each?",
+          "How does this role split ownership with the Senior PM for Instrumentation and the Instrumentation Analyst? Who has the final word on the taxonomy?",
+          "What would make you look back in a year and say this hire was a clear win? And what does growth from this role look like — where did the last person in a role like this go?",
+        ],
+        details: [
+          "Close with logistics: next steps and timeline. Each question is a probe that also signals I've done the homework — the tag-manager and CDP detail comes straight from their open instrumentation PM role.",
+        ],
+      },
+    ],
+    related: ["motivations", "fit-map"],
+  },
+];
+
 export const INTERVIEWS: Interview[] = [
+  {
+    id: "rsi-1-hiring-manager",
+    title: "RSI Interview 1: Hiring manager",
+    summary:
+      "Senior Front End Engineer (BetRivers / PlaySugarHouse / RushBet) — a deep dive on what I've built, what motivates me, and what I'm looking for. React + Angular, event instrumentation, SDKs. They pull threads and ask why three levels deep.",
+    topics: RSI_TOPICS,
+  },
   {
     id: "sardine-2-hiring-manager",
     title: "Sardine Interview 2: Hiring manager",
