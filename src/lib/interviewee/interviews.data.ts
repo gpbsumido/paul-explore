@@ -939,7 +939,69 @@ const RSI_TOPICS: IntervieweeTopic[] = [
         ],
       },
     ],
-    related: ["fit-map", "event-taxonomy", "performance-mobile"],
+    related: ["fit-map", "delivery-layer", "event-taxonomy", "performance-mobile"],
+  },
+  {
+    id: "delivery-layer",
+    title: "Batching, queuing, and sendBeacon",
+    summary:
+      "The delivery layer the SDK didn't have — how I'd build it in data-flow order, and how to stay honest when they go three follow-ups deep.",
+    entries: [
+      {
+        question:
+          "You said it sent every event directly. Walk me through the delivery layer you'd build instead.",
+        points: [
+          "Name the gap in one sentence, then move on: it sent each event directly, no queue and no beacon flush, so events in flight at session end dropped silently. Here's how I'd build the delivery path.",
+          "Enqueue: track() is synchronous and cheap — it stamps the event with a UUID, a per-session sequence, and a client timestamp, pushes it onto an in-memory queue, and returns.",
+          "Batch triggers: flush on whichever comes first — about 20 events, about 5 seconds, or the payload getting near the size limit.",
+          "Persist: mirror the queue to IndexedDB, so going offline or reloading doesn't lose events.",
+        ],
+        details: [
+          "Never await inside the host's click handler — analytics shouldn't cost INP. Serialize and persist in requestIdleCallback so it stays off the tap.",
+          "Batch size is a latency-versus-loss trade: bigger batches mean fewer requests and less battery from waking the mobile radio, but more events at risk if the tab dies before the flush.",
+          "Not localStorage — it's synchronous and blocks the main thread, and multiple tabs share it, so two tabs can flush the same events. Fix that with the Web Locks API or a per-tab queue key.",
+          "Junior: sending every event the moment it happens is like mailing a letter per sentence. Batching bundles them; a queue on disk means a subway tunnel doesn't lose them.",
+        ],
+      },
+      {
+        question: "Once it's queued, how does it actually get delivered?",
+        points: [
+          "Send and retry: only remove events after a 2xx. Retry network errors, 5xx, and 429 with exponential backoff plus jitter.",
+          "Page exit: flush on visibilitychange to hidden using navigator.sendBeacon — the last event you can rely on before a mobile browser kills the tab.",
+          "Semantics: at-least-once delivery, with the server deduping on the event UUID. Exactly-once isn't achievable from a browser, so the server has to be idempotent.",
+          "Loss detection: a per-session sequence lets the backend spot gaps — it got 1, 2, 4, so where's 3? — instead of guessing.",
+        ],
+        details: [
+          "Drop 4xx. A malformed event retried forever is a poison pill that blocks the queue behind it. Cap the queue size, drop the oldest, and count what you dropped, so the loss is measured rather than silent.",
+          "This ties straight to the PeopleInsight reconciliation work — automated queries that recomputed numbers independently and diffed them. Same idea: the client numbers its events, the warehouse finds the holes automatically instead of an analyst noticing a weird dip three weeks later.",
+          "Close by turning it back on them: do you batch client-side today, or does a CDP like Segment own delivery? And do you have loss metrics, or is it assumed?",
+        ],
+      },
+      {
+        question: "Why sendBeacon specifically, and where does it bite?",
+        points: [
+          "visibilitychange to hidden, not unload or beforeunload: mobile browsers kill backgrounded tabs without ever firing unload, and an unload listener also disqualifies the page from the back/forward cache. hidden is the last event you can rely on; add pagehide as a fallback for older Safari.",
+          "It's POST-only and capped at roughly 64KB, and that quota is shared with other keepalive requests in flight. You can't set custom headers, so an auth token has to ride in the body or the URL.",
+          "Send a plain text/plain string, not a Blob typed application/json — JSON isn't a CORS-safelisted content type, so it triggers a preflight and cross-origin failures. The server parses the string.",
+          "sendBeacon returning true means the browser queued the request, not that it was delivered — so don't delete the persisted copy when you beacon. Mark it in-flight, resend on the next load, and let UUID dedupe absorb the duplicate.",
+        ],
+        details: [
+          "The alternative is fetch(url, { keepalive: true }): same roughly 64KB cap, but you can set headers and read a status if the page survives. I'd use it as the primary path and sendBeacon as the fallback.",
+          "The 'true doesn't mean delivered' point is the one that reads as having actually built this — it's the difference between knowing the API and knowing where it lies to you.",
+        ],
+      },
+      {
+        question: "What batch size did you land on, and what broke?",
+        points: [
+          "The honest answer: I didn't ship this at Helika — helika-sdk is on public npm and the per-event axios sends are right there for anyone who opens it. So I don't claim a batch size I never tuned.",
+          "A made-up number falls apart three follow-ups deep, and then they doubt the real work too. Admitting the gap costs very little; people who've actually built this talk about the gotchas and tradeoffs, not the happy path.",
+        ],
+        details: [
+          "The honest way to have the experience is to build it before the interview: a weekend implementation with a test that kills the tab mid-flush — DevTools offline mode and throttling — and checks the events arrive on the next load. Then 'I prototyped it afterward, and the thing that surprised me was X' is simply true.",
+        ],
+      },
+    ],
+    related: ["event-sdk", "event-taxonomy", "performance-mobile"],
   },
   {
     id: "event-taxonomy",
@@ -976,7 +1038,7 @@ const RSI_TOPICS: IntervieweeTopic[] = [
         ],
       },
     ],
-    related: ["event-sdk", "fit-map", "react-angular"],
+    related: ["event-sdk", "delivery-layer", "fit-map", "react-angular"],
   },
   {
     id: "react-angular",
@@ -1038,7 +1100,7 @@ const RSI_TOPICS: IntervieweeTopic[] = [
         ],
       },
     ],
-    related: ["event-sdk", "event-taxonomy", "react-angular"],
+    related: ["event-sdk", "delivery-layer", "event-taxonomy", "react-angular"],
   },
   {
     id: "motivations",
