@@ -1198,8 +1198,100 @@ Over  Total 210.5      $25.00   -110`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-29-telemetry"
+        date="September 29, 2026"
+        title="The delivery layer I told an interviewer I'd build, actually built"
+      >
+        <p>
+          Prepping for a senior front-end interview, the honest answer to
+          &ldquo;how did your analytics SDK batch?&rdquo; was: it didn&rsquo;t. It
+          sent each event on its own, no queue, no flush on tab-close &mdash; so
+          anything in flight when someone left was silently lost, at exactly the
+          moment you most want it measured. I kept describing the layer I&rsquo;d
+          build instead. So I built it, and pointed it at ZeroProof.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          <code className={code}>track()</code> is not allowed to cost a click.
+        </h3>
+        <p className="text-muted">
+          The rule I started from: analytics must never show up in INP. So{" "}
+          <code className={code}>track()</code> stamps the event with a UUID and a
+          per-session sequence, pushes it onto an in-memory queue, and returns.
+          Everything expensive &mdash; deciding whether to send, serializing,
+          persisting &mdash; happens off the caller&rsquo;s path. The flush
+          decision is a pure function so I could unit-test every threshold without
+          a browser: flush on whichever comes first.
+        </p>
+        <pre className={pre}>
+          {`if (state.count >= limits.maxEvents) return "size";  // ~20 events
+if (state.bytes >= limits.maxBytes) return "bytes"; // near the ~64KB cap
+if (now - state.oldestEnqueuedAt >= limits.maxAgeMs) return "time"; // ~5s`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The tab dies and the last events die with it &mdash; unless you beacon.
+        </h3>
+        <p className="text-muted">
+          A normal <code className={code}>fetch</code> gets killed when a
+          backgrounded mobile tab is reaped; <code className={code}>unload</code>{" "}
+          never fires there and also breaks the back/forward cache. The last event
+          you can rely on is <code className={code}>visibilitychange</code> to
+          hidden, so that&rsquo;s where the flush goes, via{" "}
+          <code className={code}>sendBeacon</code> &mdash; sending a{" "}
+          <em>plain string</em>, not a <code className={code}>Blob</code> typed
+          application/json, because that content type isn&rsquo;t CORS-safelisted
+          and would force a preflight the beacon can&rsquo;t survive.
+        </p>
+        <p className="mt-3 text-muted">
+          The subtle part: <code className={code}>sendBeacon</code> returning{" "}
+          <code className={code}>true</code> means the browser <em>queued</em> the
+          request, not that it arrived. So I don&rsquo;t delete the persisted copy
+          when I beacon &mdash; it&rsquo;s kept and resent on the next load, and the
+          duplicate gets absorbed downstream.
+        </p>
+        <pre className={pre}>
+          {`if (opts?.beacon) {
+  transport.beacon(batch);   // fire, but keep the persisted copy
+  return;                    // "queued" != "delivered"
+}`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          At-least-once, and let the server sort out the doubles.
+        </h3>
+        <p className="text-muted">
+          Retries and beacons will manufacture duplicates, and exactly-once
+          isn&rsquo;t achievable from a browser. So delivery is at-least-once:
+          events leave the queue only after a 2xx, transient failures (network,
+          5xx, 429) retry with exponential backoff plus jitter, and a 4xx is{" "}
+          <em>dropped</em> rather than retried forever &mdash; a malformed event is
+          a poison pill that would block everything behind it. The backend makes it
+          safe by deduping on the client&rsquo;s event UUID:
+        </p>
+        <pre className={pre}>
+          {`INSERT INTO zeroproof_analytics_events (event_uuid, ...)
+VALUES ...
+ON CONFLICT (event_uuid) DO NOTHING;  -- a resend is a no-op`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A gap you can actually see.
+        </h3>
+        <p className="text-muted">
+          Every event carries a per-session sequence, so the backend can spot a
+          hole &mdash; 1, 2, 4, where&rsquo;s 3? &mdash; and know events were lost in
+          flight rather than never sent. That&rsquo;s the difference between
+          &ldquo;we think delivery is fine&rdquo; and measuring it. The whole thing
+          is gated on the site&rsquo;s existing cookie consent and keyed by a hashed,
+          non-reversible device id: no consent, no id, no tracking.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Anonymous, consent-gated telemetry for the lobby: track() queues an event and returns instantly, batches flush on ~20 events / ~5s / a byte cap, the tab-close flush goes out via sendBeacon (a plain string, so no CORS preflight), and delivery is at-least-once with retry-and-backoff — the backend dedupes on the client's event UUID and a per-session sequence makes lost events detectable. The device id is a hashed, non-reversible key; without cookie consent nothing is tracked at all.",
           "A multi-bet slip, docked: pick as many outcomes as you like (tap to add, tap or ✕ to remove), give each its own stake, and place them together — the slip stays pinned to the bottom of the screen while you scroll, so it's always in reach.",
           "Stickier board: the day-section header sticks just under the filter bar (its height measured into a CSS var so the two don't collide), and a fixture's team colour reads as a thick bottom border rather than a left bar.",
           "Betting closes the instant a match starts: the board mirrors the backend's bettable rule (upcoming and still ahead), so a matchup you've bet on — pinned to the board — renders read-only and badged Live or Final once its game is underway, instead of keeping live outcome buttons.",
@@ -1240,6 +1332,7 @@ Over  Total 210.5      $25.00   -110`}
           "That tour is now a shared engine: the same consent-first coach-mark runs on Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, and the design-system gallery, each built from a small per-page step config.",
         ]}
         couldImprove={[
+          "The telemetry queue persists to localStorage, keyed per tab. That's the right call at this volume — tiny, infrequent writes — but IndexedDB (off the main thread) and the Web Locks API (so two tabs can't flush the same events) are the upgrade path if ZeroProof ever emits high-frequency events. Today the server dedupe covers the multi-tab overlap.",
           "The Compare tab is records only. A consented, opt-in surface would let it show which bets two players agreed or disagreed on, and each other's upcoming bets — the part I most wanted but wouldn't build over the board's anonymity.",
           "Season wallets open at a hardcoded $500 default; a real deposit-amount input (any amount ≥ $20) is the follow-up the default is standing in for.",
           "The sharp score is a simple CLV + ROI + volume rollup for now; the formula wants calibration against real outcomes before it means much.",
