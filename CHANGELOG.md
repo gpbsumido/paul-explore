@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-30 - version 7.11.3
+
+- Fixed a hydration mismatch that every page with a guided tour threw for first-time visitors (`/vitals`, `/tcg/pokemon`, `/work-portfolio`, `/zeroproof`, `/design-system`, `/operator`, `/fantasy/nba` and the ZeroProof write-up). `useGuidedTour` decided whether to auto-open in its initial state with `typeof window !== "undefined" && !seen`, so the server rendered the tour closed and a new visitor's first client render rendered it open. It now waits for hydration (a `useSyncExternalStore` whose server snapshot is `false`) before auto-opening, and a visitor's own start or close always wins.
+
 ## 2026-09-29 - version 7.11.2
 
 - Fixed a hydration mismatch on every route for visitors who prefer reduced motion. The server can't see the preference, but framer-motion's `useReducedMotion` read `matchMedia` on the client's first render, so the app-wide reduced-motion flag disagreed between the server HTML and hydration, and `template.tsx` (which drops its fade wrapper under reduced motion) rendered a different tree. The provider now reads the preference through `useSyncExternalStore` with a server snapshot of `false`, so hydration matches and the real preference applies on the next render.
