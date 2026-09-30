@@ -22,6 +22,7 @@ import OpenWalletActions from "./OpenWalletActions";
 import LeaguesPanel from "./LeaguesPanel";
 import QueryError from "./QueryError";
 import { bankrollTrend } from "@/lib/zeroproof/trend";
+import { trackZeroProofEvent } from "@/lib/zeroproof/trackerClient";
 import {
   netProfitTotalCents,
   winRatePct,
@@ -927,7 +928,10 @@ function Leaderboard() {
               type="button"
               role="tab"
               aria-selected={board === b}
-              onClick={() => setBoard(b)}
+              onClick={() => {
+                setBoard(b);
+                trackZeroProofEvent("leaderboard_board_change", { board: b });
+              }}
               className={`rounded-full px-3 py-1 font-medium capitalize transition-colors ${
                 board === b
                   ? "bg-foreground text-background"

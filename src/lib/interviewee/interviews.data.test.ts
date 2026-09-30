@@ -31,6 +31,13 @@ describe("interviewee interviews data", () => {
     expect(sardine!.topics.length).toBeGreaterThan(0);
   });
 
+  it("includes the RSI hiring-manager interview with a why-RSI topic", () => {
+    const rsi = interviewById("rsi-1-hiring-manager");
+    expect(rsi?.title).toBe("RSI Interview 1: Hiring manager");
+    expect(rsi!.topics.length).toBeGreaterThan(0);
+    expect(rsi!.topics.map((t) => t.id)).toContain("motivations");
+  });
+
   it("gives every topic a unique id within its interview", () => {
     for (const interview of INTERVIEWS) {
       const ids = interview.topics.map((t) => t.id);

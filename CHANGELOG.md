@@ -1,11 +1,20 @@
 # Changelog
 
-## 2026-09-28 - version 7.10.0
+## 2026-09-29 - version 7.11.0
 
 - Added the host side of the work portfolio's move to a micro-frontend. The portfolio now lives in its own repo (`gpbsumido/work-portfolio-mfe`), and `/work-portfolio` can mount it at runtime over Module Federation 2.0 with `@module-federation/runtime`, no bundler plugin (Turbopack has none for the App Router). The host lends its React as a singleton, owns `?feature=`, and lends the remote the referral client as a service, so the remote never learns the API URL.
 - `RemoteMount` keeps a remote's failures on its side of the page: a load error, an 8s timeout or a contract major it doesn't know all end in a fallback card with Retry. A header chip names the mounted remote release.
 - Strangler cutover: a `work-portfolio-remote` flag, seeded at 0% in production, that fails closed (unlike `pocket-tcg`), plus `WORK_PORTFOLIO_REMOTE_URL` and a `WORK_PORTFOLIO_REMOTE_OVERRIDE` kill switch. With nothing configured this release changes nothing for visitors. `/work-portfolio` is force-dynamic while the flag decides.
 - The CSP allows the remote's origin in `script-src`, `style-src`, `img-src` and `connect-src`, and nowhere else.
+
+## 2026-09-29 - version 7.10.0
+
+- Added an anonymous, consent-gated telemetry layer for the ZeroProof lobby — the delivery layer my RSI interview prep admitted the real SDK lacked, built here for real. A tracker in `src/lib/zeroproof/tracker.ts` queues events (each stamped with a client UUID and a per-session sequence) and flushes on whichever comes first: ~20 events, ~5s, or the byte size nearing the ~64KB cap. Delivery is at-least-once — events leave only after a 2xx, network/5xx/429 retry with exponential backoff plus jitter, a 4xx is dropped rather than retried as a poison pill — and a `visibilitychange → hidden` flush goes out via `sendBeacon` as a plain string (not an application/json Blob, which would force a CORS preflight), keeping the persisted copy so it resends next load. The queue persists to localStorage keyed per tab (`trackerStore.ts`), with an in-memory fallback. Identity is a hashed, non-reversible `anon_id` (sha256 of a random UUID) plus a per-tab `session_id`, gated on the site's existing cookie consent — no consent, no id, no tracking. A new public BFF `POST /api/zeroproof/track` (IP rate-limited) validates and forwards batches to portfolio_api. Mounted on the `/zeroproof` segment layout to record a page view and the leaderboard-board toggle. The core is fully unit-tested (batch triggers, backoff, retryable-status classification, beacon payload, dedupe seam) since all IO sits behind injected ports.
+
+## 2026-09-29 - version 7.9.3
+
+- Added a Rush Street Interactive hiring-manager interview to my interviewee prep deck at `/interviewee`. Seven topics — the fit map, the event SDK, designing an event taxonomy, React + Angular and micro-frontends, performance and mobile, motivations, and my questions — each transformed from my prep notes into the same question/points/details shape the Sardine deck already uses. Admin-gated and noindex, like the rest of the deck.
+- Fixed a WCAG AA contrast failure on the Fantasy NFL matchups starter rows: the projected-points text dropped to `text-muted/60` once a game had scores, which fell below the minimum contrast ratio. It now stays `text-muted` in both states — still visibly secondary next to the bold actual score, but legible.
 
 ## 2026-09-23 - version 7.9.2
 
