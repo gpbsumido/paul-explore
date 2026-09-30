@@ -38,6 +38,18 @@ describe("interviewee interviews data", () => {
     expect(rsi!.topics.map((t) => t.id)).toContain("motivations");
   });
 
+  it("gives the RSI round a delivery-layer deep dive on the event SDK", () => {
+    const rsi = interviewById("rsi-1-hiring-manager");
+    const delivery = rsi!.topics.find((t) => t.id === "delivery-layer");
+    expect(delivery).toBeDefined();
+    expect(delivery!.related).toContain("event-sdk");
+    const text = delivery!.entries
+      .flatMap((e) => [e.question, ...e.points, ...(e.details ?? [])])
+      .join(" ")
+      .toLowerCase();
+    expect(text).toContain("sendbeacon");
+  });
+
   it("gives every topic a unique id within its interview", () => {
     for (const interview of INTERVIEWS) {
       const ids = interview.topics.map((t) => t.id);
