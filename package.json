@@ -35,7 +35,7 @@
     "@paul-portfolio/css": "^0.13.11",
     "@paul-portfolio/react": "^0.12.10",
     "@paul-portfolio/tokens": "^0.4.1",
-    "@paul-portfolio/work-portfolio-contract": "link:../work-portfolio-mfe/packages/contract",
+    "@paul-portfolio/work-portfolio-contract": "^1.0.0",
     "@rainbow-me/rainbowkit": "^2.2.11",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
