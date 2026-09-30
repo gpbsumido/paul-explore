@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { PROJECTS, FEATURES } from "@/app/work-portfolio/_data/catalog";
 import WorkPortfolioThoughtsContent from "./WorkPortfolioThoughtsContent";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -19,7 +18,7 @@ const textOf = (element: HTMLElement): string =>
 describe("WorkPortfolioThoughtsContent", () => {
   it("shows the counts it is given, not ones of its own", () => {
     const { container } = render(
-      <WorkPortfolioThoughtsContent featureCount={7} projectCount={3} />,
+      <WorkPortfolioThoughtsContent counts={{ features: 7, projects: 3 }} />,
     );
     const text = textOf(container);
 
@@ -30,22 +29,21 @@ describe("WorkPortfolioThoughtsContent", () => {
 
   it("keeps the launch figures literal, because they are history", () => {
     const { container } = render(
-      <WorkPortfolioThoughtsContent featureCount={7} projectCount={3} />,
+      <WorkPortfolioThoughtsContent counts={{ features: 7, projects: 3 }} />,
     );
 
     expect(textOf(container)).toContain("It launched with 24 across 11");
   });
 
-  it("states the real catalog size when handed it", () => {
-    const { container } = render(
-      <WorkPortfolioThoughtsContent
-        featureCount={FEATURES.length}
-        projectCount={PROJECTS.length}
-      />,
-    );
+  it("reads without numbers when the catalog couldn't be fetched", () => {
+    // The counts come from the remote's catalog.json now. If that fetch fails
+    // the page still renders, just without figures it can't vouch for.
+    const { container } = render(<WorkPortfolioThoughtsContent counts={null} />);
+    const text = textOf(container);
 
-    expect(textOf(container)).toContain(
-      `${FEATURES.length} feature demos drawn from ${PROJECTS.length} projects`,
-    );
+    expect(text).toContain("feature demos drawn from past projects");
+    expect(text).toContain("turned my old jobs into a single interactive page");
+    expect(text).toContain("never all of them at once");
+    expect(text).not.toMatch(/\bundefined\b|\bNaN\b/);
   });
 });
