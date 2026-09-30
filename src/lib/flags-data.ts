@@ -69,6 +69,35 @@ function seedFlags(): Flag[] {
       },
     },
     {
+      key: "work-portfolio-remote",
+      name: "Work portfolio remote",
+      description:
+        "Serves /work-portfolio from the micro-frontend remote (gpbsumido/work-portfolio-mfe) instead of the in-repo copy. Sticky per visitor, and it fails closed: a missing flag means the in-repo page. Seeded at 0% in production; dial it up in the console to migrate, and down to roll back without a deploy.",
+      real: true,
+      access: "admin" as const,
+      kind: "boolean",
+      tags: ["work-portfolio", "micro-frontend", "migration"],
+      variations: [...BOOLEAN],
+      createdAt: "2026-09-25T12:00:00.000Z",
+      environments: {
+        development: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        staging: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        production: boolEnv({
+          enabled: true,
+          fallthrough: [
+            { variation: "on", weight: 0 },
+            { variation: "off", weight: 100 },
+          ],
+        }),
+      },
+    },
+    {
       key: "world-live-presence",
       name: "World live presence",
       description:
