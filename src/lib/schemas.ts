@@ -195,6 +195,28 @@ export const vitalsBeaconSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// ZeroProof telemetry batch (POST /api/zeroproof/track)
+// ---------------------------------------------------------------------------
+
+/** One anonymous telemetry event from the ZeroProof client. */
+export const zeroproofTrackEventSchema = z.object({
+  eventUuid: z.string().uuid(),
+  name: z.string().min(1).max(64),
+  page: z.string().min(1).max(512),
+  seq: z.number().int().nonnegative(),
+  sessionId: z.string().min(1).max(64),
+  anonId: z.string().min(1).max(128),
+  clientTs: z.string().datetime(),
+  props: z.record(z.string(), z.unknown()).optional(),
+  appVersion: z.string().min(1).max(32),
+});
+
+/** A batch of events, capped so one beacon can't flood the backend. */
+export const zeroproofTrackBatchSchema = z.object({
+  events: z.array(zeroproofTrackEventSchema).min(1).max(100),
+});
+
+// ---------------------------------------------------------------------------
 // GraphQL response wrapper
 // ---------------------------------------------------------------------------
 
