@@ -120,6 +120,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/to-do",
   "/thoughts/mac-menu-bar",
   "/thoughts/messenger-auth",
+  "/thoughts/micro-frontends",
   "/thoughts/motion-components",
   "/thoughts/nfl-matchups",
   "/thoughts/npm-to-pnpm",

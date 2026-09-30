@@ -128,3 +128,30 @@ describe("buildCsp", () => {
     ).toContain("'wasm-unsafe-eval'");
   });
 });
+
+describe("buildCsp with a micro-frontend remote", () => {
+  const REMOTE = "https://work-portfolio-mfe.vercel.app";
+
+  it("lets the page load the remote's scripts, styles, images and manifest", () => {
+    const csp = buildCsp(undefined, { remoteOrigins: [REMOTE] });
+    expect(directive(csp, "script-src")).toContain(REMOTE);
+    expect(directive(csp, "style-src")).toContain(REMOTE);
+    expect(directive(csp, "img-src")).toContain(REMOTE);
+    expect(directive(csp, "connect-src")).toContain(REMOTE);
+  });
+
+  it("widens nothing else: the remote origin appears in exactly those four directives", () => {
+    const csp = buildCsp(undefined, { remoteOrigins: [REMOTE] });
+    const widened = csp
+      .split("; ")
+      .filter((d) => d.includes(REMOTE))
+      .map((d) => d.split(" ")[0]);
+    expect(widened.sort()).toEqual(
+      ["connect-src", "img-src", "script-src", "style-src"].sort(),
+    );
+  });
+
+  it("is byte-for-byte the old policy when no remote is configured", () => {
+    expect(buildCsp(undefined, { remoteOrigins: [] })).toBe(buildCsp(undefined));
+  });
+});

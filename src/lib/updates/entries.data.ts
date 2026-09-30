@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-11-0",
+    date: "2026-09-29",
+    version: "7.11.0",
+    category: "feature",
+    tags: ["work-portfolio", "architecture"],
+    title: "The work portfolio is becoming its own app",
+    summary:
+      "The work portfolio now has its own repo, build and deploy, and this site is ready to load it at runtime as a micro-frontend.",
+    body: [
+      "The work portfolio moved into its own repository with its history intact. It builds and deploys on its own, and this site pulls it in at runtime over Module Federation instead of compiling it in.",
+      "Nothing looks different yet. The switch is behind a flag that starts at zero, so the move can happen gradually and roll back without a deploy. If the portfolio ever fails to load, the page shows a retry card instead of breaking.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-zeroproof-telemetry",
     date: "2026-09-29",
     version: "7.10.0",

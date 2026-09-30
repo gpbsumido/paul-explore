@@ -213,6 +213,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "Micro-frontends",
+    href: "/thoughts/micro-frontends",
+    preview:
+      "Splitting the work portfolio into its own repo and loading it at runtime over Module Federation: a contract package, a host that owns the URL and the data, Next's canary React, a CSS collision only a real mount could find, and a strangler flag that fails closed",
+    color: "#3f8f8a",
+  },
+  {
     title: "Design detox",
     href: "/thoughts/design-detox",
     preview:

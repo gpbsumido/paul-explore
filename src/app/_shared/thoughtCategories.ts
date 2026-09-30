@@ -68,6 +68,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   {
     name: "Architecture & Backend",
     slugs: [
+      "micro-frontends",
       "zeroproof",
       "risk-scoring-api",
       "graphql",

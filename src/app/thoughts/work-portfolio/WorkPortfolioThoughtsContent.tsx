@@ -146,6 +146,11 @@ export default function WorkPortfolioThoughtsContent({
             title:
               "The tickers stopped being bespoke, and three bugs I had been ignoring",
           },
+          {
+            id: "update-2026-09-28-own-repo",
+            date: "Sep 28, 2026",
+            title: "The portfolio moved out, and took its history with it",
+          },
         ]}
       />
 
@@ -475,8 +480,64 @@ this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-09-28-own-repo"
+        date="September 28, 2026"
+        title="The portfolio moved out, and took its history with it"
+      >
+        <p>
+          This whole feature now lives in its own repo,{" "}
+          <a
+            href="https://github.com/gpbsumido/work-portfolio-mfe"
+            className="font-medium text-primary-600 hover:underline dark:text-primary-400"
+          >
+            work-portfolio-mfe
+          </a>
+          , and this site loads it at runtime as a Module Federation remote.
+          The full story is in{" "}
+          <a
+            href="/thoughts/micro-frontends"
+            className="font-medium text-primary-600 hover:underline dark:text-primary-400"
+          >
+            the micro-frontends write-up
+          </a>
+          ; the part that belongs here is what moving it did to the demos.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The merge-order-independent registry made the move almost free.
+        </h3>
+        <p className="text-muted">
+          Every demo was already one file and one registry line, so leaving
+          Next.js meant changing the registry, not the demos:{" "}
+          <code>next/dynamic</code> became <code>React.lazy</code>. Of the 23
+          demo files, 20 didn&apos;t change at all: two swapped{" "}
+          <code>next/image</code> for a plain <code>img</code>, and the third
+          is the fix below.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The a11y test had never seen a demo.
+        </h3>
+        <p className="text-muted">
+          It deep-linked with the URL and scanned straight away, before the
+          lazy demo arrived. Passing the slug as a prop instead finally put a
+          demo in front of axe, and it failed on the realtime-metrics chart:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`aria-label attribute cannot be used on a div with no valid role attribute.
+<div class="min-h-40 flex-1" aria-label="Signups per minute chart">`}
+        </pre>
+        <p className="text-muted">
+          Fixed in the remote with <code>role=&quot;img&quot;</code>. The copy
+          still in this repo keeps the bug until the flag reaches 100% and
+          that copy is deleted.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "The portfolio moved to its own repo with its git history and loads here at runtime as a Module Federation remote, behind a flag that starts at zero. See /thoughts/micro-frontends.",
           "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height, not a flex-grown one), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
           "Each project now carries its own accent and texture on the stage, so the jobs stop blurring together, and a final This Site entry links out to the real features of this site — the one demo where nothing is mocked.",
           "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
@@ -493,6 +554,7 @@ this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
         upcoming={[
           "Stabilise the ticker E2E tests. They failed once on a release and passed on re-run, which is exactly how a real signal gets trained into noise — the fix is to make the assertion wait on the demo being ready rather than a fixed timeout.",
           "Pull the explainer copy out of the components so adding a reconstruction is a data edit.",
+          "Ramp the remote to 100%, then delete the in-repo copy of the portfolio from this repo.",
         ]}
       />
     </ThoughtLayout>
