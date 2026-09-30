@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-zeroproof-telemetry",
+    date: "2026-09-29",
+    version: "7.10.0",
+    category: "improvement",
+    tags: ["zeroproof", "privacy"],
+    title: "Privacy-first, loss-proof analytics for the ZeroProof lobby",
+    summary:
+      "The ZeroProof lobby now measures how it's used without dropping data or tracking anyone who hasn't opted in: events are queued, batched, and flushed reliably even as you close the tab — and nothing is recorded until you accept the cookie consent.",
+    body: [
+      "Interactions are queued and sent in small batches rather than one request per event, and a flush fires as the tab is backgrounded (via the browser's sendBeacon) so the last events before you leave aren't lost — the usual silent gap in web analytics.",
+      "It's anonymous by design: the device key is a hashed, non-reversible value, there's a per-tab session id, and if you haven't accepted the site's cookie consent nothing is collected at all. Delivery is at-least-once with retries, and the backend de-duplicates so a resend never double-counts.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-9-0",
     date: "2026-09-22",
     version: "7.9.0",
