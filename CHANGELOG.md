@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-29 - version 7.10.0
+
+- Added an anonymous, consent-gated telemetry layer for the ZeroProof lobby — the delivery layer my RSI interview prep admitted the real SDK lacked, built here for real. A tracker in `src/lib/zeroproof/tracker.ts` queues events (each stamped with a client UUID and a per-session sequence) and flushes on whichever comes first: ~20 events, ~5s, or the byte size nearing the ~64KB cap. Delivery is at-least-once — events leave only after a 2xx, network/5xx/429 retry with exponential backoff plus jitter, a 4xx is dropped rather than retried as a poison pill — and a `visibilitychange → hidden` flush goes out via `sendBeacon` as a plain string (not an application/json Blob, which would force a CORS preflight), keeping the persisted copy so it resends next load. The queue persists to localStorage keyed per tab (`trackerStore.ts`), with an in-memory fallback. Identity is a hashed, non-reversible `anon_id` (sha256 of a random UUID) plus a per-tab `session_id`, gated on the site's existing cookie consent — no consent, no id, no tracking. A new public BFF `POST /api/zeroproof/track` (IP rate-limited) validates and forwards batches to portfolio_api. Mounted on the `/zeroproof` segment layout to record a page view and the leaderboard-board toggle. The core is fully unit-tested (batch triggers, backoff, retryable-status classification, beacon payload, dedupe seam) since all IO sits behind injected ports.
+
 ## 2026-09-29 - version 7.9.3
 
 - Added a Rush Street Interactive hiring-manager interview to my interviewee prep deck at `/interviewee`. Seven topics — the fit map, the event SDK, designing an event taxonomy, React + Angular and micro-frontends, performance and mobile, motivations, and my questions — each transformed from my prep notes into the same question/points/details shape the Sardine deck already uses. Admin-gated and noindex, like the rest of the deck.
