@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-29 - version 7.9.4
+
+- Added a `delivery-layer` deep-dive topic to the RSI hiring-manager round of the interviewee deck at `/interviewee`. The `event-sdk` topic already carries the headline honest answer — the SDK sent each event directly, no queue and no beacon flush — so this is the follow-up material for when a hiring manager goes three questions deep: the delivery layer I'd build walked in data-flow order (enqueue, batch triggers, persist, send + retry, page-exit flush, at-least-once with UUID dedupe, per-session sequence for loss detection), the sendBeacon traps (visibilitychange over unload, the ~64KB/POST/no-headers limits, text/plain over a JSON Blob, and "true doesn't mean delivered"), and the honesty landmine on batch size. Framed as prototype-not-shipped throughout, since helika-sdk is public and the per-event sends are visible there.
+
 ## 2026-09-29 - version 7.9.3
 
 - Added a Rush Street Interactive hiring-manager interview to my interviewee prep deck at `/interviewee`. Seven topics — the fit map, the event SDK, designing an event taxonomy, React + Angular and micro-frontends, performance and mobile, motivations, and my questions — each transformed from my prep notes into the same question/points/details shape the Sardine deck already uses. Admin-gated and noindex, like the rest of the deck.
