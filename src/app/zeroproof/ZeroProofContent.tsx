@@ -1718,6 +1718,23 @@ export default function ZeroProofContent() {
     setSlip((cur) => cur.filter((leg) => betLegKey(leg) !== legKey));
   const [tab, setTab] = useState<LobbyTab>("board");
   const tabRefs = useRef<Partial<Record<LobbyTab, HTMLButtonElement | null>>>({});
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, []);
 
   // The first-run tour, built on the shared engine. Each coach-mark switches to
   // the tab it describes so its panel shows behind the highlight.
@@ -1808,37 +1825,65 @@ export default function ZeroProofContent() {
         </div>
       </header>
 
-      <div
-        role="tablist"
-        aria-label="ZeroProof sections"
-        className="mt-8 flex gap-1 overflow-x-auto border-b border-border pr-8 [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] md:[mask-image:none] md:pr-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {LOBBY_TABS.map((t) => {
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              ref={(element) => {
-                tabRefs.current[t.id] = element;
-              }}
-              type="button"
-              role="tab"
-              id={`zp-tab-${t.id}`}
-              aria-selected={active}
-              aria-controls={`zp-panel-${t.id}`}
-              tabIndex={active ? 0 : -1}
-              onClick={() => setTab(t.id)}
-              onKeyDown={onTabKeyDown}
-              className={`shrink-0 -mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
-                active
-                  ? "border-primary-600 text-foreground"
-                  : "border-transparent text-muted hover:text-foreground"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
+      <div className="relative mt-8">
+        {canScrollLeft && (
+          <button
+            type="button"
+            className="absolute left-0 top-0 bottom-0 z-10 flex w-12 items-center justify-start bg-gradient-to-r from-background via-background to-transparent pr-4 md:hidden"
+            onClick={() => scrollRef.current?.scrollBy({ left: -150, behavior: "smooth" })}
+            aria-label="Scroll tabs left"
+          >
+            <svg className="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          role="tablist"
+          aria-label="ZeroProof sections"
+          className="flex gap-1 overflow-x-auto border-b border-border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {LOBBY_TABS.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                ref={(element) => {
+                  tabRefs.current[t.id] = element;
+                }}
+                type="button"
+                role="tab"
+                id={`zp-tab-${t.id}`}
+                aria-selected={active}
+                aria-controls={`zp-panel-${t.id}`}
+                tabIndex={active ? 0 : -1}
+                onClick={() => setTab(t.id)}
+                onKeyDown={onTabKeyDown}
+                className={`shrink-0 -mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
+                  active
+                    ? "border-primary-600 text-foreground"
+                    : "border-transparent text-muted hover:text-foreground"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+        {canScrollRight && (
+          <button
+            type="button"
+            className="absolute right-0 top-0 bottom-0 z-10 flex w-12 items-center justify-end bg-gradient-to-l from-background via-background to-transparent pl-4 md:hidden"
+            onClick={() => scrollRef.current?.scrollBy({ left: 150, behavior: "smooth" })}
+            aria-label="Scroll tabs right"
+          >
+            <svg className="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
       </div>
 
       <div
