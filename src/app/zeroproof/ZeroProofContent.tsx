@@ -1811,7 +1811,7 @@ export default function ZeroProofContent() {
       <div
         role="tablist"
         aria-label="ZeroProof sections"
-        className="mt-8 flex gap-1 border-b border-border"
+        className="mt-8 flex gap-1 overflow-x-auto border-b border-border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {LOBBY_TABS.map((t) => {
           const active = tab === t.id;
@@ -1829,7 +1829,7 @@ export default function ZeroProofContent() {
               tabIndex={active ? 0 : -1}
               onClick={() => setTab(t.id)}
               onKeyDown={onTabKeyDown}
-              className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
+              className={`shrink-0 -mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none ${
                 active
                   ? "border-primary-600 text-foreground"
                   : "border-transparent text-muted hover:text-foreground"

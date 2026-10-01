@@ -375,36 +375,38 @@ export default function LeagueDetailContent({ leagueId }: { leagueId: string }) 
         {standings.length === 0 ? (
           <p className="mt-2 text-sm text-muted">No bets settled yet — the board is level.</p>
         ) : (
-          <table className="mt-3 w-full text-sm" aria-label={`${league.name} standings`}>
-            <thead>
-              <tr className="text-left text-xs text-muted">
-                <th scope="col" className="py-2 pr-2 font-medium">#</th>
-                <th scope="col" className="py-2 pr-2 font-medium">Player</th>
-                <th scope="col" className="py-2 pr-2 text-right font-medium">Bankroll</th>
-                <th scope="col" className="py-2 pr-2 text-right font-medium">ROI</th>
-                <th scope="col" className="py-2 text-right font-medium">Record</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((row) => {
-                const isWinner = row.userSub === league.winnerSub;
-                return (
-                  <tr
-                    key={row.userSub}
-                    className={`border-t border-border ${isWinner ? "font-semibold text-foreground" : "text-foreground"}`}
-                  >
-                    <td className="py-2 pr-2 tabular-nums">{row.rank}</td>
-                    <td className="py-2 pr-2 font-mono">{playerHandle(row.userSub)}</td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{formatCents(row.balanceCents)}</td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{formatSignedPct(row.roiPct)}</td>
-                    <td className="py-2 text-right tabular-nums">
-                      {formatRecord({ wins: row.wins, losses: row.losses, pushes: row.pushes })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="mt-3 w-full overflow-x-auto">
+            <table className="w-full min-w-[28rem] text-sm" aria-label={`${league.name} standings`}>
+              <thead>
+                <tr className="text-left text-xs text-muted">
+                  <th scope="col" className="py-2 pr-2 font-medium">#</th>
+                  <th scope="col" className="py-2 pr-2 font-medium">Player</th>
+                  <th scope="col" className="py-2 pr-2 text-right font-medium">Bankroll</th>
+                  <th scope="col" className="py-2 pr-2 text-right font-medium">ROI</th>
+                  <th scope="col" className="py-2 text-right font-medium">Record</th>
+                </tr>
+              </thead>
+              <tbody>
+                {standings.map((row) => {
+                  const isWinner = row.userSub === league.winnerSub;
+                  return (
+                    <tr
+                      key={row.userSub}
+                      className={`border-t border-border ${isWinner ? "font-semibold text-foreground" : "text-foreground"}`}
+                    >
+                      <td className="py-2 pr-2 tabular-nums">{row.rank}</td>
+                      <td className="py-2 pr-2 font-mono">{playerHandle(row.userSub)}</td>
+                      <td className="py-2 pr-2 text-right tabular-nums">{formatCents(row.balanceCents)}</td>
+                      <td className="py-2 pr-2 text-right tabular-nums">{formatSignedPct(row.roiPct)}</td>
+                      <td className="py-2 text-right tabular-nums">
+                        {formatRecord({ wins: row.wins, losses: row.losses, pushes: row.pushes })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
