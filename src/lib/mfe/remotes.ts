@@ -9,39 +9,19 @@ export type RemoteConfig = {
 
 type Env = Partial<Record<string, string | undefined>>;
 
+/** Where the work-portfolio remote's production build publishes its manifest. */
+const PRODUCTION_MANIFEST = "https://work-portfolio-mfe.vercel.app/mf-manifest.json";
+
 /**
- * The work-portfolio remote, from WORK_PORTFOLIO_REMOTE_URL (the full URL of
- * its mf-manifest.json). Absent when unset or not a URL, which simply means
- * the in-repo portfolio keeps serving.
+ * The work-portfolio remote. WORK_PORTFOLIO_REMOTE_URL (the full URL of an
+ * mf-manifest.json) points it somewhere else, e.g. a remote running locally on
+ * :3100; unset, it's the production deployment, since there is no in-repo copy
+ * left to fall back to. Null only when the variable is set to something that
+ * isn't a URL, which the page shows as the remote being unavailable.
  */
 export function workPortfolioRemote(env: Env = process.env): RemoteConfig | null {
-  const manifestUrl = env.WORK_PORTFOLIO_REMOTE_URL?.trim();
+  const manifestUrl = env.WORK_PORTFOLIO_REMOTE_URL?.trim() || PRODUCTION_MANIFEST;
   const origin = toOrigin(manifestUrl);
-  if (!manifestUrl || !origin) return null;
+  if (!origin) return null;
   return { name: "workPortfolio", manifestUrl, origin };
-}
-
-/**
- * WORK_PORTFOLIO_REMOTE_OVERRIDE forces the decision either way: "on" so e2e
- * can drive the composed page without touching the flag, "off" as a kill
- * switch that doesn't depend on the flags API being up.
- */
-export function remoteOverride(env: Env = process.env): "on" | "off" | null {
-  const value = env.WORK_PORTFOLIO_REMOTE_OVERRIDE?.trim();
-  return value === "on" || value === "off" ? value : null;
-}
-
-/** Whether this request gets the remote, given what is configured and what the flag said. */
-export function servesWorkPortfolioRemote({
-  remote,
-  override,
-  flagOn,
-}: {
-  remote: RemoteConfig | null;
-  override: "on" | "off" | null;
-  flagOn: boolean;
-}): boolean {
-  if (!remote) return false;
-  if (override) return override === "on";
-  return flagOn;
 }
