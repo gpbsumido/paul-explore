@@ -1,4 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import type { CatalogCounts } from "@/lib/mfe/catalog";
 import {
   UpdateTimeline,
   Update,
@@ -41,15 +42,14 @@ function Section({
 
 /**
  * Counts arrive as props from the server page, which reads them off the
- * catalog. Importing the catalog here would put all 21KB of it in this route's
- * client bundle to render two integers.
+ * remote's catalog.json; the catalog lives in the remote's repo now. Null when
+ * that fetch failed, and the prose then reads without numbers rather than
+ * guessing.
  */
 export default function WorkPortfolioThoughtsContent({
-  featureCount,
-  projectCount,
+  counts,
 }: {
-  featureCount: number;
-  projectCount: number;
+  counts: CatalogCounts | null;
 }) {
   return (
     <ThoughtLayout
@@ -57,7 +57,8 @@ export default function WorkPortfolioThoughtsContent({
       title="Work Portfolio"
       intro={
         <>
-          How I turned {projectCount} old jobs into a single interactive page,
+          How I turned {counts ? `${counts.projects} old jobs` : "my old jobs"}{" "}
+          into a single interactive page,
           and the
           handful of decisions that made it buildable without turning into a
           museum of dead apps.
@@ -171,7 +172,10 @@ export default function WorkPortfolioThoughtsContent({
             the feature did, in this site&apos;s design system.
           </Bullet>
           <Bullet>
-            {featureCount} feature demos drawn from {projectCount} projects,
+            {counts
+              ? `${counts.features} feature demos drawn from ${counts.projects} projects`
+              : "feature demos drawn from past projects"}
+            ,
             because the interesting
             projects had more than one idea worth showing. It launched with 24
             across 11: Economy &amp; Financial Health overlapped the other
@@ -220,7 +224,8 @@ export default function WorkPortfolioThoughtsContent({
               Every demo is its own lazy chunk.
             </strong>{" "}
             They load through <C>next/dynamic</C>, so the page ships only the
-            demo on screen, never all {featureCount} at once.
+            demo on screen, never all {counts ? counts.features : "of them"} at
+            once.
           </Bullet>
         </ul>
       </Section>
@@ -537,7 +542,7 @@ this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
 
       <WhatsNext
         nowShipped={[
-          "The portfolio moved to its own repo with its git history and loads here at runtime as a Module Federation remote, behind a flag that starts at zero. See /thoughts/micro-frontends.",
+          "The portfolio moved to its own repo with its git history and is served here at runtime as a Module Federation remote, for every visitor since the flag reached 100%. The in-repo copy is deleted. See /thoughts/micro-frontends.",
           "A polish pass reviewed every demo as a visitor would: a chart that overflowed its card and then rendered nothing once I over-corrected (fixed with a definite height, not a flex-grown one), a referral link that pointed at prod from develop, forms that accepted invalid input, flat NFT swatches, and the raw recharts tooltip — all fixed, plus richer wallet/campaign previews so the demos read like the real product.",
           "Each project now carries its own accent and texture on the stage, so the jobs stop blurring together, and a final This Site entry links out to the real features of this site — the one demo where nothing is mocked.",
           "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
@@ -554,7 +559,6 @@ this-site.tsx:6 #e08a3c   // saturation 0.73, band max is 0.68`}
         upcoming={[
           "Stabilise the ticker E2E tests. They failed once on a release and passed on re-run, which is exactly how a real signal gets trained into noise — the fix is to make the assertion wait on the demo being ready rather than a fixed timeout.",
           "Pull the explainer copy out of the components so adding a reconstruction is a data edit.",
-          "Ramp the remote to 100%, then delete the in-repo copy of the portfolio from this repo.",
         ]}
       />
     </ThoughtLayout>

@@ -17,7 +17,7 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Landing](https://paulsumido.com/) — the case for hiring me as a front-end lead: the craft matrix and its evidence, six featured apps, and the write-ups behind them
 - [Discover](https://paulsumido.com/discover) — a three-reel slot machine over every feature and write-up, plus every landing page this site has had: the v4 slot machine and the v3 node graph are still live at `/discover?version=v4` and `?version=v3`, with v2 and v1 alongside them
 - [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open the rest of the site
-- [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects, moving to a Module Federation micro-frontend in its own repo ([work-portfolio-mfe](https://github.com/gpbsumido/work-portfolio-mfe))
+- [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects, served at runtime as a Module Federation micro-frontend from its own repo ([work-portfolio-mfe](https://github.com/gpbsumido/work-portfolio-mfe))
 - [Design System](https://paulsumido.com/design-system) — live, categorised and searchable gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground, plus this app's own motion primitives. The palette is Verdigris & Ember: a teal-green primary against an apricot secondary on warm neutrals, with theme-aware feature accents and Bricolage Grotesque on page titles
 - [Research Explorer](https://paulsumido.com/research) — a tool for picking a vascular surgery research project: curated topics scored live against PubMed and Europe PMC, recent papers with links, demographic filters that show which populations the literature actually enrolled, and topics auto-derived from what the field is publishing now
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
@@ -205,9 +205,7 @@ breaking the app:
 | `ABLY_KEY` | `/world` presence falls back to a same-browser local transport |
 | `NEXT_PUBLIC_MEDIA_ORIGIN` | Saved gallery walls render blank — the origin is on the CSP `img-src`, so the photos are blocked |
 | `NEXT_PUBLIC_SITE_URL` | OG image URLs fall back to the production domain |
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Wallet connection is unavailable |
-| `WORK_PORTFOLIO_REMOTE_URL` | `/work-portfolio` serves the in-repo copy. Set it to the remote's `mf-manifest.json` URL and the `work-portfolio-remote` flag decides per visitor; the origin is added to the CSP |
-| `WORK_PORTFOLIO_REMOTE_OVERRIDE` | The flag decides. `on` forces the remote (what the composed-page e2e uses), `off` forces the in-repo copy without touching the flags API |
+| `WORK_PORTFOLIO_REMOTE_URL` | Nothing: it defaults to the production remote's `mf-manifest.json`. Set it to mount another build, e.g. a local remote on `:3100`; its origin goes on the CSP either way |
 
 **The admin allowlist has two different names.** It is
 `FLAG_ADMIN_ALLOWED_EMAILS` here and `ADMIN_ALLOWED_EMAILS` in `portfolio_api`,
@@ -303,7 +301,7 @@ src/
 │   ├── to-do/           # Admin-only outstanding-work list
 │   ├── v2/ v3/ v4/      # Earlier site designs, kept reachable
 │   ├── vitals/          # Real-user Core Web Vitals dashboard
-│   ├── work-portfolio/  # Anonymized feature reconstructions
+│   ├── work-portfolio/  # Host for the work-portfolio remote (gpbsumido/work-portfolio-mfe)
 │   └── world/           # Walkable 3D Toronto
 ├── components/          # Shared UI primitives + feature components
 ├── contexts/            # React contexts

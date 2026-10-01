@@ -2,23 +2,16 @@ import { test, expect } from "@playwright/test";
 import { disableTours } from "../helpers/tours";
 
 /**
- * The composed page: /work-portfolio served by the micro-frontend remote.
- *
- * Only meaningful when a remote is configured and forced on, so the whole file
- * skips otherwise. To run it locally, serve the remote's build
- * (`pnpm --filter work-portfolio-remote preview` in work-portfolio-mfe) and
- * start this app with
- *   WORK_PORTFOLIO_REMOTE_URL=http://localhost:3100/mf-manifest.json
- *   WORK_PORTFOLIO_REMOTE_OVERRIDE=on
- * With those set, work-portfolio.spec.ts runs against the composed page too.
+ * /work-portfolio as it ships: the in-repo copy is gone, so the page always
+ * mounts the micro-frontend remote, by default its production deployment.
+ * Point WORK_PORTFOLIO_REMOTE_URL at another manifest (a local remote on
+ * :3100, say) to run this against that instead. work-portfolio.spec.ts
+ * exercises the portfolio itself through the same mount.
  */
-const MANIFEST = process.env.WORK_PORTFOLIO_REMOTE_URL;
-const REMOTE_ORIGIN = MANIFEST ? new URL(MANIFEST).origin : "";
-
-test.skip(
-  !MANIFEST || process.env.WORK_PORTFOLIO_REMOTE_OVERRIDE !== "on",
-  "no work-portfolio remote configured and forced on",
-);
+const MANIFEST =
+  process.env.WORK_PORTFOLIO_REMOTE_URL ||
+  "https://work-portfolio-mfe.vercel.app/mf-manifest.json";
+const REMOTE_ORIGIN = new URL(MANIFEST).origin;
 
 test.describe("work portfolio from the remote", () => {
   // No reduced-motion emulation here, unlike work-portfolio.spec.ts: these
