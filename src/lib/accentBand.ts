@@ -39,16 +39,3 @@ export const ACCENT_BAND = {
 
 /** Every band value, for the arrays that want a series rather than a name. */
 export const BAND_VALUES = Object.values(ACCENT_BAND);
-
-/**
- * A six-step series for charts, in an order that stays distinguishable when the
- * steps sit next to each other. Verdigris leads because it is the house colour.
- */
-export const CHART_SERIES = [
-  ACCENT_BAND.verdigris,
-  ACCENT_BAND.ember,
-  ACCENT_BAND.azure,
-  ACCENT_BAND.orchid,
-  ACCENT_BAND.gold,
-  ACCENT_BAND.coral,
-] as const;
