@@ -1829,7 +1829,7 @@ export default function ZeroProofContent() {
         {canScrollLeft && (
           <button
             type="button"
-            className="absolute left-0 top-0 bottom-0 z-10 flex w-12 items-center justify-start bg-gradient-to-r from-background via-background to-transparent pr-4 md:hidden"
+            className="absolute left-0 top-0 bottom-0 z-10 flex w-12 items-center justify-start bg-gradient-to-r from-background via-background to-transparent pr-4"
             onClick={() => scrollRef.current?.scrollBy({ left: -150, behavior: "smooth" })}
             aria-label="Scroll tabs left"
           >
@@ -1875,7 +1875,7 @@ export default function ZeroProofContent() {
         {canScrollRight && (
           <button
             type="button"
-            className="absolute right-0 top-0 bottom-0 z-10 flex w-12 items-center justify-end bg-gradient-to-l from-background via-background to-transparent pl-4 md:hidden"
+            className="absolute right-0 top-0 bottom-0 z-10 flex w-12 items-center justify-end bg-gradient-to-l from-background via-background to-transparent pl-4"
             onClick={() => scrollRef.current?.scrollBy({ left: 150, behavior: "smooth" })}
             aria-label="Scroll tabs right"
           >
