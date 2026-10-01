@@ -1811,7 +1811,7 @@ export default function ZeroProofContent() {
       <div
         role="tablist"
         aria-label="ZeroProof sections"
-        className="mt-8 flex gap-1 overflow-x-auto border-b border-border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-8 flex gap-1 overflow-x-auto border-b border-border pr-8 [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] md:[mask-image:none] md:pr-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {LOBBY_TABS.map((t) => {
           const active = tab === t.id;
