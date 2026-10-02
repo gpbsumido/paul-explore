@@ -113,53 +113,55 @@ export default function ComparePanel({
         {summary}
       </p>
 
-      <table className="w-full text-sm">
-        <caption className="sr-only">
-          Your stats compared with {opponentHandle}
-        </caption>
-        <thead>
-          <tr className="border-b border-border text-xs text-muted">
-            <th scope="col" className="py-2 text-left font-medium">
-              Measure
-            </th>
-            <th scope="col" className="py-2 text-right font-medium">
-              You
-            </th>
-            <th scope="col" className="py-2 text-right font-medium">
-              {opponentHandle}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {metrics.map((metric) => (
-            <tr key={metric.key} className="border-b border-border/60">
-              <th scope="row" className="py-2 text-left font-normal text-muted">
-                {metric.label}
+      <div className="w-full overflow-x-auto">
+        <table className="w-full min-w-[24rem] text-sm">
+          <caption className="sr-only">
+            Your stats compared with {opponentHandle}
+          </caption>
+          <thead>
+            <tr className="border-b border-border text-xs text-muted">
+              <th scope="col" className="py-2 text-left font-medium">
+                Measure
               </th>
-              <td
-                className={`py-2 text-right font-mono tabular-nums ${
-                  metric.leader === "mine" ? WINNER : "text-foreground"
-                }`}
-              >
-                {metric.mine}
-                {metric.leader === "mine" ? (
-                  <span className="sr-only"> (you lead)</span>
-                ) : null}
-              </td>
-              <td
-                className={`py-2 text-right font-mono tabular-nums ${
-                  metric.leader === "theirs" ? WINNER : "text-foreground"
-                }`}
-              >
-                {metric.theirs}
-                {metric.leader === "theirs" ? (
-                  <span className="sr-only"> (they lead)</span>
-                ) : null}
-              </td>
+              <th scope="col" className="py-2 text-right font-medium">
+                You
+              </th>
+              <th scope="col" className="py-2 text-right font-medium">
+                {opponentHandle}
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {metrics.map((metric) => (
+              <tr key={metric.key} className="border-b border-border/60">
+                <th scope="row" className="py-2 text-left font-normal text-muted">
+                  {metric.label}
+                </th>
+                <td
+                  className={`py-2 text-right font-mono tabular-nums ${
+                    metric.leader === "mine" ? WINNER : "text-foreground"
+                  }`}
+                >
+                  {metric.mine}
+                  {metric.leader === "mine" ? (
+                    <span className="sr-only"> (you lead)</span>
+                  ) : null}
+                </td>
+                <td
+                  className={`py-2 text-right font-mono tabular-nums ${
+                    metric.leader === "theirs" ? WINNER : "text-foreground"
+                  }`}
+                >
+                  {metric.theirs}
+                  {metric.leader === "theirs" ? (
+                    <span className="sr-only"> (they lead)</span>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <section aria-labelledby="compare-upcoming-title">
         <h3
