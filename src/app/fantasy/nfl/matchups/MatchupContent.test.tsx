@@ -84,4 +84,29 @@ describe("NflMatchupCard", () => {
     // projected points surfaced somewhere on the card
     expect(screen.getAllByText(/proj/i).length).toBeGreaterThan(0);
   });
+
+  it("carries each full name in a title, so a truncated name reads on hover", () => {
+    render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
+    expect(screen.getByText("Josh Allen")).toHaveAttribute("title", "Josh Allen");
+    expect(screen.getByText("Paul's Perfect Team")).toHaveAttribute("title", "Paul's Perfect Team");
+    expect(screen.getByText("Paul S")).toHaveAttribute("title", "Paul S");
+  });
+
+  it("marks the starters involved in the selected scoring play, and only them", () => {
+    render(
+      <NflMatchupCard
+        matchup={matchup}
+        winProb={{ home: 0.62, away: 0.38 }}
+        highlightedPlayerIds={new Set([100])}
+      />,
+    );
+    const markers = screen.getAllByText("In selected play");
+    expect(markers).toHaveLength(1);
+    expect(markers[0].closest("[data-player-id]")).toHaveAttribute("data-player-id", "100");
+  });
+
+  it("marks nobody when no play is selected", () => {
+    render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
+    expect(screen.queryByText("In selected play")).not.toBeInTheDocument();
+  });
 });
