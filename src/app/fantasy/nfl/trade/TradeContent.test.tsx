@@ -53,7 +53,7 @@ describe("TradeAnalyzer", () => {
 
     // Henry 15 for Gibbs 26: Paul's side gains 11, George's loses 11.
     const verdict = screen.getByRole("status");
-    expect(verdict).toHaveTextContent(/Paul's Perfect Team wins/);
+    expect(verdict).toHaveTextContent(/Paul's Perfect Team wins this trade over the rest of the season/);
     expect(verdict).toHaveTextContent("22");
 
     const table = screen.getByRole("table", { name: /trade projection/i });

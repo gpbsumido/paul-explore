@@ -118,14 +118,20 @@ function changeCell(change: SideChange) {
   );
 }
 
+const HORIZON_PHRASE: Record<TradeHorizon["key"], string> = {
+  thisWeek: "this week",
+  nextWeek: "next week",
+  restOfSeason: "over the rest of the season",
+};
+
 function verdictText(h: TradeHorizon, aName: string, bName: string): string {
-  const span = `${h.label.toLowerCase()} (${weeksLabel(h.weeks)})`;
+  const span = `${HORIZON_PHRASE[h.key]} (${weeksLabel(h.weeks)})`;
   if (h.winner === "even") {
-    return `Too close to call over the ${span}: ${aName} ${signed(h.a.delta)}, ${bName} ${signed(h.b.delta)}.`;
+    return `Too close to call ${span}: ${aName} ${signed(h.a.delta)}, ${bName} ${signed(h.b.delta)}.`;
   }
   const [winner, loser] = h.winner === "A" ? [aName, bName] : [bName, aName];
   const [won, lost] = h.winner === "A" ? [h.a.delta, h.b.delta] : [h.b.delta, h.a.delta];
-  return `${winner} wins this trade over the ${span}: ${signed(won)} for them, ${signed(lost)} for ${loser}, a ${fmt(Math.abs(h.margin))}-point swing.`;
+  return `${winner} wins this trade ${span}: ${signed(won)} for them, ${signed(lost)} for ${loser}, a ${fmt(Math.abs(h.margin))}-point swing.`;
 }
 
 // ---- Analyzer ----
