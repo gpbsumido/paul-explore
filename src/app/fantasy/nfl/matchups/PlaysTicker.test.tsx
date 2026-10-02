@@ -72,7 +72,7 @@ describe("PlaysTickerPanel", () => {
   it("collapses to its header and expands again", async () => {
     const user = userEvent.setup();
     renderPanel();
-    const toggle = screen.getByRole("button", { name: /recent scoring plays/i });
+    const toggle = screen.getByRole("button", { name: "Recent scoring plays (2)" });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
 
     await user.click(toggle);

@@ -79,7 +79,8 @@ export function PlaysTickerPanel({
           <span>
             Recent scoring plays
             {status === "ready" && plays.length > 0 && (
-              <span className="ml-1.5 font-normal text-muted tabular-nums">
+              <span className="font-normal text-muted tabular-nums">
+                {" "}
                 ({filtering ? `${visible.length} of ${plays.length}` : plays.length})
               </span>
             )}
