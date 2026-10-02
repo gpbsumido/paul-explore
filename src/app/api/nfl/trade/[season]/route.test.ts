@@ -39,7 +39,7 @@ function call(season: string) {
 
 describe("NFL trade pool route", () => {
   it("returns the parsed pool of rostered players, filtered to rostered at ESPN", async () => {
-    const fetchMock = vi.fn((input: string) => Promise.resolve(respond(input)));
+    const fetchMock = vi.fn((input: string, _init?: RequestInit) => Promise.resolve(respond(input)));
     vi.stubGlobal("fetch", fetchMock);
 
     const res = await call("2026");
@@ -50,7 +50,7 @@ describe("NFL trade pool route", () => {
     expect(body.currentWeek).toBe(4);
 
     const leagueCall = fetchMock.mock.calls.find(([url]) => url.includes("kona_player_info"));
-    const init = leagueCall?.[1] as RequestInit | undefined;
+    const init = leagueCall?.[1];
     const filter = new Headers(init?.headers).get("X-Fantasy-Filter");
     expect(JSON.parse(filter ?? "{}")).toEqual({
       players: { filterStatus: { value: ["ONTEAM"] } },

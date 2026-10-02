@@ -124,6 +124,9 @@ export const queryKeys = {
     /** Share of each NFL team's game still to play in a season/week. */
     games: (season: number, week: number) =>
       ["nfl", "games", season, week] as const,
+
+    /** The league's rostered player pool for the trade analyzer. */
+    trade: (season: number) => ["nfl", "trade", season] as const,
   },
 
   tcg: {
