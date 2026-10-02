@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-02 - version 7.12.0
+
+- Fixed projected finals on `/fantasy/nfl/matchups` reading high. A side's remaining projection was each starter's `projected - actual` whether or not their game was over, so every finished under-performer kept "owing" points: week 3 showed a projected 164.5-179.8 for a matchup that ended 123.9-135.6. A past week now projects nothing, and a live week scales each starter's projection by the share of their NFL game left (all of it before kickoff, the clock's share while live, none when final or on a bye), read from a new `/api/nfl/games` route over ESPN's public scoreboard. ESPN's own weekly projections checked out; the second week-4 line some players carry is Thursday's actual, not a duplicate projection.
+- The scoring-plays ticker collapses and expands, filters by position, score type, matchup, NFL team and fantasy team, and a click on a play rings the starters it mentions in the matchup cards (with a star badge and screen-reader text, not color alone) and scrolls to the first one.
+- Matchup cards are one per row, and every player, team and owner name carries its full text on hover. Superflex starters read `OP` instead of falling back to their position.
+- Added `/fantasy/nfl/trade`, a trade analyzer: pick two teams (or search any rostered player to start), choose who moves, and see each side's change for this week, next week and the rest of the season, with a winner and margin for each. It scores each team's best possible lineup week by week, byes included, so a 2-for-1 isn't judged on raw totals. Future weeks spread ESPN's rest-of-season projection over each player's remaining games, so expected missed games are already priced in. Strength of schedule is ESPN's points-allowed rank by position for each remaining opponent, per player and per side. Data comes from a new `/api/nfl/trade/[season]` route that parses ESPN's ~1.2MB player payload down to ~30KB.
+- Fixed light-mode contrast on the ticker's fantasy-team pills, which a scan that waits for the plays to load caught; the route's existing axe scan finishes before they arrive.
+
 ## 2026-09-30 - version 7.11.4
 
 - `/work-portfolio` now always mounts the micro-frontend remote (gpbsumido/work-portfolio-mfe), after `work-portfolio-remote` ran at 100% in production. The in-repo copy is deleted: the shell, all demos, the catalog, their tests and thumbnails. The page is a static shell again (`revalidate`, not force-dynamic), since no per-visitor flag is read any more.
