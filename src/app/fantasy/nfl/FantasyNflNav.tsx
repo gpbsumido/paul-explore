@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [{ href: "/fantasy/nfl/matchups", label: "Matchups" }] as const;
+const LINKS = [
+  { href: "/fantasy/nfl/matchups", label: "Matchups" },
+  { href: "/fantasy/nfl/trade", label: "Trade analyzer" },
+] as const;
 
 /** Tab bar shared across ESPN fantasy football pages. */
 export default function FantasyNflNav() {
