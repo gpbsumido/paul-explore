@@ -7,6 +7,7 @@
 - Matchup cards are one per row, and every player, team and owner name carries its full text on hover. Superflex starters read `OP` instead of falling back to their position.
 - Added `/fantasy/nfl/trade`, a trade analyzer: pick two teams (or search any rostered player to start), choose who moves, and see each side's change for this week, next week and the rest of the season, with a winner and margin for each. It scores each team's best possible lineup week by week, byes included, so a 2-for-1 isn't judged on raw totals. Future weeks spread ESPN's rest-of-season projection over each player's remaining games, so expected missed games are already priced in. Strength of schedule is ESPN's points-allowed rank by position for each remaining opponent, per player and per side. Data comes from a new `/api/nfl/trade/[season]` route that parses ESPN's ~1.2MB player payload down to ~30KB.
 - Fixed light-mode contrast on the ticker's fantasy-team pills, which a scan that waits for the plays to load caught; the route's existing axe scan finishes before they arrive.
+- ZeroProof scrolls sideways on narrow phones instead of breaking its layout: the lobby's tab list and the compare and league-detail tables sit in horizontal scroll containers with safe minimum widths.
 
 ## 2026-09-30 - version 7.11.4
 
