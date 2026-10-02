@@ -59,6 +59,11 @@ export function PlaysTickerPanel({
   const filtering = Object.values(filters).some((v) => v !== undefined);
   const teams = matchups.flatMap((m) => [m.away, m.home]);
 
+  const countLabel =
+    status === "ready" && plays.length > 0
+      ? `(${filtering ? `${visible.length} of ${plays.length}` : plays.length})`
+      : "";
+
   function setFilter<K extends keyof PlayFilters>(key: K, value: PlayFilters[K]) {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
@@ -72,17 +77,15 @@ export function PlaysTickerPanel({
         <button
           type="button"
           aria-expanded={expanded}
+          aria-label={countLabel ? `Recent scoring plays ${countLabel}` : "Recent scoring plays"}
           aria-controls={bodyId}
           onClick={() => setExpanded((e) => !e)}
           className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-[13px] font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground"
         >
           <span>
             Recent scoring plays
-            {status === "ready" && plays.length > 0 && (
-              <span className="font-normal text-muted tabular-nums">
-                {" "}
-                ({filtering ? `${visible.length} of ${plays.length}` : plays.length})
-              </span>
+            {countLabel && (
+              <span className="ml-1.5 font-normal text-muted tabular-nums">{countLabel}</span>
             )}
           </span>
           <svg
