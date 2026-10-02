@@ -225,7 +225,7 @@ export function PlaysTickerPanel({
                             )
                           }
                           className={`flex w-full flex-wrap items-baseline gap-2 px-3 py-2 text-left text-[12px] transition-colors motion-reduce:transition-none hover:bg-black/5 dark:hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground ${
-                            selected ? "bg-[var(--color-feature-nfl)]/10 shadow-[inset_3px_0_0_var(--color-feature-nfl)]" : ""
+                            selected ? "shadow-[inset_4px_0_0_var(--color-feature-nfl)]" : ""
                           }`}
                         >
                           <span className="shrink-0 font-mono tabular-nums text-muted">
@@ -238,7 +238,7 @@ export function PlaysTickerPanel({
                           {[...new Set(mentions.map((m) => m.fantasyTeamName))].map((team) => (
                             <span
                               key={team}
-                              className="shrink-0 rounded-full bg-[var(--color-feature-nfl)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-feature-nfl)]"
+                              className="shrink-0 rounded-full bg-[var(--color-feature-nfl)]/15 px-2 py-0.5 text-[10px] font-semibold text-foreground"
                             >
                               {team}
                             </span>

@@ -69,7 +69,7 @@ function RosterPicker({
           return (
             <li
               key={p.playerId}
-              className={`flex items-center gap-3 px-3 py-2 text-[12px] ${checked ? "bg-[var(--color-feature-nfl)]/10" : ""}`}
+              className={`flex items-center gap-3 px-3 py-2 text-[12px] ${checked ? "shadow-[inset_3px_0_0_var(--color-feature-nfl)]" : ""}`}
             >
               <input
                 id={id}

@@ -93,7 +93,7 @@ function StarterRow({
       data-highlighted={highlighted || undefined}
       className={`flex items-baseline gap-2 px-3 py-1.5 text-[12px] scroll-mb-[50vh] ${
         align === "right" ? "flex-row-reverse text-right" : ""
-      } ${highlighted ? "bg-[var(--color-feature-nfl)]/10 ring-2 ring-inset ring-[var(--color-feature-nfl)]" : ""}`}
+      } ${highlighted ? "ring-2 ring-inset ring-[var(--color-feature-nfl)]" : ""}`}
     >
       <span className="w-9 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
         {slotLabel(line)}
