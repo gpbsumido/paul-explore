@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseNflScoreboard } from "./matchups";
+import { applyGameProgress, parseNflScoreboard } from "./matchups";
 
 /**
  * A roster entry shaped like ESPN's: a starter or bench player carrying an
@@ -42,10 +42,10 @@ function entry(opts: {
   };
 }
 
-function payload(week: number) {
+function payload(week: number, currentWeek = week) {
   return {
     seasonId: 2026,
-    status: { currentMatchupPeriod: week, latestScoringPeriod: week },
+    status: { currentMatchupPeriod: currentWeek, latestScoringPeriod: currentWeek },
     settings: { scheduleSettings: { matchupPeriodCount: 13 } },
     members: [
       { id: "{OWNER-A}", firstName: "Paul", lastName: "S", displayName: "paul" },
@@ -140,5 +140,47 @@ describe("parseNflScoreboard", () => {
   it("degrades to an empty board on a payload that isn't a league", () => {
     const board = parseNflScoreboard({ nope: true }, { season: 2026, week: 3 });
     expect(board.matchups).toEqual([]);
+  });
+
+  it("projects nothing still to come for a week that's already over", () => {
+    // Week 3 viewed from week 4: Bijan finished 3 under his projection, but his
+    // game is done, so those 3 points are never coming.
+    const board = parseNflScoreboard(payload(3, 4), { season: 2026, week: 3 });
+    expect(board.matchups[0].away.remaining).toBe(0);
+    expect(board.matchups[0].home.remaining).toBe(0);
+  });
+
+  it("until game clocks are known, counts each live-week starter's unmet projection", () => {
+    const board = parseNflScoreboard(payload(3), { season: 2026, week: 3 });
+    // Bijan 12 of 15, CeeDee already past his 14.
+    expect(board.matchups[0].home.remaining).toBe(3);
+  });
+});
+
+describe("applyGameProgress", () => {
+  const board = parseNflScoreboard(payload(3), { season: 2026, week: 3 });
+
+  it("scales each starter's projection by the share of their game left", () => {
+    // Every fixture player is on CIN (proTeamId 4); half the game remains.
+    const [m] = applyGameProgress(board.matchups, { CIN: 0.5 });
+    expect(m.away.remaining).toBeCloseTo(10.5);
+    expect(m.home.remaining).toBeCloseTo(14.5);
+  });
+
+  it("projects nothing more once the game is final", () => {
+    const [m] = applyGameProgress(board.matchups, { CIN: 0 });
+    expect(m.away.remaining).toBe(0);
+    expect(m.home.remaining).toBe(0);
+  });
+
+  it("projects nothing for a starter whose team has no game this week", () => {
+    const [m] = applyGameProgress(board.matchups, { BUF: 1 });
+    expect(m.home.remaining).toBe(0);
+  });
+
+  it("leaves scores and rosters untouched", () => {
+    const [m] = applyGameProgress(board.matchups, { CIN: 1 });
+    expect(m.home.totalPoints).toBe(30);
+    expect(m.home.starters).toEqual(board.matchups[0].home.starters);
   });
 });

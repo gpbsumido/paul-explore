@@ -5,7 +5,11 @@
  * carries the real play text rather than a computed delta.
  */
 import { z } from "zod";
-import type { NflPlayAttribution, NflScoringPlay } from "@/types/espn-nfl";
+import type {
+  NflMatchup,
+  NflPlayAttribution,
+  NflScoringPlay,
+} from "@/types/espn-nfl";
 
 const competitorSchema = z.object({
   team: z.object({ abbreviation: z.string() }),
@@ -64,9 +68,30 @@ export function parseScoringPlays(payload: unknown): NflScoringPlay[] {
   }));
 }
 
-export interface RosterName {
+/** A starter in one of the week's matchups, with what the ticker filters on. */
+export interface RosterStarter {
+  playerId: number;
   name: string;
+  positionId: number;
+  fantasyTeamId: number;
   fantasyTeamName: string;
+  matchupId: number;
+}
+
+/** Every starter across the week's matchups, tagged with team and matchup. */
+export function rosterStarters(matchups: NflMatchup[]): RosterStarter[] {
+  return matchups.flatMap((m) =>
+    [m.away, m.home].flatMap((side) =>
+      side.starters.map((p) => ({
+        playerId: p.playerId,
+        name: p.name,
+        positionId: p.positionId,
+        fantasyTeamId: side.teamId,
+        fantasyTeamName: side.name,
+        matchupId: m.id,
+      })),
+    ),
+  );
 }
 
 /**
@@ -76,14 +101,61 @@ export interface RosterName {
  */
 export function attributePlays(
   plays: NflScoringPlay[],
-  roster: RosterName[],
+  roster: RosterStarter[],
 ): NflPlayAttribution[] {
   const attributed: NflPlayAttribution[] = [];
   for (const play of plays) {
     const mentions = roster
       .filter((r) => play.text.includes(r.name))
-      .map((r) => ({ playerName: r.name, fantasyTeamName: r.fantasyTeamName }));
+      .map(({ name, ...rest }) => ({ ...rest, playerName: name }));
     if (mentions.length > 0) attributed.push({ play, mentions });
   }
   return attributed;
+}
+
+/** Ticker filters; an unset key doesn't filter. */
+export interface PlayFilters {
+  positionId?: number;
+  scoringType?: string;
+  nflTeam?: string;
+  fantasyTeamId?: number;
+  matchupId?: number;
+}
+
+/**
+ * The plays that pass every set filter. Score type and NFL team belong to the
+ * play; position, fantasy team and matchup belong to a mentioned starter, and
+ * one starter has to satisfy all three -- a QB filter plus a team filter means
+ * that team's QB, not any QB on a play that also mentions that team.
+ */
+export function filterPlays(
+  plays: NflPlayAttribution[],
+  filters: PlayFilters,
+): NflPlayAttribution[] {
+  return plays.filter(({ play, mentions }) => {
+    if (filters.scoringType !== undefined && play.scoringType !== filters.scoringType) return false;
+    if (filters.nflTeam !== undefined && play.teamAbbrev !== filters.nflTeam) return false;
+    return mentions.some(
+      (m) =>
+        (filters.positionId === undefined || m.positionId === filters.positionId) &&
+        (filters.fantasyTeamId === undefined || m.fantasyTeamId === filters.fantasyTeamId) &&
+        (filters.matchupId === undefined || m.matchupId === filters.matchupId),
+    );
+  });
+}
+
+/** The positions, score types and NFL teams that actually appear, sorted. */
+export function playFilterOptions(plays: NflPlayAttribution[]): {
+  positionIds: number[];
+  scoringTypes: string[];
+  nflTeams: string[];
+} {
+  const positions = new Set(plays.flatMap((p) => p.mentions.map((m) => m.positionId)));
+  const types = new Set(plays.map((p) => p.play.scoringType).filter(Boolean));
+  const teams = new Set(plays.map((p) => p.play.teamAbbrev).filter(Boolean));
+  return {
+    positionIds: [...positions].sort((a, b) => a - b),
+    scoringTypes: [...types].sort(),
+    nflTeams: [...teams].sort(),
+  };
 }

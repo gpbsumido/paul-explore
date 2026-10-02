@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-02 - version 7.12.0
+
+- Fixed projected finals on `/fantasy/nfl/matchups` reading high. A side's remaining projection was each starter's `projected - actual` whether or not their game was over, so every finished under-performer kept "owing" points: week 3 showed a projected 164.5-179.8 for a matchup that ended 123.9-135.6. A past week now projects nothing, and a live week scales each starter's projection by the share of their NFL game left (all of it before kickoff, the clock's share while live, none when final or on a bye), read from a new `/api/nfl/games` route over ESPN's public scoreboard. ESPN's own weekly projections checked out; the second week-4 line some players carry is Thursday's actual, not a duplicate projection.
+- The scoring-plays ticker collapses and expands, filters by position, score type, matchup, NFL team and fantasy team, and a click on a play rings the starters it mentions in the matchup cards (with a star badge and screen-reader text, not color alone) and scrolls to the first one.
+- Matchup cards are one per row, and every player, team and owner name carries its full text on hover. Superflex starters read `OP` instead of falling back to their position.
+- Added `/fantasy/nfl/trade`, a trade analyzer: pick two teams (or search any rostered player to start), choose who moves, and see each side's change for this week, next week and the rest of the season, with a winner and margin for each. It scores each team's best possible lineup week by week, byes included, so a 2-for-1 isn't judged on raw totals. Future weeks spread ESPN's rest-of-season projection over each player's remaining games, so expected missed games are already priced in. Strength of schedule is ESPN's points-allowed rank by position for each remaining opponent, per player and per side. Data comes from a new `/api/nfl/trade/[season]` route that parses ESPN's ~1.2MB player payload down to ~30KB.
+- Fixed light-mode contrast on the ticker's fantasy-team pills, which a scan that waits for the plays to load caught; the route's existing axe scan finishes before they arrive.
+- ZeroProof scrolls sideways on narrow phones instead of breaking its layout: the lobby's tab list and the compare and league-detail tables sit in horizontal scroll containers with safe minimum widths.
+
+## 2026-09-30 - version 7.11.4
+
+- `/work-portfolio` now always mounts the micro-frontend remote (gpbsumido/work-portfolio-mfe), after `work-portfolio-remote` ran at 100% in production. The in-repo copy is deleted: the shell, all demos, the catalog, their tests and thumbnails. The page is a static shell again (`revalidate`, not force-dynamic), since no per-visitor flag is read any more.
+- `WORK_PORTFOLIO_REMOTE_URL` defaults to the remote's production manifest, so local dev and CI mount the real remote; set it to point at another build, such as a local remote on `:3100`. `WORK_PORTFOLIO_REMOTE_OVERRIDE`, the fail-closed gate and the seeded flag are gone.
+- `/thoughts/work-portfolio` reads its project and feature counts from the remote's `catalog.json` (revalidated daily), and reads without numbers if that fetch fails.
+- Removed the wallet stack (`wagmi`, `viem`, `@rainbow-me/rainbowkit`, the `qr` patch) and `@dnd-kit/core`, which only the in-repo demos used. The CSP keeps the WalletConnect origins, because the remote's NFT demo runs inside this page. `/work-portfolio` first-load JS drops from 273.1KB to 258.7KB gzipped.
+
 ## 2026-09-30 - version 7.11.3
 
 - Fixed a hydration mismatch that every page with a guided tour threw for first-time visitors (`/vitals`, `/tcg/pokemon`, `/work-portfolio`, `/zeroproof`, `/design-system`, `/operator`, `/fantasy/nba` and the ZeroProof write-up). `useGuidedTour` decided whether to auto-open in its initial state with `typeof window !== "undefined" && !seen`, so the server rendered the tour closed and a new visitor's first client render rendered it open. It now waits for hydration (a `useSyncExternalStore` whose server snapshot is `false`) before auto-opening, and a visitor's own start or close always wins.

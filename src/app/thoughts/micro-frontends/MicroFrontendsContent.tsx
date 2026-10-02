@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -247,6 +247,65 @@ export default function MicroFrontendsContent() {
         </pre>
       </Section>
 
+      <Update
+        id="update-2026-09-30-remote-only"
+        date="September 30, 2026"
+        title="The flag went to 100%, and the copy it was protecting is gone"
+      >
+        <p>
+          The strangler did its job. <code className={code}>work-portfolio-remote</code>{" "}
+          went to 100% in production, the remote served every visitor, and
+          this site stopped carrying a second build of the portfolio.
+        </p>
+
+        <h3 className={h3}>I checked it from a browser I didn&apos;t own.</h3>
+        <p>
+          A green deploy says the code is on a server, not that a visitor gets
+          it. So a headless browser loaded production cold and reported what it
+          saw:
+        </p>
+        <pre className={pre}>
+          {`{
+ "chip": "remote v1.0.0",
+ "mounted": 1,
+ "heading": "Chart Library",
+ "urlAfterNext": "https://paulsumido.com/work-portfolio?feature=standard-analytics",
+ "fallback": 0,
+ "remoteRequests": 17,
+ "reactLoadedFrom": ["paulExplore"],
+ "errors": []
+}`}
+        </pre>
+        <p>
+          One React, from this site. The deep link opened the right demo, the
+          host still owned the URL after a click, and nothing threw.
+        </p>
+
+        <h3 className={h3}>Deleting it took the wallet stack with it.</h3>
+        <p>
+          The in-repo demos were the only thing here using wagmi, viem,
+          RainbowKit or dnd-kit, so the dead-code check failed the moment they
+          went, and those four packages left the lockfile along with a patch
+          that only existed for RainbowKit&apos;s QR dependency. The CSP still
+          allows WalletConnect, though: the remote&apos;s NFT demo runs inside
+          this page, so this page&apos;s policy is the one it has to pass.
+        </p>
+        <pre className={pre}>
+          {`/work-portfolio first-load JS, gzipped
+  7.11.3 (gate + in-repo copy):  273.1KB
+  remote only:                   258.7KB`}
+        </pre>
+
+        <h3 className={h3}>There is no fallback build any more, on purpose.</h3>
+        <p>
+          The page is a static shell again, and the remote defaults to its
+          production deployment, so local dev and CI mount the real thing. The
+          catch is the one I signed up for: rolling back is now a Vercel instant
+          rollback of the remote, not a flag dialled to zero, and CI&apos;s
+          portfolio tests depend on the remote being up.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "The portfolio lives in gpbsumido/work-portfolio-mfe with its history, builds with Rsbuild, and exposes a single framework-agnostic mount() over Module Federation 2.0.",
@@ -255,6 +314,7 @@ export default function MicroFrontendsContent() {
           "Remote CSS confined to its own subtree, with a build check that fails on any rule shipped to the host that isn't scoped.",
           "RemoteMount's fallback for a failed, slow or incompatible remote, and a header chip naming the release on screen.",
           "A stand-in host in the remote's CI that mounts the built remote over the runtime, so a remote that can't mount fails there instead of here.",
+          "The flag reached 100% and the in-repo copy is gone: the page is a static shell that always mounts the remote, the write-up's counts come from the remote's catalog.json, and the wallet stack left this repo with it.",
         ]}
         couldImprove={[
           "The remote renders only in the browser, so the tickers and intro card lost server rendering. The skeleton holds the layout, but it is a real trade.",
@@ -262,8 +322,6 @@ export default function MicroFrontendsContent() {
           "The design system is bundled into the remote rather than shared through federation, so it downloads twice on this page.",
         ]}
         upcoming={[
-          "Ramp the flag to 100% while watching the page's LCP and CLS on /vitals, then delete the in-repo copy and let the page go static again.",
-          "Point the write-up page's counts at the remote's catalog.json, so the numbers here come from the app that owns them.",
           "A second remote in Angular, which would prove the mount contract with a genuinely different framework on the other side.",
         ]}
       />

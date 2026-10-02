@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-12-0",
+    date: "2026-10-02",
+    version: "7.12.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "A fantasy football trade analyzer, and projections you can trust",
+    summary:
+      "Fantasy NFL has a trade analyzer that shows who wins a deal this week, next week and for the rest of the season, and the matchup projections no longer run high.",
+    body: [
+      "The new Trade analyzer tab lets you pick two teams, search for players and build a trade. It compares each side's best possible starting lineup before and after, so a two-for-one deal isn't judged on raw totals, and shows each player's strength of schedule for the rest of the season.",
+      "On the matchups page, projected finals stopped counting points from games that were already over, so a finished week now reads its real score. The scoring-plays ticker can be collapsed and filtered, and clicking a play highlights the players involved in the matchup cards.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-11-0",
     date: "2026-09-29",
     version: "7.11.0",

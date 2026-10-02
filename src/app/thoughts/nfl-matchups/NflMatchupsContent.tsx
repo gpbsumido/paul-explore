@@ -160,6 +160,11 @@ export default function NflMatchupsContent() {
             date: "Sept 22, 2026",
             title: "The plays ticker this page said was deferred",
           },
+          {
+            id: "update-2026-10-02-trade-analyzer",
+            date: "October 2, 2026",
+            title: "The projections were too high, and a trade analyzer built on the fixed ones",
+          },
         ]}
       />
 
@@ -345,17 +350,150 @@ export default function NflMatchupsContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-02-trade-analyzer"
+        date="October 2, 2026"
+        title="The projections were too high, and a trade analyzer built on the fixed ones"
+      >
+        <p>
+          The projected finals on this page had been reading high for a few
+          weeks. Chasing that down turned into a fix, a rework of the plays
+          ticker, and a second tab: a trade analyzer that needed the fixed
+          projections before it was worth building.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I blamed ESPN&apos;s projections. They were fine.
+        </h3>
+        <p className="text-muted">
+          My first suspect was the source. Some players carry two week-4 lines
+          in the payload, and one of Quinshon Judkins&apos; read 21.6 against
+          a 12.5 projection, which looked like a double-counted or stale
+          projection being picked up by a 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">find</code> that grabs whichever comes first. It
+          wasn&apos;t. The second line is 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">statSourceId: 0</code>, Thursday night&apos;s actual,
+          and the reader already filters on source.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`{ id: "1120264",     statSourceId: 1, statSplitTypeId: 1, appliedTotal: 12.47 }  <- projection
+{ id: "01401872964", statSourceId: 0, statSplitTypeId: 1, appliedTotal: 21.6  }  <- TNF actual`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The bug was mine: finished games kept owing points
+        </h3>
+        <p className="text-muted">
+          A side&apos;s remaining projection was every starter&apos;s 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">max(0, projected - actual)</code>, whether or not
+          their game was over. A receiver projected for 15 who finished with
+          9 still &quot;owed&quot; 6 points that were never coming. On a
+          finished week every under-performer adds to the total, so the
+          projected final ran well above the real score.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Week 3, Barbarians vs Paul's Perfect Team (final)
+actual            123.9 - 135.6
+projected before  164.5 - 179.8
+projected after   123.9 - 135.6`}
+        </pre>
+        <p className="mt-3 text-muted">
+          A projection is for a whole game, so a starter can only still earn
+          the share of it their game has left. A new 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/api/nfl/games</code> route reads the public scoreboard
+          and turns each team&apos;s game into that share: all of it before
+          kickoff, the clock&apos;s share while it&apos;s live, none once
+          it&apos;s final or on a bye. A past week skips the call and projects
+          nothing. The live branch is unit-tested, but I haven&apos;t watched
+          it against a real in-progress game yet.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A selected play had to read without its color
+        </h3>
+        <p className="text-muted">
+          The ticker now collapses, filters by position, score type, matchup,
+          NFL team and fantasy team, and a click on a play rings the starters
+          it mentions in the matchup cards and scrolls to the first one. The
+          cards went to one per row so a whole lineup and full names fit. The
+          ring gets a star badge with screen-reader text next to it, so the
+          highlight isn&apos;t carried by color alone.
+        </p>
+        <p className="mt-3 text-muted">
+          The route&apos;s axe scan passed on the first run, in 2.7 seconds,
+          which was too fast. It scans once the page&apos;s main landmark
+          appears, before the plays arrive. A scan that waited for the plays
+          and clicked one found what the fast one never saw: my new tint
+          under muted text, and team pills that had been failing in light
+          mode since the ticker first shipped.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`color-contrast (serious)
+  <span class="... text-muted">proj 9.2</span>
+  <span class="... rounded-full ... text-[10px] font-semibold ...">Paul's Perfect Team</span>`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A 2-for-1 always wins if you add up the projections
+        </h3>
+        <p className="text-muted">
+          The trade analyzer scores a trade by each team&apos;s best possible
+          starting lineup, week by week, before and after the swap, because
+          two decent backs for one star looks like a win on a sum and is
+          usually a loss on Sunday. The lineup solver fills the narrowest
+          slots first. Order matters once FLEX and OP overlap: give OP first
+          pick and it can take the running back the FLEX slot needed.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`slots: QB, FLEX (RB/WR/TE), OP (QB/RB/WR/TE)
+players: QB 20, QB 9, RB 10
+OP first:   QB 20 + OP RB 10 + FLEX (nobody)  = 30
+narrowest:  QB 20 + FLEX RB 10 + OP QB 9      = 39`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ESPN&apos;s rest-of-season line already knows who&apos;s hurt
+        </h3>
+        <p className="text-muted">
+          For future weeks I needed a per-game number. ESPN&apos;s
+          season-projection stat turned out to be a rest-of-season total:
+          its total divided by its average is the number of games ESPN
+          expects someone to play from now on. That&apos;s 14 for a healthy
+          starter after week 3, and fewer for anyone on the injury report.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Jahmyr Gibbs   ACTIVE  365.3 / 26.1 = 14 games
+Breece Hall    OUT     212.4 / 16.3 = 13 games`}
+        </pre>
+        <p className="mt-3 text-muted">
+          So each future week is that total, minus this week&apos;s
+          projection, spread over the games the player&apos;s team actually
+          has left, and zero on a bye. Expected missed games come out of the
+          number without me guessing at injury timelines. Strength of
+          schedule is ESPN&apos;s points-allowed rank by position for each
+          remaining opponent, 1 the toughest and 32 the softest, shown next
+          to the projections rather than multiplied into them. Three weeks of
+          defense data is too thin to scale anyone&apos;s points by.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Weekly matchups for my ESPN fantasy football league: team totals, and every starter's actual vs. projected points for the week.",
           "A win-probability bar derived from projected final scores, with a spread that narrows as a week's games finish rather than reading a mid-week blowout as a certainty.",
           "The week selector reads ESPN's own current-period default instead of guessing from the calendar date, which is also what got the page past a set-state-in-effect lint failure.",
           "A live scoring-plays ticker: real ESPN play text tagged with the fantasy team it belongs to, stacked on this PR once the core matchups page shipped.",
+          "Projected finals that stop counting finished games: each starter's remaining projection scales with how much of their NFL game is left, and a past week projects nothing.",
+          "A collapsible ticker with position, score type, matchup, NFL team and fantasy team filters, where clicking a play highlights its starters in single-column matchup cards.",
+          "A trade analyzer tab that scores a trade by each side's best lineup for this week, next week and the rest of the season, with strength of schedule per player and per side.",
         ]}
         couldImprove={[
           "The win-probability model is a hand-picked spread function, not fit to any real outcome data — it's directionally right, not calibrated.",
           "Bench players parse and store correctly but the card doesn't surface them; only starters render.",
           "The ticker attributes a play by matching a rostered starter's exact name as a substring, so a short-form or nickname mismatch would miss a mention.",
+          "The live game-clock share is unit-tested but hasn't been checked against a real in-progress game yet.",
+          "The trade analyzer doesn't fill the roster spot a lopsided trade opens with a waiver pickup, so the side receiving fewer players reads slightly worse than it would play.",
+          "Strength of schedule leans on a few weeks of points-allowed data, so early-season ranks are noisy.",
         ]}
         upcoming={[
           "A playoff-week ticker (the plays feed is regular-season only right now — seasontype=2 — since the league's schedule already bounds most use to it).",
