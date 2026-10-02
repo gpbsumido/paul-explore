@@ -7,6 +7,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCountUp } from "@/hooks/useCountUp";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { applyGameProgress, parseNflScoreboard } from "@/lib/nfl/matchups";
 import { winProbability, type WinProbability } from "@/lib/nfl/winProbability";
 import {
@@ -17,7 +18,7 @@ import {
   type NflPlayerLine,
 } from "@/types/espn-nfl";
 import FantasyNflNav from "../FantasyNflNav";
-import PlaysTicker from "./PlaysTicker";
+import PlaysTicker, { type PlaySelection } from "./PlaysTicker";
 
 // ---- Constants ----
 
@@ -77,17 +78,35 @@ function WinBar({ awayPct }: { awayPct: number }) {
 
 // ---- Roster breakdown ----
 
-function StarterRow({ line, align }: { line: NflPlayerLine; align: "left" | "right" }) {
+function StarterRow({
+  line,
+  align,
+  highlighted,
+}: {
+  line: NflPlayerLine;
+  align: "left" | "right";
+  highlighted: boolean;
+}) {
   return (
     <div
-      className={`flex items-baseline gap-2 px-3 py-1.5 text-[12px] ${
+      data-player-id={line.playerId}
+      data-highlighted={highlighted || undefined}
+      className={`flex items-baseline gap-2 px-3 py-1.5 text-[12px] scroll-mb-[50vh] ${
         align === "right" ? "flex-row-reverse text-right" : ""
-      }`}
+      } ${highlighted ? "bg-[var(--color-feature-nfl)]/10 ring-2 ring-inset ring-[var(--color-feature-nfl)]" : ""}`}
     >
       <span className="w-9 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
         {slotLabel(line)}
       </span>
-      <span className="min-w-0 flex-1 truncate text-foreground">{line.name}</span>
+      <span className="min-w-0 flex-1 truncate text-foreground" title={line.name}>
+        {line.name}
+      </span>
+      {highlighted && (
+        <span className="shrink-0 rounded-full bg-[var(--color-feature-nfl)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
+          <span aria-hidden>★</span>
+          <span className="sr-only">In selected play</span>
+        </span>
+      )}
       <span className="font-mono tabular-nums font-semibold text-foreground">
         {fmt(line.actual)}
       </span>
@@ -98,11 +117,24 @@ function StarterRow({ line, align }: { line: NflPlayerLine; align: "left" | "rig
   );
 }
 
-function StarterList({ side, align }: { side: NflMatchupSide; align: "left" | "right" }) {
+function StarterList({
+  side,
+  align,
+  highlightedPlayerIds,
+}: {
+  side: NflMatchupSide;
+  align: "left" | "right";
+  highlightedPlayerIds: ReadonlySet<number>;
+}) {
   return (
     <div className="divide-y divide-border/50">
       {side.starters.map((line) => (
-        <StarterRow key={line.playerId} line={line} align={align} />
+        <StarterRow
+          key={line.playerId}
+          line={line}
+          align={align}
+          highlighted={highlightedPlayerIds.has(line.playerId)}
+        />
       ))}
     </div>
   );
@@ -110,12 +142,17 @@ function StarterList({ side, align }: { side: NflMatchupSide; align: "left" | "r
 
 // ---- Matchup card ----
 
+const NO_HIGHLIGHT: ReadonlySet<number> = new Set();
+
 export function NflMatchupCard({
   matchup,
   winProb,
+  highlightedPlayerIds = NO_HIGHLIGHT,
 }: {
   matchup: NflMatchup;
   winProb: WinProbability;
+  /** Starters to mark as involved in the scoring play picked in the ticker. */
+  highlightedPlayerIds?: ReadonlySet<number>;
 }) {
   const { away, home } = matchup;
   const awayPct = Math.round(winProb.away * 100);
@@ -128,10 +165,12 @@ export function NflMatchupCard({
       {/* Team names + scores */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-4">
         <div className="min-w-0 text-left">
-          <p className="truncate text-[14px] font-semibold text-foreground">
+          <p className="truncate text-[14px] font-semibold text-foreground" title={away.name}>
             {away.name}
           </p>
-          <p className="truncate text-[11px] text-muted">{away.ownerName}</p>
+          <p className="truncate text-[11px] text-muted" title={away.ownerName}>
+            {away.ownerName}
+          </p>
         </div>
 
         <div className="flex flex-col items-center gap-0.5 px-2">
@@ -154,10 +193,12 @@ export function NflMatchupCard({
         </div>
 
         <div className="min-w-0 text-right">
-          <p className="truncate text-[14px] font-semibold text-foreground">
+          <p className="truncate text-[14px] font-semibold text-foreground" title={home.name}>
             {home.name}
           </p>
-          <p className="truncate text-[11px] text-muted">{home.ownerName}</p>
+          <p className="truncate text-[11px] text-muted" title={home.ownerName}>
+            {home.ownerName}
+          </p>
         </div>
       </div>
 
@@ -176,10 +217,10 @@ export function NflMatchupCard({
       {/* Starter breakdown */}
       <div className="grid grid-cols-2 gap-px border-t border-border bg-border">
         <div className="bg-surface">
-          <StarterList side={away} align="left" />
+          <StarterList side={away} align="left" highlightedPlayerIds={highlightedPlayerIds} />
         </div>
         <div className="bg-surface">
-          <StarterList side={home} align="right" />
+          <StarterList side={home} align="right" highlightedPlayerIds={highlightedPlayerIds} />
         </div>
       </div>
     </div>
@@ -223,6 +264,17 @@ export default function MatchupContent() {
   // payload tells us which week that is, so no date guess is needed.
   const [season, setSeason] = useState(CURRENT_YEAR);
   const [week, setWeek] = useState<number | null>(null);
+  const [selection, setSelection] = useState<PlaySelection>(null);
+  const reducedMotion = usePrefersReducedMotion();
+
+  // Picking a play scrolls its first starter into view: with one card per row
+  // the involved matchup is often off screen.
+  useEffect(() => {
+    if (!selection) return;
+    document
+      .querySelector('[data-highlighted="true"]')
+      ?.scrollIntoView({ block: "center", behavior: reducedMotion ? "auto" : "smooth" });
+  }, [selection, reducedMotion]);
 
   const query = useQuery({
     queryKey: queryKeys.nfl.scoreboard(season, week ?? 0),
@@ -267,6 +319,7 @@ export default function MatchupContent() {
     needsClocks && games.data
       ? applyGameProgress(parsedMatchups, games.data.progress)
       : parsedMatchups;
+  const highlighted: ReadonlySet<number> = new Set(selection?.playerIds ?? []);
   const allZero =
     matchups.length > 0 &&
     matchups.every((mch) => mch.away.totalPoints === 0 && mch.home.totalPoints === 0);
@@ -274,6 +327,7 @@ export default function MatchupContent() {
   function handleSeasonChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setSeason(Number(e.target.value));
     setWeek(null);
+    setSelection(null);
   }
 
   return (
@@ -298,7 +352,10 @@ export default function MatchupContent() {
         <Select
           label="Week"
           value={displayedWeek}
-          onChange={(e) => setWeek(Number(e.target.value))}
+          onChange={(e) => {
+            setWeek(Number(e.target.value));
+            setSelection(null);
+          }}
           disabled={!board}
         >
           {Array.from({ length: totalWeeks }, (_, i) => i + 1).map((w) => {
@@ -318,7 +375,10 @@ export default function MatchupContent() {
             aria-label="Previous week"
             className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
             disabled={displayedWeek <= 1}
-            onClick={() => setWeek(displayedWeek - 1)}
+            onClick={() => {
+              setWeek(displayedWeek - 1);
+              setSelection(null);
+            }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M15 18l-6-6 6-6" />
@@ -329,7 +389,10 @@ export default function MatchupContent() {
             aria-label="Next week"
             className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
             disabled={displayedWeek >= totalWeeks}
-            onClick={() => setWeek(displayedWeek + 1)}
+            onClick={() => {
+              setWeek(displayedWeek + 1);
+              setSelection(null);
+            }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M9 18l6-6-6-6" />
@@ -340,14 +403,14 @@ export default function MatchupContent() {
 
       <main
         className={`mx-auto max-w-5xl px-4 sm:px-6 py-6 ${
-          matchups.length > 0 ? "pb-[42vh] sm:pb-60" : ""
+          matchups.length > 0 ? "pb-[47vh] sm:pb-76" : ""
         }`}
         aria-live="polite"
       >
         <h1 className="sr-only">NFL Fantasy Matchups</h1>
 
         {query.isLoading && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -381,7 +444,7 @@ export default function MatchupContent() {
                 )}
               </div>
             )}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4">
               {matchups.map((mch) => (
                 <NflMatchupCard
                   key={mch.id}
@@ -392,6 +455,7 @@ export default function MatchupContent() {
                     homeActual: mch.home.totalPoints,
                     homeRemaining: mch.home.remaining,
                   })}
+                  highlightedPlayerIds={highlighted}
                 />
               ))}
             </div>
@@ -405,7 +469,13 @@ export default function MatchupContent() {
         )}
 
         {!query.isLoading && !query.isError && matchups.length > 0 && (
-          <PlaysTicker matchups={matchups} season={season} week={displayedWeek} />
+          <PlaysTicker
+            matchups={matchups}
+            season={season}
+            week={displayedWeek}
+            selectedPlayId={selection?.playId ?? null}
+            onSelectPlay={setSelection}
+          />
         )}
       </main>
     </div>
