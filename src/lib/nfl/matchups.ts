@@ -102,7 +102,10 @@ function pointsFor(
 }
 
 /** The owner's name: real name when both parts are set, else the handle. */
-function ownerName(team: Team | undefined, members: Member[]): string {
+export function ownerName(
+  team: Pick<Team, "owners"> | undefined,
+  members: Member[],
+): string {
   const ownerId = team?.owners?.[0];
   if (!ownerId) return "Unknown";
   const member = members.find((m) => m.id === ownerId);
