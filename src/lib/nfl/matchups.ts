@@ -8,6 +8,7 @@
 import { z } from "zod";
 import {
   NFL_BENCH_SLOTS,
+  NFL_PRO_TEAM_ABBREV,
   type NflMatchup,
   type NflMatchupSide,
   type NflPlayerLine,
@@ -101,7 +102,10 @@ function pointsFor(
 }
 
 /** The owner's name: real name when both parts are set, else the handle. */
-function ownerName(team: Team | undefined, members: Member[]): string {
+export function ownerName(
+  team: Pick<Team, "owners"> | undefined,
+  members: Member[],
+): string {
   const ownerId = team?.owners?.[0];
   if (!ownerId) return "Unknown";
   const member = members.find((m) => m.id === ownerId);
@@ -132,6 +136,7 @@ function playerLine(
 function buildSide(
   side: Side,
   week: number,
+  weekIsOver: boolean,
   teams: Team[],
   members: Member[],
 ): NflMatchupSide {
@@ -146,10 +151,12 @@ function buildSide(
     (line.started ? starters : bench).push(line);
   }
 
-  const remaining = starters.reduce(
-    (sum, p) => sum + Math.max(0, p.projected - p.actual),
-    0,
-  );
+  // Until game clocks arrive (applyGameProgress), the best guess for a live
+  // week is each starter's unmet projection. A week that's over has nothing
+  // left to come, however far short of projection anyone finished.
+  const remaining = weekIsOver
+    ? 0
+    : starters.reduce((sum, p) => sum + Math.max(0, p.projected - p.actual), 0);
 
   return {
     teamId: side.teamId,
@@ -193,6 +200,7 @@ export function parseNflScoreboard(
   const currentWeek = league.status?.currentMatchupPeriod ?? week ?? 1;
   const filterWeek = week ?? currentWeek;
 
+  const weekIsOver = filterWeek < currentWeek;
   const matchups: NflMatchup[] = [];
   for (const s of schedule) {
     if (s.matchupPeriodId !== filterWeek || !s.home || !s.away) continue;
@@ -200,8 +208,8 @@ export function parseNflScoreboard(
       id: s.id ?? 0,
       matchupPeriodId: filterWeek,
       winner: s.winner ?? "UNDECIDED",
-      away: buildSide(s.away, filterWeek, teams, members),
-      home: buildSide(s.home, filterWeek, teams, members),
+      away: buildSide(s.away, filterWeek, weekIsOver, teams, members),
+      home: buildSide(s.home, filterWeek, weekIsOver, teams, members),
     });
   }
 
@@ -215,4 +223,30 @@ export function parseNflScoreboard(
     ),
     matchups,
   };
+}
+
+/**
+ * Recompute each side's remaining projection from live game clocks. A
+ * projection is for a whole game, so a starter can still earn the share of it
+ * their game has left: all of it before kickoff, none once it's final or when
+ * their team has no game (a missing key). Scores and rosters pass through.
+ */
+export function applyGameProgress(
+  matchups: NflMatchup[],
+  progressByAbbrev: Record<string, number>,
+): NflMatchup[] {
+  const remainingFor = (side: NflMatchupSide): NflMatchupSide => ({
+    ...side,
+    remaining: side.starters.reduce((sum, p) => {
+      const abbrev = NFL_PRO_TEAM_ABBREV[p.proTeamId];
+      const left = abbrev ? (progressByAbbrev[abbrev] ?? 0) : 0;
+      return sum + p.projected * left;
+    }, 0),
+  });
+
+  return matchups.map((m) => ({
+    ...m,
+    away: remainingFor(m.away),
+    home: remainingFor(m.home),
+  }));
 }

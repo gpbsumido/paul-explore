@@ -31,6 +31,7 @@ const ROUTES = [
   "/fantasy/nba/league-history",
   "/fantasy/nba/playoffs",
   "/fantasy/nfl/matchups",
+  "/fantasy/nfl/trade",
 ];
 
 /**

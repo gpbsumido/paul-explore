@@ -15,6 +15,13 @@ const PAGES = [
       "Head-to-head weekly matchups: team scores, each starter's actual and projected fantasy points, and a projection-based win probability that narrows as games are played.",
     color: ACCENT_BAND.teal,
   },
+  {
+    href: "/fantasy/nfl/trade",
+    title: "Trade analyzer",
+    description:
+      "Build a trade between two teams and see who wins it this week, next week and over the rest of the season, scored by each side's best lineup, with strength of schedule.",
+    color: ACCENT_BAND.ember,
+  },
 ] as const;
 
 /** Landing hub for the fantasy football section. */
