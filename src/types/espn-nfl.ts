@@ -23,6 +23,7 @@ export const ESPN_NFL_SLOT: Record<number, string> = {
   2: "RB",
   4: "WR",
   6: "TE",
+  7: "OP",
   16: "D/ST",
   17: "K",
   23: "FLEX",
@@ -130,5 +131,12 @@ export interface NflScoringPlay {
 /** A scoring play tagged with every rostered starter it mentions. */
 export interface NflPlayAttribution {
   play: NflScoringPlay;
-  mentions: { playerName: string; fantasyTeamName: string }[];
+  mentions: {
+    playerId: number;
+    playerName: string;
+    positionId: number;
+    fantasyTeamId: number;
+    fantasyTeamName: string;
+    matchupId: number;
+  }[];
 }
