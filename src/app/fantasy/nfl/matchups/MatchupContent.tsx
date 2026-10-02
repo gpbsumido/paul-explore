@@ -7,7 +7,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCountUp } from "@/hooks/useCountUp";
-import { parseNflScoreboard } from "@/lib/nfl/matchups";
+import { applyGameProgress, parseNflScoreboard } from "@/lib/nfl/matchups";
 import { winProbability, type WinProbability } from "@/lib/nfl/winProbability";
 import {
   ESPN_NFL_SLOT,
@@ -240,6 +240,21 @@ export default function MatchupContent() {
   const board = query.data;
   const displayedWeek = week ?? board?.currentWeek ?? 1;
 
+  // A past week has nothing left to project, so live game clocks only matter
+  // from the current week on.
+  const needsClocks = !!board && displayedWeek >= board.currentWeek;
+  const games = useQuery({
+    queryKey: queryKeys.nfl.games(season, displayedWeek),
+    enabled: needsClocks,
+    queryFn: async (): Promise<{ progress: Record<string, number> }> => {
+      const res = await fetch(`/api/nfl/games?week=${displayedWeek}&season=${season}`);
+      if (!res.ok) throw new Error("Failed to load NFL games");
+      return res.json();
+    },
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+  });
+
   const totalWeeks = board && board.totalWeeks > 0 ? board.totalWeeks : 18;
   const regularSeasonWeeks = board?.regularSeasonWeeks ?? 0;
   const playoffRound =
@@ -247,7 +262,11 @@ export default function MatchupContent() {
       ? displayedWeek - regularSeasonWeeks
       : 0;
 
-  const matchups = board?.matchups ?? [];
+  const parsedMatchups = board?.matchups ?? [];
+  const matchups =
+    needsClocks && games.data
+      ? applyGameProgress(parsedMatchups, games.data.progress)
+      : parsedMatchups;
   const allZero =
     matchups.length > 0 &&
     matchups.every((mch) => mch.away.totalPoints === 0 && mch.home.totalPoints === 0);

@@ -120,6 +120,10 @@ export const queryKeys = {
      */
     plays: (season: number, week: number, teamIds: number[]) =>
       ["nfl", "plays", season, week, teamIds] as const,
+
+    /** Share of each NFL team's game still to play in a season/week. */
+    games: (season: number, week: number) =>
+      ["nfl", "games", season, week] as const,
   },
 
   tcg: {
