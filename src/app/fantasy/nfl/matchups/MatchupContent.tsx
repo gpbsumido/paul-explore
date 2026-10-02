@@ -102,7 +102,7 @@ function StarterRow({
         {line.name}
       </span>
       {highlighted && (
-        <span className="shrink-0 rounded-full bg-[var(--color-feature-nfl)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
+        <span className="shrink-0 rounded-full bg-[var(--color-feature-nfl)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-background">
           <span aria-hidden>★</span>
           <span className="sr-only">In selected play</span>
         </span>
