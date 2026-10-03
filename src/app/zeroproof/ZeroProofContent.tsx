@@ -294,7 +294,7 @@ function EventCard({
       ) : (
         <div className="mt-4 space-y-4">
           {sortMarkets(event.markets).map((market) => (
-            <section key={market.market} aria-label={marketLabel(market.market)}>
+            <div key={market.market} role="group" aria-label={marketLabel(market.market)}>
               <h4 className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">
                 {marketLabel(market.market)}
               </h4>
@@ -345,7 +345,7 @@ function EventCard({
                   );
                 })}
               </div>
-            </section>
+            </div>
           ))}
         </div>
       )}
