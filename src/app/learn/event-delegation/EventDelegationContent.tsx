@@ -208,40 +208,35 @@ function CostComparisonDemo() {
         <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           1 handler
         </span>
-        <div
-          role="listbox"
-          tabIndex={0}
+        {/* One handler on the list. The items are real buttons with no
+            handler of their own, so a click or a keyboard press on any of them
+            bubbles up to this one. */}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- event delegation: the buttons inside are the controls, and their clicks (Enter and Space included) bubble up to this one handler */}
+        <ul
           aria-label="Delegated click demo list"
           className="mt-2 max-h-52 overflow-y-auto border border-foreground/10 rounded-sm"
           onClick={(e) => {
-            const target = e.target as HTMLElement;
-            const idx = target.dataset.idx;
-            if (idx != null) flashItem(setFlashIdx1, Number(idx));
-          }}
-          onKeyDown={(e) => {
-            const target = e.target as HTMLElement;
-            const idx = target.dataset.idx;
-            if ((e.key === "Enter" || e.key === " ") && idx != null) {
-              e.preventDefault();
-              flashItem(setFlashIdx1, Number(idx));
-            }
+            const item = (e.target as HTMLElement).closest<HTMLElement>("[data-idx]");
+            if (item?.dataset.idx != null) flashItem(setFlashIdx1, Number(item.dataset.idx));
           }}
         >
           {Array.from({ length: 50 }, (_, i) => (
-            <div
-              key={i}
-              data-idx={i}
-              className={[
-                "cursor-pointer border-b border-foreground/5 px-3 py-1.5 font-mono text-[12px] transition-colors last:border-b-0",
-                flashIdx1 === i
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted hover:bg-foreground/[0.03]",
-              ].join(" ")}
-            >
-              {String(i + 1).padStart(2, "0")}
-            </div>
+            <li key={i} className="border-b border-foreground/5 last:border-b-0">
+              <button
+                type="button"
+                data-idx={i}
+                className={[
+                  "block w-full px-3 py-1.5 text-left font-mono text-[12px] transition-colors",
+                  flashIdx1 === i
+                    ? "bg-foreground/10 text-foreground"
+                    : "text-muted hover:bg-foreground/[0.03]",
+                ].join(" ")}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
         <p className="mt-2 font-mono text-[11px] text-muted">handlers: 1</p>
       </div>
     </div>
@@ -269,8 +264,9 @@ function DynamicListDemo() {
   }, []);
 
   const handleListClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const id = target.dataset.itemId;
+    // closest(), not the target itself: a click can land on the "added
+    // dynamically" label inside an item.
+    const id = (e.target as HTMLElement).closest<HTMLElement>("[data-item-id]")?.dataset.itemId;
     if (id != null) {
       setFlashId(Number(id));
       setTimeout(() => setFlashId(null), 400);
@@ -287,48 +283,39 @@ function DynamicListDemo() {
         </span>
       </div>
 
-      <div
-        role="listbox"
-        tabIndex={0}
-        aria-label="Dynamic items list"
-        className="mt-4 min-h-[2.5rem]"
-        onClick={handleListClick}
-        onKeyDown={(e) => {
-          const target = e.target as HTMLElement;
-          const id = target.dataset.itemId;
-          if ((e.key === "Enter" || e.key === " ") && id != null) {
-            e.preventDefault();
-            setFlashId(Number(id));
-            setTimeout(() => setFlashId(null), 400);
-          }
-        }}
-      >
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- event delegation: the buttons inside are the controls, and their clicks (Enter and Space included) bubble up to this one handler */}
+      <ul aria-label="Dynamic items list" className="mt-4 min-h-[2.5rem]" onClick={handleListClick}>
         <AnimatePresence>
           {items.map((id) => (
-            <m.div
+            <m.li
               key={id}
-              data-item-id={id}
-              className={[
-                "cursor-pointer border-b border-foreground/5 px-3 py-2 font-mono text-[12px] transition-colors",
-                flashId === id
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted hover:bg-foreground/[0.03]",
-              ].join(" ")}
+              className="border-b border-foreground/5"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, height: 0, paddingTop: 0, paddingBottom: 0 }}
+              exit={{ opacity: 0, height: 0 }}
               transition={hoverSpring}
             >
-              Item {id}
-              {id > 3 && (
-                <span className="ml-2 text-[10px] text-muted">
-                  added dynamically
-                </span>
-              )}
-            </m.div>
+              <button
+                type="button"
+                data-item-id={id}
+                className={[
+                  "block w-full px-3 py-2 text-left font-mono text-[12px] transition-colors",
+                  flashId === id
+                    ? "bg-foreground/10 text-foreground"
+                    : "text-muted hover:bg-foreground/[0.03]",
+                ].join(" ")}
+              >
+                Item {id}
+                {id > 3 && (
+                  <span className="ml-2 text-[10px] text-muted">
+                    added dynamically
+                  </span>
+                )}
+              </button>
+            </m.li>
           ))}
         </AnimatePresence>
-      </div>
+      </ul>
     </div>
   );
 }
