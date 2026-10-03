@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-03 - version 7.14.0
+
+- The NFL trade analyzer reads the league's format from ESPN (team count, superflex, PPR, TE premium, passing TD points) and shows it. Its numbers at those settings don't change: ESPN's projections are already league-scored.
+- What-if scoring: PPR (full, half or none), TE premium (+0, +0.5 or +1 per catch) and superflex on or off. They're exact rather than multipliers. Each projection's per-stat line (stat 53 for receptions) re-scores against the league's settings to ESPN's own number, so a what-if adds the per-reception difference, and superflex opens or closes the OP slot. A note marks the result as hypothetical, since rosters and the waiver wire stay as they are, and a reset button goes back to league scoring.
+- Roster spots: a trade that overfills a full roster drops the player whose loss costs the lineup least (never one ESPN marks undroppable). One that opens a spot picks up the best healthy free agent, within position limits, at a position the side traded away. Only spots the trade itself causes count, and IR slots don't. My first version credited the best upgrade anywhere on the wire, which on a real trade was a kicker the team could already have added.
+- A value-over-waiver row for positional scarcity: each side's rest-of-season points above the best free agent at each position, week by week, net of what it gives up. There are no borrowed superflex or TE multipliers; in a 6-team league a 247-point QB sits on waivers.
+- "Even" now means within half a point per week of the horizon, not a flat half point.
+- Warnings, rather than blocks, for trade-locked players, position limits, and a forced drop with nobody droppable.
+- The trade route also fetches the 100 most-owned free agents and waiver players, plus `mRoster` for IR slots. If the free-agent call fails, the page still works, just without pickups or a replacement baseline.
+
 ## 2026-10-02 - version 7.13.0
 
 - ZeroProof's biggest-underdog and closest-game cards show their kickoff date and time, and each has a Go to date button. They pick from every fixture loaded while the date sections only show the next few days, so the longest shot was often a game you couldn't find on the board. Go to date widens the horizon in the usual 3-day steps just far enough to reach the fixture, resets the filters only if they'd hide it, then scrolls to its card and moves focus onto it.

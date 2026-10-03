@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-14-0",
+    date: "2026-10-03",
+    version: "7.14.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "The trade analyzer knows your league's format",
+    summary:
+      "The NFL trade analyzer reads the league's scoring, lets you try PPR, TE premium and superflex what-ifs, and accounts for the drop or waiver pickup a lopsided trade forces.",
+    body: [
+      "The analyzer shows the league's real format and can re-score a trade as if it were half PPR, non-PPR, TE premium or superflex. It recalculates from each player's projected receptions instead of applying a rough multiplier.",
+      "A two-for-one trade now includes the player the busier roster would have to drop and the free agent the other side could add. A new value-over-waiver row shows how much each side gets above what's freely available at each position.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-13-0",
     date: "2026-10-02",
     version: "7.13.0",
