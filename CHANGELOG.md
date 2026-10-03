@@ -4,6 +4,7 @@
 
 - ZeroProof's biggest-underdog and closest-game cards show their kickoff date and time, and each has a Go to date button. They pick from every fixture loaded while the date sections only show the next few days, so the longest shot was often a game you couldn't find on the board. Go to date widens the horizon in the usual 3-day steps just far enough to reach the fixture, resets the filters only if they'd hide it, then scrolls to its card and moves focus onto it.
 - The board stops a month out. Load-more and auto-load end at 30 days, a line says to come back later for more, and the events request passes `aheadDays=30` (portfolio_api#261) so the backend stops sending fixtures past that. The board also caps what it receives, so it holds the line against a backend that doesn't know the parameter yet. A fixture you bet on more than a month out no longer stays pinned to the board; it's still in Your record.
+- Each fixture card's Moneyline, Spread and Total blocks are named groups instead of landmark regions. A full board had dozens of identically named regions (axe `landmark-unique`), which a scan of the loaded board caught; `/zeroproof` isn't in the route scan list, and the unit test renders one fixture.
 - Develop picks up main's 7.12.0 release merge on the way, including the ZeroProof mobile-scrolling changelog line.
 
 ## 2026-10-02 - version 7.12.0
