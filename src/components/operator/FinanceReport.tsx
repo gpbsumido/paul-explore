@@ -84,7 +84,7 @@ export default function FinanceReport() {
           <p className={`mt-1 text-2xl font-bold tabular-nums ${payoutText}`}>
             {formatCAD(totals.netPayout)}
           </p>
-          <p className={`text-xs opacity-80 ${payoutText}`}>
+          <p className={`text-xs ${payoutText}`}>
             {totals.transactionCount.toLocaleString()} transactions
           </p>
         </div>
