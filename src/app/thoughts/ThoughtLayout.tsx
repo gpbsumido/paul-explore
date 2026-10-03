@@ -56,7 +56,11 @@ export default function ThoughtLayout({
     <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
       <PageIntro eyebrow="Dev notes" title={title} lede={intro} />
 
-      <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
+      {/* Pasted code and logs wrap instead of scrolling sideways. A scrolling
+          <pre> is a region a keyboard can't reach (axe's
+          scrollable-region-focusable), and wrapping also keeps the page from
+          scrolling in two directions on a phone. */}
+      <div className="space-y-10 text-[15px] leading-relaxed text-foreground [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere]">
         {children}
       </div>
     </main>
