@@ -15,6 +15,7 @@ import {
   matchesFacets,
   matchesOdds,
   revealEvent,
+  withinFutureCap,
   sportLabel,
   type BoardFilters,
 } from "./boardFilters";
@@ -364,5 +365,27 @@ describe("revealEvent", () => {
     const event = ev({ commenceTime: at(5), prices: [250, -300] });
     const kept = filters({ sport: "basketball_nba", odds: "underdogs" });
     expect(revealEvent(event, kept, ctx(3), 3)).toEqual({ filters: kept, daysAhead: 6 });
+  });
+});
+
+describe("withinFutureCap", () => {
+  const NOW = new Date("2026-10-20T00:00:00.000Z").getTime();
+  const at = (days: number) => new Date(NOW + days * DAY_MS).toISOString();
+
+  it("keeps fixtures up to the cap and drops anything further out", () => {
+    const events = [
+      ev({ id: "soon", commenceTime: at(2) }),
+      ev({ id: "edge", commenceTime: at(30) }),
+      ev({ id: "far", commenceTime: at(31) }),
+    ];
+    expect(withinFutureCap(events, { now: NOW, maxDays: 30, dayMs: DAY_MS }).map((e) => e.id)).toEqual([
+      "soon",
+      "edge",
+    ]);
+  });
+
+  it("leaves past fixtures alone", () => {
+    const past = ev({ id: "past", commenceTime: at(-40), status: "final" });
+    expect(withinFutureCap([past], { now: NOW, maxDays: 30, dayMs: DAY_MS })).toEqual([past]);
   });
 });

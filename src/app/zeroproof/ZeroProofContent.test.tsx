@@ -452,6 +452,79 @@ describe("ZeroProofContent — board highlights", () => {
   });
 });
 
+describe("ZeroProofContent — a month of fixtures at most", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  const DAY = 24 * 60 * 60 * 1000;
+  const fixture = (id: string, days: number, home: string, away: string, awayPrice = 120) => {
+    const iso = new Date(NOW + days * DAY).toISOString();
+    return {
+      id,
+      sport: "americanfootball_nfl",
+      home,
+      away,
+      commenceTime: iso,
+      status: "upcoming",
+      markets: [
+        {
+          market: "h2h",
+          fetchedAt: iso,
+          outcomes: [
+            { name: home, priceAmerican: -110 },
+            { name: away, priceAmerican: awayPrice },
+          ],
+        },
+      ],
+    };
+  };
+  const CAP_EVENTS = {
+    events: [
+      fixture("cap-near", 1, "Bills", "Chiefs"),
+      fixture("cap-late", 28, "Eagles", "Cowboys"),
+      // 40 days out, and the longest shot on the board: it must still not show.
+      fixture("cap-beyond", 40, "Niners", "Rams", 900),
+    ],
+  };
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  it("asks the backend for no more than a month ahead", async () => {
+    const urls: string[] = [];
+    renderPage(undefined, undefined, (request) => {
+      if (request) urls.push(request.url);
+      return HttpResponse.json(CAP_EVENTS);
+    });
+    await screen.findByRole("heading", { name: /Chiefs.*Bills/ });
+    expect(urls.every((url) => new URL(url).searchParams.get("aheadDays") === "30")).toBe(true);
+  });
+
+  it("stops loading at a month out and says to come back later", async () => {
+    renderPage(undefined, undefined, () => HttpResponse.json(CAP_EVENTS));
+    await screen.findByRole("heading", { name: /Chiefs.*Bills/ });
+    expect(screen.queryByText(/come back later/i)).toBeNull();
+
+    // Keep loading until there's nothing left to load.
+    while (screen.queryByRole("button", { name: /load more games/i })) {
+      fireEvent.click(screen.getByRole("button", { name: /load more games/i }));
+    }
+
+    expect(await screen.findByRole("heading", { name: /Cowboys.*Eagles/ })).toBeInTheDocument();
+    expect(screen.getByText(/showing games in the next 30 days/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Rams.*Niners/ })).toBeNull();
+    expect(screen.getByText(/come back later/i)).toBeInTheDocument();
+  });
+
+  it("doesn't pick a highlight from past the month", async () => {
+    renderPage(undefined, undefined, () => HttpResponse.json(CAP_EVENTS));
+    const underdog = await screen.findByRole("region", { name: "Biggest underdog" });
+    expect(within(underdog).queryByText("Rams")).toBeNull();
+  });
+});
+
 describe("ZeroProofContent — board filters", () => {
   const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
   const mk = (
