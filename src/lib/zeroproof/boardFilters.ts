@@ -255,3 +255,39 @@ export function hasActiveFilters(filters: BoardFilters): boolean {
     filters.odds !== "all"
   );
 }
+
+/**
+ * What the board needs to show one event: the horizon that reaches its kickoff
+ * and filters that let it through. The horizon only ever grows, in whole steps
+ * (the same 3-day steps "load more" takes), so every day up to the event shows
+ * too. Filters stay as they are unless they'd hide it, in which case they reset.
+ */
+export function revealEvent(
+  event: ZeroproofEvent,
+  filters: BoardFilters,
+  ctx: HorizonContext,
+  stepDays: number,
+): { filters: BoardFilters; daysAhead: number } {
+  const time = new Date(event.commenceTime).getTime();
+  const daysOut = Number.isNaN(time) ? 0 : (time - ctx.now) / ctx.dayMs;
+  const daysAhead = Math.max(ctx.daysAhead, Math.ceil(daysOut / stepDays) * stepDays);
+  const shown = filterBoardEvents([event], filters, { ...ctx, daysAhead }).length > 0;
+  return { filters: shown ? filters : DEFAULT_BOARD_FILTERS, daysAhead };
+}
+
+/**
+ * Drops upcoming fixtures more than `maxDays` out. The board shows a month at
+ * most: lines that far ahead barely move and mostly aren't posted yet, so past
+ * that it says to come back later rather than loading further. Past fixtures
+ * pass through untouched.
+ */
+export function withinFutureCap(
+  events: ZeroproofEvent[],
+  { now, maxDays, dayMs }: { now: number; maxDays: number; dayMs: number },
+): ZeroproofEvent[] {
+  const cutoff = now + maxDays * dayMs;
+  return events.filter((event) => {
+    const time = new Date(event.commenceTime).getTime();
+    return Number.isNaN(time) || time <= cutoff;
+  });
+}

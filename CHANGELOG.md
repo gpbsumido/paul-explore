@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-10-03 - version 7.14.0
+
+- The NFL trade analyzer reads the league's format from ESPN (team count, superflex, PPR, TE premium, passing TD points) and shows it. Its numbers at those settings don't change: ESPN's projections are already league-scored.
+- What-if scoring: PPR (full, half or none), TE premium (+0, +0.5 or +1 per catch) and superflex on or off. They're exact rather than multipliers. Each projection's per-stat line (stat 53 for receptions) re-scores against the league's settings to ESPN's own number, so a what-if adds the per-reception difference, and superflex opens or closes the OP slot. A note marks the result as hypothetical, since rosters and the waiver wire stay as they are, and a reset button goes back to league scoring.
+- Roster spots: a trade that overfills a full roster drops the player whose loss costs the lineup least (never one ESPN marks undroppable). One that opens a spot picks up the best healthy free agent, within position limits, at a position the side traded away. Only spots the trade itself causes count, and IR slots don't. My first version credited the best upgrade anywhere on the wire, which on a real trade was a kicker the team could already have added.
+- A value-over-waiver row for positional scarcity: each side's rest-of-season points above the best free agent at each position, week by week, net of what it gives up. There are no borrowed superflex or TE multipliers; in a 6-team league a 247-point QB sits on waivers.
+- "Even" now means within half a point per week of the horizon, not a flat half point.
+- Warnings, rather than blocks, for trade-locked players, position limits, and a forced drop with nobody droppable.
+- The trade route also fetches the 100 most-owned free agents and waiver players, plus `mRoster` for IR slots. If the free-agent call fails, the page still works, just without pickups or a replacement baseline.
+
+## 2026-10-02 - version 7.13.0
+
+- ZeroProof's biggest-underdog and closest-game cards show their kickoff date and time, and each has a Go to date button. They pick from every fixture loaded while the date sections only show the next few days, so the longest shot was often a game you couldn't find on the board. Go to date widens the horizon in the usual 3-day steps just far enough to reach the fixture, resets the filters only if they'd hide it, then scrolls to its card and moves focus onto it.
+- The board stops a month out. Load-more and auto-load end at 30 days, a line says to come back later for more, and the events request passes `aheadDays=30` (portfolio_api#261) so the backend stops sending fixtures past that. The board also caps what it receives, so it holds the line against a backend that doesn't know the parameter yet. A fixture you bet on more than a month out no longer stays pinned to the board; it's still in Your record.
+- Each fixture card's Moneyline, Spread and Total blocks are named groups instead of landmark regions. A full board had dozens of identically named regions (axe `landmark-unique`), which a scan of the loaded board caught; `/zeroproof` isn't in the route scan list, and the unit test renders one fixture.
+- Develop picks up main's 7.12.0 release merge on the way, including the ZeroProof mobile-scrolling changelog line.
+
 ## 2026-10-02 - version 7.12.0
 
 - Fixed projected finals on `/fantasy/nfl/matchups` reading high. A side's remaining projection was each starter's `projected - actual` whether or not their game was over, so every finished under-performer kept "owing" points: week 3 showed a projected 164.5-179.8 for a matchup that ended 123.9-135.6. A past week now projects nothing, and a live week scales each starter's projection by the share of their NFL game left (all of it before kickoff, the clock's share while live, none when final or on a bye), read from a new `/api/nfl/games` route over ESPN's public scoreboard. ESPN's own weekly projections checked out; the second week-4 line some players carry is Thursday's actual, not a duplicate projection.
@@ -7,6 +24,7 @@
 - Matchup cards are one per row, and every player, team and owner name carries its full text on hover. Superflex starters read `OP` instead of falling back to their position.
 - Added `/fantasy/nfl/trade`, a trade analyzer: pick two teams (or search any rostered player to start), choose who moves, and see each side's change for this week, next week and the rest of the season, with a winner and margin for each. It scores each team's best possible lineup week by week, byes included, so a 2-for-1 isn't judged on raw totals. Future weeks spread ESPN's rest-of-season projection over each player's remaining games, so expected missed games are already priced in. Strength of schedule is ESPN's points-allowed rank by position for each remaining opponent, per player and per side. Data comes from a new `/api/nfl/trade/[season]` route that parses ESPN's ~1.2MB player payload down to ~30KB.
 - Fixed light-mode contrast on the ticker's fantasy-team pills, which a scan that waits for the plays to load caught; the route's existing axe scan finishes before they arrive.
+- ZeroProof scrolls sideways on narrow phones instead of breaking its layout: the lobby's tab list and the compare and league-detail tables sit in horizontal scroll containers with safe minimum widths.
 
 ## 2026-09-30 - version 7.11.4
 

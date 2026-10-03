@@ -47,4 +47,19 @@ describe("GET /api/zeroproof/events", () => {
     expect(calledUrl()).not.toContain("include=past");
     expect(calledUrl()).not.toContain("pastDays");
   });
+
+  it("forwards how far ahead the board wants, so the backend stops at that cap", async () => {
+    const { GET } = await import("./route");
+    await GET(new Request("http://localhost/api/zeroproof/events?aheadDays=30"));
+    expect(calledUrl()).toContain("aheadDays=30");
+  });
+
+  it("forwards the ahead cap alongside the past window", async () => {
+    const { GET } = await import("./route");
+    await GET(
+      new Request("http://localhost/api/zeroproof/events?include=past&pastDays=14&aheadDays=30"),
+    );
+    expect(calledUrl()).toContain("pastDays=14");
+    expect(calledUrl()).toContain("aheadDays=30");
+  });
 });

@@ -14,6 +14,8 @@ import {
   localDayKey,
   matchesFacets,
   matchesOdds,
+  revealEvent,
+  withinFutureCap,
   sportLabel,
   type BoardFilters,
 } from "./boardFilters";
@@ -321,3 +323,69 @@ describe("filterBoardEvents — past horizon", () => {
     expect(out).not.toContain("old");
   });
 })
+
+describe("revealEvent", () => {
+  const NOW = new Date("2026-10-20T00:00:00.000Z").getTime();
+  const ctx = (daysAhead: number) => ({ now: NOW, daysAhead, dayMs: DAY_MS, betEventIds: new Set<string>() });
+  const at = (days: number) => new Date(NOW + days * DAY_MS).toISOString();
+
+  it("leaves the board alone when the event already shows", () => {
+    const event = ev({ commenceTime: at(2) });
+    expect(revealEvent(event, filters(), ctx(3), 3)).toEqual({ filters: filters(), daysAhead: 3 });
+  });
+
+  it("widens the horizon in whole steps until it reaches the event's kickoff", () => {
+    // 7.5 days out: 6 days falls short, 9 covers it.
+    const event = ev({ commenceTime: at(7.5) });
+    expect(revealEvent(event, filters(), ctx(3), 3).daysAhead).toBe(9);
+    // Exactly on a step boundary needs no extra step.
+    expect(revealEvent(ev({ commenceTime: at(6) }), filters(), ctx(3), 3).daysAhead).toBe(6);
+  });
+
+  it("never narrows a horizon that's already wider", () => {
+    const event = ev({ commenceTime: at(4) });
+    expect(revealEvent(event, filters(), ctx(12), 3).daysAhead).toBe(12);
+  });
+
+  it("resets filters that would hide the event", () => {
+    const event = ev({ sport: "americanfootball_nfl", commenceTime: at(1) });
+    const hidden = revealEvent(event, filters({ sport: "basketball_nba", odds: "favorites" }), ctx(3), 3);
+    expect(hidden.filters).toEqual(DEFAULT_BOARD_FILTERS);
+  });
+
+  it("resets a date range that leaves the event out", () => {
+    const event = ev({ commenceTime: at(5) });
+    const range = filters({ from: localDayKey(at(1)) ?? "", to: localDayKey(at(2)) ?? "" });
+    const result = revealEvent(event, range, ctx(3), 3);
+    expect(result.filters).toEqual(DEFAULT_BOARD_FILTERS);
+    expect(result.daysAhead).toBe(6);
+  });
+
+  it("keeps filters that already let the event through", () => {
+    const event = ev({ commenceTime: at(5), prices: [250, -300] });
+    const kept = filters({ sport: "basketball_nba", odds: "underdogs" });
+    expect(revealEvent(event, kept, ctx(3), 3)).toEqual({ filters: kept, daysAhead: 6 });
+  });
+});
+
+describe("withinFutureCap", () => {
+  const NOW = new Date("2026-10-20T00:00:00.000Z").getTime();
+  const at = (days: number) => new Date(NOW + days * DAY_MS).toISOString();
+
+  it("keeps fixtures up to the cap and drops anything further out", () => {
+    const events = [
+      ev({ id: "soon", commenceTime: at(2) }),
+      ev({ id: "edge", commenceTime: at(30) }),
+      ev({ id: "far", commenceTime: at(31) }),
+    ];
+    expect(withinFutureCap(events, { now: NOW, maxDays: 30, dayMs: DAY_MS }).map((e) => e.id)).toEqual([
+      "soon",
+      "edge",
+    ]);
+  });
+
+  it("leaves past fixtures alone", () => {
+    const past = ev({ id: "past", commenceTime: at(-40), status: "final" });
+    expect(withinFutureCap([past], { now: NOW, maxDays: 30, dayMs: DAY_MS })).toEqual([past]);
+  });
+});
