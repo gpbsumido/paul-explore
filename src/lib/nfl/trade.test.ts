@@ -420,6 +420,21 @@ describe("evaluateTrade — roster spots", () => {
     expect(week?.moves.b).toEqual([{ kind: "drop", playerId: 6, name: "B Low", positionId: 2, points: 0 }]);
   });
 
+  it("only credits a pickup at a position the side traded away", () => {
+    // A kicker upgrade sits on waivers, but team 1 could have made that move
+    // before the trade; the hole the trade opens is at running back.
+    const kicker = player({ playerId: 33, name: "Waiver K", fantasyTeamId: 0, positionId: 5, eligibleSlots: [17], thisWeek: 12, perGame: 12 });
+    const withK = full(
+      [
+        player({ playerId: 6, name: "B Low", fantasyTeamId: 2, thisWeek: 5, perGame: 5 }),
+        player({ playerId: 8, name: "A Kicker", fantasyTeamId: 1, positionId: 5, eligibleSlots: [17], thisWeek: 2, perGame: 2 }),
+      ],
+      { slotCounts: { "2": 2, "17": 1 }, rosterMax: 4, freeAgents: [kicker, warren] },
+    );
+    const r = evaluateTrade(withK, { teamA: 1, teamB: 2, fromA: [1, 2], fromB: [3] });
+    expect(horizon(r, "thisWeek")?.moves.a.map((m) => m.name)).toEqual(["Jaylen Warren"]);
+  });
+
   it("leaves a 1-for-1 between full rosters alone", () => {
     const pool3 = full([player({ playerId: 6, fantasyTeamId: 2, thisWeek: 5, perGame: 5 })]);
     const r = evaluateTrade(pool3, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
