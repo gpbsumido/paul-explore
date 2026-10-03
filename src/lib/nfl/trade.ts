@@ -551,16 +551,23 @@ function lossPoints(loss: number): number {
 /**
  * Fill or trim a post-trade roster back to its size, for the spots the trade
  * itself caused: drop whoever costs the lineup least (never someone who can't
- * be dropped), pick up whichever healthy free agent the position limits allow
- * and the lineup gains most from. Greedy, one spot at a time.
+ * be dropped), pick up whichever healthy free agent the lineup gains most from.
+ * Greedy, one spot at a time.
+ *
+ * A pickup has to come from a position the side traded away. Any other upgrade
+ * on the wire (a better kicker, say) was there before the trade too, and the
+ * team could already have swapped a bench player for it, so crediting it to the
+ * trade would overstate what the trade did.
  */
 function settleRoster(
   pool: TradePool,
   scorer: Scorer,
   before: TradePlayer[],
   after: TradePlayer[],
+  sent: TradePlayer[],
   weeks: number[],
 ): { roster: TradePlayer[]; moves: RosterMove[] } {
+  const sentPositions = new Set(sent.map((p) => p.positionId));
   const { opened, forced } = spotChanges(pool, before, after);
   let roster = after;
   const moves: RosterMove[] = [];
@@ -582,7 +589,13 @@ function settleRoster(
     const current = points(roster);
     const taken = new Set(roster.map((p) => p.playerId));
     const candidates = pool.freeAgents
-      .filter((p) => !taken.has(p.playerId) && !UNAVAILABLE.has(p.injuryStatus) && withinLimit(pool, roster, p))
+      .filter(
+        (p) =>
+          !taken.has(p.playerId) &&
+          sentPositions.has(p.positionId) &&
+          !UNAVAILABLE.has(p.injuryStatus) &&
+          withinLimit(pool, roster, p),
+      )
       .map((p) => ({ p, gain: points([...roster, p]) - current }))
       .sort((x, y) => y.gain - x.gain || y.p.perGame - x.p.perGame || x.p.playerId - y.p.playerId);
     const add = candidates[0];
@@ -724,8 +737,8 @@ export function evaluateTrade(
     { key: "restOfSeason", label: "Rest of season", weeks: [next, pool.finalWeek] },
   ];
 
-  const side = (before: TradePlayer[], after: TradePlayer[], weeks: number[]) => {
-    const settled = settleRoster(pool, scorer, before, after, weeks);
+  const side = (before: TradePlayer[], after: TradePlayer[], sent: TradePlayer[], weeks: number[]) => {
+    const settled = settleRoster(pool, scorer, before, after, sent, weeks);
     const b = round1(lineupOverWeeks(scorer, before, weeks));
     const a = round1(lineupOverWeeks(scorer, settled.roster, weeks));
     return { change: { before: b, after: a, delta: round1(a - b) }, moves: settled.moves };
@@ -733,8 +746,8 @@ export function evaluateTrade(
 
   const horizons = spans.map(({ key, label, weeks }) => {
     const span = range(weeks[0], weeks[1]);
-    const a = side(aBefore, aAfter, span);
-    const b = side(bBefore, bAfter, span);
+    const a = side(aBefore, aAfter, bGets, span);
+    const b = side(bBefore, bAfter, aGets, span);
     const margin = round1(a.change.delta - b.change.delta);
     return {
       key,
