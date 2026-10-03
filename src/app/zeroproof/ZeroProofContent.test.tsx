@@ -444,6 +444,15 @@ describe("ZeroProofContent — board highlights", () => {
     await waitFor(() => expect(document.activeElement).toBe(heading.closest("li")));
   });
 
+  it("groups each card's markets without adding a landmark per card", async () => {
+    // Two cards with a Moneyline each used to mean two identical "Moneyline"
+    // regions -- axe's landmark-unique, repeated once per fixture on a full board.
+    renderBoard();
+    await screen.findByRole("heading", { name: /Chiefs.*Bills/ });
+    expect(screen.queryAllByRole("region", { name: "Moneyline" })).toHaveLength(0);
+    expect(screen.getAllByRole("group", { name: "Moneyline" }).length).toBeGreaterThan(0);
+  });
+
   it("names the day on the go-to-date button for screen readers", async () => {
     renderBoard();
     const close = await screen.findByRole("region", { name: "Closest game" });
