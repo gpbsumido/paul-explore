@@ -14,10 +14,21 @@ const ROSTERED_FILTER = JSON.stringify({
   players: { filterStatus: { value: ["ONTEAM"] } },
 });
 
+// The waiver wire: pickups for spots a trade opens, and the replacement level
+// scarcity is measured against. ESPN refuses a limit without a sort, so the
+// most-owned 100 it is.
+const FREE_AGENT_FILTER = JSON.stringify({
+  players: {
+    filterStatus: { value: ["FREEAGENT", "WAIVERS"] },
+    limit: 100,
+    sortPercOwned: { sortPriority: 1, sortAsc: false },
+  },
+});
+
 /**
- * The league's rostered players with projections, plus the NFL schedule, parsed
- * into a TradePool here so the client gets ~100 players instead of ESPN's
- * megabyte of raw stats.
+ * The league's rostered players with projections, its settings, the NFL
+ * schedule and the top free agents, parsed into a TradePool here so the client
+ * gets ~200 players instead of ESPN's megabytes of raw stats.
  */
 export async function GET(
   _request: NextRequest,
@@ -29,14 +40,18 @@ export async function GET(
   }
 
   const { game, leagueId } = FANTASY_LEAGUES.nfl;
-  const [leagueResult, scheduleResult] = await Promise.all([
-    fetchUpstream(
-      `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?view=kona_player_info&view=mTeam&view=mSettings`,
-      { headers: { "X-Fantasy-Filter": ROSTERED_FILTER } },
-    ),
+  const leagueUrl = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}`;
+  const [leagueResult, scheduleResult, freeAgentResult] = await Promise.all([
+    // mRoster says who's in an IR slot, which doesn't count against roster size.
+    fetchUpstream(`${leagueUrl}?view=kona_player_info&view=mTeam&view=mSettings&view=mRoster`, {
+      headers: { "X-Fantasy-Filter": ROSTERED_FILTER },
+    }),
     fetchUpstream(
       `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}?view=proTeamSchedules_wl`,
     ),
+    fetchUpstream(`${leagueUrl}?view=kona_player_info`, {
+      headers: { "X-Fantasy-Filter": FREE_AGENT_FILTER },
+    }),
   ]);
 
   if (!leagueResult.ok) return upstreamErrorResponse(leagueResult);
@@ -49,10 +64,16 @@ export async function GET(
     );
   }
 
+  // Free agents only refine the numbers; without them the analyzer still works,
+  // just without pickups or a replacement baseline.
+  const freeAgents =
+    freeAgentResult.ok && freeAgentResult.response.ok ? await freeAgentResult.response.json() : undefined;
+
   const pool = parseTradePool(
     await leagueResult.response.json(),
     await scheduleResult.response.json(),
     Number(season),
+    freeAgents,
   );
 
   return NextResponse.json(pool, { headers: { "Cache-Control": CACHE_CONTROL } });
