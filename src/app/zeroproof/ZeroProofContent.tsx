@@ -72,6 +72,7 @@ import {
   hasMoreBeyondHorizon,
   isEventBettable,
   isFantasySport,
+  revealEvent,
 } from "@/lib/zeroproof/boardFilters";
 import { biggestUnderdog, closestGame } from "@/lib/zeroproof/boardHighlights";
 import { teamAccentColor } from "@/lib/zeroproof/teamAccent";
@@ -81,6 +82,7 @@ import LiquidGlass from "@/components/motion/LiquidGlass";
 import ShineSweep from "@/components/motion/ShineSweep";
 import StarBorder from "@/components/motion/StarBorder";
 import { SquishSwitch } from "@paul-portfolio/react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * The bankroll-trend chart, code-split out of the lobby's initial bundle. It's
@@ -187,6 +189,7 @@ function EventCard({
   onPick,
   bets,
   readOnly = false,
+  jumpedTo = false,
 }: {
   event: ZeroproofEvent;
   selected: SelectedBet[];
@@ -195,14 +198,22 @@ function EventCard({
   bets: ZeroproofBet[];
   /** A past fixture: shown for reference, with lines you can't bet. */
   readOnly?: boolean;
+  /** The fixture a highlight card's "Go to date" just jumped to. */
+  jumpedTo?: boolean;
 }) {
   const label = `${event.away} @ ${event.home}`;
   // Away on the left, home on the right — a thick tinted strip along the card's
   // bottom edge, following its rounded corners.
   const accent = `linear-gradient(to right, ${teamAccentColor(event.away, event.sport)}, ${teamAccentColor(event.home, event.sport)})`;
   return (
-    <li className="h-full list-none">
-      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    // Focusable only from script (tabIndex -1), so "Go to date" can land focus on
+    // the card it scrolled to.
+    <li id={eventCardId(event.id)} tabIndex={-1} className="h-full list-none rounded-2xl outline-none">
+      <div
+        className={`relative flex h-full flex-col overflow-hidden rounded-2xl border bg-surface/50 p-5 pb-6 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+          jumpedTo ? "border-primary-600 ring-2 ring-primary-600" : "border-border"
+        }`}
+      >
         <span
           aria-hidden="true"
           className="absolute inset-x-0 bottom-0 h-1.5 rounded-b-2xl"
@@ -342,6 +353,11 @@ function EventCard({
   );
 }
 
+/** The DOM id of a fixture's board card, so "Go to date" can find it. */
+function eventCardId(eventId: string): string {
+  return `zp-event-${eventId}`;
+}
+
 /** American odds → a decimal payout multiple, e.g. +122 reads as "2.2×". */
 function payoutMultiple(american: number): string {
   const mult =
@@ -377,6 +393,39 @@ function groupEventsByDay(
   return groups;
 }
 
+/** A highlight card's kickoff, in the same format the board's cards use. */
+function KickoffLine({ event }: { event: ZeroproofEvent }) {
+  return (
+    <p className="mt-1 text-xs text-muted">
+      <time dateTime={event.commenceTime}>{formatKickoff(event.commenceTime)}</time>
+    </p>
+  );
+}
+
+/**
+ * Jumps from a highlight card to the fixture's own card in the date sections,
+ * which these cards sit above rather than inside. The visible label stays
+ * "Go to date"; the accessible name adds which date, since there can be two.
+ */
+function GoToDateButton({
+  event,
+  onGoTo,
+}: {
+  event: ZeroproofEvent;
+  onGoTo: (event: ZeroproofEvent) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={`Go to date: ${dayLabel(event.commenceTime)}`}
+      onClick={() => onGoTo(event)}
+      className={controlButton}
+    >
+      Go to date
+    </button>
+  );
+}
+
 /**
  * The two "look here first" cards above the board: the longest shot on the
  * board (biggest payout if it lands) and the game closest to a coin flip. Both
@@ -387,10 +436,13 @@ function BoardHighlights({
   events,
   now,
   onPick,
+  onGoTo,
 }: {
   events: ZeroproofEvent[];
   now: number;
   onPick: (bet: SelectedBet) => void;
+  /** Show this fixture in the board's date sections. */
+  onGoTo: (event: ZeroproofEvent) => void;
 }) {
   const underdog = biggestUnderdog(events, now);
   const close = closestGame(events, now);
@@ -399,7 +451,8 @@ function BoardHighlights({
   return (
     <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
       {underdog && (
-        <div
+        <section
+          aria-label="Biggest underdog"
           className="rounded-2xl"
           style={{ color: teamAccentColor(underdog.selection, underdog.event.sport) }}
         >
@@ -417,6 +470,7 @@ function BoardHighlights({
               <p className="text-sm text-muted">
                 {underdog.event.away} @ {underdog.event.home}
               </p>
+              <KickoffLine event={underdog.event} />
               <p className="mt-1 text-sm text-foreground">
                 Pays{" "}
                 <span className="font-mono font-semibold tabular-nums">
@@ -424,7 +478,8 @@ function BoardHighlights({
                 </span>{" "}
                 if it lands
               </p>
-              <ShineSweep className="mt-4 self-start rounded-full">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <ShineSweep className="rounded-full">
                 <button
                   type="button"
                   onClick={() =>
@@ -442,13 +497,16 @@ function BoardHighlights({
                   Bet this
                 </button>
               </ShineSweep>
+              <GoToDateButton event={underdog.event} onGoTo={onGoTo} />
+              </div>
             </div>
           </StarBorder>
-        </div>
+        </section>
       )}
 
       {close && (
-        <LiquidGlass className="rounded-2xl">
+        <section aria-label="Closest game" className="rounded-2xl">
+        <LiquidGlass className="h-full rounded-2xl">
           <div className="flex h-full flex-col rounded-2xl p-5">
             <BlurReveal
               as="h3"
@@ -463,12 +521,17 @@ function BoardHighlights({
             <p className="text-sm text-muted">
               {close.outcomes.map((outcome) => outcome.name).join(" vs ")}
             </p>
+            <KickoffLine event={close.event} />
             <p className="mt-1 text-sm text-foreground">
               Practically a coin flip &mdash; the sides sit within{" "}
               {Math.max(1, Math.round(close.spread * 100))} points
             </p>
+            <div className="mt-4">
+              <GoToDateButton event={close.event} onGoTo={onGoTo} />
+            </div>
           </div>
         </LiquidGlass>
+        </section>
       )}
     </div>
   );
@@ -536,6 +599,25 @@ function Slate({
   const allEvents = eventsQuery.data?.events ?? [];
 
   const horizonCtx = { now, daysAhead, daysBack, dayMs: DAY_MS, betEventIds };
+
+  // "Go to date" from a highlight card: widen the horizon (and drop any filter
+  // hiding it) so the fixture renders in its date section, then scroll to its
+  // card. seq makes a second click on the same fixture a new jump.
+  const reducedMotion = usePrefersReducedMotion();
+  const [jump, setJump] = useState<{ eventId: string; seq: number } | null>(null);
+  const goToEvent = (event: ZeroproofEvent) => {
+    const next = revealEvent(event, boardFilters, horizonCtx, HORIZON_STEP_DAYS);
+    setBoardFilters(next.filters);
+    setDaysAhead(next.daysAhead);
+    setJump((prev) => ({ eventId: event.id, seq: (prev?.seq ?? 0) + 1 }));
+  };
+  useEffect(() => {
+    if (!jump) return;
+    const card = document.getElementById(eventCardId(jump.eventId));
+    if (!card) return;
+    card.scrollIntoView?.({ block: "center", behavior: reducedMotion ? "auto" : "smooth" });
+    card.focus({ preventScroll: true });
+  }, [jump, reducedMotion]);
   // The backend returns upcoming ascending then past descending, so sort by
   // kickoff before grouping — otherwise past fixtures land at the bottom in
   // reverse order instead of slotting in chronologically. An unparseable date
@@ -641,7 +723,7 @@ function Slate({
 
       {eventsQuery.data && allEvents.length > 0 && (
         <>
-          <BoardHighlights events={allEvents} now={now} onPick={onPick} />
+          <BoardHighlights events={allEvents} now={now} onPick={onPick} onGoTo={goToEvent} />
 
           {/* Sticky below the site header (a sticky top-0 h-14 bar) so the
               controls stay visible while you scroll the board. */}
@@ -834,6 +916,7 @@ function Slate({
                         onPick={onPick}
                         bets={betsByEvent.get(event.id) ?? []}
                         readOnly={!isEventBettable(event, now)}
+                        jumpedTo={jump?.eventId === event.id}
                       />
                     ))}
                   </ul>
