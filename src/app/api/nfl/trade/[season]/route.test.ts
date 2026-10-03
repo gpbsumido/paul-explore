@@ -26,9 +26,19 @@ const league = {
 
 const schedules = { settings: { proTeams: [] } };
 
+const freeAgents = {
+  players: [
+    {
+      onTeamId: 0,
+      player: { id: 30, fullName: "Jaylen Warren", defaultPositionId: 2, proTeamId: 23, eligibleSlots: [2], stats: [] },
+    },
+  ],
+};
+
 function respond(url: string) {
   if (url.includes("proTeamSchedules")) return new Response(JSON.stringify(schedules));
-  return new Response(JSON.stringify(league));
+  if (url.includes("mTeam")) return new Response(JSON.stringify(league));
+  return new Response(JSON.stringify(freeAgents));
 }
 
 function call(season: string) {
@@ -55,6 +65,31 @@ describe("NFL trade pool route", () => {
     expect(JSON.parse(filter ?? "{}")).toEqual({
       players: { filterStatus: { value: ["ONTEAM"] } },
     });
+  });
+
+  it("fetches the free-agent pool, sorted and capped, and passes it to the parser", async () => {
+    const fetchMock = vi.fn((input: string, _init?: RequestInit) => Promise.resolve(respond(input)));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const body = await (await call("2026")).json();
+    expect(body.freeAgents.map((p: { name: string }) => p.name)).toEqual(["Jaylen Warren"]);
+
+    const faCall = fetchMock.mock.calls.find(
+      ([, init]) => new Headers(init?.headers).get("X-Fantasy-Filter")?.includes("FREEAGENT"),
+    );
+    const filter = JSON.parse(new Headers(faCall?.[1]?.headers).get("X-Fantasy-Filter") ?? "{}");
+    expect(filter.players.filterStatus.value).toEqual(["FREEAGENT", "WAIVERS"]);
+    // ESPN refuses a limit without a sort.
+    expect(filter.players.limit).toBeGreaterThan(0);
+    expect(filter.players.sortPercOwned).toBeDefined();
+  });
+
+  it("reads who's on IR from the league's rosters", async () => {
+    const fetchMock = vi.fn((input: string, _init?: RequestInit) => Promise.resolve(respond(input)));
+    vi.stubGlobal("fetch", fetchMock);
+    await call("2026");
+    const leagueCall = fetchMock.mock.calls.find(([url]) => url.includes("mTeam"));
+    expect(leagueCall?.[0]).toContain("view=mRoster");
   });
 
   it("passes an upstream failure status through", async () => {
