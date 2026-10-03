@@ -32,6 +32,52 @@ const ROUTES = [
   "/fantasy/nba/playoffs",
   "/fantasy/nfl/matchups",
   "/fantasy/nfl/trade",
+  // Every public feature page below was missing from the scan. Most of them
+  // fetch on mount, and the scan reads whatever the page shows by the time its
+  // main landmark is up, so a slow backend scans the loading state rather
+  // than failing the route.
+  "/zeroproof",
+  "/fantasy/nba",
+  "/fantasy/nba/cards",
+  "/fantasy/nba/cards/collection",
+  "/fantasy/nfl",
+  "/budget",
+  "/craft",
+  "/design-system",
+  "/flags",
+  "/gallery-wall",
+  "/lab",
+  "/pokemon",
+  "/research",
+  "/resume",
+  "/surprise",
+  "/vitals",
+  "/world",
+  "/updates",
+  "/updates/tickets",
+  "/privacy",
+  "/operator/finance",
+  "/operator/loss",
+  "/operator/planner",
+  "/operator/products",
+  "/operator/search",
+  "/learn/ai-agent-patterns",
+  "/learn/async-patterns",
+  "/learn/debounce-throttle",
+  "/learn/dynamic-programming",
+  "/learn/event-delegation",
+  "/learn/from-scratch",
+  "/learn/hash-maps",
+  "/learn/memoization",
+  "/learn/recursion-backtracking",
+  "/learn/sliding-window",
+  "/learn/stacks-queues",
+  "/learn/trees-graphs",
+  "/learn/two-pointers",
+  // Every write-up shares ThoughtLayout, so the index and one long page with
+  // updates, code and screenshots stand in for the rest.
+  "/thoughts",
+  "/thoughts/zeroproof",
 ];
 
 /**

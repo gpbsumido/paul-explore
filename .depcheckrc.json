@@ -7,9 +7,17 @@
     "@gltf-transform/extensions",
     "@tailwindcss/postcss",
     "@vitest/coverage-v8",
+    "@stryker-mutator/vitest-runner",
     "tailwindcss",
     "depcheck",
     "ts-prune"
   ],
-  "ignore-patterns": ["models-src", ".next", "coverage", "playwright-report"]
+  "ignore-patterns": [
+    "models-src",
+    ".next",
+    "coverage",
+    "playwright-report",
+    "reports",
+    ".stryker-tmp"
+  ]
 }

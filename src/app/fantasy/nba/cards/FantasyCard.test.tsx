@@ -41,4 +41,14 @@ describe("FantasyCard", () => {
     );
     expect(screen.getByText("×4")).toBeInTheDocument();
   });
+
+  it("titles the card with an h2, since the card grids sit straight under the page's h1", () => {
+    render(
+      <FantasyCard
+        card={{ playerName: "Nikola Jokic", points: 52, rarity: "rare", subtitle: "Apr 17 vs LAL", imageUrl: "https://a.espncdn.com/i/headshots/nba/players/full/3112335.png" }}
+      />,
+    );
+    expect(screen.getByRole("heading", { level: 2, name: "Nikola Jokic" })).toBeInTheDocument();
+  });
 });
+

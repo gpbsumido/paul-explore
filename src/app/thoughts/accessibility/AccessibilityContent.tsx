@@ -29,6 +29,11 @@ export default function AccessibilityContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-03-every-page",
+            date: "Oct 3, 2026",
+            title: "Scanning every page, and fixing two of the failures upstream",
+          },
+          {
             id: "update-2026-08-16-gel-gloss",
             date: "Aug 16, 2026",
             title: "A failure I had recorded at half its size",
@@ -256,11 +261,108 @@ export default function AccessibilityContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-03-every-page"
+        date="October 3, 2026"
+        title="Scanning every page, and fixing two of the failures upstream"
+      >
+        <p>
+          The route scan covered 19 pages. Everything else public (ZeroProof,
+          the hubs, the operator subpages, thirteen of the fourteen learn demos,
+          the write-ups) had never been scanned, so I added all of them, 58 routes
+          in both themes. The first run against a production build:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`99 passed, 17 failed
+/budget                       never reached axe: no <main> to wait for
+/learn/ai-agent-patterns      page-has-heading-one
+/learn/event-delegation       aria-required-children
+/thoughts/zeroproof           scrollable-region-focusable
+/fantasy/nba/cards            color-contrast, heading-order
+/pokemon, /design-system      color-contrast
+/operator/{finance,loss,products}  color-contrast (light only)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The missing h1 was hidden from everyone, not just screen readers
+        </h3>
+        <p className="text-muted">
+          The AI agent patterns page does have an h1. It sits in a motion section
+          that spread a variants object onto itself, so the variant named 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">hidden</code> went through as the HTML 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">hidden</code> attribute. The whole intro, title and
+          description, had been <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">display: none</code> since it
+          shipped, with no animation ever running. Every other section on the
+          same page passes the variants the right way.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- <m.section {...fadeInUp} className="space-y-4">
++ <m.section initial="hidden" animate="visible" variants={fadeInUp} className="space-y-4">`}
+        </pre>
+        <p className="mt-3 text-muted">
+          My first test for it failed for the wrong reason. The page needs a
+          theme and a query provider, so the test crashed before it asked about
+          a heading, and I read that red as the bug. The fix went up before the
+          test had proven anything. Rerunning the corrected test against the old
+          line is what showed the real failure: no accessible h1.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A listbox with no options, and Enter that did nothing
+        </h3>
+        <p className="text-muted">
+          The event-delegation demo&rsquo;s whole point is one click handler on
+          a container. The container claimed <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">role=&quot;listbox&quot;</code> 
+          but held plain divs, and its keyboard path read the item off 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">e.target</code>. When the focused container gets Enter,
+          the target is the container itself, so nothing happened. It&rsquo;s
+          now a list of real buttons with the single handler on the list. Enter
+          and Space fire a click that bubbles to it, so keyboard users get the
+          delegation the demo is about.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Two of the failures belonged to the design system, so I fixed them there
+        </h3>
+        <p className="text-muted">
+          The design-system page failed on text inside the shared StatCard and
+          AgentDecisionCard. My first fix pointed the package&rsquo;s 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">muted-foreground</code> token at this app&rsquo;s 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">muted</code> in the theme bridge, which made the scan pass
+          and left every other consumer with the bug. I took it back out and
+          fixed it in the tokens package, with a test that now holds every text
+          token at AA on both surfaces in both themes.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`muted-foreground   light #a49d90  2.41:1 on surface  ->  #6d675b  5.02:1
+                   dark  #7f7869  4.03:1 on surface  ->  #a49d90  6.57:1
+StatCard +delta    light success-700  4.48:1 (5:1 on white, not on the warm surface)
+                         -> success-800  6.37:1`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Before it&rsquo;s published, I packed both packages, installed them
+          here, built the app and ran the scan again: 116 of 116. This app
+          moves to the published versions once the design system releases.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Code blocks a keyboard couldn&apos;t scroll
+        </h3>
+        <p className="text-muted">
+          Write-ups paste logs into <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">&lt;pre&gt;</code> blocks that
+          scrolled sideways. A scrolling region with nothing focusable in it is
+          one a keyboard can&apos;t reach. Every write-up shares one layout, so
+          code there now wraps instead of scrolling. That fixes all of them at
+          once, and keeps phones from scrolling in two directions.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Accessibility treated as markup rather than attributes — semantic elements first, ARIA only where semantics genuinely run out.",
           "axe running in the component tests, so a violation fails a pull request rather than waiting for an audit nobody schedules.",
           "Best-practice rules enforced, not only violations, which is what caught the structural problems on the calendar and the public routes.",
+          "Every public feature page in the route scan, 58 routes in both themes against a production build, with the design-system contrast failures fixed upstream rather than patched here.",
         ]}
         couldImprove={[
           "Automated checks catch roughly a third of what matters. Nothing here covers whether the app is actually operable by keyboard end to end, which no linter can tell you.",

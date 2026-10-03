@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-03 - version 7.14.1
+
+- Added mutation testing with Stryker (`pnpm test:mutation`) on the NFL live-projection math: the game-clock share, the scoreboard parser and the win-probability model. The first run scored 79.06% with 28 surviving mutants.
+  - Killing them found an overtime branch the clamp already covered (deleted), a stat lookup nothing proved ignores ESPN's season-total line, a "not a league" test whose payload the schema accepts, and a `describe`-level fixture that crashed the suite at collection time, which Stryker counted as a surviving mutant.
+  - Now 100% (177 killed); the break threshold is 90. A CI workflow runs Stryker when that code changes and uploads the HTML report.
+- The accessibility scan covers every public feature page: 58 routes in both themes, up from 19, including ZeroProof, the hubs, the operator subpages, the learn demos and the write-ups. The first run failed 17 scans. Fixes:
+  - `/budget` had no `<main>` landmark.
+  - The AI agent patterns intro (its h1 and description) was `display: none` for everyone: a framer-motion variants object spread onto the section turned the `hidden` variant into the HTML `hidden` attribute.
+  - The event-delegation demos claimed `role="listbox"` with no options, and Enter did nothing. They're now lists of real buttons with one delegated handler, so the keyboard reaches them.
+  - Card titles are h2s, and rarity labels sit on a dark chip so white text holds 4.5:1 on the pale tiers.
+  - The Pokemon hub's "Open" link carries its accent on the underline instead of the text, and the preview chips are darker.
+  - The operator finance, loss and products figures hold AA in light mode.
+  - Code in write-ups wraps instead of scrolling sideways where a keyboard can't reach it.
+- The design-system page's remaining contrast failures (the `muted-foreground` token and StatCard's positive delta) are fixed upstream in paul-design-system#107, and were verified here against the packed packages (116/116 scans). The `@paul-portfolio/tokens` and `@paul-portfolio/css` bumps land once that release publishes.
+
 ## 2026-10-03 - version 7.14.0
 
 - The NFL trade analyzer reads the league's format from ESPN (team count, superflex, PPR, TE premium, passing TD points) and shows it. Its numbers at those settings don't change: ESPN's projections are already league-scored.

@@ -30,6 +30,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Stryker's sandbox is a full copy of the repo with @ts-nocheck banners,
+    // and it can outlive an interrupted run; its reports are generated HTML.
+    ".stryker-tmp/**",
+    "reports/**",
   ]),
 ]);
 

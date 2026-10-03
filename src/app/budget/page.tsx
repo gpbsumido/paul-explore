@@ -35,9 +35,14 @@ export default function BudgetPage() {
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Budget" }]}
       />
 
-      <Suspense fallback={<BudgetLoading />}>
-        <BudgetView />
-      </Suspense>
+      {/* The one main landmark for every state (loading, signed out, the
+          tracker); none of them rendered one, so screen-reader users had no
+          way to jump past the header. */}
+      <main>
+        <Suspense fallback={<BudgetLoading />}>
+          <BudgetView />
+        </Suspense>
+      </main>
     </PageShell>
   );
 }
