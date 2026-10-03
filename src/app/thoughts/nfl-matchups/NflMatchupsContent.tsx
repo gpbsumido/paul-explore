@@ -170,6 +170,11 @@ export default function NflMatchupsContent() {
             date: "October 3, 2026",
             title: "Teaching the trade analyzer about formats, and its first waiver pickup was a kicker",
           },
+          {
+            id: "update-2026-10-03-mutation",
+            date: "October 3, 2026",
+            title: "Mutation-testing the clock math before a live game could",
+          },
         ]}
       />
 
@@ -562,6 +567,49 @@ after:  Paul's Perfect Team picks up Jaylen Warren (+3.2)     ROS -> -7.3`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-03-mutation"
+        date="October 3, 2026"
+        title="Mutation-testing the clock math before a live game could"
+      >
+        <p>
+          The live branch of the projected finals still hasn&apos;t met a real
+          in-progress game, so its unit tests were the only evidence it worked.
+          I ran Stryker over the clock share, the scoreboard parser and the win
+          probability to find out how much those tests were worth. The full
+          story is on the 
+          <a href="/thoughts/testing" className="text-primary-600 hover:underline dark:text-primary-400">
+            testing write-up
+          </a>
+          . Two findings belong here.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The overtime check was doing nothing
+        </h3>
+        <p className="text-muted">
+          Deleting <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">if (period &gt; 4) return 0</code> broke no
+          test, because the clamp already returns 0 once the quarters left go
+          negative. I removed it, and a 15-minute playoff OT case now pins the
+          behaviour on the clamp. Postponed games got a test too. ESPN marks them 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">post</code> at period 0, which naive clock math would read
+          as a whole game still to play.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Nothing proved the parser ignores the season-total line
+        </h3>
+        <p className="text-muted">
+          The stat lookup could drop its week check and every test still passed,
+          because every fixture only had one week of stats. ESPN can send a
+          season projection beside the weekly one, and reading that would be the
+          &ldquo;projections too high&rdquo; bug again, at around 300 points a
+          game. A fixture with the season line first now catches it. The three
+          files hold a 100% mutation score, and CI re-checks them whenever they
+          change.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Weekly matchups for my ESPN fantasy football league: team totals, and every starter's actual vs. projected points for the week.",
@@ -577,7 +625,7 @@ after:  Paul's Perfect Team picks up Jaylen Warren (+3.2)     ROS -> -7.3`}
           "The win-probability model is a hand-picked spread function, not fit to any real outcome data — it's directionally right, not calibrated.",
           "Bench players parse and store correctly but the card doesn't surface them; only starters render.",
           "The ticker attributes a play by matching a rostered starter's exact name as a substring, so a short-form or nickname mismatch would miss a mention.",
-          "The live game-clock share is unit-tested but hasn't been checked against a real in-progress game yet.",
+          "The live game-clock share hasn't been checked against a real in-progress game yet; its tests now hold a 100% mutation score, which says they'd catch a broken formula, not that the formula matches ESPN's clock.",
           "A trade's waiver pickup assumes the best free agent at a traded-away position clears waivers to that team; in a six-team league with waiver order that isn't guaranteed.",
           "Scoping pickups to traded-away positions can miss a FLEX hole that another position would fill better.",
           "ESPN's key for a TE-premium override is undocumented (position 4 or slot 6), so the parser accepts either; this league has none to check against.",
