@@ -432,9 +432,9 @@ export function TradeAnalyzer({ pool }: { pool: TradePool }) {
             </div>
             {headline && headline.moves.a.length + headline.moves.b.length > 0 && (
               <div className="mt-3">
-                <h3 className="text-[12px] font-semibold text-foreground">
+                <h2 className="text-[12px] font-semibold text-foreground">
                   Roster moves the trade forces ({headline.label.toLowerCase()})
-                </h3>
+                </h2>
                 <ul aria-label="Roster moves" className="mt-1 space-y-0.5 text-[12px] text-foreground">
                   {headline.moves.a.map((m) => (
                     <li key={`a-${m.kind}-${m.playerId}`}>{moveText(m, teamName(teamA))}</li>
