@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-13-0",
+    date: "2026-10-02",
+    version: "7.13.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "Jump straight to ZeroProof's featured games",
+    summary:
+      "The biggest underdog and closest game now show when they kick off, with a button that takes you to them on the board, and the board looks a month ahead at most.",
+    body: [
+      "The two featured cards at the top of the ZeroProof board show their date and time. A Go to date button scrolls you to that game in its day on the board, loading more days first if it's further out than the board was showing.",
+      "The board now stops a month ahead. Once you've loaded that far, it tells you to come back later for more games instead of fetching further out.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-12-0",
     date: "2026-10-02",
     version: "7.12.0",
