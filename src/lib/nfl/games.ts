@@ -29,13 +29,16 @@ const scoreboardSchema = z.object({ events: z.array(z.unknown()).optional() });
 
 type GameStatus = z.infer<typeof eventSchema>["status"];
 
-/** The share of a game left, 0..1. Overtime counts as over, it's sudden death. */
+/**
+ * The share of a game left, 0..1. Overtime counts as over, it's sudden death,
+ * and the clamp already says so: an OT clock never exceeds a quarter, so
+ * (4 - period) quarters plus the clock is zero or less from period 5 on.
+ */
 function shareLeft(status: GameStatus): number {
   if (status.type.state === "pre") return 1;
   if (status.type.state !== "in") return 0;
 
   const period = status.period ?? 0;
-  if (period > 4) return 0;
   const secondsLeft = (4 - period) * QUARTER_SECONDS + (status.clock ?? 0);
   return Math.min(1, Math.max(0, secondsLeft / GAME_SECONDS));
 }
@@ -50,6 +53,7 @@ export function parseGameProgress(payload: unknown): Record<string, number> {
   if (!parsed.success) return {};
 
   const progress: Record<string, number> = {};
+  // Stryker disable next-line ArrayDeclaration: a missing list and a list of junk both parse to nothing, so the default can't be observed.
   for (const raw of parsed.data.events ?? []) {
     const event = eventSchema.safeParse(raw);
     if (!event.success) continue;
