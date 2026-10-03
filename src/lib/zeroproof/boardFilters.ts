@@ -274,3 +274,20 @@ export function revealEvent(
   const shown = filterBoardEvents([event], filters, { ...ctx, daysAhead }).length > 0;
   return { filters: shown ? filters : DEFAULT_BOARD_FILTERS, daysAhead };
 }
+
+/**
+ * Drops upcoming fixtures more than `maxDays` out. The board shows a month at
+ * most: lines that far ahead barely move and mostly aren't posted yet, so past
+ * that it says to come back later rather than loading further. Past fixtures
+ * pass through untouched.
+ */
+export function withinFutureCap(
+  events: ZeroproofEvent[],
+  { now, maxDays, dayMs }: { now: number; maxDays: number; dayMs: number },
+): ZeroproofEvent[] {
+  const cutoff = now + maxDays * dayMs;
+  return events.filter((event) => {
+    const time = new Date(event.commenceTime).getTime();
+    return Number.isNaN(time) || time <= cutoff;
+  });
+}
