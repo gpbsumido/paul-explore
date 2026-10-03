@@ -73,6 +73,7 @@ import {
   isEventBettable,
   isFantasySport,
   revealEvent,
+  withinFutureCap,
 } from "@/lib/zeroproof/boardFilters";
 import { biggestUnderdog, closestGame } from "@/lib/zeroproof/boardHighlights";
 import { teamAccentColor } from "@/lib/zeroproof/teamAccent";
@@ -370,6 +371,8 @@ const HORIZON_STEP_DAYS = 3;
 // history, not the active betting window — up to a 3-month cap the backend serves.
 const PAST_STEP_DAYS = 14;
 const MAX_PAST_DAYS = 90;
+// Upcoming fixtures stop a month out; the backend is asked for no more than this.
+const MAX_AHEAD_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const controlButton =
   "inline-flex h-8 items-center rounded-full border border-border bg-surface px-3 text-xs text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
@@ -557,8 +560,8 @@ function Slate({
     queryFn: () =>
       getJson(
         includePast
-          ? `/api/zeroproof/events?include=past&pastDays=${daysBack}`
-          : "/api/zeroproof/events",
+          ? `/api/zeroproof/events?include=past&pastDays=${daysBack}&aheadDays=${MAX_AHEAD_DAYS}`
+          : `/api/zeroproof/events?aheadDays=${MAX_AHEAD_DAYS}`,
       ),
     select: (json) => eventsResponseSchema.parse(json),
     staleTime: 5 * 60 * 1000,
@@ -596,7 +599,13 @@ function Slate({
   // re-renders (a live-updating clock would make render impure).
   const [now] = useState(() => Date.now());
   const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
-  const allEvents = eventsQuery.data?.events ?? [];
+  // Capped here too, so the board holds the line even against a backend that
+  // doesn't know aheadDays yet.
+  const allEvents = withinFutureCap(eventsQuery.data?.events ?? [], {
+    now,
+    maxDays: MAX_AHEAD_DAYS,
+    dayMs: DAY_MS,
+  });
 
   const horizonCtx = { now, daysAhead, daysBack, dayMs: DAY_MS, betEventIds };
 
@@ -664,7 +673,7 @@ function Slate({
     if (!sentinel) return;
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        setDaysAhead((days) => days + HORIZON_STEP_DAYS);
+        setDaysAhead((days) => Math.min(days + HORIZON_STEP_DAYS, MAX_AHEAD_DAYS));
       }
     });
     observer.observe(sentinel);
@@ -935,13 +944,21 @@ function Slate({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setDaysAhead((days) => days + HORIZON_STEP_DAYS)}
+                  onClick={() => setDaysAhead((days) => Math.min(days + HORIZON_STEP_DAYS, MAX_AHEAD_DAYS))}
                   className={controlButton}
                 >
                   Load more games
                 </button>
               )}
             </div>
+          )}
+
+          {/* Nothing left to load within the month cap (the horizon doesn't
+              apply to a date range, so neither does this). */}
+          {!hasMore && !rangeActive && visibleEvents.length > 0 && (
+            <p className="mt-6 text-center text-xs text-muted">
+              That&apos;s every game posted for the next month. Come back later for more.
+            </p>
           )}
         </>
       )}
