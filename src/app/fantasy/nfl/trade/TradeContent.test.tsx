@@ -143,6 +143,8 @@ describe("TradeAnalyzer", () => {
     await user.click(screen.getByRole("checkbox", { name: /Bench One/ }));
     await user.click(screen.getByRole("checkbox", { name: /Jahmyr Gibbs/ }));
 
+    // The page's only other heading is its h1, so this sits at level 2.
+    expect(screen.getByRole("heading", { level: 2, name: /roster moves/i })).toBeInTheDocument();
     const moves = screen.getByRole("list", { name: /roster moves/i });
     expect(moves).toHaveTextContent(/Paul's Perfect Team picks up Jaylen Warren/);
     expect(moves).toHaveTextContent(/George's Great Team drops Bench One/);
