@@ -1,0 +1,52 @@
+name: Mutation testing
+
+# Stryker mutates the NFL live-projection math (game-clock share, scoreboard
+# parser, win probability) and checks the unit tests notice. It's slower than
+# the unit suite, so it only runs when that code, its tests or the config
+# change, plus on demand. See /thoughts/testing.
+on:
+  pull_request:
+    paths:
+      - "src/lib/nfl/games.ts"
+      - "src/lib/nfl/games.test.ts"
+      - "src/lib/nfl/matchups.ts"
+      - "src/lib/nfl/matchups.test.ts"
+      - "src/lib/nfl/winProbability.ts"
+      - "src/lib/nfl/winProbability.test.ts"
+      - "stryker.config.json"
+      - ".github/workflows/mutation.yml"
+  workflow_dispatch:
+
+jobs:
+  mutation:
+    name: Mutation score (Stryker)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Fails the job when the score drops under thresholds.break in
+      # stryker.config.json.
+      - name: Run Stryker
+        run: pnpm test:mutation
+
+      # The HTML report shows each surviving mutant inline, which is the part
+      # worth reading when the score drops, so upload it even on failure.
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 14
