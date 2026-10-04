@@ -137,6 +137,158 @@ describe("parseNflScoreboard", () => {
     expect(board.matchups[0].home.totalPoints).toBe(30);
   });
 
+  it("reads the week's own line, not the season total that sits beside it", () => {
+    // ESPN can carry a season projection (period 0) next to the weekly one.
+    // Picking it up would show a 300-point "projection" for one game.
+    const base = payload(3);
+    const away = base.schedule[0].away;
+    const allen = away.rosterForCurrentScoringPeriod?.entries[0];
+    const withSeason = {
+      ...base,
+      schedule: [
+        {
+          ...base.schedule[0],
+          away: {
+            ...away,
+            rosterForCurrentScoringPeriod: {
+              entries: [
+                {
+                  ...allen,
+                  playerPoolEntry: {
+                    player: {
+                      ...allen?.playerPoolEntry.player,
+                      stats: [
+                        { scoringPeriodId: 0, statSourceId: 1, statSplitTypeId: 0, appliedTotal: 300 },
+                        { scoringPeriodId: 0, statSourceId: 0, statSplitTypeId: 0, appliedTotal: 120 },
+                        ...(allen?.playerPoolEntry.player.stats ?? []),
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    };
+    const line = parseNflScoreboard(withSeason, { season: 2026, week: 3 }).matchups[0].away.starters[0];
+    expect(line.projected).toBe(21);
+    expect(line.actual).toBe(24.5);
+  });
+
+  it("scores a player with no stats, or none for this week, as zero", () => {
+    const base = payload(3);
+    const statless = (stats: unknown[] | undefined) => ({
+      lineupSlotId: 0,
+      playerPoolEntry: { player: { id: 300, fullName: "No Stats", proTeamId: 4, defaultPositionId: 1, stats } },
+    });
+    const board = parseNflScoreboard(
+      {
+        ...base,
+        schedule: [
+          {
+            ...base.schedule[0],
+            away: {
+              teamId: 1,
+              totalPoints: 0,
+              rosterForCurrentScoringPeriod: {
+                entries: [statless(undefined), { ...statless([{ scoringPeriodId: 2, statSourceId: 1, appliedTotal: 9 }]), lineupSlotId: 2 }],
+              },
+            },
+          },
+        ],
+      },
+      { season: 2026, week: 3 },
+    );
+    expect(board.matchups[0].away.starters.map((p) => [p.actual, p.projected])).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
+  });
+
+  it("names a side whose team isn't in the payload by its id, with no owner", () => {
+    const base = payload(3);
+    const board = parseNflScoreboard(
+      { ...base, schedule: [{ ...base.schedule[0], home: { teamId: 9, totalPoints: 0 } }] },
+      { season: 2026, week: 3 },
+    );
+    expect(board.matchups[0].home).toMatchObject({ name: "Team 9", abbrev: "", ownerName: "Unknown" });
+  });
+
+  it("falls back to the owner's handle unless both names are set, then to Unknown", () => {
+    const base = payload(3);
+    const board = parseNflScoreboard(
+      {
+        ...base,
+        members: [
+          { id: "{OWNER-A}", firstName: "Paul", lastName: "", displayName: "paulie" },
+          { id: "{OWNER-B}" },
+        ],
+      },
+      { season: 2026, week: 3 },
+    );
+    expect(board.matchups[0].away.ownerName).toBe("paulie");
+    expect(board.matchups[0].home.ownerName).toBe("Unknown");
+
+    const noMember = parseNflScoreboard({ ...base, members: [] }, { season: 2026, week: 3 });
+    expect(noMember.matchups[0].away.ownerName).toBe("Unknown");
+  });
+
+  it("carries the matchup's id and winner, and calls an unset winner undecided", () => {
+    const base = payload(3);
+    expect(parseNflScoreboard(base, { season: 2026, week: 3 }).matchups[0]).toMatchObject({ id: 10, winner: "UNDECIDED" });
+
+    const decided = { ...base, schedule: [{ ...base.schedule[0], winner: "HOME" }] };
+    expect(parseNflScoreboard(decided, { season: 2026, week: 3 }).matchups[0].winner).toBe("HOME");
+
+    const { winner: _winner, id: _id, ...bare } = base.schedule[0];
+    const unset = parseNflScoreboard({ ...base, schedule: [bare] }, { season: 2026, week: 3 }).matchups[0];
+    expect(unset).toMatchObject({ id: 0, winner: "UNDECIDED" });
+  });
+
+  it("counts the season's weeks up to its last matchup period", () => {
+    // The fixture schedules weeks 3 and 4.
+    expect(parseNflScoreboard(payload(3), { season: 2026, week: 3 }).totalWeeks).toBe(4);
+  });
+
+  it("reads no regular season when the schedule settings are missing", () => {
+    const board = parseNflScoreboard({ ...payload(3), settings: {} }, { season: 2026, week: 3 });
+    expect(board.regularSeasonWeeks).toBe(0);
+  });
+
+  it("gives a side with no roster no starters, and skips a roster entry it can't read", () => {
+    const base = payload(3);
+    const board = parseNflScoreboard(
+      {
+        ...base,
+        schedule: [
+          {
+            ...base.schedule[0],
+            away: { teamId: 1, totalPoints: 0 },
+            home: {
+              ...base.schedule[0].home,
+              rosterForCurrentScoringPeriod: {
+                entries: [{ lineupSlotId: 2 }, ...(base.schedule[0].home.rosterForCurrentScoringPeriod?.entries ?? [])],
+              },
+            },
+          },
+        ],
+      },
+      { season: 2026, week: 3 },
+    );
+    expect(board.matchups[0].away.starters).toEqual([]);
+    expect(board.matchups[0].home.starters.map((p) => p.playerId)).toEqual([200, 201]);
+  });
+
+  it("degrades to an empty board on a payload that isn't even an object", () => {
+    expect(parseNflScoreboard(null, { season: 2026, week: null })).toMatchObject({
+      currentWeek: 1,
+      totalWeeks: 0,
+      matchups: [],
+    });
+    expect(parseNflScoreboard("<html>502</html>", { season: 2026, week: 5 }).currentWeek).toBe(5);
+  });
+
   it("degrades to an empty board on a payload that isn't a league", () => {
     const board = parseNflScoreboard({ nope: true }, { season: 2026, week: 3 });
     expect(board.matchups).toEqual([]);
@@ -158,29 +310,32 @@ describe("parseNflScoreboard", () => {
 });
 
 describe("applyGameProgress", () => {
-  const board = parseNflScoreboard(payload(3), { season: 2026, week: 3 });
+  // A factory, not a describe-level constant: parsing at collection time means
+  // a broken parser crashes the suite before any test runs, which Vitest reports
+  // as "no tests" and Stryker reads as a surviving mutant.
+  const board = () => parseNflScoreboard(payload(3), { season: 2026, week: 3 });
 
   it("scales each starter's projection by the share of their game left", () => {
     // Every fixture player is on CIN (proTeamId 4); half the game remains.
-    const [m] = applyGameProgress(board.matchups, { CIN: 0.5 });
+    const [m] = applyGameProgress(board().matchups, { CIN: 0.5 });
     expect(m.away.remaining).toBeCloseTo(10.5);
     expect(m.home.remaining).toBeCloseTo(14.5);
   });
 
   it("projects nothing more once the game is final", () => {
-    const [m] = applyGameProgress(board.matchups, { CIN: 0 });
+    const [m] = applyGameProgress(board().matchups, { CIN: 0 });
     expect(m.away.remaining).toBe(0);
     expect(m.home.remaining).toBe(0);
   });
 
   it("projects nothing for a starter whose team has no game this week", () => {
-    const [m] = applyGameProgress(board.matchups, { BUF: 1 });
+    const [m] = applyGameProgress(board().matchups, { BUF: 1 });
     expect(m.home.remaining).toBe(0);
   });
 
   it("leaves scores and rosters untouched", () => {
-    const [m] = applyGameProgress(board.matchups, { CIN: 1 });
+    const [m] = applyGameProgress(board().matchups, { CIN: 1 });
     expect(m.home.totalPoints).toBe(30);
-    expect(m.home.starters).toEqual(board.matchups[0].home.starters);
+    expect(m.home.starters).toEqual(board().matchups[0].home.starters);
   });
 });

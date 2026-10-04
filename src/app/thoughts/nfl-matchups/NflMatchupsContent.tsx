@@ -165,6 +165,16 @@ export default function NflMatchupsContent() {
             date: "October 2, 2026",
             title: "The projections were too high, and a trade analyzer built on the fixed ones",
           },
+          {
+            id: "update-2026-10-03-trade-formats",
+            date: "October 3, 2026",
+            title: "Teaching the trade analyzer about formats, and its first waiver pickup was a kicker",
+          },
+          {
+            id: "update-2026-10-03-mutation",
+            date: "October 3, 2026",
+            title: "Mutation-testing the clock math before a live game could",
+          },
         ]}
       />
 
@@ -477,6 +487,129 @@ Breece Hall    OUT     212.4 / 16.3 = 13 games`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-03-trade-formats"
+        date="October 3, 2026"
+        title="Teaching the trade analyzer about formats, and its first waiver pickup was a kicker"
+      >
+        <p>
+          The analyzer needed to handle superflex, PPR against non-PPR, TE
+          premium and positional scarcity. Before building any of it I looked at
+          how KeepTradeCut, FantasyCalc, DynastyProcess and FantasyPros do it.
+          Most of what they do turned out to be workarounds for a problem this
+          page doesn&apos;t have.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The value charts patch over not knowing your roster
+        </h3>
+        <p className="text-muted">
+          A trade calculator that gives every player one number has to invent
+          something for a 2-for-1. KeepTradeCut applies a curve relative to the
+          best player in the deal. DynastyProcess has an exponent you can tune.
+          FantasyCalc adds a fixed value for the roster spot. This analyzer
+          already scores each team&apos;s actual best lineup before and after,
+          which those curves exist to approximate. What it was missing was the
+          roster spot itself: a 2-for-1 between full rosters forces a drop on
+          one side and opens a waiver pickup on the other. Both are now part of
+          the result, but only for spots the trade itself opens or overfills.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          ESPN&apos;s numbers already are the league&apos;s format
+        </h3>
+        <p className="text-muted">
+          Every projection carries its raw stat line, and scoring that against
+          the league&apos;s settings reproduces ESPN&apos;s points exactly. So a
+          what-if format doesn&apos;t need a multiplier: switching to half PPR
+          takes half a point off each projected reception, and a TE premium adds
+          to tight-end receptions only. Superflex is a lineup slot rather than
+          points, so turning it off just closes the slot.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Kelce, week 4:  Σ stats[id] × points[id] = 11.79 = ESPN appliedTotal
+what-if value = league value + (ppr' - ppr) × rec + [TE] (tep' - tep) × rec`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Scarcity in a six-team league is cheap
+        </h3>
+        <p className="text-muted">
+          FantasyPros&apos; superflex chart prices quarterbacks at about twice
+          their 1QB value, but that number is calibrated for twelve teams. My
+          league has six, and Kyler Murray is sitting on waivers projected for
+          247 points over the rest of the season, better than about half the
+          rostered quarterbacks. So scarcity here is measured against the actual
+          waiver wire. A &quot;value over waiver&quot; row counts what each side
+          receives above the best healthy free agent at each position, week by
+          week, net of what it gives up.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The first pickup it credited was a kicker
+        </h3>
+        <p className="text-muted">
+          The first version filled an opened spot with whichever free agent
+          improved the lineup most. On a real trade (Bijan and McCaffrey for
+          Gibbs) that was a kicker. Upgrading the kicker is worth having, but my
+          team could already do it by cutting a bench player, so the trade
+          didn&apos;t cause it. A pickup now has to come from a position the
+          side traded away.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`before: Paul's Perfect Team picks up Eddy Pineiro (+18.6)    ROS -> +8.1
+after:  Paul's Perfect Team picks up Jaylen Warren (+3.2)     ROS -> -7.3`}
+        </pre>
+        <p className="mt-3 text-muted">
+          &quot;Even&quot; also changed from a flat half point to half a point
+          per week. Across thirteen weeks, a flat half point meant almost no
+          trade ever came out even.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-03-mutation"
+        date="October 3, 2026"
+        title="Mutation-testing the clock math before a live game could"
+      >
+        <p>
+          The live branch of the projected finals still hasn&apos;t met a real
+          in-progress game, so its unit tests were the only evidence it worked.
+          I ran Stryker over the clock share, the scoreboard parser and the win
+          probability to find out how much those tests were worth. The full
+          story is on the 
+          <a href="/thoughts/testing" className="text-primary-600 hover:underline dark:text-primary-400">
+            testing write-up
+          </a>
+          . Two findings belong here.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The overtime check was doing nothing
+        </h3>
+        <p className="text-muted">
+          Deleting <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">if (period &gt; 4) return 0</code> broke no
+          test, because the clamp already returns 0 once the quarters left go
+          negative. I removed it, and a 15-minute playoff OT case now pins the
+          behaviour on the clamp. Postponed games got a test too. ESPN marks them 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">post</code> at period 0, which naive clock math would read
+          as a whole game still to play.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Nothing proved the parser ignores the season-total line
+        </h3>
+        <p className="text-muted">
+          The stat lookup could drop its week check and every test still passed,
+          because every fixture only had one week of stats. ESPN can send a
+          season projection beside the weekly one, and reading that would be the
+          &ldquo;projections too high&rdquo; bug again, at around 300 points a
+          game. A fixture with the season line first now catches it. The three
+          files hold a 100% mutation score, and CI re-checks them whenever they
+          change.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Weekly matchups for my ESPN fantasy football league: team totals, and every starter's actual vs. projected points for the week.",
@@ -486,13 +619,16 @@ Breece Hall    OUT     212.4 / 16.3 = 13 games`}
           "Projected finals that stop counting finished games: each starter's remaining projection scales with how much of their NFL game is left, and a past week projects nothing.",
           "A collapsible ticker with position, score type, matchup, NFL team and fantasy team filters, where clicking a play highlights its starters in single-column matchup cards.",
           "A trade analyzer tab that scores a trade by each side's best lineup for this week, next week and the rest of the season, with strength of schedule per player and per side.",
+          "The trade analyzer reads the league's format (teams, superflex, PPR, TE premium, passing TD points), re-scores exactly under a what-if PPR, TE premium or superflex setting, settles each roster with the drop or waiver pickup a lopsided trade forces, and adds a value-over-waiver row for positional scarcity.",
         ]}
         couldImprove={[
           "The win-probability model is a hand-picked spread function, not fit to any real outcome data — it's directionally right, not calibrated.",
           "Bench players parse and store correctly but the card doesn't surface them; only starters render.",
           "The ticker attributes a play by matching a rostered starter's exact name as a substring, so a short-form or nickname mismatch would miss a mention.",
-          "The live game-clock share is unit-tested but hasn't been checked against a real in-progress game yet.",
-          "The trade analyzer doesn't fill the roster spot a lopsided trade opens with a waiver pickup, so the side receiving fewer players reads slightly worse than it would play.",
+          "The live game-clock share hasn't been checked against a real in-progress game yet; its tests now hold a 100% mutation score, which says they'd catch a broken formula, not that the formula matches ESPN's clock.",
+          "A trade's waiver pickup assumes the best free agent at a traded-away position clears waivers to that team; in a six-team league with waiver order that isn't guaranteed.",
+          "Scoping pickups to traded-away positions can miss a FLEX hole that another position would fill better.",
+          "ESPN's key for a TE-premium override is undocumented (position 4 or slot 6), so the parser accepts either; this league has none to check against.",
           "Strength of schedule leans on a few weeks of points-allowed data, so early-season ranks are noisy.",
         ]}
         upcoming={[

@@ -66,4 +66,38 @@ describe("parseGameProgress", () => {
   it("degrades to an empty map on a payload that isn't a scoreboard", () => {
     expect(parseGameProgress({ nope: true })).toEqual({});
   });
+
+  it("gives a postponed game nothing to play, even though its clock never ran", () => {
+    // ESPN marks a postponed game "post" with period 0; read naively, an
+    // untouched clock is a whole game still to come.
+    const progress = parseGameProgress({
+      events: [game({ away: "NE", home: "BUF", state: "post", period: 0, clock: 0 })],
+    });
+    expect(progress).toEqual({ NE: 0, BUF: 0 });
+  });
+
+  it("treats a 15-minute playoff overtime as over too", () => {
+    const progress = parseGameProgress({
+      events: [game({ away: "NE", home: "BUF", state: "in", period: 5, clock: 900 })],
+    });
+    expect(progress.NE).toBe(0);
+  });
+
+  it("skips a malformed event and keeps the rest of the board", () => {
+    const progress = parseGameProgress({
+      events: [{ status: "garbled" }, game({ away: "IND", home: "WSH", state: "pre" })],
+    });
+    expect(progress).toEqual({ IND: 1, WSH: 1 });
+  });
+
+  it("skips an event with no competitions instead of throwing", () => {
+    const bare = { ...game({ away: "NE", home: "BUF", state: "pre" }), competitions: [] };
+    expect(parseGameProgress({ events: [bare] })).toEqual({});
+  });
+
+  it("degrades to an empty map on a payload that isn't an object at all", () => {
+    expect(parseGameProgress(null)).toEqual({});
+    expect(parseGameProgress("<html>502</html>")).toEqual({});
+  });
 });
+

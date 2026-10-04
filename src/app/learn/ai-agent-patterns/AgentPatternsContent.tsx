@@ -85,7 +85,7 @@ export default function AgentPatternsContent() {
 
       <main className="max-w-4xl mx-auto px-4 py-12 space-y-16">
         {/* Intro */}
-        <m.section {...fadeInUp} className="space-y-4">
+        <m.section initial="hidden" animate="visible" variants={fadeInUp} className="space-y-4">
           <h1 className="text-3xl font-bold tracking-tight">
             AI Agent UI Patterns
           </h1>

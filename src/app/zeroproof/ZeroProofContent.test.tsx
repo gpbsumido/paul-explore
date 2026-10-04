@@ -375,6 +375,165 @@ describe("ZeroProofContent — board horizon", () => {
   });
 });
 
+describe("ZeroProofContent — board highlights", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  const NEAR = "2026-09-09T18:00:00.000Z"; // +1d, a near coin flip
+  const FAR = "2026-09-18T18:00:00.000Z"; // +10.75d, the longest shot, past the 3-day horizon
+  const priced = (id: string, iso: string, home: string, away: string, homePrice: number, awayPrice: number) => ({
+    id,
+    sport: "americanfootball_nfl",
+    home,
+    away,
+    commenceTime: iso,
+    status: "upcoming",
+    markets: [
+      {
+        market: "h2h",
+        fetchedAt: NEAR,
+        outcomes: [
+          { name: home, priceAmerican: homePrice },
+          { name: away, priceAmerican: awayPrice },
+        ],
+      },
+    ],
+  });
+  const HIGHLIGHT_EVENTS = {
+    events: [
+      priced("hl-near", NEAR, "Bills", "Chiefs", -105, 105),
+      priced("hl-far", FAR, "Niners", "Rams", -450, 350),
+    ],
+  };
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  const renderBoard = () =>
+    renderPage(undefined, undefined, () => HttpResponse.json(HIGHLIGHT_EVENTS));
+  const kickoffIn = (container: HTMLElement, iso: string) =>
+    container.querySelector(`time[datetime="${iso}"]`);
+
+  it("shows when the biggest underdog and the closest game kick off", async () => {
+    renderBoard();
+    const underdog = await screen.findByRole("region", { name: "Biggest underdog" });
+    const close = screen.getByRole("region", { name: "Closest game" });
+    expect(kickoffIn(underdog, FAR)?.textContent).toMatch(/\d/);
+    expect(kickoffIn(close, NEAR)?.textContent).toMatch(/\d/);
+  });
+
+  it("shows the date and time on every board card", async () => {
+    renderBoard();
+    const card = (await screen.findByRole("heading", { name: /Chiefs.*Bills/ })).closest("li");
+    expect(card).not.toBeNull();
+    expect(kickoffIn(card as HTMLElement, NEAR)?.textContent).toMatch(/\d/);
+  });
+
+  it("goes to a highlighted game's date, loading the board out to it", async () => {
+    renderBoard();
+    const underdog = await screen.findByRole("region", { name: "Biggest underdog" });
+    expect(screen.queryByRole("heading", { name: /Rams.*Niners/ })).toBeNull();
+
+    fireEvent.click(within(underdog).getByRole("button", { name: /go to date/i }));
+
+    const heading = await screen.findByRole("heading", { name: /Rams.*Niners/ });
+    // 10.75 days out: the 3-day horizon grows in steps to 12, so the days between show too.
+    expect(screen.getByText(/showing games in the next 12 days/i)).toBeInTheDocument();
+    await waitFor(() => expect(document.activeElement).toBe(heading.closest("li")));
+  });
+
+  it("groups each card's markets without adding a landmark per card", async () => {
+    // Two cards with a Moneyline each used to mean two identical "Moneyline"
+    // regions -- axe's landmark-unique, repeated once per fixture on a full board.
+    renderBoard();
+    await screen.findByRole("heading", { name: /Chiefs.*Bills/ });
+    expect(screen.queryAllByRole("region", { name: "Moneyline" })).toHaveLength(0);
+    expect(screen.getAllByRole("group", { name: "Moneyline" }).length).toBeGreaterThan(0);
+  });
+
+  it("names the day on the go-to-date button for screen readers", async () => {
+    renderBoard();
+    const close = await screen.findByRole("region", { name: "Closest game" });
+    const button = within(close).getByRole("button", { name: /go to date/i });
+    expect(button.getAttribute("aria-label")).toMatch(/^Go to date: \S/);
+  });
+});
+
+describe("ZeroProofContent — a month of fixtures at most", () => {
+  const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
+  const DAY = 24 * 60 * 60 * 1000;
+  const fixture = (id: string, days: number, home: string, away: string, awayPrice = 120) => {
+    const iso = new Date(NOW + days * DAY).toISOString();
+    return {
+      id,
+      sport: "americanfootball_nfl",
+      home,
+      away,
+      commenceTime: iso,
+      status: "upcoming",
+      markets: [
+        {
+          market: "h2h",
+          fetchedAt: iso,
+          outcomes: [
+            { name: home, priceAmerican: -110 },
+            { name: away, priceAmerican: awayPrice },
+          ],
+        },
+      ],
+    };
+  };
+  const CAP_EVENTS = {
+    events: [
+      fixture("cap-near", 1, "Bills", "Chiefs"),
+      fixture("cap-late", 28, "Eagles", "Cowboys"),
+      // 40 days out, and the longest shot on the board: it must still not show.
+      fixture("cap-beyond", 40, "Niners", "Rams", 900),
+    ],
+  };
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    nowSpy = vi.spyOn(Date, "now").mockReturnValue(NOW);
+  });
+  afterEach(() => {
+    nowSpy.mockRestore();
+  });
+
+  it("asks the backend for no more than a month ahead", async () => {
+    const urls: string[] = [];
+    renderPage(undefined, undefined, (request) => {
+      if (request) urls.push(request.url);
+      return HttpResponse.json(CAP_EVENTS);
+    });
+    await screen.findByRole("heading", { name: /Chiefs.*Bills/ });
+    expect(urls.every((url) => new URL(url).searchParams.get("aheadDays") === "30")).toBe(true);
+  });
+
+  it("stops loading at a month out and says to come back later", async () => {
+    renderPage(undefined, undefined, () => HttpResponse.json(CAP_EVENTS));
+    await screen.findByRole("heading", { name: /Chiefs.*Bills/ });
+    expect(screen.queryByText(/come back later/i)).toBeNull();
+
+    // Keep loading until there's nothing left to load.
+    while (screen.queryByRole("button", { name: /load more games/i })) {
+      fireEvent.click(screen.getByRole("button", { name: /load more games/i }));
+    }
+
+    expect(await screen.findByRole("heading", { name: /Cowboys.*Eagles/ })).toBeInTheDocument();
+    expect(screen.getByText(/showing games in the next 30 days/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Rams.*Niners/ })).toBeNull();
+    expect(screen.getByText(/come back later/i)).toBeInTheDocument();
+  });
+
+  it("doesn't pick a highlight from past the month", async () => {
+    renderPage(undefined, undefined, () => HttpResponse.json(CAP_EVENTS));
+    const underdog = await screen.findByRole("region", { name: "Biggest underdog" });
+    expect(within(underdog).queryByText("Rams")).toBeNull();
+  });
+});
+
 describe("ZeroProofContent — board filters", () => {
   const NOW = new Date("2026-09-08T00:00:00.000Z").getTime();
   const mk = (

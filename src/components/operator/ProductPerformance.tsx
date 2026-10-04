@@ -181,7 +181,7 @@ export default function ProductPerformance() {
                       >
                         {v.label}
                         {row.hasSales && (
-                          <span className="tabular-nums opacity-80">
+                          <span className="tabular-nums">
                             {row.performanceIndex}
                           </span>
                         )}

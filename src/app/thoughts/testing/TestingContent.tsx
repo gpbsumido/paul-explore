@@ -242,6 +242,11 @@ await waitFor(() =>
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-03-mutation",
+            date: "Oct 3, 2026",
+            title: "Mutation testing, and the survivor that was my own test file",
+          },
+          {
             id: "update-2026-08-16-never-ran",
             date: "Aug 16, 2026",
             title: "A suite in another repo that nothing was running",
@@ -512,15 +517,134 @@ await waitFor(() =>
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-03-mutation"
+        date="October 3, 2026"
+        title="Mutation testing, and the survivor that was my own test file"
+      >
+        <p>
+          The line at the bottom of this page said there was no mutation
+          testing, so the suite proved the tests run rather than that they
+          would fail on a real break. I added Stryker and pointed it at the
+          NFL live-projection math: the share of a game left on the clock, the
+          scoreboard parser, and the win-probability model. It&rsquo;s pure
+          arithmetic full of boundaries, the kind of code where a test that
+          only checks typical values passes against broken logic. And it
+          hadn&rsquo;t been checked against a live game yet, so the tests were
+          all it had.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The first run came in at 79%, against a break line of 80
+        </h3>
+        <p className="text-muted">
+          Stryker makes small edits to the code (flip a comparison, drop a
+          condition, swap <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">Math.max</code> for 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">Math.min</code>), runs the tests against each one, and
+          counts the edits the tests failed to notice. Of 191 mutants, 28 survived
+          and 12 ran code no test touched.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`File               | % score | killed | survived | no cov
+games.ts           |   83.33 |     35 |        6 |      1
+matchups.ts        |   75.37 |     98 |       22 |     11
+winProbability.ts  |  100.00 |     15 |        0 |      0
+Final mutation score 79.06 under breaking threshold 80`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One surviving branch was dead code
+        </h3>
+        <p className="text-muted">
+          Deleting <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">if (period &gt; 4) return 0</code>, the overtime
+          check in the game-clock share, changed nothing. An OT clock never runs
+          longer than a quarter, so (4 &minus; period) quarters plus the clock is
+          already zero or negative from period 5 on, and the clamp after it
+          returns 0 anyway. The check only looked like it was doing the work, so
+          I deleted it and pinned the clamp with a 15-minute playoff OT test.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Another was the &ldquo;projections too high&rdquo; bug waiting to happen
+        </h3>
+        <p className="text-muted">
+          Replacing the week check in the stat lookup with <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">true</code> 
+          also survived. Every fixture held a single week&rsquo;s stats, so
+          nothing proved the parser ignores ESPN&rsquo;s season-total line that
+          sits right beside the weekly one. Picking that up would show a
+          300-point projection for one game. One fixture with the season line
+          first killed it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`[Survived] ConditionalExpression  src/lib/nfl/matchups.ts:99
+-   (s) => s.scoringPeriodId === week && s.statSourceId === statSourceId,
++   (s) => true && s.statSourceId === statSourceId,`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The parser&rsquo;s &ldquo;degrades on a payload that isn&apos;t a
+          league&rdquo; test was hollow in the same way. It passed 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">{"{ nope: true }"}</code>, which every optional field in
+          the schema accepts, so the failure branch never ran. A 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">null</code> payload exercises it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The strangest survivor was a bug in my test file
+        </h3>
+        <p className="text-muted">
+          Emptying out <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">playerLine</code>&rsquo;s whole body, which
+          should break every roster, &ldquo;survived&rdquo;, and Stryker flagged
+          it as static. Applying the mutant by hand showed why. A 
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">describe</code> block parsed its fixture at collection
+          time, outside any test, so with the parser broken the suite crashed
+          before a single test ran. Vitest reported that as no tests, and Stryker
+          read no failures as a survivor.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`FAIL  src/lib/nfl/matchups.test.ts
+TypeError: Cannot read properties of undefined (reading 'started')
+ ❯ src/lib/nfl/matchups.test.ts:313:17
+Tests  no tests`}
+        </pre>
+        <p className="mt-3 text-muted">
+          A real regression there would have looked like a suite that
+          didn&apos;t run, not one that failed. Building the fixture inside a
+          factory each test calls fixed it, which is also what the
+          factory-function rule further up this page already asked for.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Some mutants can&apos;t be killed, so I wrote down why
+        </h3>
+        <p className="text-muted">
+          A few mutants change nothing observable. Replacing an absent list
+          with a list of junk parses to nothing either way, because the schema
+          skips every entry. Those get a disable comment with the reason, rather
+          than a test that pins trivia or a higher threshold that hides them.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// Stryker disable next-line ArrayDeclaration: a missing list and a list of junk
+// both parse to nothing, so the default can't be observed.`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The run now ends at 100%: 177 killed and none surviving, in 36
+          seconds. The break threshold went up to 90, so a regression fails
+          without one new mutant tripping it. A separate CI job runs Stryker
+          whenever that code, its tests or the config change, and uploads the
+          HTML report even when it fails.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Factory functions instead of shared fixtures, so a test says what matters to it and nothing else.",
           "The overlap layout algorithm tested as pure logic, which is why the hardest part of the calendar is also the best covered.",
           "CI and deploy gates, so the suite blocks rather than informs.",
+          "Mutation testing with Stryker on the NFL live-projection math, held at a 90% break threshold and run in CI when that code changes: it found dead code, a hollow parser test, a missing week check and a test file that crashed before running.",
         ]}
         couldImprove={[
           "Coverage is uneven by design and not by decision — the parts written test-first are well covered and the earlier features are not.",
-          "There is no mutation testing, so the suite proves the tests run rather than that they would fail on a real break.",
+          "Mutation testing covers one area so far, the NFL projection math; everywhere else the suite still only proves the tests run, not that they would fail on a real break.",
         ]}
         upcoming={[
           "Run mutation testing against the pure cores — the layout engine, the flag engine, the evidence classifier — where it is cheapest and most likely to find a hollow test.",

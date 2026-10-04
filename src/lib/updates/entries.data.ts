@@ -11,6 +11,36 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-14-0",
+    date: "2026-10-03",
+    version: "7.14.0",
+    category: "feature",
+    tags: ["fantasy", "nfl"],
+    title: "The trade analyzer knows your league's format",
+    summary:
+      "The NFL trade analyzer reads the league's scoring, lets you try PPR, TE premium and superflex what-ifs, and accounts for the drop or waiver pickup a lopsided trade forces.",
+    body: [
+      "The analyzer shows the league's real format and can re-score a trade as if it were half PPR, non-PPR, TE premium or superflex. It recalculates from each player's projected receptions instead of applying a rough multiplier.",
+      "A two-for-one trade now includes the player the busier roster would have to drop and the free agent the other side could add. A new value-over-waiver row shows how much each side gets above what's freely available at each position.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-13-0",
+    date: "2026-10-02",
+    version: "7.13.0",
+    category: "improvement",
+    tags: ["zeroproof"],
+    title: "Jump straight to ZeroProof's featured games",
+    summary:
+      "The biggest underdog and closest game now show when they kick off, with a button that takes you to them on the board, and the board looks a month ahead at most.",
+    body: [
+      "The two featured cards at the top of the ZeroProof board show their date and time. A Go to date button scrolls you to that game in its day on the board, loading more days first if it's further out than the board was showing.",
+      "The board now stops a month ahead. Once you've loaded that far, it tells you to come back later for more games instead of fetching further out.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-12-0",
     date: "2026-10-02",
     version: "7.12.0",

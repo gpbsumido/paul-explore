@@ -1289,8 +1289,75 @@ ON CONFLICT (event_uuid) DO NOTHING;  -- a resend is a no-op`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-02-go-to-date"
+        date="October 2, 2026"
+        title="The highlight cards pointed at games the board wasn't showing"
+      >
+        <p>
+          The biggest-underdog and closest-game cards had no kickoff on them, and
+          that hid a worse problem: they pick from every fixture the board has
+          loaded, while the date sections only show the next three days. The
+          longest shot is usually a week or more out, so the card advertised a
+          game you couldn&rsquo;t find below it without clicking load-more and
+          guessing how many times.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Go to date grows the horizon to the game, not past it
+        </h3>
+        <p className="text-muted">
+          Both cards show their kickoff now, in the same format as the board,
+          and a <code className={code}>Go to date</code> button. It widens the
+          horizon in the same three-day steps load-more takes, just far enough to
+          reach the fixture, so every day in between shows too. It resets the
+          filters only if they&rsquo;d hide the fixture. Then it scrolls to the
+          card and moves focus onto it, so a keyboard or screen-reader user lands
+          where a sighted one looks.
+        </p>
+        <pre className={pre}>
+          {`revealEvent(event, filters, horizon, step = 3)
+  10.75 days out  ->  daysAhead = ceil(10.75 / 3) * 3 = 12
+  filters hide it ->  DEFAULT_BOARD_FILTERS
+  already shown   ->  unchanged`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The jump is a fresh <code className={code}>{"{ eventId, seq }"}</code> 
+          object per click. Clicking the same card twice is still a new jump,
+          and the effect that scrolls only reads state, never sets it, which is
+          what the set-state-in-effect lint rule wants.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A month out is far enough, so the backend stops there too
+        </h3>
+        <p className="text-muted">
+          Load-more could keep going as long as the vendor had lines, and the
+          backend sent every upcoming fixture on the first request whether the
+          board ever showed it or not. The board now stops a month out and says
+          so: &ldquo;Come back later for more.&rdquo; The events endpoint gained an 
+          <code className={code}>aheadDays</code> parameter, clamped to 1&ndash;30
+          (portfolio_api#261), so the request stops there as well. The board also
+          caps what it receives, which means the two can ship in either order.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It quietly broke a promise from September 4
+        </h3>
+        <p className="text-muted">
+          Earlier on this page I wrote that a fixture you&rsquo;ve bet on is
+          never hidden, horizon or not. The month cap breaks that for anything
+          more than 30 days out: the backend no longer returns it, so there is
+          nothing for the board to pin. I kept the cap anyway. Only bets placed
+          before it shipped can sit that far out, they come back on their own as
+          the date gets closer, and Your record lists them the whole time.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "Go to date on the highlight cards: the biggest underdog and the closest game show their kickoff, and a button widens the board's horizon just far enough to reach the fixture (resetting filters only if they'd hide it), then scrolls to its card and focuses it.",
+          "The board stops a month out: load-more and auto-load end at 30 days with a 'come back later' line, and the events endpoint takes ?aheadDays so it doesn't send fixtures past that. A fixture you've bet on more than a month out is the one exception to 'always shown' now.",
           "Anonymous, consent-gated telemetry for the lobby: track() queues an event and returns instantly, batches flush on ~20 events / ~5s / a byte cap, the tab-close flush goes out via sendBeacon (a plain string, so no CORS preflight), and delivery is at-least-once with retry-and-backoff — the backend dedupes on the client's event UUID and a per-session sequence makes lost events detectable. The device id is a hashed, non-reversible key; without cookie consent nothing is tracked at all.",
           "A multi-bet slip, docked: pick as many outcomes as you like (tap to add, tap or ✕ to remove), give each its own stake, and place them together — the slip stays pinned to the bottom of the screen while you scroll, so it's always in reach.",
           "Stickier board: the day-section header sticks just under the filter bar (its height measured into a CSS var so the two don't collide), and a fixture's team colour reads as a thick bottom border rather than a left bar.",

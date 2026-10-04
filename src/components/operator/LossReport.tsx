@@ -183,7 +183,7 @@ export default function LossReport() {
                   <span
                     className={
                       store.unexplainedValue > 0
-                        ? "font-semibold text-error-600 dark:text-error-400"
+                        ? "font-semibold text-error-700 dark:text-error-400"
                         : "text-muted"
                     }
                   >

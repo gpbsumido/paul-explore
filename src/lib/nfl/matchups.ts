@@ -106,8 +106,9 @@ export function ownerName(
   team: Pick<Team, "owners"> | undefined,
   members: Member[],
 ): string {
+  // No owner id needs no check of its own: member ids are always strings, so
+  // looking up undefined finds nobody and falls through to "Unknown" below.
   const ownerId = team?.owners?.[0];
-  if (!ownerId) return "Unknown";
   const member = members.find((m) => m.id === ownerId);
   if (!member) return "Unknown";
   return member.firstName && member.lastName
@@ -120,6 +121,7 @@ function playerLine(
   week: number,
 ): NflPlayerLine {
   const player = entry.playerPoolEntry.player;
+  // Stryker disable next-line UnaryOperator: -1 and +1 are both "no slot we know", so they read the same everywhere.
   const slot = entry.lineupSlotId ?? -1;
   return {
     playerId: player.id,
@@ -144,6 +146,7 @@ function buildSide(
   const starters: NflPlayerLine[] = [];
   const bench: NflPlayerLine[] = [];
 
+  // Stryker disable next-line ArrayDeclaration: a missing roster and a roster of junk both yield no players.
   for (const raw of side.rosterForCurrentScoringPeriod?.entries ?? []) {
     const parsed = rosterEntrySchema.safeParse(raw);
     if (!parsed.success) continue;
@@ -193,9 +196,11 @@ export function parseNflScoreboard(
   }
 
   const league = parsed.data;
+  // Stryker disable ArrayDeclaration: an absent list and a list of junk both match nothing here, so the empty default can't be observed.
   const teams = league.teams ?? [];
   const members = league.members ?? [];
   const schedule = league.schedule ?? [];
+  // Stryker restore ArrayDeclaration
 
   const currentWeek = league.status?.currentMatchupPeriod ?? week ?? 1;
   const filterWeek = week ?? currentWeek;

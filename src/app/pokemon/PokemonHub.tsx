@@ -126,10 +126,12 @@ function AppCard({ app, index }: { app: PokemonApp; index: number }) {
           ) : (
             <div />
           )}
+          {/* The accent marks the link as an underline, not as text colour:
+              some accents can't hold 4.5:1 against the card in both themes. */}
           <Link
             href={app.href}
-            className="paul-touch-min inline-flex items-center text-[13px] font-semibold transition-opacity hover:opacity-75"
-            style={{ color: app.color }}
+            className="paul-touch-min inline-flex items-center text-[13px] font-semibold text-foreground underline decoration-2 underline-offset-4 transition-opacity hover:opacity-75"
+            style={{ textDecorationColor: app.color }}
           >
             Open →
           </Link>

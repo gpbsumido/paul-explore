@@ -67,6 +67,14 @@ describe("the accessibility write-up", () => {
     expect(body).toMatch(/the\s+real\s+floor\s+was\s+1\.69:1/);
   });
 
+  it("explains the frame where nothing was animating yet", () => {
+    render(<AccessibilityContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Nothing was animating for exactly one frame/);
+    expect(body).toMatch(/Retries made it green/);
+    expect(body).toMatch(/still gets scanned as its loading skeleton/);
+  });
+
   it("is honest that a green suite is a claim, not proof", () => {
     render(<AccessibilityContent />);
     // Rendered through &ldquo;/&rdquo;, so match the curly quotes the page

@@ -7,6 +7,10 @@ import { Button, FilterBar, Input, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   evaluateTrade,
+  leagueScoring,
+  type LeagueFormat,
+  type RosterMove,
+  type ScoringOptions,
   type SideChange,
   type TradeHorizon,
   type TradePlayer,
@@ -134,6 +138,109 @@ function verdictText(h: TradeHorizon, aName: string, bName: string): string {
   return `${winner} wins this trade ${span}: ${signed(won)} for them, ${signed(lost)} for ${loser}, a ${fmt(Math.abs(h.margin))}-point swing.`;
 }
 
+// ---- Format ----
+
+function pprLabel(ppr: number): string {
+  if (ppr === 1) return "Full PPR";
+  if (ppr === 0.5) return "Half PPR";
+  if (ppr === 0) return "Non-PPR";
+  return `${ppr} PPR`;
+}
+
+/** The league's format in one line, e.g. "6 teams · Superflex · Full PPR · No TE premium · 4-pt passing TD". */
+function formatLabel(format: LeagueFormat): string {
+  return [
+    `${format.teams} teams`,
+    format.superflex ? "Superflex" : "1QB",
+    pprLabel(format.ppr),
+    format.tePremium ? `TE premium +${format.tePremium}` : "No TE premium",
+    `${format.passTdPoints}-pt passing TD`,
+  ].join(" · ");
+}
+
+/** The standard choices, plus the league's own value if it's something else. */
+function choices(standard: number[], league: number): number[] {
+  return [...new Set([...standard, league])].sort((a, b) => b - a);
+}
+
+function sameScoring(a: ScoringOptions, b: ScoringOptions): boolean {
+  return a.ppr === b.ppr && a.tePremium === b.tePremium && a.superflex === b.superflex;
+}
+
+/**
+ * The league's real format, and what-if controls over it. A what-if re-scores
+ * the same rosters and waiver wire, so it answers "how would this trade look
+ * under half PPR?", not "how would this league have drafted?".
+ */
+function ScoringControls({
+  format,
+  scoring,
+  onChange,
+}: {
+  format: LeagueFormat;
+  scoring: ScoringOptions;
+  onChange: (scoring: ScoringOptions) => void;
+}) {
+  const league = leagueScoring(format);
+  const hypothetical = !sameScoring(scoring, league);
+  return (
+    <section aria-label="Scoring" className="space-y-2">
+      <p className="text-[12px] text-muted">
+        League format: <span className="font-medium text-foreground">{formatLabel(format)}</span>
+      </p>
+      <FilterBar label="Score the trade as">
+        <Select
+          label="Points per reception"
+          value={scoring.ppr}
+          onChange={(e) => onChange({ ...scoring, ppr: Number(e.target.value) })}
+        >
+          {choices([1, 0.5, 0], format.ppr).map((v) => (
+            <option key={v} value={v}>
+              {`${pprLabel(v)} (${v})`}
+            </option>
+          ))}
+        </Select>
+        <Select
+          label="TE premium"
+          value={scoring.tePremium}
+          onChange={(e) => onChange({ ...scoring, tePremium: Number(e.target.value) })}
+        >
+          {choices([1, 0.5, 0], format.tePremium).map((v) => (
+            <option key={v} value={v}>
+              {v === 0 ? "None" : `+${v} per TE catch`}
+            </option>
+          ))}
+        </Select>
+        <Select
+          label="Superflex"
+          value={scoring.superflex ? "on" : "off"}
+          onChange={(e) => onChange({ ...scoring, superflex: e.target.value === "on" })}
+        >
+          <option value="on">On</option>
+          <option value="off">Off</option>
+        </Select>
+      </FilterBar>
+      {hypothetical && (
+        <p className="flex flex-wrap items-center gap-2 text-[12px] text-foreground">
+          <span>
+            <span className="font-semibold">Hypothetical scoring:</span> rosters and the
+            waiver wire stay as they are now.
+          </span>
+          <Button variant="outline" size="sm" onClick={() => onChange(league)}>
+            Reset to league scoring
+          </Button>
+        </p>
+      )}
+    </section>
+  );
+}
+
+function moveText(move: RosterMove, team: string): string {
+  return move.kind === "add"
+    ? `${team} picks up ${move.name} (${signed(move.points)})`
+    : `${team} drops ${move.name} (${fmt(move.points)})`;
+}
+
 // ---- Analyzer ----
 
 /** The trade builder and verdict, given a parsed pool. Pure props in, no fetching. */
@@ -143,6 +250,7 @@ export function TradeAnalyzer({ pool }: { pool: TradePool }) {
   const [fromA, setFromA] = useState<ReadonlySet<number>>(new Set());
   const [fromB, setFromB] = useState<ReadonlySet<number>>(new Set());
   const [search, setSearch] = useState("");
+  const [scoring, setScoring] = useState<ScoringOptions>(() => leagueScoring(pool.format));
 
   const teamName = (id: number | null) => pool.teams.find((t) => t.teamId === id)?.name ?? "";
   const rosterOf = (id: number | null) => pool.players.filter((p) => p.fantasyTeamId === id);
@@ -186,7 +294,7 @@ export function TradeAnalyzer({ pool }: { pool: TradePool }) {
 
   const ready = teamA !== null && teamB !== null && fromA.size > 0 && fromB.size > 0;
   const result = ready
-    ? evaluateTrade(pool, { teamA, teamB, fromA: [...fromA], fromB: [...fromB] })
+    ? evaluateTrade(pool, { teamA, teamB, fromA: [...fromA], fromB: [...fromB] }, scoring)
     : null;
   const ros = result?.horizons.find((h) => h.key === "restOfSeason");
   const headline =
@@ -224,6 +332,8 @@ export function TradeAnalyzer({ pool }: { pool: TradePool }) {
             ))}
         </Select>
       </FilterBar>
+
+      <ScoringControls format={pool.format} scoring={scoring} onChange={setScoring} />
 
       <div className="relative max-w-md">
         <Input
@@ -298,9 +408,55 @@ export function TradeAnalyzer({ pool }: { pool: TradePool }) {
                       </td>
                     </tr>
                   ))}
+                  <tr>
+                    <th scope="row" className="px-3 py-2 text-left font-medium text-foreground">
+                      Value over waiver
+                      <span className="block text-[10px] font-normal text-muted">
+                        rest of season, vs best free agent
+                      </span>
+                    </th>
+                    <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums text-foreground">
+                      {signed(result.value.a)}
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums text-foreground">
+                      {signed(result.value.b)}
+                    </td>
+                    <td className="px-3 py-2 text-right font-semibold text-foreground">
+                      {result.value.winner === "even"
+                        ? "Even"
+                        : `${teamName(result.value.winner === "A" ? teamA : teamB)} by ${fmt(Math.abs(result.value.margin))}`}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
+            {headline && headline.moves.a.length + headline.moves.b.length > 0 && (
+              <div className="mt-3">
+                <h2 className="text-[12px] font-semibold text-foreground">
+                  Roster moves the trade forces ({headline.label.toLowerCase()})
+                </h2>
+                <ul aria-label="Roster moves" className="mt-1 space-y-0.5 text-[12px] text-foreground">
+                  {headline.moves.a.map((m) => (
+                    <li key={`a-${m.kind}-${m.playerId}`}>{moveText(m, teamName(teamA))}</li>
+                  ))}
+                  {headline.moves.b.map((m) => (
+                    <li key={`b-${m.kind}-${m.playerId}`}>{moveText(m, teamName(teamB))}</li>
+                  ))}
+                </ul>
+                <p className="mt-1 text-[11px] text-muted">
+                  A pickup assumes the best free agent clears waivers to that team.
+                </p>
+              </div>
+            )}
+            {result.warnings.length > 0 && (
+              <ul aria-label="Trade warnings" className="mt-3 space-y-0.5 text-[12px] text-foreground">
+                {result.warnings.map((w) => (
+                  <li key={w}>
+                    <span className="font-semibold">Warning:</span> {w}
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="mt-3 text-[12px] text-muted">
               Rest-of-season SOS of what each side gets: {teamName(teamA)}{" "}
               {sosLabel(result.sos.aReceives)}, {teamName(teamB)} {sosLabel(result.sos.bReceives)}.
@@ -311,9 +467,11 @@ export function TradeAnalyzer({ pool }: { pool: TradePool }) {
 
         <p className="mt-3 text-[11px] text-muted">
           Each number is the change in a team&apos;s best possible starting lineup,
-          week by week, with byes counted. Future weeks spread ESPN&apos;s
-          rest-of-season projection over each player&apos;s remaining games. It
-          doesn&apos;t count a waiver pickup for a roster spot a trade opens.
+          week by week, with byes counted, after any drop or waiver pickup the
+          trade forces. Future weeks spread ESPN&apos;s rest-of-season projection
+          over each player&apos;s remaining games. Value over waiver ignores rosters:
+          it&apos;s the points each side gets above the best free agent at each
+          position, net of what it gives up. Even means within half a point a week.
         </p>
       </section>
 

@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-10-03 - version 7.14.2
+
+- Fixed the flaky `/fantasy/nba/playoffs` (dark) accessibility scan, which failed every bracket label on contrast and then passed on CI's retry. The bracket loads after the page does: a pulsing skeleton gives way to columns that fade in from opacity 0, and in the frame between the two nothing is animating. The scan's last wait only asked whether anything was animating, so on a slow, cold first hit it measured the bracket while it was still transparent. It now needs 250ms in a row with no running animations, and it still stops waiting at five seconds for pages that animate forever.
+- The scan's waits moved into `e2e/helpers/settle.ts`. A new spec serves a fixture bracket a second late and scans it in both themes; it failed 6 of 6 before the change.
+
+## 2026-10-03 - version 7.14.1
+
+- Added mutation testing with Stryker (`pnpm test:mutation`) on the NFL live-projection math: the game-clock share, the scoreboard parser and the win-probability model. The first run scored 79.06% with 28 surviving mutants.
+  - Killing them found an overtime branch the clamp already covered (deleted), a stat lookup nothing proved ignores ESPN's season-total line, a "not a league" test whose payload the schema accepts, and a `describe`-level fixture that crashed the suite at collection time, which Stryker counted as a surviving mutant.
+  - Now 100% (177 killed); the break threshold is 90. A CI workflow runs Stryker when that code changes and uploads the HTML report.
+- The accessibility scan covers every public feature page: 58 routes in both themes, up from 19, including ZeroProof, the hubs, the operator subpages, the learn demos and the write-ups. The first run failed 17 scans. Fixes:
+  - `/budget` had no `<main>` landmark.
+  - The AI agent patterns intro (its h1 and description) was `display: none` for everyone: a framer-motion variants object spread onto the section turned the `hidden` variant into the HTML `hidden` attribute.
+  - The event-delegation demos claimed `role="listbox"` with no options, and Enter did nothing. They're now lists of real buttons with one delegated handler, so the keyboard reaches them.
+  - Card titles are h2s, and rarity labels sit on a dark chip so white text holds 4.5:1 on the pale tiers.
+  - The Pokemon hub's "Open" link carries its accent on the underline instead of the text, and the preview chips are darker.
+  - The operator finance, loss and products figures hold AA in light mode.
+  - Code in write-ups wraps instead of scrolling sideways where a keyboard can't reach it.
+- The design-system page's remaining contrast failures (the `muted-foreground` token and StatCard's positive delta) are fixed upstream in paul-design-system#107 and released in paul-design-system#108. `@paul-portfolio/tokens` moves to ^0.4.2 and `@paul-portfolio/css` to ^0.13.12. Against the published packages, `/design-system` passes in both themes.
+
+## 2026-10-03 - version 7.14.0
+
+- The NFL trade analyzer reads the league's format from ESPN (team count, superflex, PPR, TE premium, passing TD points) and shows it. Its numbers at those settings don't change: ESPN's projections are already league-scored.
+- What-if scoring: PPR (full, half or none), TE premium (+0, +0.5 or +1 per catch) and superflex on or off. They're exact rather than multipliers. Each projection's per-stat line (stat 53 for receptions) re-scores against the league's settings to ESPN's own number, so a what-if adds the per-reception difference, and superflex opens or closes the OP slot. A note marks the result as hypothetical, since rosters and the waiver wire stay as they are, and a reset button goes back to league scoring.
+- Roster spots: a trade that overfills a full roster drops the player whose loss costs the lineup least (never one ESPN marks undroppable). One that opens a spot picks up the best healthy free agent, within position limits, at a position the side traded away. Only spots the trade itself causes count, and IR slots don't. My first version credited the best upgrade anywhere on the wire, which on a real trade was a kicker the team could already have added.
+- A value-over-waiver row for positional scarcity: each side's rest-of-season points above the best free agent at each position, week by week, net of what it gives up. There are no borrowed superflex or TE multipliers; in a 6-team league a 247-point QB sits on waivers.
+- "Even" now means within half a point per week of the horizon, not a flat half point.
+- Warnings, rather than blocks, for trade-locked players, position limits, and a forced drop with nobody droppable.
+- The trade route also fetches the 100 most-owned free agents and waiver players, plus `mRoster` for IR slots. If the free-agent call fails, the page still works, just without pickups or a replacement baseline.
+
+## 2026-10-02 - version 7.13.0
+
+- ZeroProof's biggest-underdog and closest-game cards show their kickoff date and time, and each has a Go to date button. They pick from every fixture loaded while the date sections only show the next few days, so the longest shot was often a game you couldn't find on the board. Go to date widens the horizon in the usual 3-day steps just far enough to reach the fixture, resets the filters only if they'd hide it, then scrolls to its card and moves focus onto it.
+- The board stops a month out. Load-more and auto-load end at 30 days, a line says to come back later for more, and the events request passes `aheadDays=30` (portfolio_api#261) so the backend stops sending fixtures past that. The board also caps what it receives, so it holds the line against a backend that doesn't know the parameter yet. A fixture you bet on more than a month out no longer stays pinned to the board; it's still in Your record.
+- Each fixture card's Moneyline, Spread and Total blocks are named groups instead of landmark regions. A full board had dozens of identically named regions (axe `landmark-unique`), which a scan of the loaded board caught; `/zeroproof` isn't in the route scan list, and the unit test renders one fixture.
+- Develop picks up main's 7.12.0 release merge on the way, including the ZeroProof mobile-scrolling changelog line.
+
 ## 2026-10-02 - version 7.12.0
 
 - Fixed projected finals on `/fantasy/nfl/matchups` reading high. A side's remaining projection was each starter's `projected - actual` whether or not their game was over, so every finished under-performer kept "owing" points: week 3 showed a projected 164.5-179.8 for a matchup that ended 123.9-135.6. A past week now projects nothing, and a live week scales each starter's projection by the share of their NFL game left (all of it before kickoff, the clock's share while live, none when final or on a bye), read from a new `/api/nfl/games` route over ESPN's public scoreboard. ESPN's own weekly projections checked out; the second week-4 line some players carry is Thursday's actual, not a duplicate projection.
