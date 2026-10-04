@@ -18,6 +18,10 @@ package-lock.json
 # testing
 /coverage
 
+# Mutation testing: Stryker's sandbox and its reports
+/.stryker-tmp
+/reports/mutation
+
 # next.js
 /.next/
 /out/

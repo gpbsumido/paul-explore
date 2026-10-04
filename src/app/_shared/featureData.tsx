@@ -125,7 +125,7 @@ export function PokemonPreview() {
           <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
             {p.name}
           </span>
-          <span className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/50 dark:text-white/50">
+          <span className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/70 dark:text-white/70">
             {p.types[0]}
           </span>
         </div>
@@ -233,7 +233,7 @@ export function GraphQLPreview() {
             {p.types.map((t) => (
               <span
                 key={t}
-                className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/50 dark:text-white/50"
+                className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/70 dark:text-white/70"
               >
                 {t}
               </span>
@@ -558,7 +558,7 @@ function WpTickerRow({
               className="h-1 w-1 shrink-0 rounded-full"
               style={{ backgroundColor: "#4a83c8" }}
             />
-            <span className="whitespace-nowrap text-[7px] text-black/50 dark:text-white/50">
+            <span className="whitespace-nowrap text-[7px] text-black/70 dark:text-white/70">
               {label}
             </span>
           </span>
@@ -605,13 +605,13 @@ export function DesignSystemPreview() {
         </div>
       </div>
       <div className="flex gap-1.5">
-        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/70 dark:bg-white/10 dark:text-white/70">
           tokens
         </span>
-        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/70 dark:bg-white/10 dark:text-white/70">
           a11y
         </span>
-        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/70 dark:bg-white/10 dark:text-white/70">
           live
         </span>
       </div>

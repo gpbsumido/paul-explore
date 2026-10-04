@@ -20,4 +20,12 @@ describe("the testing write-up", () => {
     const body = document.body.textContent ?? "";
     expect(body).toMatch(/doubled\s+after\s+a\s+build/);
   });
+
+  it("records the mutant that survived because the suite never ran", () => {
+    render(<TestingContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Vitest\s+reported\s+that\s+as\s+no\s+tests/);
+    expect(body).toMatch(/Final mutation score 79\.06/);
+  });
 });
+

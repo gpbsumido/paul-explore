@@ -121,7 +121,9 @@ export default function FantasyCard({ card }: { card: FantasyCardData }) {
               className="flex items-center justify-between px-2.5 py-1"
               style={{ backgroundColor: meta.color }}
             >
-              <span className="text-[11px] font-bold uppercase tracking-widest text-white drop-shadow">
+              {/* White on a dark chip, not straight on the band: the pale tiers
+                  (Common, Uncommon) can't carry white text at 4.5:1. */}
+              <span className="rounded bg-black/65 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-white">
                 {meta.label}
               </span>
               {owned ? <Badge variant="info">×{owned}</Badge> : null}
@@ -146,9 +148,9 @@ export default function FantasyCard({ card }: { card: FantasyCardData }) {
             </div>
 
             <div className="flex flex-1 flex-col gap-1.5 bg-surface/55 p-3 backdrop-blur-sm">
-              <h3 className="truncate text-[13px] font-semibold leading-snug text-foreground">
+              <h2 className="truncate text-[13px] font-semibold leading-snug text-foreground">
                 {card.playerName}
-              </h3>
+              </h2>
               <p className="text-[11px] text-muted">{card.subtitle}</p>
               {card.boosts && card.boosts.length > 0 ? (
                 <ul className="mt-0.5 flex flex-wrap gap-1">
