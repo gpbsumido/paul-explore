@@ -55,18 +55,34 @@ export async function waitForPageToSettle(page: Page) {
   // page's own animations to finish is still a fact about this page, which
   // is the property that matters -- unlike networkidle, nothing here
   // depends on a third party answering.
-  await page
-    .waitForFunction(
-      () =>
-        document
-          .getAnimations()
-          .every((a) => a.playState !== "running"),
-      undefined,
-      { timeout: 5_000 },
-    )
-    .catch(() => {
-      // Some pages animate forever by design (the particle lab). Those are
-      // decorative, so carry on rather than fail a scan on a loop that is
-      // never going to stop.
-    });
+  //
+  // Finished has to mean finished for a while, not for one frame. Content
+  // that loads late swaps a pulsing skeleton for columns that fade in, and in
+  // the frame between the two nothing is animating while the new content is
+  // still transparent. The playoffs bracket got scanned at opacity 0 that way
+  // whenever its API was slow. A quarter of a second without animations is
+  // far longer than the gap between a mount and its fade starting.
+  await page.evaluate(
+    ({ quietMs, timeoutMs }) =>
+      new Promise<void>((resolve) => {
+        const start = performance.now();
+        let quietSince = start;
+        const check = (now: number) => {
+          const animating = document
+            .getAnimations()
+            .some((a) => a.playState === "running");
+          if (animating) quietSince = now;
+          // Some pages animate forever by design (the particle lab). Those
+          // are decorative, so stop waiting rather than fail a scan on a loop
+          // that is never going to stop.
+          if (now - quietSince >= quietMs || now - start >= timeoutMs) {
+            resolve();
+            return;
+          }
+          requestAnimationFrame(check);
+        };
+        requestAnimationFrame(check);
+      }),
+    { quietMs: 250, timeoutMs: 5_000 },
+  );
 }
