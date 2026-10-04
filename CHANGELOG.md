@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-03 - version 7.14.2
+
+- Fixed the flaky `/fantasy/nba/playoffs` (dark) accessibility scan, which failed every bracket label on contrast and then passed on CI's retry. The bracket loads after the page does: a pulsing skeleton gives way to columns that fade in from opacity 0, and in the frame between the two nothing is animating. The scan's last wait only asked whether anything was animating, so on a slow, cold first hit it measured the bracket while it was still transparent. It now needs 250ms in a row with no running animations, and it still stops waiting at five seconds for pages that animate forever.
+- The scan's waits moved into `e2e/helpers/settle.ts`. A new spec serves a fixture bracket a second late and scans it in both themes; it failed 6 of 6 before the change.
+
 ## 2026-10-03 - version 7.14.1
 
 - Added mutation testing with Stryker (`pnpm test:mutation`) on the NFL live-projection math: the game-clock share, the scoreboard parser and the win-probability model. The first run scored 79.06% with 28 surviving mutants.
