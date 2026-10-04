@@ -13,7 +13,7 @@
   - The Pokemon hub's "Open" link carries its accent on the underline instead of the text, and the preview chips are darker.
   - The operator finance, loss and products figures hold AA in light mode.
   - Code in write-ups wraps instead of scrolling sideways where a keyboard can't reach it.
-- The design-system page's remaining contrast failures (the `muted-foreground` token and StatCard's positive delta) are fixed upstream in paul-design-system#107, and were verified here against the packed packages (116/116 scans). The `@paul-portfolio/tokens` and `@paul-portfolio/css` bumps land once that release publishes.
+- The design-system page's remaining contrast failures (the `muted-foreground` token and StatCard's positive delta) are fixed upstream in paul-design-system#107 and released in paul-design-system#108. `@paul-portfolio/tokens` moves to ^0.4.2 and `@paul-portfolio/css` to ^0.13.12. Against the published packages, `/design-system` passes in both themes.
 
 ## 2026-10-03 - version 7.14.0
 

@@ -340,9 +340,11 @@ StatCard +delta    light success-700  4.48:1 (5:1 on white, not on the warm surf
                          -> success-800  6.37:1`}
         </pre>
         <p className="mt-3 text-muted">
-          Before it&rsquo;s published, I packed both packages, installed them
-          here, built the app and ran the scan again: 116 of 116. This app
-          moves to the published versions once the design system releases.
+          Before it was published, I packed both packages, installed them
+          here, built the app and ran the scan again: 116 of 116. Then the
+          design system released them as tokens 0.4.2 and css 0.13.12, this
+          app moved to those, and the scan passed again against what&rsquo;s
+          actually on npm.
         </p>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
