@@ -32,9 +32,9 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.26.0",
     "@module-federation/runtime": "2.9.1",
-    "@paul-portfolio/css": "^0.13.11",
+    "@paul-portfolio/css": "^0.13.12",
     "@paul-portfolio/react": "^0.12.10",
-    "@paul-portfolio/tokens": "^0.4.1",
+    "@paul-portfolio/tokens": "^0.4.2",
     "@paul-portfolio/work-portfolio-contract": "^1.0.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
