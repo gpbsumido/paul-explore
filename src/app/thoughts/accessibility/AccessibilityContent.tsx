@@ -29,6 +29,11 @@ export default function AccessibilityContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-03-settle",
+            date: "Oct 3, 2026",
+            title: "The playoffs bracket again, and a wait that was true for one frame",
+          },
+          {
             id: "update-2026-10-03-every-page",
             date: "Oct 3, 2026",
             title: "Scanning every page, and fixing two of the failures upstream",
@@ -359,6 +364,92 @@ StatCard +delta    light success-700  4.48:1 (5:1 on white, not on the warm surf
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-03-settle"
+        date="October 3, 2026"
+        title="The playoffs bracket again, and a wait that was true for one frame"
+      >
+        <p>
+          Same bracket, third time on this page. The dark-mode playoffs scan
+          started failing in CI with every label in the bracket under AA at
+          once, then passing on the retry. That is the pattern I already call
+          the tell here: if the colours really failed, the page would be
+          unreadable, not slightly off.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Retries made it green, which is how a flake gets to stay
+        </h3>
+        <p className="text-muted">
+          CI retries a failed end-to-end test twice, so the job went green and
+          reported one flaky test. It did that twice in CI and once in a full
+          local run, and the route passed six times out of six when I ran it on
+          its own.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`1 flaky
+  [public] › a11y-routes.spec.ts › dark › /fantasy/nba/playoffs has no axe violations
+Axe violations on "/fantasy/nba/playoffs (dark)" — fix before merging
+  "id": "color-contrast", "impact": "serious"
+  <h2 ...>Eastern Conference</h2>, <span ...>R1</span>, <span ...>DET</span>, ...`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I called it a fade, and the scan already waited for fades
+        </h3>
+        <p className="text-muted">
+          My first note said axe was catching the bracket mid-fade, and the fix
+          was to wait for its entrance animation. The scan already did that.
+          Its last step waits until nothing on the page is animating. Acting on
+          that diagnosis would have meant a second copy of a wait that was
+          already there, and the flake would have kept happening.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Nothing was animating for exactly one frame
+        </h3>
+        <p className="text-muted">
+          The bracket loads after the page does. While it waits, a skeleton
+          pulses, so the animation wait keeps waiting. When the data lands,
+          React swaps the skeleton for columns at opacity 0, and the fade
+          starts on the next frame. In between, nothing on the page is
+          animating, so &ldquo;has every animation stopped?&rdquo; is true,
+          and the scan measures text nobody can see yet. Holding the bracket
+          response back made it happen every time:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`bracket delay   wait resolved   bracket opacity   contrast failures
+   300ms           715ms          0                 17
+   800ms          1205ms          0.007             17
+  1500ms          1919ms          0.010             17
+  3000ms          3415ms          0                 17
+  6000ms          timed out       skeleton only      0`}
+        </pre>
+        <p className="mt-3 text-muted">
+          So it only fails when the bracket is slower than every other wait but
+          quicker than the five-second cap. That&rsquo;s a cold first hit, and
+          in CI the dark theme runs first.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Now the page has to stay still for a quarter of a second
+        </h3>
+        <p className="text-muted">
+          The wait now needs 250ms in a row with nothing animating, not a
+          single frame of it. A frame or two between a mount and its fade
+          can&rsquo;t satisfy that, and a page with no animations only pays the
+          quarter second. The waits moved into a shared helper, and a new spec
+          serves a fixture bracket a second late and scans it in both themes.
+          It failed six times out of six before the change and passes now. The
+          full local scan took 1.3 minutes before the change and after it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- document.getAnimations().every((a) => a.playState !== "running")
++ if (animating) quietSince = now;
++ if (now - quietSince >= quietMs || now - start >= timeoutMs) resolve();`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Accessibility treated as markup rather than attributes — semantic elements first, ARIA only where semantics genuinely run out.",
@@ -369,6 +460,7 @@ StatCard +delta    light success-700  4.48:1 (5:1 on white, not on the warm surf
         couldImprove={[
           "Automated checks catch roughly a third of what matters. Nothing here covers whether the app is actually operable by keyboard end to end, which no linter can tell you.",
           "There is no screen-reader pass recorded anywhere, so the claim rests on the tooling rather than on having listened to it.",
+          "Content that arrives more than five seconds after the page still gets scanned as its loading skeleton. The scan stops waiting at five seconds so a page that animates forever can't hang it, and a slow enough API looks exactly like that.",
           "prefers-reduced-motion was honoured unevenly. I assumed the 3D pages were the offenders and audited before fixing: the world already gated every ambient animation, and only the particle lab ignored the setting entirely. Worth recording that the assumption was wrong, because it is the sort that sends a fix at the wrong page.",
         ]}
         upcoming={[
