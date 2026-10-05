@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05 - version 7.14.3
+
+- Signing in with email and password on my phone landed in a different account from Google on desktop, with no calendar events and no ZeroProof bets. Auth0 makes every login method its own user, and every feature keys its data by `sub`, so the same email was two empty-to-each-other accounts. A post-login Auth0 Action (`auth0/actions/link-accounts-by-email.js`) now links users that share a verified email into one, keeping the most-used account as the primary and switching the login to it with `setPrimaryUser`. Only verified emails on Google or the email-and-password database link: an unverified match would let anyone sign up with someone else's address and get into their account.
+- The Action is deployed by hand in the Auth0 dashboard: a Management API app with `read:users` and `update:users`, three secrets, and first place in the post-login flow. Its tests run in the unit suite.
+- A dated update on `/thoughts/login-redirect` covers the diagnosis and the decision.
+
 ## 2026-10-03 - version 7.14.2
 
 - Fixed the flaky `/fantasy/nba/playoffs` (dark) accessibility scan, which failed every bracket label on contrast and then passed on CI's retry. The bracket loads after the page does: a pulsing skeleton gives way to columns that fade in from opacity 0, and in the frame between the two nothing is animating. The scan's last wait only asked whether anything was animating, so on a slow, cold first hit it measured the bracket while it was still transparent. It now needs 250ms in a row with no running animations, and it still stops waiting at five seconds for pages that animate forever.

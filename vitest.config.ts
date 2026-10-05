@@ -40,9 +40,12 @@ export default defineConfig({
           // comparison logic is worth testing and lives beside the script that
           // uses it. Without this glob a test file there is silently never run,
           // which is worse than not having written it.
+          // `auth0/` holds Actions that get pasted into the Auth0 dashboard.
+          // They run at login, outside this app, so their tests live here.
           include: [
             "src/**/*.{test,spec}.{ts,tsx}",
             "scripts/**/*.{test,spec}.ts",
+            "auth0/**/*.{test,spec}.ts",
           ],
           exclude: ["**/node_modules/**", integrationGlob],
         },
