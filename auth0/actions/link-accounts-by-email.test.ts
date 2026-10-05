@@ -72,8 +72,10 @@ const makeApi = () => {
   const store = new Map<string, string>();
   return {
     cache: {
-      get: (key: string) =>
-        store.has(key) ? { value: store.get(key) } : undefined,
+      get: (key: string) => {
+        const value = store.get(key);
+        return value === undefined ? undefined : { value };
+      },
       set: (key: string, value: string) => {
         store.set(key, value);
         return { type: "success" };
