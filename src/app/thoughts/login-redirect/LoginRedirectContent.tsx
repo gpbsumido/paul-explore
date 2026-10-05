@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -291,9 +291,98 @@ export default function LoginRedirectContent() {
           about how much one branch is carrying.
         </p>
       </section>
+
+      <Update
+        id="update-2026-10-05-one-account"
+        date="October 5, 2026"
+        title="Signing in on my phone put me in somebody else's account, and it was mine"
+      >
+        <p>
+          I signed in on my phone and my calendar was empty and my ZeroProof
+          bets were gone. Desktop still had all of it. Nothing had been
+          deleted. I was signed into a different account that happened to have
+          my email address.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Same email, two Auth0 users
+        </h3>
+        <p className="text-muted">
+          <code className={code}>/api/me</code> on each device told the whole
+          story. Desktop signs in with Google, the phone had used email and
+          password, and Auth0 treats every connection as its own user. Every
+          feature here keys its data by <code className={code}>sub</code>, so
+          the second user starts empty.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`phone    {"name":"psumido@gmail.com","sub":"auth0|6812f36b…","isFlagAdmin":false}
+desktop  {"name":"Paul Sumido","sub":"google-oauth2|1006545…","isFlagAdmin":true}`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The flag-admin difference was a clue I nearly skipped. Same email,
+          and only one of them an admin, because admin needs a verified email
+          and the password account&rsquo;s never was.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Signing in with Google fixed my phone, not the problem
+        </h3>
+        <p className="text-muted">
+          Signing out and back in with Google on the phone brought everything
+          back, which proved the diagnosis. My first plan from there was to
+          show which account and sign-in method you&rsquo;re on in the menu.
+          That would have made the mismatch obvious, and it would still have
+          left two accounts for anyone who picks the other button. The fix
+          belongs where the identity is made, not where it&rsquo;s shown.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One user per verified email, linked at login
+        </h3>
+        <p className="text-muted">
+          A post-login Action now looks up every Auth0 user with the same email
+          and links them into one, so Google and email and password both get
+          the same <code className={code}>sub</code>. Nothing else in the app
+          changes, because every feature already keys by it. The Action keeps
+          the account with the most logins as the primary, since that&rsquo;s
+          the one holding the data, and switches the login over with{" "}
+          <code className={code}>setPrimaryUser</code> when the account you
+          signed in with is the one being folded in.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`POST https://t.auth0.com/oauth/token
+GET  https://t.auth0.com/api/v2/users-by-email?email=p%40x.com
+POST https://t.auth0.com/api/v2/users/google-oauth2%7C1/identities
+setPrimaryUser: google-oauth2|1`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Only verified emails link. If any matching address counted, anyone
+          could sign up with my address and a password and land in my calendar.
+          It also only trusts the connections I know verify email, so a
+          provider I add later can&rsquo;t vouch for an address it never
+          checked. Auth0&rsquo;s own advice is stricter still, asking you to
+          sign into both accounts before linking. For two connections that
+          both prove you own the inbox, I&rsquo;m comfortable without it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The API had its own idea of who owns an email
+        </h3>
+        <p className="text-muted">
+          Calendar and budget invites resolve an email to a{" "}
+          <code className={code}>sub</code> through the API&rsquo;s{" "}
+          <code className={code}>users</code> table, and email is unique there.
+          If the account that got folded in had claimed that row first, invites
+          would keep going to a <code className={code}>sub</code> nobody signs
+          in as anymore. The API now hands the row to whichever verified login
+          presents the email, and the shares pointing at it move with it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "The fix made at the choke point rather than at each call site, which is why two separate bugs closed with one change.",
+          "Logins that share a verified email become one Auth0 user, so Google and email and password reach the same calendar, bets and everything else.",
           "A deliberate logout no longer claims the session timed out — the marker that outlives the session cookie is cleared on the way out, so leaving and expiring stop looking identical.",
           "A callback that fails softly, because an auth redirect that throws leaves someone stranded with no way to describe what happened.",
         ]}
@@ -301,6 +390,8 @@ export default function LoginRedirectContent() {
           "The return path is not covered by an end-to-end test, so the regression it fixes would be caught by noticing.",
           "Deep links into authenticated routes still land on the destination rather than the thing that was being attempted, which is a subtler version of the same problem.",
           "Three separate bugs have now been found in this one branch, and none of them were caught by a test — each was noticed by using the site.",
+          "Anything created under an account before it got linked stays under its old sub. Nothing moves bets or events across yet.",
+          "The Action runs in the Auth0 dashboard, and the copy in the repo is the one that's tested. Nothing checks that the two still match.",
         ]}
         upcoming={[
           "An end-to-end test that signs in, signs out, and asserts the toast does not appear — the one class of bug here that keeps recurring is the one nothing watches.",

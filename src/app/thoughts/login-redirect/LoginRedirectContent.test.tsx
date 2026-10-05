@@ -54,6 +54,22 @@ describe("LoginRedirectContent", () => {
   });
 });
 
+describe("the split-account update", () => {
+  it("shows the two users one email turned into", () => {
+    render(<LoginRedirectContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Same email, two Auth0 users/);
+    expect(body).toMatch(/google-oauth2\|/);
+    expect(body).toMatch(/auth0\|/);
+  });
+
+  it("says why only verified emails link", () => {
+    render(<LoginRedirectContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/sign up with my address and a password/);
+  });
+});
+
 describe("login-redirect write-up registration", () => {
   it("is listed in the Architecture & Backend category", () => {
     const group = groupThoughts(THOUGHTS).find(
