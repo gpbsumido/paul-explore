@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-06 - version 7.15.0
+
+- Added an Organizations lab at `/learn/organizations`, modelling Auth0 Organizations for B2B apps. An email routes to the connection that owns its domain (whole-domain match, so `acme.com.evil.io` doesn't ride on `acme.com`; unknown domains fall back to a database connection with no org). Signing in mints a session with `org_id` and only the roles held in that org, and a request is checked against that org before the role is looked at, so an admin at one customer is denied on another's resource with reason `cross_tenant`. Every decision lands in an audit table with its reason.
+- The model is pure functions in `src/lib/organizations/` (12 behavior tests); the page has role-query tests for discovery, a denial announced in text, and a cross-tenant read landing in the log. It models the contract and doesn't call Auth0.
+- Added the `/thoughts/organizations` write-up, a Learn hub card, and an Updates entry.
+
 ## 2026-10-03 - version 7.14.2
 
 - Fixed the flaky `/fantasy/nba/playoffs` (dark) accessibility scan, which failed every bracket label on contrast and then passed on CI's retry. The bracket loads after the page does: a pulsing skeleton gives way to columns that fade in from opacity 0, and in the frame between the two nothing is animating. The scan's last wait only asked whether anything was animating, so on a slow, cold first hit it measured the bracket while it was still transparent. It now needs 250ms in a row with no running animations, and it still stops waiting at five seconds for pages that animate forever.

@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-15-0",
+    date: "2026-10-06",
+    version: "7.15.0",
+    category: "feature",
+    tags: ["learn", "auth"],
+    title: "An Organizations lab: one customer must never see another",
+    summary:
+      "A hands-on model of B2B tenancy: an email routes to its customer's sign-in, the session is scoped to one organization, and the tenant check runs before the role check.",
+    body: [
+      "Type an email and see which organization's connection it routes to. Sign in, then make requests against your own organization or someone else's and watch an audit log record each allow or deny with the reason.",
+      "An admin at one customer is still denied on another customer's data, because the organization is checked before the role. It's a model of the Auth0 Organizations contract, not a live Auth0 call.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-14-0",
     date: "2026-10-03",
     version: "7.14.0",
