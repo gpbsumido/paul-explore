@@ -564,6 +564,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#4c4fc5",
   },
   {
+    title: "Organizations",
+    href: "/thoughts/organizations",
+    preview:
+      "A B2B tenancy lab: an email routes to its customer's connection, the login mints an org-scoped session, and the tenant check runs before the role check on every request",
+    color: "#3f6db5",
+  },
+  {
     title: "macOS Menu Bar",
     href: "/thoughts/mac-menu-bar",
     preview:
