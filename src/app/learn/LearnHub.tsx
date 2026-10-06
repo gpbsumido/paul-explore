@@ -14,7 +14,7 @@ import {
 import { useHubReducedMotion } from "@/app/providers";
 
 // ---------------------------------------------------------------------------
-// Topic data — the 14 topics across 2 categories
+// Topic data — the 15 topics across 2 categories
 // ---------------------------------------------------------------------------
 
 type Topic = {
@@ -131,6 +131,14 @@ const TOPICS: Topic[] = [
     title: "AI Agent Patterns",
     subtitle:
       "SSE, streaming, state machines, and the UI components that make agent features work.",
+    category: "Frontend Patterns",
+    difficulty: 3,
+  },
+  {
+    id: "organizations",
+    title: "Organizations",
+    subtitle:
+      "B2B tenancy: org-scoped sessions, per-org roles, and the isolation check that keeps one customer out of another.",
     category: "Frontend Patterns",
     difficulty: 3,
   },
@@ -613,6 +621,43 @@ function AgentPatternsMark({ h }: { h: boolean }) {
   );
 }
 
+function OrganizationsMark({ h }: { h: boolean }) {
+  return (
+    <>
+      {/* two tenant boxes, the second slides apart on hover */}
+      <m.rect
+        x="35"
+        y="30"
+        width="40"
+        height="40"
+        rx="4"
+        strokeOpacity="0.3"
+        animate={{ x: h ? 28 : 35 }}
+        transition={hoverSpring}
+      />
+      <m.rect
+        x="85"
+        y="30"
+        width="40"
+        height="40"
+        rx="4"
+        strokeOpacity="0.3"
+        animate={{ x: h ? 92 : 85 }}
+        transition={hoverSpring}
+      />
+      {/* the wall between them */}
+      <m.line
+        x1="80"
+        y1="22"
+        x2="80"
+        y2="78"
+        animate={{ opacity: h ? 1 : 0.4 }}
+        transition={hoverSpring}
+      />
+    </>
+  );
+}
+
 const MARK_COMPONENTS: Record<string, React.ComponentType<{ h: boolean }>> = {
   "two-pointers": TwoPointersMark,
   "sliding-window": SlidingWindowMark,
@@ -628,6 +673,7 @@ const MARK_COMPONENTS: Record<string, React.ComponentType<{ h: boolean }>> = {
   "async-patterns": AsyncMark,
   "from-scratch": FromScratchMark,
   "ai-agent-patterns": AgentPatternsMark,
+  organizations: OrganizationsMark,
 };
 
 function ConceptMark({ id, hovered }: { id: string; hovered: boolean }) {
