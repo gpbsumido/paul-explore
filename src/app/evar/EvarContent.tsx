@@ -162,7 +162,7 @@ export default function EvarContent() {
               name="evar-window"
               options={Object.entries(WINDOWS).map(([id, w]) => ({ value: id, label: w.label }))}
               value={windowId}
-              onChange={(value) => setWindowId(value as WindowId)}
+              onChange={(value) => setWindowId(value === "soft" ? "soft" : "angio")}
             />
 
             <SliceViewer

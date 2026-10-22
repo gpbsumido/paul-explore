@@ -15,12 +15,12 @@ export type CtWindow = { label: string; width: number; level: number };
  * wall and thrombus; soft tissue makes the outer wall easier to find, which is
  * the edge EVAR diameters are taken from.
  */
-export const WINDOWS = {
+export type WindowId = "angio" | "soft";
+
+export const WINDOWS: Readonly<Record<WindowId, CtWindow>> = {
   angio: { label: "Angio (W600 L150)", width: 600, level: 150 },
   soft: { label: "Soft tissue (W400 L40)", width: 400, level: 40 },
-} as const satisfies Record<string, CtWindow>;
-
-export type WindowId = keyof typeof WINDOWS;
+};
 
 export type TaskId =
   | "neckDiameter"
