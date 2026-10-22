@@ -12,6 +12,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "budget",
       "updates",
       "research-explorer",
+      "evar-sizing",
       "learn",
       "particles",
       "world",

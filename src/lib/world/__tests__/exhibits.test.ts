@@ -60,6 +60,10 @@ describe("world exhibits", () => {
       // rather than a distinct landmark. Revisit once the plays ticker gives
       // it something a walk-up visitor can actually watch happen live.
       "fantasy-nfl",
+      // A focused practice tool that needs a big image and some patience. A
+      // booth in the city would be a signpost to a CT viewer, which is a
+      // strange thing to walk up to. Revisit if it grows a quick-play mode.
+      "evar",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));
