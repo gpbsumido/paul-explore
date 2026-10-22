@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-15-0",
+    date: "2026-10-22",
+    version: "7.15.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "Practise EVAR sizing on CT",
+    summary:
+      "A new practice page for measuring an abdominal aortic aneurysm before an endovascular repair, scored against exact answers.",
+    body: [
+      "Scroll through axial CT slices, put calipers on the aortic neck, the aneurysm sac and both common iliac arteries, and mark where the neck starts and ends. Check your answers to see how far off each measurement was and what the anatomy would mean for the repair.",
+      "The scans are synthetic CT phantoms rather than patient images, which is what lets every answer be exact. The calipers work with a mouse or entirely from the keyboard.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-14-0",
     date: "2026-10-03",
     version: "7.14.0",
