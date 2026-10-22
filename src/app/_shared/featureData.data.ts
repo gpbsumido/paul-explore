@@ -66,6 +66,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/research-explorer",
   },
   {
+    id: "evar",
+    title: "EVAR Sizing",
+    description:
+      "Practise sizing an endovascular aneurysm repair on synthetic CT: scroll the axial slices, put calipers on the neck, the sac and both iliacs, and get each number checked against the exact reference.",
+    href: "/evar",
+    color: "#c0584d",
+    thoughtsHref: "/thoughts/evar-sizing",
+  },
+  {
     id: "flags",
     title: "Feature Flags",
     description:
@@ -281,6 +290,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Finding a research topic by measuring the literature: PubMed counts as evidence levels, a curated query layer, and demographic coverage as the gap finder",
     color: "#3aaea1",
+  },
+  {
+    title: "EVAR Sizing",
+    href: "/thoughts/evar-sizing",
+    preview:
+      "A CT phantom drawn one slice at a time from a dozen numbers, so every answer is exact, and why I didn't ship real scans yet",
+    color: "#be5d68",
   },
   {
     title: "TypeScript 7",
