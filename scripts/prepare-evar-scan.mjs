@@ -14,16 +14,23 @@
  * from figshare. Usage:
  *
  *   node scripts/prepare-evar-scan.mjs <in.nrrd> <out.u8.gz> \
- *     --offset 1024 --top 220 --bottom 560 --cx 297 --cy 250
+ *     --offset 1024 --top 220 --bottom 560 --cx 297 --cy 250 \
+ *     --id avt-r6 --dataset avt --case R6 --title "Real CT: aneurysm with thrombus"
  *
  * --offset   subtracted from stored values to get HU (1024 for the Rider scans)
  * --top/--bottom   mm down from the most superior slice to keep
  * --cx/--cy  crop centre in source pixels
+ * --id --dataset --case --title   add or replace this scan in the manifest
+ *            beside the output (or --manifest <path>); the dataset must already
+ *            be described there, with its citation and licence.
+ * --blurb --debrief   optional words for the case; it gets plain ones without.
  *
- * Prints the case metadata to paste into src/lib/evar/scans.ts.
+ * Then upload the .u8.gz and manifest.json to wherever
+ * NEXT_PUBLIC_EVAR_SCANS_URL points (this repo's public/evar/scans by default).
  */
 
 import fs from "node:fs";
+import path from "node:path";
 import zlib from "node:zlib";
 
 const SIZE = 256;
@@ -55,13 +62,32 @@ function readNrrd(path) {
 
 const args = process.argv.slice(2);
 const [input, output] = args;
-const flag = (name, fallback) => {
+const text = (name) => {
   const i = args.indexOf(`--${name}`);
-  return i === -1 ? fallback : Number(args[i + 1]);
+  return i === -1 ? undefined : args[i + 1];
+};
+const flag = (name, fallback) => {
+  const value = text(name);
+  return value === undefined ? fallback : Number(value);
+};
+const fail = (message) => {
+  console.error(message);
+  process.exit(1);
 };
 if (!input || !output) {
-  console.error("Usage: prepare-evar-scan.mjs <in.nrrd> <out.u8.gz> --offset N --top MM --bottom MM --cx PX --cy PX");
-  process.exit(1);
+  fail("Usage: prepare-evar-scan.mjs <in.nrrd> <out.u8.gz> --offset N --top MM --bottom MM --cx PX --cy PX [--id ID --dataset KEY --case NAME --title TITLE]");
+}
+
+// Checked before any work, so a bad entry doesn't cost a long run or touch the manifest.
+const id = text("id");
+const manifestPath = text("manifest") ?? path.join(path.dirname(output), "manifest.json");
+let manifest = null;
+if (id !== undefined) {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || id.length > 40) fail(`--id must be a lowercase slug of up to 40 characters, not "${id}"`);
+  for (const required of ["dataset", "case", "title"]) if (!text(required)) fail(`--${required} is needed with --id`);
+  if (!fs.existsSync(manifestPath)) fail(`No manifest at ${manifestPath}; create one with the dataset first`);
+  manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  if (!(text("dataset") in (manifest.datasets ?? {}))) fail(`The manifest has no dataset called "${text("dataset")}"; add its citation and licence first`);
 }
 
 const v = readNrrd(input);
@@ -100,10 +126,27 @@ for (let s = 0; s < slices; s += 1) {
 
 const gz = zlib.gzipSync(out, { level: 9 });
 fs.writeFileSync(output, gz);
-console.log(
-  JSON.stringify(
-    { size: SIZE, slices, pixelMm: Number(px.toFixed(4)), sliceMm: SLICE_MM, huMin: HU_MIN, huStep: HU_STEP, bytes: gz.length },
-    null,
-    2,
-  ),
-);
+const geometry = { size: SIZE, slices, pixelMm: Number(px.toFixed(4)), sliceMm: SLICE_MM, huMin: HU_MIN, huStep: HU_STEP };
+
+if (manifest) {
+  // Running it again for the same id replaces that entry in place, rather than listing it twice,
+  // and keeps any words written for it unless new ones are given.
+  const at = manifest.scans.findIndex((scan) => scan.id === id);
+  const previous = at === -1 ? {} : manifest.scans[at];
+  const blurb = text("blurb") ?? previous.blurb;
+  const debrief = text("debrief") ?? previous.debrief;
+  const entry = {
+    id,
+    dataset: text("dataset"),
+    sourceCase: text("case"),
+    title: text("title"),
+    ...(blurb ? { blurb } : {}),
+    ...(debrief ? { debrief } : {}),
+    file: path.basename(output),
+    ...geometry,
+  };
+  manifest.scans = at === -1 ? [...manifest.scans, entry] : manifest.scans.map((scan, i) => (i === at ? entry : scan));
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+console.log(JSON.stringify({ ...geometry, bytes: gz.length, manifest: manifest ? manifestPath : null }, null, 2));
