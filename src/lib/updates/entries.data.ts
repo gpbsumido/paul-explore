@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-31-0",
+    date: "2026-10-23",
+    version: "7.31.0",
+    category: "improvement",
+    tags: ["evar", "practice", "research"],
+    title: "A calmer EVAR sizing page",
+    summary:
+      "EVAR sizing practice asks about its research study first, then shows one job at a time instead of everything at once.",
+    body: [
+      "The first time you visit, you're asked whether you'd like to join the study before anything else, and your answer is remembered. After that, measuring and choosing the graft are separate tabs, the scan gets more room, and things you only need now and then, like the viewer controls and the extra landmarks for graft lengths, fold away until you open them.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-30-0",
     date: "2026-10-23",
     version: "7.30.0",

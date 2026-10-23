@@ -2,6 +2,7 @@
 
 import type { Device, DeviceGroup, DevicePick, SheetId, Side } from "@/lib/evar/devices";
 import { SHEETS } from "@/lib/evar/sheets";
+import Disclosure from "./Disclosure";
 
 const select =
   "mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono text-[13px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -65,8 +66,9 @@ export default function DevicePicker({
   const sheet = SHEETS[pick.sheet];
   const sheetIds = Object.keys(SHEETS) as SheetId[];
   return (
-    <section aria-labelledby="evar-devices-heading" className="mt-6">
-      <h3 id="evar-devices-heading" className="mb-1 text-[15px] font-bold text-foreground">
+    <section aria-labelledby="evar-devices-heading">
+      {/* The tab already says what this is, so the heading is for screen readers. */}
+      <h3 id="evar-devices-heading" className="sr-only">
         Devices
       </h3>
       <p className="mb-3 text-[13px] text-muted">
@@ -137,10 +139,12 @@ export default function DevicePicker({
         onChange={(ipsiExtension) => onChange({ ...pick, ipsiExtension })}
       />
 
-      <p className="text-[12px] text-muted">
-        Sizing from {sheet.source}, for practice only. {sheet.codesNote} Not affiliated with{" "}
-        {sheet.maker} and not for clinical use; the instructions for use are the source of truth.
-      </p>
+      <Disclosure label="About these sizing tables">
+        <p className="text-[12px] text-muted">
+          Sizing from {sheet.source}, for practice only. {sheet.codesNote} Not affiliated with{" "}
+          {sheet.maker} and not for clinical use; the instructions for use are the source of truth.
+        </p>
+      </Disclosure>
     </section>
   );
 }

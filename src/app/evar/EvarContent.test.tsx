@@ -25,6 +25,7 @@ afterEach(() => {
  */
 const renderPage = () => {
   window.localStorage.setItem("evar-tour-seen", "true");
+  window.localStorage.setItem("evar-study-asked", "true");
   return render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <EvarContent />
@@ -33,6 +34,10 @@ const renderPage = () => {
 };
 
 const sliceSlider = () => screen.getByRole("slider", { name: /slice/i });
+/** Device sizing lives on its own tab, after measuring. */
+const openDevices = () => fireEvent.click(screen.getByRole("tab", { name: /size the graft/i }));
+/** The landmarks only graft lengths need are folded away until asked for. */
+const openLandmarks = () => fireEvent.click(screen.getByRole("button", { name: /landmarks for graft lengths/i }));
 const viewer = () => screen.getByRole("application", { name: /axial ct slice/i });
 
 /** Places a caliper with the keyboard: Enter, move right `steps` pixels, Enter. */
@@ -187,6 +192,7 @@ describe("EvarContent", () => {
 
   it("grades the devices picked against the sizing table", () => {
     renderPage();
+    openDevices();
     fireEvent.change(screen.getByRole("combobox", { name: /main body/i }), {
       target: { value: "ETBF2816C145EE" },
     });
@@ -198,11 +204,14 @@ describe("EvarContent", () => {
     const devices = screen.getByRole("table", { name: /devices/i });
     expect(within(devices).getByRole("row", { name: /main body/i })).toHaveTextContent(/matches the table/i);
     expect(within(devices).getByRole("row", { name: /contralateral/i })).toHaveTextContent(/doesn't match/i);
+    fireEvent.click(screen.getByRole("button", { name: /review the scan/i }));
+    fireEvent.click(screen.getByRole("button", { name: /about these sizing tables/i }));
     expect(screen.getByText(/not affiliated with medtronic/i)).toBeInTheDocument();
   });
 
   it("forgets the devices when the case changes", () => {
     renderPage();
+    openDevices();
     const mainBody = () => screen.getByRole("combobox", { name: /main body/i });
     fireEvent.change(mainBody(), { target: { value: "ETBF2816C145EE" } });
     fireEvent.click(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) }));
@@ -434,6 +443,7 @@ describe("EvarContent lengths", () => {
   it("measures from the lowest renal to the bifurcation and each internal iliac along the centerline", () => {
     renderPage();
     markAt(firstCase.lowestRenalSlice, /mark this slice as lowest renal artery/i);
+    openLandmarks();
     markAt(firstCase.bifurcationSlice, /mark this slice as aortic bifurcation/i);
     markAt(firstCase.internalIliacSlice.right, /mark this slice as right internal iliac origin/i);
     const expected = anatomyFor(firstCase);
@@ -445,6 +455,7 @@ describe("EvarContent lengths", () => {
 
   it("grades the picked lengths in the results", () => {
     renderPage();
+    openDevices();
     fireEvent.change(screen.getByRole("combobox", { name: /main body/i }), { target: { value: "ETBF2816C145EE" } });
     fireEvent.change(screen.getByRole("combobox", { name: /contralateral limb/i }), { target: { value: "ETLW1616C93EE" } });
     fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
@@ -458,6 +469,7 @@ describe("EvarContent lengths", () => {
 describe("EvarContent manufacturers", () => {
   it("offers each manufacturer's own devices, and clears the picks when it changes", () => {
     renderPage();
+    openDevices();
     const mainBody = () => screen.getByRole("combobox", { name: /main body/i });
     fireEvent.change(mainBody(), { target: { value: "ETBF2816C145EE" } });
     expect(mainBody()).toHaveValue("ETBF2816C145EE");
@@ -492,6 +504,7 @@ describe("EvarContent real CTA", () => {
     serveScan();
     await openScan();
     expect(screen.getAllByText(/CC BY 4\.0/).length).toBeGreaterThan(0);
+    openDevices();
     expect(screen.getByText(/only the diameters are graded/i)).toBeInTheDocument();
     keyboardCaliper(10);
     expect(screen.getByRole("status")).toHaveTextContent(`${(10 * scan.pixelMm).toFixed(1)} mm`);
@@ -521,5 +534,60 @@ describe("EvarContent real CTA", () => {
     fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
     const results = within(screen.getByRole("dialog")).getByRole("table", { name: /results/i });
     expect(within(results).getByRole("row", { name: /proximal neck diameter/i })).toHaveTextContent("22.0 mm");
+  });
+});
+
+describe("EvarContent, one job at a time", () => {
+  it("splits the work into Measure and Size the graft, starting on Measure", () => {
+    renderPage();
+    const measure = screen.getByRole("tab", { name: /measure/i });
+    const devices = screen.getByRole("tab", { name: /size the graft/i });
+    expect(measure).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("combobox", { name: /main body/i })).toBeNull();
+
+    fireEvent.keyDown(measure, { key: "ArrowRight" });
+    expect(devices).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("combobox", { name: /main body/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /record caliper as proximal neck diameter/i })).toBeNull();
+  });
+
+  it("counts the five measurements on the Measure tab", () => {
+    renderPage();
+    expect(screen.getByRole("tab", { name: /measure/i })).toHaveTextContent(/0 of 5/);
+    keyboardCaliper(10);
+    fireEvent.click(screen.getByRole("button", { name: /record caliper as proximal neck diameter/i }));
+    expect(screen.getByRole("tab", { name: /measure/i })).toHaveTextContent(/1 of 5/);
+  });
+
+  it("folds the graft-length landmarks away until they're asked for", () => {
+    renderPage();
+    const toggle = screen.getByRole("button", { name: /landmarks for graft lengths/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /mark this slice as aortic bifurcation/i })).toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /mark this slice as aortic bifurcation/i })).toBeInTheDocument();
+  });
+
+  it("folds the viewer controls and the measuring rules away until opened", () => {
+    renderPage();
+    const controls = screen.getByRole("button", { name: /viewer controls/i });
+    expect(controls).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText(/press enter at each end/i)).not.toBeVisible();
+    fireEvent.click(controls);
+    expect(screen.getByText(/press enter at each end/i)).toBeVisible();
+
+    const rules = screen.getByRole("button", { name: /how to measure/i });
+    expect(screen.getByText(/outer wall to outer wall/i)).not.toBeVisible();
+    fireEvent.click(rules);
+    expect(screen.getByText(/outer wall to outer wall/i)).toBeVisible();
+  });
+
+  it("folds the sizing tables' source and disclaimer away", () => {
+    renderPage();
+    openDevices();
+    expect(screen.getByText(/not affiliated with/i)).not.toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: /about these sizing tables/i }));
+    expect(screen.getByText(/not affiliated with medtronic/i)).toBeVisible();
   });
 });

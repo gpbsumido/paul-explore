@@ -68,6 +68,9 @@ function study({ signedIn = true, joined = false } = {}) {
 }
 
 const renderPage = () => {
+  // The first-visit study dialog asks the same thing; these tests are about the panel.
+  window.localStorage.setItem("evar-study-asked", "true");
+  window.localStorage.setItem("evar-tour-seen", "true");
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>

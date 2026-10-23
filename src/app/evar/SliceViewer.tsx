@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerE
 import { toGray, type CtWindow, type Point } from "@/lib/evar/measure";
 import { MAX_SCALE, MIN_SCALE, follow, fullView, panBy, toImage, toViewport, zoomAt, type View } from "@/lib/evar/zoom";
 import { ACCENT_BAND } from "@/lib/accentBand";
+import Disclosure from "./Disclosure";
 
 type Props = {
   /** Pixels across a slice, which is square. */
@@ -323,12 +324,14 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
           1:1
         </button>
       </div>
-      <p id="evar-viewer-help" className="mt-2 text-[13px] text-muted">
-        The patient&apos;s right is on the left of the image. Click two points to measure, drag to
-        pan, and scroll or pinch to zoom. From the keyboard, focus the image, move with the arrow
-        keys (Shift for bigger steps) and press Enter at each end; + and − zoom and 0 resets.
-        Escape clears; Page Up and Page Down change slice.
-      </p>
+      <Disclosure label="Viewer controls" className="mt-2">
+        <p id="evar-viewer-help" className="text-[13px] text-muted">
+          The patient&apos;s right is on the left of the image. Click two points to measure, drag to
+          pan, and scroll or pinch to zoom. From the keyboard, focus the image, move with the arrow
+          keys (Shift for bigger steps) and press Enter at each end; + and − zoom and 0 resets.
+          Escape clears; Page Up and Page Down change slice.
+        </p>
+      </Disclosure>
     </div>
   );
 }

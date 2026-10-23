@@ -22,6 +22,18 @@ describe("real CTA cases", () => {
     expect(Array.from(decodeScan(Uint8Array.from([0, 1, 100, 255]), r6))).toEqual([-160, -158, 80, 452]);
   });
 
+  // Opening a real scan decodes about 8 million voxels on the main thread.
+  // Doing it with a callback and Math.round per voxel took 383 ms here and
+  // over a second on CI, long enough to time the page tests out.
+  it("decodes a full-size scan fast enough not to stall the page", () => {
+    const bytes = new Uint8Array(r6.size * r6.size * r6.slices).fill(100);
+    decodeScan(bytes, r6);
+    const started = performance.now();
+    const volume = decodeScan(bytes, r6);
+    expect(performance.now() - started).toBeLessThan(150);
+    expect(volume[0]).toBe(80);
+  });
+
   it("reads one slice of the volume", () => {
     const volume = Int16Array.from({ length: 12 }, (_, i) => i);
     expect(Array.from(scanSlice(volume, tiny, 1))).toEqual([4, 5, 6, 7]);

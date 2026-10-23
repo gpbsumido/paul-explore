@@ -4,8 +4,8 @@ import { useGuidedTour } from "./useGuidedTour";
 
 const KEY = "test-tour-seen";
 
-function Harness() {
-  const { open, start, close } = useGuidedTour(KEY);
+function Harness({ autoOpen }: { autoOpen?: boolean }) {
+  const { open, start, close } = useGuidedTour(KEY, { autoOpen });
   return (
     <div>
       <span data-testid="open">{String(open)}</span>
@@ -20,6 +20,13 @@ describe("useGuidedTour", () => {
 
   it("auto-opens on a first visit", () => {
     render(<Harness />);
+    expect(screen.getByTestId("open")).toHaveTextContent("true");
+  });
+
+  it("waits to auto-open until the page says it may, so something else can go first", () => {
+    const { rerender } = render(<Harness autoOpen={false} />);
+    expect(screen.getByTestId("open")).toHaveTextContent("false");
+    rerender(<Harness autoOpen />);
     expect(screen.getByTestId("open")).toHaveTextContent("true");
   });
 

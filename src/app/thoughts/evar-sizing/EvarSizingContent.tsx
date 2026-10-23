@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-simpler",
+            date: "Oct 23, 2026",
+            title: "Thirteen rows and a disclaimer, all at once",
+          },
+          {
             id: "update-2026-10-23-tour",
             date: "Oct 23, 2026",
             title: "The page had grown past explaining itself",
@@ -1349,6 +1354,72 @@ evar-measurements  evar-devices  evar-dock`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-simpler"
+        date="October 23, 2026"
+        title="Thirteen rows and a disclaimer, all at once"
+      >
+        <p>
+          Every update above added something worth having, and every one of
+          them added it to the screen. By the end, the left panel had thirteen
+          rows, the right had a full device picker and a five-line
+          disclaimer, and the scan had a paragraph of controls under it, all
+          visible from the first second. Meanwhile the one thing that should
+          come first, whether you want to be in the study, was at the very
+          bottom of the page.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The study question comes before anything else now.
+        </h3>
+        <p className="text-muted">
+          A first-time visitor who hasn&apos;t joined gets a dialog about the
+          study before the tour or the scan. Signed in, it&apos;s the consent
+          form itself. Signed out, it&apos;s sign in or practise without
+          joining. The answer is remembered, and the tour waits for it: the
+          shared tour hook grew an <code className={code}>autoOpen</code>{" "}
+          flag so a page can hold its first-visit open back until something
+          else is done. The panel at the bottom stays, for your record and the
+          way to withdraw.
+        </p>
+        <p className="mt-3 text-muted">
+          Putting the consent form in a dialog put it on the page twice, and
+          the test for consenting in the dialog couldn&apos;t find the
+          training level:
+        </p>
+        <pre className={pre}>
+          {`TestingLibraryElementError: Unable to find an accessible element
+  with the role "combobox" and name \`/training level/i\``}
+        </pre>
+        <p className="text-muted">
+          Both copies used the same hard-coded ids, so the dialog&apos;s label
+          pointed at the panel&apos;s select. The form takes generated ids now.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Measuring and sizing are two jobs, so they&apos;re two tabs.
+        </h3>
+        <p className="text-muted">
+          The left panel is Measure and Size the graft, with Measure counting
+          how many of the five you&apos;ve recorded. The device column went
+          with it, so the scan has the width it was sharing. The tour opens
+          each tab as it reaches it, the way ZeroProof&apos;s switches tabs.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Useful once, in the way every time after: those fold.
+        </h3>
+        <p className="text-muted">
+          Diameters and the neck length stay open, because they&apos;re the
+          task. The landmarks only graft lengths need, the measuring rules,
+          the viewer controls, the sizing tables&apos; source and the real
+          scan&apos;s full citation each fold behind a labelled disclosure. On
+          the real scan, the one-line credit and its licence stay visible.
+          Nothing was removed, and the viewer&apos;s controls are still its
+          description for screen readers while they&apos;re folded.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1358,6 +1429,7 @@ evar-measurements  evar-devices  evar-dock`}
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
           "A real, deidentified CTA of an infrarenal aneurysm on Medium, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
+          "One job at a time: the study is asked about first, measuring and sizing are separate tabs, and anything needed once folds away until asked for.",
           "A guided tour for first-time visitors, on the same engine as ZeroProof's, that walks the page from levels to checking answers.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
