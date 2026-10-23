@@ -189,29 +189,25 @@ export default function EvarContent() {
     if (total !== null) recordBest(level.id, evarCase.id, total);
   }, [total, level.id, evarCase.id]);
 
-  const historyEntry: HistoryEntry | null =
-    outcome === null || finishedAt === null
-      ? null
-      : {
-          id: clientAttemptId,
-          levelId: level.id,
-          caseId: evarCase.id,
-          finishedAt,
-          within: outcome.within,
-          stars: outcome.stars,
-          total: outcome.total,
-          timedOut: remaining !== null && remaining <= 0,
-          deltas: Object.fromEntries(rows.flatMap((row) => (row.delta === null ? [] : [[row.id, row.delta]]))),
-        };
-
   // Once per attempt, the same way the study records it, so reopening the
   // popup or re-rendering doesn't add the attempt again.
   const kept = useRef(new Set<string>());
   useEffect(() => {
-    if (historyEntry === null || kept.current.has(historyEntry.id)) return;
-    kept.current.add(historyEntry.id);
-    recordAttempt(historyEntry);
-  }, [historyEntry]);
+    if (outcome === null || finishedAt === null || kept.current.has(clientAttemptId)) return;
+    kept.current.add(clientAttemptId);
+    const entry: HistoryEntry = {
+      id: clientAttemptId,
+      levelId: level.id,
+      caseId: evarCase.id,
+      finishedAt,
+      within: outcome.within,
+      stars: outcome.stars,
+      total: outcome.total,
+      timedOut: remaining !== null && remaining <= 0,
+      deltas: Object.fromEntries(rows.flatMap((row) => (row.delta === null ? [] : [[row.id, row.delta]]))),
+    };
+    recordAttempt(entry);
+  }, [outcome, rows, finishedAt, remaining, clientAttemptId, level.id, evarCase.id]);
 
   const submission =
     finishedAt === null
