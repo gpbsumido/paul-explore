@@ -8,16 +8,18 @@ import SliceViewer from "./SliceViewer";
 import DevicePicker from "./DevicePicker";
 import ResearchPanel from "./ResearchPanel";
 import ResultsDialog from "./ResultsDialog";
+import UnscoredDialog from "./UnscoredDialog";
 import { clock, mm } from "./format";
 import { APP_VERSION } from "@/lib/appVersion";
 import { toAttemptPayload } from "@/lib/evar/research";
 import { SHEETS, gradeDevices, gradeLengths } from "@/lib/evar/sheets";
 import type { DevicePick } from "@/lib/evar/devices";
-import { anatomyFor, centerlineMm, type Landmarks } from "@/lib/evar/phantom";
+import { anatomyFor, centerlineMm, sliceHU, type Landmarks, type MarkedAnatomy } from "@/lib/evar/phantom";
+import { loadScan, scanSlice } from "@/lib/evar/scans";
 import { outcomeFor } from "@/lib/evar/game";
 import { readBest, recordBest, usePersonalBest } from "@/lib/evar/personalBest";
 import { recordAttempt, type HistoryEntry } from "@/lib/evar/history";
-import { referenceWithOverride, referencesResponseSchema } from "@/lib/evar/references";
+import { referenceForCase, referencesResponseSchema } from "@/lib/evar/references";
 import { queryKeys } from "@/lib/queryKeys";
 import { LEVELS, casesFor, hintsFor, type Level, type LevelId } from "@/lib/evar/levels";
 import {
@@ -46,6 +48,9 @@ const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string 
 const START_SLICE = 20;
 const NO_DEVICES: DevicePick = { sheet: "endurant", ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
 const TICK_MS = 250;
+/** Stable empties for a scan with no reference, so effects that depend on them don't rerun every render. */
+const NO_ROWS: ReturnType<typeof score> = [];
+const NO_GRADES: ReturnType<typeof gradeDevices> = [];
 
 const button =
   "paul-touch-min rounded-lg border border-border bg-surface px-3 py-1.5 text-[13px] text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -151,6 +156,8 @@ export default function EvarContent() {
   const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
   const cases = casesFor(level);
   const evarCase = cases[caseIndex] ?? cases[0];
+  const phantom = evarCase.kind === "phantom" ? evarCase : null;
+  const scan = evarCase.kind === "scan" ? evarCase : null;
   const limit = level.timeLimitMs;
   const remaining = limit === null ? null : limit - ((finishedAt ?? now) - startedAt);
   const best = usePersonalBest(level.id, evarCase.id);
@@ -164,7 +171,22 @@ export default function EvarContent() {
     },
     staleTime: 60_000,
   });
-  const reference = referenceWithOverride(evarCase, overrides.data ?? []);
+  const reference = referenceForCase(evarCase, overrides.data ?? []);
+
+  // A real scan is a few MB, so it's fetched when its case is opened and kept for the visit.
+  const volume = useQuery({
+    queryKey: queryKeys.evar.scan(scan?.id ?? "none"),
+    queryFn: () => (scan ? loadScan(scan) : Promise.resolve(null)),
+    enabled: scan !== null,
+    staleTime: Infinity,
+  });
+  const volumeData = volume.data ?? null;
+  // The React Compiler keeps this the same function until the case or the
+  // loaded volume changes, which is what lets the viewer skip redrawing a slice.
+  const sliceAt = (z: number): Int16Array | null => {
+    if (phantom) return sliceHU(phantom, z);
+    return scan && volumeData ? scanSlice(volumeData, scan, z) : null;
+  };
   const override = overrides.data?.find((row) => row.caseId === evarCase.id) ?? null;
 
   useEffect(() => {
@@ -181,18 +203,33 @@ export default function EvarContent() {
   }, [limit, finishedAt, startedAt]);
 
   const caliper = points.length === 2 ? distanceMm(points[0], points[1], evarCase.pixelMm) : null;
-  const neckLength =
-    marks.renal !== undefined && marks.sacStart !== undefined
-      ? centerlineMm(evarCase, marks.renal, marks.sacStart)
-      : undefined;
+  // A phantom measures along its centerline. A real scan has no centerline yet,
+  // so its lengths run straight down the slices, and the page says so.
+  const between = (from: number | undefined, to: number | undefined, side: "right" | "left" = "right") =>
+    from === undefined || to === undefined
+      ? undefined
+      : phantom
+        ? centerlineMm(phantom, from, to, side)
+        : Math.abs(to - from) * evarCase.sliceMm;
+  const neckLength = between(marks.renal, marks.sacStart);
   const attempt: Attempt = { ...recorded, ...(neckLength === undefined ? {} : { neckLength }) };
 
-  const rows = score(attempt, reference, level.tolerance);
-  const grades = gradeDevices(devices, reference, attempt);
-  const yourAnatomy = anatomyFor(evarCase, marks);
-  const lengths = gradeLengths(devices, anatomyFor(evarCase), yourAnatomy);
+  const rows = reference ? score(attempt, reference, level.tolerance) : NO_ROWS;
+  const grades = reference ? gradeDevices(devices, reference, attempt) : NO_GRADES;
+  const yourAnatomy: MarkedAnatomy = phantom
+    ? anatomyFor(phantom, marks)
+    : {
+        renalToBifurcation: between(marks.renal, marks.bifurcation),
+        renalToInternalIliac: {
+          right: between(marks.renal, marks.rightInternalIliac),
+          left: between(marks.renal, marks.leftInternalIliac),
+        },
+      };
+  const lengths = phantom ? gradeLengths(devices, anatomyFor(phantom), yourAnatomy) : [];
   const outcome =
-    finishedAt === null ? null : outcomeFor({ scores: rows, grades: [...grades, ...lengths], level, remainingMs: remaining });
+    finishedAt === null || reference === null
+      ? null
+      : outcomeFor({ scores: rows, grades: [...grades, ...lengths], level, remainingMs: remaining });
   const total = outcome?.total ?? null;
 
   // Writes to localStorage, not to state, so the popup keeps comparing against
@@ -221,8 +258,9 @@ export default function EvarContent() {
     recordAttempt(entry);
   }, [outcome, rows, finishedAt, remaining, clientAttemptId, level.id, evarCase.id]);
 
+  // An unscored scan has nothing to compare against, so nothing goes to the study either.
   const submission =
-    finishedAt === null
+    finishedAt === null || reference === null
       ? null
       : toAttemptPayload({
           clientAttemptId,
@@ -329,7 +367,8 @@ export default function EvarContent() {
               <section aria-label="Scan" className="flex flex-col items-center lg:col-start-2 lg:row-start-1">
                 <SliceViewer
                   key={evarCase.id}
-                  evarCase={evarCase}
+                  size={evarCase.size}
+                  sliceAt={sliceAt}
                   slice={slice}
                   window={WINDOWS[windowId]}
                   points={points}
@@ -348,15 +387,37 @@ export default function EvarContent() {
                   Measurements
                 </h2>
                 <p className="mb-2 text-[13px] text-muted">{evarCase.blurb}</p>
+                {scan ? (
+                  <div className="mb-3 rounded-lg border border-border bg-surface px-3 py-2 text-[12px] text-muted">
+                    <p>
+                      {scan.attribution.text} Licence: {scan.attribution.licence}.{" "}
+                      {scan.attribution.links.map((link, i) => (
+                        <span key={link.href}>
+                          {i > 0 ? " · " : null}
+                          <a href={link.href} className="underline underline-offset-2" target="_blank" rel="noreferrer">
+                            {link.label}
+                          </a>
+                        </span>
+                      ))}
+                    </p>
+                    {reference === null ? (
+                      <p className="mt-1.5 font-semibold text-foreground">
+                        This scan isn&apos;t scored yet: nobody has measured it by hand. Practise on it, and
+                        your numbers stay on this page.
+                      </p>
+                    ) : null}
+                    <p className="mt-1.5">Lengths on a real scan run straight down the slices.</p>
+                  </div>
+                ) : null}
                 <p className="mb-3 text-[13px] text-muted">
                   Diameters are outer wall to outer wall, thrombus included. On an oval neck, measure
                   across the short axis. The neck runs from the lowest renal artery to where the aorta
                   first widens by more than 10%.
                 </p>
 
-                {level.hints ? (
+                {level.hints && phantom ? (
                   <ul aria-label="Hints" className="mb-3 list-disc pl-5 text-[13px] text-muted">
-                    {hintsFor(evarCase).map((hint) => (
+                    {hintsFor(phantom).map((hint) => (
                       <li key={hint.label}>
                         {hint.label}: somewhere in slices {hint.from} to {hint.to}
                       </li>
@@ -484,6 +545,17 @@ export default function EvarContent() {
           <ResearchPanel submission={submission} />
         </div>
 
+        {finishedAt !== null && reference === null ? (
+          <UnscoredDialog
+            open={showResults}
+            title={evarCase.title}
+            attempt={attempt}
+            debrief={evarCase.debrief}
+            onReview={() => setShowResults(false)}
+            onTryAgain={() => startOver(caseIndex)}
+            onNextCase={cases.length > 1 ? () => startOver((caseIndex + 1) % cases.length) : null}
+          />
+        ) : null}
         {outcome === null || finishedAt === null ? null : (
           <ResultsDialog
             open={showResults}

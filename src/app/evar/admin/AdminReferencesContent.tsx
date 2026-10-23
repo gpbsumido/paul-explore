@@ -4,7 +4,8 @@ import { useId, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { queryKeys } from "@/lib/queryKeys";
-import { EVAR_CASES, referenceFor, type EvarCase } from "@/lib/evar/phantom";
+import { EVAR_CASES, referenceFor } from "@/lib/evar/phantom";
+import { SCAN_CASES, type PracticeCase } from "@/lib/evar/scans";
 import { referencesResponseSchema, type ReferenceRow } from "@/lib/evar/references";
 import StudyData from "./StudyData";
 
@@ -25,14 +26,17 @@ const button =
 const field =
   "mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-[14px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
 
-/** The phantom's own answers, to a tenth of a millimetre, as form strings. */
-function phantomValues(c: EvarCase): Values {
+const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.id, ""])) as Values;
+
+/** The phantom's own answers, to a tenth of a millimetre, as form strings. A real scan has none. */
+function fallbackValues(c: PracticeCase): Values {
+  if (c.kind === "scan") return EMPTY;
   const ref = referenceFor(c);
   return Object.fromEntries(FIELDS.map((f) => [f.id, String(Number(ref[f.id].toFixed(1)))])) as Values;
 }
 
-function valuesFrom(c: EvarCase, row: ReferenceRow | undefined): Values {
-  if (!row) return phantomValues(c);
+function valuesFrom(c: PracticeCase, row: ReferenceRow | undefined): Values {
+  if (!row) return fallbackValues(c);
   return Object.fromEntries(FIELDS.map((f) => [f.id, String(row[f.id])])) as Values;
 }
 
@@ -48,7 +52,7 @@ async function send(url: string, method: string, body?: unknown) {
 }
 
 /** One case: its five answers, a note on where they came from, save and reset. */
-function CaseForm({ evarCase, row }: { evarCase: EvarCase; row: ReferenceRow | undefined }) {
+function CaseForm({ evarCase, row }: { evarCase: PracticeCase; row: ReferenceRow | undefined }) {
   const client = useQueryClient();
   const idBase = useId();
   const [values, setValues] = useState<Values>(() => valuesFrom(evarCase, row));
@@ -67,7 +71,7 @@ function CaseForm({ evarCase, row }: { evarCase: EvarCase; row: ReferenceRow | u
   const reset = useMutation({
     mutationFn: () => send(url, "DELETE"),
     onSuccess: () => {
-      setValues(phantomValues(evarCase));
+      setValues(fallbackValues(evarCase));
       setNote("");
       save.reset();
       return refresh();
@@ -92,7 +96,9 @@ function CaseForm({ evarCase, row }: { evarCase: EvarCase; row: ReferenceRow | u
         <p className="mt-1 text-[13px] text-muted">
           {row
             ? `Set by hand, last saved ${new Date(row.updatedAt).toLocaleString()}.`
-            : "Phantom geometry, computed from the case itself."}
+            : evarCase.kind === "scan"
+              ? "A real scan, with no answers yet. It isn't scored until these are saved."
+              : "Phantom geometry, computed from the case itself."}
         </p>
 
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -139,7 +145,8 @@ function CaseForm({ evarCase, row }: { evarCase: EvarCase; row: ReferenceRow | u
           </button>
           {row ? (
             <button type="button" className={button} onClick={() => reset.mutate()} disabled={reset.isPending}>
-              Reset to phantom <span className="sr-only">for {evarCase.title}</span>
+              {evarCase.kind === "scan" ? "Clear the answers" : "Reset to phantom"}{" "}
+              <span className="sr-only">for {evarCase.title}</span>
             </button>
           ) : null}
           <p aria-live="polite" className="text-[13px] text-foreground">
@@ -190,7 +197,7 @@ export default function AdminReferencesContent() {
         ) : null}
         {references.data ? (
           <div className="mt-6 space-y-6">
-            {EVAR_CASES.map((c) => (
+            {[...EVAR_CASES, ...SCAN_CASES].map((c) => (
               <CaseForm key={c.id} evarCase={c} row={references.data.find((r) => r.caseId === c.id)} />
             ))}
           </div>

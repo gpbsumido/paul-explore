@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { sliceHU, type EvarCase } from "@/lib/evar/phantom";
 import { toGray, type CtWindow, type Point } from "@/lib/evar/measure";
 import { MAX_SCALE, MIN_SCALE, follow, fullView, panBy, toImage, toViewport, zoomAt, type View } from "@/lib/evar/zoom";
 import { ACCENT_BAND } from "@/lib/accentBand";
 
 type Props = {
-  evarCase: EvarCase;
+  /** Pixels across a slice, which is square. */
+  size: number;
+  /** One axial slice in HU, or null while a scan is still loading. */
+  sliceAt: (z: number) => Int16Array | null;
   slice: number;
   window: CtWindow;
   points: readonly Point[];
@@ -33,8 +35,7 @@ const DRAG_PX = 4;
 const STEP = 2;
 
 /** Windowed greyscale RGBA for one slice, ready for putImageData. */
-function sliceRgba(evarCase: EvarCase, slice: number, window: CtWindow): Uint8ClampedArray<ArrayBuffer> {
-  const hu = sliceHU(evarCase, slice);
+function sliceRgba(hu: Int16Array, window: CtWindow): Uint8ClampedArray<ArrayBuffer> {
   const rgba = new Uint8ClampedArray(hu.length * 4);
   hu.forEach((value, i) => {
     const grey = toGray(value, window);
@@ -76,22 +77,24 @@ type Gesture = {
  * + and -, so the whole exercise works without a pointer. Points are always in
  * image pixels, so a caliper reads the same at any zoom.
  */
-export default function SliceViewer({ evarCase, slice, window, points, onPlace, onClear, onSliceStep, className = "max-w-[576px]" }: Props) {
+export default function SliceViewer({ size, sliceAt, slice, window, points, onPlace, onClear, onSliceStep, className = "max-w-[576px]" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const size = evarCase.size;
   const [cursor, setCursor] = useState<Point>({ x: size / 2, y: size / 2 });
   const [focused, setFocused] = useState(false);
   const [view, setView] = useState<View>(() => fullView(size));
   const pointers = useRef(new Map<number, Point>());
   const gesture = useRef<Gesture | null>(null);
 
-  const rgba = useMemo(() => sliceRgba(evarCase, slice, window), [evarCase, slice, window]);
+  // Drawing a phantom slice is real work, so it only happens when the slice or
+  // its source changes; the parent keeps `sliceAt` stable for that reason.
+  const hu = useMemo(() => sliceAt(slice), [sliceAt, slice]);
+  const rgba = useMemo(() => (hu === null ? null : sliceRgba(hu, window)), [hu, window]);
 
   // The slice is painted once per slice or window onto its own canvas, then
   // scaled through the view on every redraw.
   const slab = useMemo(() => {
-    if (typeof document === "undefined") return null;
+    if (typeof document === "undefined" || rgba === null) return null;
     const off = document.createElement("canvas");
     off.width = size;
     off.height = size;
@@ -295,6 +298,11 @@ export default function SliceViewer({ evarCase, slice, window, points, onPlace, 
           className="block aspect-square w-full rounded-xl bg-black"
         />
       </div>
+      {hu === null ? (
+        <p className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[14px] font-semibold text-white">
+          Loading the scan…
+        </p>
+      ) : null}
       <span aria-hidden className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-white">
         R
       </span>

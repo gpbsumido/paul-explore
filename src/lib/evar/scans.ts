@@ -11,6 +11,11 @@
  * over the HU range the windows show. See `public/evar/scans/ATTRIBUTION.md`.
  */
 
+import type { EvarCase } from "./phantom";
+
+/** Anything the practice can show: a phantom drawn from numbers, or a real scan. */
+export type PracticeCase = EvarCase | ScanCase;
+
 export type ScanCase = {
   kind: "scan";
   id: string;
