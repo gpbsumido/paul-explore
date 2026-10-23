@@ -6,10 +6,12 @@
 // in ten seconds, so the right response to a stall is to give up on that
 // attempt early and try again, not to wait ten minutes and fail the build.
 //
-// Each attempt runs in its own process group, so a stall kills everything the
-// attempt started (pnpm, sudo, apt), not just the top process. Every retry
-// writes a GitHub Actions warning, which shows up in the run's annotations, so
-// how often this is earning its keep can be read off the API.
+// Each attempt runs in its own process group, so a stall kills what the attempt
+// started, not just the top process. A kill can't reach everything under sudo,
+// so each attempt also gets its number in WITH_RETRIES_ATTEMPT and a retry can
+// clean up after the one before. Every retry writes a GitHub Actions warning,
+// which shows up in the run's annotations, so how often this is earning its
+// keep can be read off the API.
 //
 // Usage: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- <command> [args...]
 
@@ -60,9 +62,13 @@ const killGroup = (pid, signal) => {
  *
  * @returns {Promise<{ code: number, timedOut: boolean }>}
  */
-function runOnce({ command, args, timeoutS }) {
+function runOnce({ command, args, timeoutS, attempt }) {
   return new Promise((resolve) => {
-    const child = spawn(command, args, { stdio: "inherit", detached: true });
+    const child = spawn(command, args, {
+      stdio: "inherit",
+      detached: true,
+      env: { ...process.env, WITH_RETRIES_ATTEMPT: String(attempt) },
+    });
     let timedOut = false;
     let force;
     const timer = setTimeout(() => {
@@ -78,8 +84,10 @@ function runOnce({ command, args, timeoutS }) {
     child.on("exit", (code) => {
       clearTimeout(timer);
       clearTimeout(force);
-      // Anything the attempt left running in its group goes with it, so a
-      // stalled apt can't hold the dpkg lock against the next attempt.
+      // Anything the attempt left running in its group goes with it. That
+      // doesn't reach everything: sudo can run its command in a session of
+      // its own and passes on SIGTERM but not SIGKILL, which is why the
+      // command gets WITH_RETRIES_ATTEMPT to clean up after a killed attempt.
       if (timedOut) killGroup(child.pid, "SIGKILL");
       resolve({ code: code ?? 1, timedOut });
     });
@@ -96,7 +104,7 @@ async function main() {
   const { attempts } = parsed;
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    const { code, timedOut } = await runOnce(parsed);
+    const { code, timedOut } = await runOnce({ ...parsed, attempt });
     if (code === 0 && !timedOut) process.exit(0);
 
     const what = timedOut ? `timed out after ${parsed.timeoutS}s` : `exited with ${code}`;
