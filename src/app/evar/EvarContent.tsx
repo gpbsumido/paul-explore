@@ -316,6 +316,7 @@ export default function EvarContent() {
             <div className="grid flex-1 grid-cols-1 items-start gap-3 lg:grid-cols-[19rem_minmax(0,1fr)_17rem]">
               <section aria-label="Scan" className="flex flex-col items-center lg:col-start-2 lg:row-start-1">
                 <SliceViewer
+                  key={evarCase.id}
                   evarCase={evarCase}
                   slice={slice}
                   window={WINDOWS[windowId]}
