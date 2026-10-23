@@ -6,6 +6,7 @@
 - The task panel is two tabs, Measure (counting `n of 5`) and Size the graft, so the device column is gone and the scan takes the width. The page is two columns on desktop instead of three, and the skeleton matches.
 - Diameters and neck length stay open. The graft-length landmarks, "How to measure", the viewer controls, the sizing tables' source and disclaimer, and the real scan's full citation fold behind a shared `Disclosure`. The scan's one-line credit and licence stay visible. The tour opens each tab as it reaches it.
 - `JoinForm` uses generated ids, since it can now be on the page twice; the hard-coded ones pointed the dialog's labels at the panel's fields.
+- Best moves from its own header column to beside the Tour button, so the header stays on one row with five cases.
 
 ## 2026-10-23 - version 7.30.0
 

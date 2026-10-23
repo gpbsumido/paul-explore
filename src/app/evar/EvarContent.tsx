@@ -439,8 +439,11 @@ export default function EvarContent() {
               <div id="evar-intro" className="mr-auto">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Practice</p>
                 <h1 className="text-xl font-bold text-foreground">EVAR sizing</h1>
-                <div className="mt-2">
-                  {/* "Tour" rather than "Take the tour", so the title block stays narrow and Best doesn't wrap. */}
+                {/* Best sits beside the tour button rather than in its own column, so the header keeps one row even with five cases. */}
+                <div className="mt-2 flex items-center gap-3">
+                  <p className="text-[13px] text-muted">
+                    Best <span className="font-mono text-[15px] font-bold text-foreground">{best ?? "–"}</span>
+                  </p>
                   <FeatureTour
                     label="EVAR sizing"
                     storageKey="evar-tour-seen"
@@ -474,10 +477,6 @@ export default function EvarContent() {
                   </span>
                 </div>
               )}
-              <div>
-                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Best</p>
-                <p className="font-mono text-2xl font-bold text-foreground">{best ?? "–"}</p>
-              </div>
               {remaining === null ? null : (
                 <p aria-live="polite" className="basis-full text-[14px] font-semibold text-foreground empty:hidden">
                   {clockWarning(remaining)}
