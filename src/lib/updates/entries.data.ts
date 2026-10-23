@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-17-0",
+    date: "2026-10-22",
+    version: "7.17.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "Pick the stent graft after you measure",
+    summary:
+      "EVAR sizing now asks which main body and limbs you'd use, and checks your choice against a manufacturer's sizing table.",
+    body: [
+      "After measuring, choose the main body, the limb for the other side, and anything extra on the main body's leg. Your picks are checked against the sizing table for the real anatomy, and against what your own measurements would have given, so you can see whether a wrong choice came from a wrong number.",
+      "It uses a manufacturer's public sizing sheet for practice only. It isn't affiliated with the manufacturer and isn't for planning real cases.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-16-0",
     date: "2026-10-22",
     version: "7.16.0",

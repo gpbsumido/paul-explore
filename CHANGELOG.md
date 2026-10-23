@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-22 - version 7.17.0
+
+- EVAR Sizing now asks which stent graft you'd pick. Choose which iliac the main body goes up, then an Endurant II/IIs main body (ETBF or ESBF), a contralateral limb (ETLW) and an optional ipsilateral limb or iliac extension (ETEW), with every option showing its diameters, length and sheath size.
+- The sizing comes from Medtronic's public Endurant II/IIs sheet, transcribed into `src/lib/evar/endurant.ts`: the neck-to-main-body and iliac-to-limb tables, and the catalogue of codes that exist. Measurements round to the whole millimetre before lookup, and anything off the table is "no standard device". I left out the one limb length the sheet marks as not available everywhere.
+- Results gain a Devices table. Each sealing diameter (main body proximal, contralateral limb, ipsilateral seal) is graded against the table for the real anatomy, with a second column for what the table gives for your own measurements, so a wrong pick can be traced back to a wrong number. Lengths are listed but not graded, because the axial phantoms have no centerline.
+- The picker carries a disclaimer: practice only, not affiliated with Medtronic, not for clinical use.
+
 ## 2026-10-22 - version 7.16.0
 
 - EVAR Sizing has Easy, Medium and Hard levels. Each one changes something real: Easy plays the long-neck case with slice-range hints for the lowest renal, the aneurysm start, the widest sac and a clean stretch of iliac, and passes diameters within 3 mm and lengths within 8. Medium is the old page, two cases and standard tolerances. Hard plays the short neck and a new hostile neck with no hints and a five-minute clock that hands the answers in at 0:00.
