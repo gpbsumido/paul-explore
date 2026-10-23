@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import PageIntro from "@/components/PageIntro";
@@ -10,7 +11,9 @@ import ResearchPanel from "./ResearchPanel";
 import { APP_VERSION } from "@/lib/appVersion";
 import { toAttemptPayload } from "@/lib/evar/research";
 import { gradeDevices, type DeviceGrade, type DevicePick } from "@/lib/evar/endurant";
-import { referenceFor, type EvarCase } from "@/lib/evar/phantom";
+import type { EvarCase } from "@/lib/evar/phantom";
+import { referenceWithOverride, referencesResponseSchema, type ReferenceRow } from "@/lib/evar/references";
+import { queryKeys } from "@/lib/queryKeys";
 import { LEVELS, casesFor, hintsFor, type Level, type LevelId } from "@/lib/evar/levels";
 import {
   TASKS,
@@ -19,6 +22,7 @@ import {
   score,
   type Attempt,
   type Point,
+  type Reference,
   type TaskId,
   type WindowId,
 } from "@/lib/evar/measure";
@@ -129,6 +133,18 @@ export default function EvarContent() {
   const limit = level.timeLimitMs;
   const remaining = limit === null ? null : limit - ((finishedAt ?? now) - startedAt);
 
+  const overrides = useQuery({
+    queryKey: queryKeys.evar.references(),
+    queryFn: async () => {
+      const res = await fetch("/api/evar/references");
+      if (!res.ok) throw new Error(`GET /api/evar/references failed with ${res.status}`);
+      return referencesResponseSchema.parse(await res.json()).references;
+    },
+    staleTime: 60_000,
+  });
+  const reference = referenceWithOverride(evarCase, overrides.data ?? []);
+  const override = overrides.data?.find((row) => row.caseId === evarCase.id) ?? null;
+
   useEffect(() => {
     if (limit === null || finishedAt !== null) return;
     const id = setInterval(() => {
@@ -158,9 +174,9 @@ export default function EvarContent() {
           finishedAt,
           timeLimitMs: limit,
           attempt,
-          scores: score(attempt, referenceFor(evarCase), level.tolerance),
+          scores: score(attempt, reference, level.tolerance),
           devices,
-          grades: gradeDevices(devices, referenceFor(evarCase), attempt),
+          grades: gradeDevices(devices, reference, attempt),
         });
 
   const goToSlice = (next: number) => {
@@ -359,6 +375,8 @@ export default function EvarContent() {
                 attempt={attempt}
                 devices={devices}
                 evarCase={evarCase}
+                reference={reference}
+                override={override}
                 level={level}
                 elapsedMs={finishedAt - startedAt}
               />
@@ -392,16 +410,19 @@ function Results({
   attempt,
   devices,
   evarCase,
+  reference,
+  override,
   level,
   elapsedMs,
 }: {
   attempt: Attempt;
   devices: DevicePick;
   evarCase: EvarCase;
+  reference: Reference;
+  override: ReferenceRow | null;
   level: Level;
   elapsedMs: number;
 }) {
-  const reference = referenceFor(evarCase);
   const rows = score(attempt, reference, level.tolerance);
   const passed = rows.filter((row) => row.verdict === "within").length;
   const graded = gradeDevices(devices, reference, attempt);
@@ -443,6 +464,11 @@ function Results({
           </tbody>
         </table>
       </div>
+      {override ? (
+        <p className="mt-3 text-[13px] text-muted">
+          Reference answers for this case were set by hand{override.note ? `: ${override.note}` : "."}
+        </p>
+      ) : null}
       <DeviceResults rows={graded} />
       <p className="mt-4 text-[14px] leading-relaxed text-muted">{evarCase.debrief}</p>
     </div>

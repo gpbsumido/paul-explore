@@ -19,6 +19,7 @@ export const queryKeys = {
   evar: {
     participant: () => ["evar", "participant"] as const,
     attempts: () => ["evar", "attempts"] as const,
+    references: () => ["evar", "references"] as const,
   },
 
   /** The signed-in user's accessible budgets, and one budget's detail. */
