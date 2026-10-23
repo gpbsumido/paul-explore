@@ -11,6 +11,8 @@ type Props = {
   size: number;
   /** One axial slice in HU, or null while a scan is still loading. */
   sliceAt: (z: number) => Int16Array | null;
+  /** Set when a scan failed to load, so the viewer can say so instead of loading forever. */
+  loadError?: { onRetry: () => void } | null;
   slice: number;
   window: CtWindow;
   points: readonly Point[];
@@ -78,7 +80,18 @@ type Gesture = {
  * + and -, so the whole exercise works without a pointer. Points are always in
  * image pixels, so a caliper reads the same at any zoom.
  */
-export default function SliceViewer({ size, sliceAt, slice, window, points, onPlace, onClear, onSliceStep, className = "max-w-[576px]" }: Props) {
+export default function SliceViewer({
+  size,
+  sliceAt,
+  loadError = null,
+  slice,
+  window,
+  points,
+  onPlace,
+  onClear,
+  onSliceStep,
+  className = "max-w-[576px]",
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [cursor, setCursor] = useState<Point>({ x: size / 2, y: size / 2 });
@@ -299,11 +312,22 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
           className="block aspect-square w-full rounded-xl bg-black"
         />
       </div>
-      {hu === null ? (
+      {hu !== null ? null : loadError ? (
+        <div role="alert" className="absolute inset-x-4 top-1/2 flex -translate-y-1/2 flex-col items-center gap-2 text-center text-[14px] font-semibold text-white">
+          <p>Couldn&apos;t load this scan. Check your connection and try again.</p>
+          <button
+            type="button"
+            onClick={loadError.onRetry}
+            className="rounded-md border border-white/40 bg-black/60 px-3 py-1.5 text-[13px] hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
         <p className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[14px] font-semibold text-white">
           Loading the scan…
         </p>
-      ) : null}
+      )}
       <span aria-hidden className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-white">
         R
       </span>

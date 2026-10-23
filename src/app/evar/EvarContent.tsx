@@ -22,6 +22,7 @@ import { SHEETS, gradeDevices, gradeLengths } from "@/lib/evar/sheets";
 import type { DevicePick } from "@/lib/evar/devices";
 import { anatomyFor, centerlineMm, sliceHU, type Landmarks, type MarkedAnatomy } from "@/lib/evar/phantom";
 import { loadScan, scanSlice } from "@/lib/evar/scans";
+import { useScanCases } from "@/lib/evar/useScanCases";
 import { outcomeFor } from "@/lib/evar/game";
 import { readBest, recordBest, usePersonalBest } from "@/lib/evar/personalBest";
 import { recordAttempt, type HistoryEntry } from "@/lib/evar/history";
@@ -85,7 +86,7 @@ const tourSteps = (showTab: (tab: TaskTab) => void): TourStep[] => [
   {
     anchor: "evar-cases",
     title: "Cases",
-    body: "Each level has its own cases. Most are drawn from numbers, so the answers are exact; the last one on Medium is a real patient's scan.",
+    body: "Each level has its own practice cases, drawn from numbers so the answers are exact. Medium also lets you pick a real patient's scan.",
   },
   {
     anchor: "evar-scan",
@@ -129,8 +130,9 @@ const panel = "glass-card rounded-2xl p-4";
  */
 const dock = "rounded-2xl border border-border bg-surface/95 p-4 shadow-lg backdrop-blur";
 
-/** The best for a level's case, read once when an attempt starts. */
-const bestFor = (level: Level, index: number) => readBest(level.id, (casesFor(level)[index] ?? casesFor(level)[0]).id);
+/** The best for a case, read once when an attempt starts. */
+const bestFor = (level: Level, practiceCase: { id: string } | undefined) =>
+  practiceCase === undefined ? null : readBest(level.id, practiceCase.id);
 
 /** What the timed level announces as it runs down: nothing, then a minute, then thirty seconds. */
 const clockWarning = (remainingMs: number) => {
@@ -215,7 +217,10 @@ export default function EvarContent() {
   const [now, setNow] = useState(() => Date.now());
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [bestAtStart, setBestAtStart] = useState(() => bestFor(LEVELS.find((l) => l.id === "medium") ?? LEVELS[0], 0));
+  const [bestAtStart, setBestAtStart] = useState(() => {
+    const medium = LEVELS.find((l) => l.id === "medium") ?? LEVELS[0];
+    return bestFor(medium, casesFor(medium)[0]);
+  });
   const [clientAttemptId, setClientAttemptId] = useState(() => crypto.randomUUID());
   const [tab, setTab] = useState<TaskTab>("measure");
   const [studyAsked, setStudyAsked] = usePersistentState("evar-study-asked", false);
@@ -247,7 +252,9 @@ export default function EvarContent() {
   const studySettled = knowsStudy && !askStudy;
 
   const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
-  const cases = casesFor(level);
+  const { scans: scanCases } = useScanCases();
+  // Phantoms first, so their indices don't move when the manifest arrives.
+  const cases = casesFor(level, scanCases);
   const evarCase = cases[caseIndex] ?? cases[0];
   const phantom = evarCase.kind === "phantom" ? evarCase : null;
   const scan = evarCase.kind === "scan" ? evarCase : null;
@@ -266,12 +273,17 @@ export default function EvarContent() {
   });
   const reference = referenceForCase(evarCase, overrides.data ?? []);
 
-  // A real scan is a few MB, so it's fetched when its case is opened and kept for the visit.
+  // A real scan is several MB, so it's fetched when its case is opened, the
+  // download is cancelled if you move on before it finishes, and it's let go
+  // half a minute after you leave it rather than piling up as you browse.
   const volume = useQuery({
     queryKey: queryKeys.evar.scan(scan?.id ?? "none"),
-    queryFn: () => (scan ? loadScan(scan) : Promise.resolve(null)),
+    queryFn: ({ signal }) => (scan ? loadScan(scan, signal) : Promise.resolve(null)),
     enabled: scan !== null,
     staleTime: Infinity,
+    gcTime: 30_000,
+    retry: 1,
+    retryDelay: 300,
   });
   const volumeData = volume.data ?? null;
   // A new function each render, which is fine: phantom and scan slices are
@@ -388,7 +400,7 @@ export default function EvarContent() {
     setNow(t);
     setFinishedAt(null);
     setShowResults(false);
-    setBestAtStart(bestFor(nextLevel, index));
+    setBestAtStart(bestFor(nextLevel, casesFor(nextLevel, scanCases)[index]));
     setClientAttemptId(crypto.randomUUID());
   };
 
@@ -461,14 +473,39 @@ export default function EvarContent() {
                 value={levelId}
                 onChange={(value) => pickLevel(LEVELS.find((l) => l.id === value)?.id ?? "medium")}
               />
-              <PillGroup
-                id="evar-cases"
-                legend="Case"
-                name="evar-case"
-                options={cases.map((c, i) => ({ value: String(i), label: c.title }))}
-                value={String(caseIndex)}
-                onChange={(value) => startOver(Number(value))}
-              />
+              <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+                <PillGroup
+                  id="evar-cases"
+                  legend="Case"
+                  name="evar-case"
+                  options={cases.flatMap((c, i) => (c.kind === "phantom" ? [{ value: String(i), label: c.title }] : []))}
+                  value={String(caseIndex)}
+                  onChange={(value) => startOver(Number(value))}
+                />
+                {/* Real scans could number in the hundreds, so they're a select rather than pills. */}
+                {cases.some((c) => c.kind === "scan") ? (
+                  <div>
+                    <label htmlFor="evar-real-scan" className="mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">
+                      Real scan
+                    </label>
+                    <select
+                      id="evar-real-scan"
+                      className="paul-touch-min max-w-[16rem] rounded-full border border-border bg-surface px-3 py-1 text-[13px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
+                      value={scan ? String(caseIndex) : ""}
+                      onChange={(event) => event.target.value !== "" && startOver(Number(event.target.value))}
+                    >
+                      <option value="">Choose a real scan</option>
+                      {cases.map((c, i) =>
+                        c.kind === "scan" ? (
+                          <option key={c.id} value={String(i)}>
+                            {c.title}
+                          </option>
+                        ) : null,
+                      )}
+                    </select>
+                  </div>
+                ) : null}
+              </div>
               {remaining === null ? null : (
                 <div>
                   <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Time left</p>
@@ -490,6 +527,7 @@ export default function EvarContent() {
                   key={evarCase.id}
                   size={evarCase.size}
                   sliceAt={sliceAt}
+                  loadError={scan && volume.isError ? { onRetry: () => void volume.refetch() } : null}
                   slice={slice}
                   window={WINDOWS[windowId]}
                   points={points}
@@ -540,7 +578,7 @@ export default function EvarContent() {
                   {scan ? (
                     <div className="mb-3 rounded-lg border border-border bg-surface px-3 py-2 text-[12px] text-muted">
                       <p>
-                        Real scan: AVT case R6, {scan.attribution.licence}.
+                        Real scan: {scan.attribution.source}, {scan.attribution.licence}.
                       </p>
                       {reference === null ? (
                         <p className="mt-1.5 font-semibold text-foreground">
@@ -697,9 +735,10 @@ export default function EvarContent() {
             <p className="mb-3 text-[15px] leading-relaxed text-muted">
               Measure an abdominal aortic aneurysm the way you would before planning an
               endovascular repair: proximal neck diameter and length, the biggest sac diameter,
-              and both common iliacs. The scans are synthetic CT phantoms built from exact
-              geometry, so every answer is known to the tenth of a millimetre. They are not
-              patient images.
+              and both common iliacs. The practice cases are synthetic CT phantoms built from
+              exact geometry, so every answer is known to the tenth of a millimetre. The real
+              scans are deidentified patient CT from openly licensed collections, credited where
+              they&apos;re shown, and scored against answers measured by hand.
             </p>
             <p className="text-[15px] leading-relaxed text-muted">
               {level.label}: {level.blurb} Points pay 50 to 100 for each measurement within
