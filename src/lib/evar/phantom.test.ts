@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EVAR_CASES, sliceHU, referenceFor, outerRadiusMm, neckOffsetMm } from "./phantom";
+import { EVAR_CASES, sliceHU, referenceFor, outerRadiusMm, neckOffsetMm, centerlineMm, anatomyFor } from "./phantom";
 
 const huAt = (slice: Int16Array, size: number, x: number, y: number) =>
   slice[Math.round(y) * size + Math.round(x)];
@@ -84,16 +84,16 @@ describe("EVAR phantom", () => {
     expect(ref.maxSac).toBeCloseTo(evarCase.sacRadiusMm * 2, 0);
     expect(ref.rightCia).toBeCloseTo(evarCase.ciaRadiusMm.right * 2);
     expect(ref.leftCia).toBeCloseTo(evarCase.ciaRadiusMm.left * 2);
-    expect(ref.neckLength).toBe(
-      (ref.sacStartSlice - evarCase.lowestRenalSlice) * evarCase.sliceMm,
-    );
+    expect(ref.neckLength).toBeCloseTo(centerlineMm(evarCase, evarCase.lowestRenalSlice, ref.sacStartSlice));
   });
 
   it("has a hostile case: a wide, short neck and an ectatic right iliac", () => {
     const hostile = EVAR_CASES.find((c) => c.id === "hostile-neck")!;
     const ref = referenceFor(hostile);
     expect(ref.neckDiameter).toBeCloseTo(30);
-    expect(ref.neckLength).toBe(10);
+    // Five slices apart, but the neck leans 50°, so along the vessel it's longer than the 10 mm the slices suggest.
+    expect(ref.sacStartSlice - hostile.lowestRenalSlice).toBe(5);
+    expect(ref.neckLength).toBeGreaterThan(13);
     expect(ref.rightCia).toBeCloseTo(24);
     expect(ref.leftCia).toBeLessThan(ref.rightCia);
   });
@@ -317,6 +317,70 @@ describe("EVAR phantom", () => {
         }, 0);
       expect(sector(arc.atDeg)).toBeGreaterThan(arc.spanDeg * 0.6);
       expect(sector(arc.atDeg + 180)).toBeLessThan(arc.spanDeg * 0.25);
+    });
+  });
+
+  describe("centerline", () => {
+    const byId = (id: string) => EVAR_CASES.find((c) => c.id === id)!;
+
+    it("matches the slice distance where the aorta runs straight down", () => {
+      const c = byId("wide-sac");
+      expect(centerlineMm(c, c.lowestRenalSlice, c.neckEndSlice)).toBeCloseTo((c.neckEndSlice - c.lowestRenalSlice) * c.sliceMm, 0);
+    });
+
+    it("is longer by about 1/cos θ through an angled neck", () => {
+      const c = byId("hostile-neck");
+      const from = c.lowestRenalSlice - 2;
+      const to = c.neckEndSlice;
+      const axial = (to - from) * c.sliceMm;
+      const expected = axial / Math.cos((c.neckAngle.deg * Math.PI) / 180);
+      expect(centerlineMm(c, from, to)).toBeGreaterThan(axial * 1.3);
+      expect(centerlineMm(c, from, to)).toBeLessThan(expected * 1.1);
+    });
+
+    it("carries on down the chosen iliac below the bifurcation, which leans outward and so runs longer", () => {
+      const c = byId("long-neck");
+      const below = c.bifurcationSlice + 10;
+      const axial = (below - c.bifurcationSlice) * c.sliceMm;
+      expect(centerlineMm(c, c.bifurcationSlice, below, "left")).toBeGreaterThan(axial * 1.05);
+      expect(centerlineMm(c, c.bifurcationSlice, below, "left")).toBeCloseTo(centerlineMm(c, c.bifurcationSlice, below, "right"), 0);
+    });
+
+    it("gives each side's distances from the lowest renal, with room to seal in every common iliac", () => {
+      EVAR_CASES.forEach((c) => {
+        const a = anatomyFor(c);
+        expect(a.renalToBifurcation, c.id).toBeCloseTo(centerlineMm(c, c.lowestRenalSlice, c.bifurcationSlice));
+        (["right", "left"] as const).forEach((side) => {
+          expect(a.renalToInternalIliac[side], `${c.id} ${side}`).toBeGreaterThan(a.renalToBifurcation + 25);
+          expect(c.internalIliacSlice[side], `${c.id} ${side}`).toBeLessThanOrEqual(c.slices - 4);
+        });
+      });
+    });
+
+    it("works out the same distances from slices you mark, and leaves out what isn't marked", () => {
+      const c = byId("long-neck");
+      const yours = anatomyFor(c, { renal: c.lowestRenalSlice + 1, bifurcation: c.bifurcationSlice - 1 });
+      expect(yours.renalToBifurcation).toBeCloseTo(centerlineMm(c, c.lowestRenalSlice + 1, c.bifurcationSlice - 1));
+      expect(yours.renalToInternalIliac.right).toBeUndefined();
+    });
+
+    it("draws each internal iliac as a second vessel splitting off below its origin", () => {
+      const c = byId("long-neck");
+      (["right", "left"] as const).forEach((side) => {
+        const at = c.internalIliacSlice[side];
+        const lumens = (z: number) => {
+          const slice = sliceHU(c, z);
+          const centre = c.iliacCentresAt(z)[side];
+          const box = { x0: centre.x - 30, x1: centre.x + 30, y0: centre.y - 30, y1: centre.y + 40 };
+          return countIn(slice, c.size, box, 250, 2000);
+        };
+        const internal = c.internalIliacCentreAt(at + 3, side);
+        expect(internal, side).not.toBeNull();
+        const slice = sliceHU(c, at + 3);
+        expect(huAt(slice, c.size, internal!.x, internal!.y), side).toBeGreaterThan(250);
+        expect(c.internalIliacCentreAt(at - 1, side), side).toBeNull();
+        expect(lumens(at + 3), side).toBeGreaterThan(lumens(at - 2));
+      });
     });
   });
 });

@@ -6,9 +6,11 @@ import {
   mainBodyDiameterFor,
   limbDiameterFor,
   gradeDevices,
+  gradeLengths,
+  reachFor,
   type DevicePick,
 } from "./endurant";
-import { EVAR_CASES, referenceFor } from "./phantom";
+import { EVAR_CASES, referenceFor, type Anatomy } from "./phantom";
 
 const longNeck = referenceFor(EVAR_CASES.find((c) => c.id === "long-neck")!);
 const shortNeck = referenceFor(EVAR_CASES.find((c) => c.id === "short-neck")!);
@@ -112,5 +114,63 @@ describe("gradeDevices", () => {
     const rows = gradeDevices(pick({ mainBody: null, contraLimb: null }), longNeck, {});
     expect(row(rows, "mainBody").verdict).toBe("unpicked");
     expect(row(rows, "contralateral").verdict).toBe("unpicked");
+  });
+});
+
+describe("reachFor", () => {
+  it("reaches limb + 30 to 50 mm on the contralateral side, 10 less on the 124 mm body", () => {
+    expect(reachFor(pick({ mainBody: "ETBF2816C145EE", contraLimb: "ETLW1613C93EE" })).contra).toEqual({ min: 123, max: 143 });
+    expect(reachFor(pick({ mainBody: "ETBF2816C124EE", contraLimb: "ETLW1613C93EE" })).contra).toEqual({ min: 113, max: 133 });
+  });
+
+  it("reaches the main body's own length on the ipsilateral side, or further with an extension overlapping 30 to 50 mm", () => {
+    expect(reachFor(pick({ mainBody: "ETBF2816C166EE", ipsiExtension: null })).ipsi).toEqual({ min: 166, max: 166 });
+    expect(reachFor(pick({ mainBody: "ETBF2816C145EE", ipsiExtension: "ETEW1313C82EE" })).ipsi).toEqual({ min: 177, max: 197 });
+  });
+
+  it("reaches limb + 50 to 70 mm on an Endurant IIs, whose ipsilateral limb is separate", () => {
+    expect(reachFor(pick({ mainBody: "ESBF2814C103EE", ipsiExtension: "ETLW1616C93EE" })).ipsi).toEqual({ min: 143, max: 163 });
+  });
+
+  it("puts the end of the contralateral gate 80 mm down, or 70 on the 124 mm body", () => {
+    expect(reachFor(pick({ mainBody: "ETBF2816C145EE" })).gateMm).toBe(80);
+    expect(reachFor(pick({ mainBody: "ETBF2816C124EE" })).gateMm).toBe(70);
+    expect(reachFor(pick({ mainBody: null })).gateMm).toBeNull();
+  });
+});
+
+describe("gradeLengths", () => {
+  const anatomy: Anatomy = { renalToBifurcation: 100, renalToInternalIliac: { right: 150, left: 140 } };
+  const lengthRow = (rows: ReturnType<typeof gradeLengths>, id: string) => rows.find((r) => r.id === id)!;
+
+  it("passes a side whose reach can end between 15 mm into the common iliac and the internal iliac", () => {
+    // Contralateral is the left: window 115 to 140, and limb 93 reaches 123 to 143.
+    const rows = gradeLengths(pick({ mainBody: "ETBF2816C145EE", contraLimb: "ETLW1613C93EE" }), anatomy, {});
+    expect(lengthRow(rows, "contraReach").window).toEqual({ min: 115, max: 140 });
+    expect(lengthRow(rows, "contraReach").verdict).toBe("match");
+  });
+
+  it("fails a side that stops short of a seal, or covers the internal iliac", () => {
+    const short = gradeLengths(pick({ mainBody: "ESBF2814C103EE", ipsiExtension: null }), anatomy, {});
+    expect(lengthRow(short, "ipsiReach").verdict).toBe("mismatch");
+    const long = gradeLengths(pick({ contraLimb: "ETLW1613C156EE" }), anatomy, {});
+    expect(lengthRow(long, "contraReach").verdict).toBe("mismatch");
+  });
+
+  it("fails a gate that ends below the bifurcation, which the 124 mm body can fix", () => {
+    const tight: Anatomy = { renalToBifurcation: 76, renalToInternalIliac: { right: 130, left: 130 } };
+    expect(lengthRow(gradeLengths(pick({ mainBody: "ETBF2816C145EE" }), tight, {}), "gate").verdict).toBe("mismatch");
+    expect(lengthRow(gradeLengths(pick({ mainBody: "ETBF2816C124EE" }), tight, {}), "gate").verdict).toBe("match");
+  });
+
+  it("gives the window your own marks imply, when you marked them", () => {
+    const rows = gradeLengths(pick(), anatomy, { renalToBifurcation: 96, renalToInternalIliac: { right: 148 } });
+    expect(lengthRow(rows, "ipsiReach").fromYours).toEqual({ min: 111, max: 148 });
+    expect(lengthRow(rows, "contraReach").fromYours).toBeUndefined();
+  });
+
+  it("leaves a side unpicked until something seals it", () => {
+    const rows = gradeLengths(pick({ mainBody: null, contraLimb: null }), anatomy, {});
+    expect(rows.map((r) => r.verdict)).toEqual(["unpicked", "unpicked", "unpicked"]);
   });
 });
