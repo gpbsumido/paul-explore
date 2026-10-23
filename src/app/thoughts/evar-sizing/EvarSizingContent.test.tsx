@@ -163,6 +163,13 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on the full review", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /asked where the aorta was 145,933 times/i }),
+    ).toBeInTheDocument();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });

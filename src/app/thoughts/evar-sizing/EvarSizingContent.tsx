@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-review",
+            date: "Oct 23, 2026",
+            title: "A slice asked where the aorta was 145,933 times",
+          },
+          {
             id: "update-2026-10-23-simpler",
             date: "Oct 23, 2026",
             title: "Thirteen rows and a disclaimer, all at once",
@@ -1420,6 +1425,137 @@ evar-measurements  evar-devices  evar-dock`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-review"
+        date="October 23, 2026"
+        title="A slice asked where the aorta was 145,933 times"
+      >
+        <p>
+          After eight updates in a day I went through the whole feature as if
+          someone else had written it: correctness, speed, accessibility,
+          consistency, and whether it would survive the next step, which is
+          hundreds of real scans from an actual source instead of one. Twelve
+          things came out of it, plus three asks along the way. The ones worth
+          writing down are below.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The slowest line in the phantom asked the same question for every pixel.
+        </h3>
+        <p className="text-muted">
+          A phantom slice took 40.8 ms. Most of that was the renal arteries:
+          to decide whether a pixel sat on one, they worked out where the
+          aorta&apos;s centre was, and that walks the neck slice by slice. Once
+          per pixel. A test that counts the calls said exactly how bad:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected 145933 to be less than 10`}
+        </pre>
+        <p className="text-muted">
+          Working the renal and iliac geometry out once per slice took it to
+          20.7 ms. The worse half was that a slice was being drawn on every
+          re-render of the page: every caliper click, every mark, four times a
+          second on Hard. I&apos;d written a comment saying the React Compiler
+          kept the slice function stable. The compiler isn&apos;t switched on
+          in this app, so the comment described something that never happened.
+          Slices are cached where they&apos;re made now, so it doesn&apos;t
+          matter who asks or how often. Hard&apos;s clock moved into its own
+          component, so the page stopped re-rendering with it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Hundreds of scans can&apos;t live in git, so the list moved next to the files.
+        </h3>
+        <p className="text-muted">
+          R6 is 7 MB, written into the code and committed. At a few hundred
+          scans that&apos;s gigabytes of repository and a code change for every
+          case. Now there&apos;s a manifest beside the files, checked against a
+          schema, with each dataset&apos;s citation and licence written once
+          and attached to every scan from it. Point{" "}
+          <code className={code}>NEXT_PUBLIC_EVAR_SCANS_URL</code> at object
+          storage and the files and the list move together; the CSP picks up
+          the origin. The prep script now adds its own manifest entry, so a new
+          scan is one command and two uploads. Re-running it on R6 rebuilt the
+          committed file byte for byte.
+        </p>
+        <pre className={pre}>
+          {`node scripts/prepare-evar-scan.mjs R7.nrrd avt-r7.u8.gz --offset 1024 \\
+  --top 300 --bottom 550 --cx 290 --cy 250 \\
+  --id avt-r7 --dataset avt --case R7 --title "AVT R7"`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The pages had to hold that many, too. Real scans pick from a select
+          next to the phantom pills, and the admin page lists every case as a
+          row that only builds its form when opened, with a search and a
+          filter for scans still waiting on answers. Before, a real scan showed
+          up as <code className={code}>avt-r6</code> in your results and the
+          study panel, because each page looked titles up in its own list of
+          phantoms; there&apos;s one lookup now.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Opening a scan stalled the page long enough to fail CI.
+        </h3>
+        <p className="text-muted">
+          The previous update&apos;s checks failed on two tests that waited for
+          the scan to finish loading. Decoding 8.3 million voxels with a
+          callback and a rounding per voxel took 383 ms here and over a second
+          on CI, and blocked the browser the same way. A byte only has 256
+          values, so a lookup table took it to 39 ms. Here the volume stays one
+          byte a voxel and decodes a slice at a time, the download is cancelled
+          if you move on, it&apos;s released half a minute after you leave it,
+          and a scan that won&apos;t load says so with a Try again instead of
+          loading forever.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The wheel now does what it does in a PACS.
+        </h3>
+        <p className="text-muted">
+          Scrolling over the scan zoomed it, which no radiology viewer does and
+          which trapped the page whenever the pointer crossed the image. The
+          wheel steps through slices now, adding up small trackpad scrolls, and
+          Ctrl or Command with it zooms, which is also what a pinch sends. The
+          zoom readout had been a live region, so a wheel zoom read out every
+          step to a screen reader; now only the button and keyboard steps are
+          announced.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One screen, the real scan first, and a way into admin.
+        </h3>
+        <p className="text-muted">
+          The measurement panel made the page taller than the window, and the
+          scan&apos;s size was a guess at the header and dock heights that left
+          its bottom behind the dock once the header wrapped. On desktop the
+          stage is exactly one screen now: the panel scrolls with its tabs
+          pinned, and the scan sizes to the height it actually has through a
+          container query. The page also opens on Medium&apos;s real CT,
+          read on the server so it doesn&apos;t swap in after load, and anyone
+          on the admin allowlist gets an Admin link instead of having to know
+          the URL.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One fix broke every personal best on the way in.
+        </h3>
+        <p className="text-muted">
+          The stores were tidying away old keys on every read, so I added a
+          flag to do it once, and called it <code className={code}>retired</code>,
+          in a function that already had a local called{" "}
+          <code className={code}>retired</code>. The assignment threw inside a{" "}
+          <code className={code}>try</code>, the error was swallowed, and every
+          best read back as nothing:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected null to be 400 // Object.is equality`}
+        </pre>
+        <p className="text-muted">
+          The existing tests caught it before it went anywhere. Typecheck would
+          have flagged it as well; I just ran the tests first.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1428,7 +1564,9 @@ evar-measurements  evar-devices  evar-dock`}
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
-          "A real, deidentified CTA of an infrarenal aneurysm on Medium, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
+          "A real, deidentified CTA of an infrarenal aneurysm on Medium, which the page opens on, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
+          "Real scans listed in a manifest beside their files, servable from object storage, and added with one command that writes the volume and the manifest entry.",
+          "An Admin link for anyone on the admin allowlist, and an admin list that finds cases by search and filters to scans still waiting on answers.",
           "One job at a time: the study is asked about first, measuring and sizing are separate tabs, and anything needed once folds away until asked for.",
           "A guided tour for first-time visitors, on the same engine as ZeroProof's, that walks the page from levels to checking answers.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
