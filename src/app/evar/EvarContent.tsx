@@ -5,6 +5,8 @@ import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import PageIntro from "@/components/PageIntro";
 import SliceViewer from "./SliceViewer";
+import DevicePicker from "./DevicePicker";
+import { gradeDevices, type DeviceGrade, type DevicePick } from "@/lib/evar/endurant";
 import { referenceFor, type EvarCase } from "@/lib/evar/phantom";
 import { LEVELS, casesFor, hintsFor, type Level, type LevelId } from "@/lib/evar/levels";
 import {
@@ -24,6 +26,7 @@ type Marks = { renal?: number; sacStart?: number };
 const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string } => t.id !== "neckLength");
 
 const START_SLICE = 20;
+const NO_DEVICES: DevicePick = { ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
 const TICK_MS = 250;
 
 const button =
@@ -111,6 +114,7 @@ export default function EvarContent() {
   const [points, setPoints] = useState<readonly Point[]>([]);
   const [recorded, setRecorded] = useState<Partial<Record<DiameterTask, number>>>({});
   const [marks, setMarks] = useState<Marks>({});
+  const [devices, setDevices] = useState<DevicePick>(NO_DEVICES);
   const [startedAt, setStartedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
@@ -152,6 +156,7 @@ export default function EvarContent() {
     setPoints([]);
     setRecorded({});
     setMarks({});
+    setDevices(NO_DEVICES);
     setStartedAt(t);
     setNow(t);
     setFinishedAt(null);
@@ -312,6 +317,8 @@ export default function EvarContent() {
               ))}
             </ul>
 
+            <DevicePicker pick={devices} onChange={setDevices} />
+
             <div className="mt-4 flex gap-2">
               <button
                 type="button"
@@ -326,7 +333,13 @@ export default function EvarContent() {
             </div>
 
             {finishedAt === null ? null : (
-              <Results attempt={attempt} evarCase={evarCase} level={level} elapsedMs={finishedAt - startedAt} />
+              <Results
+                attempt={attempt}
+                devices={devices}
+                evarCase={evarCase}
+                level={level}
+                elapsedMs={finishedAt - startedAt}
+              />
             )}
           </section>
         </div>
@@ -353,21 +366,29 @@ const VERDICT_TEXT = {
 /** Your numbers against the case's, task by task, plus what the anatomy means. */
 function Results({
   attempt,
+  devices,
   evarCase,
   level,
   elapsedMs,
 }: {
   attempt: Attempt;
+  devices: DevicePick;
   evarCase: EvarCase;
   level: Level;
   elapsedMs: number;
 }) {
-  const rows = score(attempt, referenceFor(evarCase), level.tolerance);
+  const reference = referenceFor(evarCase);
+  const rows = score(attempt, reference, level.tolerance);
   const passed = rows.filter((row) => row.verdict === "within").length;
+  const graded = gradeDevices(devices, reference, attempt);
+  const matched = graded.filter((row) => row.verdict === "match").length;
   return (
     <div className="mt-6">
       <p className="mb-3 text-[15px] font-semibold text-foreground">
         {passed} of {rows.length} within tolerance, in {clock(elapsedMs)}.
+      </p>
+      <p className="mb-3 text-[14px] text-muted">
+        {matched} of {graded.length} device sizes match the sizing table.
       </p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-[13px]">
@@ -398,7 +419,49 @@ function Results({
           </tbody>
         </table>
       </div>
+      <DeviceResults rows={graded} />
       <p className="mt-4 text-[14px] leading-relaxed text-muted">{evarCase.debrief}</p>
+    </div>
+  );
+}
+
+const DEVICE_VERDICT_TEXT = {
+  match: "✓ Matches the table",
+  mismatch: "✗ Doesn't match the table",
+  unpicked: "Not picked",
+} as const;
+
+const graft = (mm: number | null) => (mm === null ? "No standard device" : `${mm} mm`);
+
+/** Each picked diameter against the table, for the real anatomy and for your own numbers. */
+function DeviceResults({ rows }: { rows: readonly DeviceGrade[] }) {
+  return (
+    <div className="mt-6 overflow-x-auto">
+      <table className="w-full text-left text-[13px]">
+        <caption className="mb-2 text-left text-lg font-bold text-foreground">Devices</caption>
+        <thead className="text-muted">
+          <tr>
+            <th scope="col" className="py-1.5 pr-3 font-medium">Seals</th>
+            <th scope="col" className="py-1.5 pr-3 font-medium">Picked</th>
+            <th scope="col" className="py-1.5 pr-3 font-medium">Table, real anatomy</th>
+            <th scope="col" className="py-1.5 pr-3 font-medium">Table, your numbers</th>
+            <th scope="col" className="py-1.5 font-medium">Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id} className="border-t border-border">
+              <th scope="row" className="py-2 pr-3 font-normal text-foreground">{row.label}</th>
+              <td className="py-2 pr-3 font-mono">{row.code === null ? "–" : `${row.code} (${row.picked} mm)`}</td>
+              <td className="py-2 pr-3 font-mono">{graft(row.expected)}</td>
+              <td className="py-2 pr-3 font-mono">{row.fromYours === undefined ? "–" : graft(row.fromYours)}</td>
+              <td className={`py-2 ${row.verdict === "match" ? "font-semibold text-foreground" : "text-muted"}`}>
+                {DEVICE_VERDICT_TEXT[row.verdict]}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

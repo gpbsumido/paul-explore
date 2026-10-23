@@ -105,8 +105,11 @@ export type DeviceGrade = {
   picked: number | null;
   /** What the table gives for the reference anatomy; null means no standard device fits. */
   expected: number | null;
-  /** What the table gives for your own measurement, so a wrong pick can be traced to a wrong number. */
-  fromYours: number | null;
+  /**
+   * What the table gives for your own measurement, so a wrong pick can be
+   * traced to a wrong number. Undefined when you didn't measure it.
+   */
+  fromYours: number | null | undefined;
   verdict: "match" | "mismatch" | "unpicked";
 };
 
@@ -123,7 +126,7 @@ export function gradeDevices(pick: DevicePick, reference: Reference, yours: Atte
   const contra = byCode(pick.contraLimb);
   const ipsiSeal = byCode(pick.ipsiExtension) ?? main;
   const fromYours = (mm: number | undefined, table: (v: number) => number | null) =>
-    mm === undefined ? null : table(mm);
+    mm === undefined ? undefined : table(mm);
 
   const grade = (
     id: DeviceGrade["id"],
