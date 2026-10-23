@@ -210,6 +210,77 @@ renal 34 -> neck length (39 - 34) x 2 mm = 10 mm`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-22-devices"
+        date="October 22, 2026"
+        title="Picking the graft, and why a 13 mm iliac gets a 16 mm limb"
+      >
+        <p>
+          The measurements only matter because of what they decide. So after
+          measuring, you now pick the stent graft: which iliac the main body
+          goes up, then an Endurant II/IIs main body, a contralateral limb, and
+          anything extra on the main body&apos;s own leg, from the
+          manufacturer&apos;s public sizing sheet.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The sheet is two lookup tables and a catalogue.
+        </h3>
+        <p className="text-muted">
+          A neck diameter maps to a main-body diameter, an iliac diameter maps
+          to a limb diameter, and the catalogue says which combinations of
+          diameter, leg and length exist. I transcribed it as data, rounded
+          measurements to the whole millimetre the bands are written in, and
+          treat anything off either end as &quot;no standard device&quot;. I
+          left out the one limb length the sheet marks as not available
+          everywhere.
+        </p>
+        <pre className={pre}>
+          {`neck   19-20  21-22  23-25  26-28  29-32
+body     23     25     28     32     36
+
+iliac   8-9  10-11  12-14  15-18  19-22  23-25
+limb     10     13     16     20     24     28`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I wrote the test expecting a 13 mm limb in a 13 mm iliac. The table disagreed.
+        </h3>
+        <p className="text-muted">
+          My first grading test picked a 13 mm limb for the long-neck
+          case&apos;s 13 mm left iliac and expected a match. It failed, and the
+          code was right: 13 falls in the 12 to 14 band, and that band gets a
+          16. A limb has to be oversized to seal, which is the whole point of
+          the table, and I&apos;d skipped straight past it. It also meant both
+          of that case&apos;s iliacs land on 16, so it couldn&apos;t tell me
+          whether a limb went to the right side. The side tests use the
+          short-neck case instead, where the iliacs need 24 and 20.
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected [ 'match', 'mismatch', 'match' ]
+  to deeply equal [ 'match', 'match', 'match' ]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The verdict is about the anatomy, and a second column says why you missed.
+        </h3>
+        <p className="text-muted">
+          Each pick is graded against what the table gives for the real
+          anatomy. Next to it is what the table gives for your own
+          measurements. When those two differ, the pick went wrong because a
+          measurement did, and that&apos;s a different lesson from reading the
+          table wrong. Only diameters are graded. Lengths come from a
+          centerline, and an axial phantom doesn&apos;t have one, so lengths
+          are listed for choosing but not scored.
+        </p>
+        <p className="mt-3 text-muted">
+          The page says plainly that this is the public sheet, for practice,
+          not affiliated with Medtronic and not for clinical use. A sizing
+          table on a practice site that looks authoritative is a liability,
+          and the instructions for use are the real source.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -217,15 +288,16 @@ renal 34 -> neck length (39 - 34) x 2 mm = 10 mm`}
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
+          "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
         ]}
         couldImprove={[
+          "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
           "The phantom is tidy. Real necks are conical, calcified and angled, and the cases don't yet include the ugly ones that make sizing hard.",
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Picking the stent graft from the measurements, off the manufacturer's sizing table.",
           "Opt-in recording of attempts, so results can be compared over a training career.",
           "Zoom and pan on the viewer.",
         ]}
