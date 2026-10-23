@@ -87,8 +87,8 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
   const pointers = useRef(new Map<number, Point>());
   const gesture = useRef<Gesture | null>(null);
 
-  // Drawing a phantom slice is real work, so it only happens when the slice or
-  // its source changes; the parent keeps `sliceAt` stable for that reason.
+  // Slices are cached where they're made, so this hands back the same array
+  // for the same slice and the greyscale below only reruns when it changes.
   const hu = useMemo(() => sliceAt(slice), [sliceAt, slice]);
   const rgba = useMemo(() => (hu === null ? null : sliceRgba(hu, window)), [hu, window]);
 

@@ -274,8 +274,8 @@ export default function EvarContent() {
     staleTime: Infinity,
   });
   const volumeData = volume.data ?? null;
-  // The React Compiler keeps this the same function until the case or the
-  // loaded volume changes, which is what lets the viewer skip redrawing a slice.
+  // A new function each render, which is fine: phantom and scan slices are
+  // both cached where they're made, so asking again costs a map lookup.
   const sliceAt = (z: number): Int16Array | null => {
     if (phantom) return sliceHU(phantom, z);
     return scan && volumeData ? scanSlice(volumeData, scan, z) : null;
