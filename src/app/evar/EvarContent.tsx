@@ -439,7 +439,11 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
       <main>
         {/* The stage follows the site theme. Only the scan itself stays black, the way CT is read. */}
         <div className="text-foreground">
-          <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-7xl flex-col gap-3 px-3 py-3 sm:px-4">
+          {/* On desktop the stage is exactly one screen: the header, the work area filling what's
+              left, and the dock. The panel scrolls inside that, and the scan sizes to the space it
+              really has, so neither ends up behind the dock however the header wraps. On a phone
+              everything stacks and the page scrolls. */}
+          <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-7xl flex-col gap-3 px-3 py-3 sm:px-4 lg:h-[calc(100dvh-3.5rem)]">
             <header className={`${panel} flex flex-wrap items-end gap-x-6 gap-y-3`}>
               <div id="evar-intro" className="mr-auto">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Practice</p>
@@ -521,8 +525,12 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
               )}
             </header>
 
-            <div className="grid flex-1 grid-cols-1 items-start gap-3 lg:grid-cols-[22rem_minmax(0,1fr)]">
-              <section id="evar-scan" aria-label="Scan" className="flex flex-col items-center lg:col-start-2 lg:row-start-1">
+            <div className="grid flex-1 grid-cols-1 items-start gap-3 lg:min-h-0 lg:grid-cols-[22rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
+              <section
+                id="evar-scan"
+                aria-label="Scan"
+                className="flex flex-col items-center lg:col-start-2 lg:row-start-1 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:[container-type:size]"
+              >
                 <SliceViewer
                   key={evarCase.id}
                   size={evarCase.size}
@@ -534,16 +542,22 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
                   onPlace={placePoint}
                   onClear={() => setPoints([])}
                   onSliceStep={stepSlice}
-                  className="max-w-[min(100%,calc(100dvh_-_17rem))]"
+                  // Below the scan sits the "Viewer controls" toggle, about 2.75rem.
+                  className="max-w-[min(100%,calc(100dvh_-_17rem))] lg:max-w-[min(100%,calc(100cqh_-_2.75rem))]"
                 />
               </section>
 
+              {/* On desktop the panel fills the work area and scrolls itself, with the tabs pinned. */}
               <section
                 id="evar-measurements"
                 aria-label="Your work"
-                className={`${panel} lg:col-start-1 lg:row-start-1`}
+                className={`${panel} lg:col-start-1 lg:row-start-1 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pt-0`}
               >
-                <div role="tablist" aria-label="Task" className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface p-1">
+                <div
+                  role="tablist"
+                  aria-label="Task"
+                  className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface p-1 lg:sticky lg:top-0 lg:z-10 lg:mt-4 lg:shadow-sm"
+                >
                   {TASK_TABS.map((t) => (
                     <button
                       key={t.id}
