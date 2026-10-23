@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, within, act } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EvarContent from "./EvarContent";
@@ -190,6 +192,32 @@ describe("EvarContent", () => {
     fireEvent.change(mainBody(), { target: { value: "ETBF2816C145EE" } });
     fireEvent.click(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) }));
     expect(mainBody()).toHaveValue("");
+  });
+
+  it("scores against reference values an admin set by hand", async () => {
+    server.use(
+      http.get("/api/evar/references", () =>
+        HttpResponse.json({
+          references: [
+            {
+              caseId: firstCase.id,
+              neckDiameter: 25.5,
+              neckLength: 28,
+              maxSac: 61,
+              rightCia: 14,
+              leftCia: 12.5,
+              note: null,
+              updatedAt: "2026-10-22T10:00:00.000Z",
+            },
+          ],
+        }),
+      ),
+    );
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+    expect(await screen.findByText(/set by hand/i)).toBeInTheDocument();
+    const results = screen.getByRole("table", { name: /results/i });
+    expect(within(results).getByRole("row", { name: /proximal neck diameter/i })).toHaveTextContent("25.5");
   });
 
   it("has no axe violations", async () => {
