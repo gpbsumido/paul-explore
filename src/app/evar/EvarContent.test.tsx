@@ -1,12 +1,21 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import { axe } from "vitest-axe";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EvarContent from "./EvarContent";
 import { EVAR_CASES, referenceFor } from "@/lib/evar/phantom";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
 const firstCase = EVAR_CASES[0];
+
+/** The page reads sign-in state through react-query, so it needs a client. */
+const renderPage = () =>
+  render(
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <EvarContent />
+    </QueryClientProvider>,
+  );
 
 const sliceSlider = () => screen.getByRole("slider", { name: /slice/i });
 const viewer = () => screen.getByRole("application", { name: /axial ct slice/i });
@@ -24,7 +33,7 @@ function keyboardCaliper(steps: number) {
 
 describe("EvarContent", () => {
   it("moves through the slices with the slider and with PageUp/PageDown", () => {
-    render(<EvarContent />);
+    renderPage();
     const slider = sliceSlider();
     fireEvent.change(slider, { target: { value: "30" } });
     expect(slider).toHaveValue("30");
@@ -37,21 +46,21 @@ describe("EvarContent", () => {
   });
 
   it("announces a caliper placed entirely from the keyboard, in mm", () => {
-    render(<EvarContent />);
+    renderPage();
     keyboardCaliper(10);
     const expected = (10 * firstCase.pixelMm).toFixed(1);
     expect(screen.getByRole("status")).toHaveTextContent(`${expected} mm`);
   });
 
   it("can't record a diameter before a caliper exists", () => {
-    render(<EvarContent />);
+    renderPage();
     expect(
       screen.getByRole("button", { name: /record caliper as proximal neck diameter/i }),
     ).toBeDisabled();
   });
 
   it("records the caliper and marked slices, then scores them", () => {
-    render(<EvarContent />);
+    renderPage();
     const ref = referenceFor(firstCase);
 
     keyboardCaliper(10);
@@ -87,7 +96,7 @@ describe("EvarContent", () => {
   });
 
   it("starts fresh when another case is picked", () => {
-    render(<EvarContent />);
+    renderPage();
     keyboardCaliper(4);
     fireEvent.click(
       screen.getByRole("button", { name: /record caliper as proximal neck diameter/i }),
@@ -100,14 +109,14 @@ describe("EvarContent", () => {
   });
 
   it("starts on Medium, with no hints and no clock", () => {
-    render(<EvarContent />);
+    renderPage();
     expect(screen.getByRole("radio", { name: /medium/i })).toBeChecked();
     expect(screen.queryByRole("list", { name: /hints/i })).toBeNull();
     expect(screen.queryByRole("timer")).toBeNull();
   });
 
   it("shows where to look on Easy", () => {
-    render(<EvarContent />);
+    renderPage();
     fireEvent.click(screen.getByRole("radio", { name: /easy/i }));
     const hints = screen.getByRole("list", { name: /hints/i });
     expect(within(hints).getByText(/lowest renal artery/i)).toBeInTheDocument();
@@ -115,7 +124,7 @@ describe("EvarContent", () => {
   });
 
   it("only offers the cases that belong to the level", () => {
-    render(<EvarContent />);
+    renderPage();
     fireEvent.click(screen.getByRole("radio", { name: /hard/i }));
     expect(screen.getByRole("radio", { name: /hostile/i })).toBeInTheDocument();
     expect(screen.queryByRole("radio", { name: new RegExp(EVAR_CASES[0].title) })).toBeNull();
@@ -124,7 +133,7 @@ describe("EvarContent", () => {
   it("counts Hard down from 5:00 and hands the answers in at 0:00", () => {
     vi.useFakeTimers();
     try {
-      render(<EvarContent />);
+      renderPage();
       fireEvent.click(screen.getByRole("radio", { name: /hard/i }));
       expect(screen.getByRole("timer")).toHaveTextContent("5:00");
 
@@ -148,7 +157,7 @@ describe("EvarContent", () => {
   it("gives a score and the time taken when the answers are checked", () => {
     vi.useFakeTimers();
     try {
-      render(<EvarContent />);
+      renderPage();
       act(() => {
         vi.advanceTimersByTime(83_000);
       });
@@ -160,7 +169,7 @@ describe("EvarContent", () => {
   });
 
   it("grades the devices picked against the sizing table", () => {
-    render(<EvarContent />);
+    renderPage();
     fireEvent.change(screen.getByRole("combobox", { name: /main body/i }), {
       target: { value: "ETBF2816C145EE" },
     });
@@ -176,7 +185,7 @@ describe("EvarContent", () => {
   });
 
   it("forgets the devices when the case changes", () => {
-    render(<EvarContent />);
+    renderPage();
     const mainBody = () => screen.getByRole("combobox", { name: /main body/i });
     fireEvent.change(mainBody(), { target: { value: "ETBF2816C145EE" } });
     fireEvent.click(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) }));
@@ -184,7 +193,7 @@ describe("EvarContent", () => {
   });
 
   it("has no axe violations", async () => {
-    const { container } = render(<EvarContent />);
+    const { container } = renderPage();
     expect(await axe(container)).toHaveNoViolations();
   });
 });
