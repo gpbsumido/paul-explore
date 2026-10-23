@@ -332,9 +332,9 @@ export const EVAR_CASES: readonly EvarCase[] = [
   makeCase({
     id: "hostile-neck",
     title: "Hostile neck",
-    blurb: "A wide neck that only runs a centimetre before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
+    blurb: "A wide, angled neck that only runs a centimetre down the slices before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
     debrief:
-      "A 30 mm neck sits at the top of the range a standard main body covers, and 10 mm is about the shortest landing zone current devices accept at all. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely. The neck leans 50° to the patient's left, which turns the axial cut into an oval nearly 47 mm long when only the 30 mm short axis is real. A 4 mm crescent of thrombus lines the back of it and calcified plaque sits on its right wall: angled, short, lined and calcified is what makes a neck hostile.",
+      "A 30 mm neck sits at the top of the range a standard main body covers. On the slices the neck runs only 10 mm, about the shortest landing zone any current device accepts, but it leans, so along the vessel it's 16. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely. The neck leans 50° to the patient's left, which turns the axial cut into an oval nearly 47 mm long when only the 30 mm short axis is real. A 4 mm crescent of thrombus lines the back of it and calcified plaque sits on its right wall: angled, short, lined and calcified is what makes a neck hostile.",
     neckRadiusMm: 15,
     sacRadiusMm: 35,
     ciaRadiusMm: { right: 12, left: 6 },
@@ -444,7 +444,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Short, wide neck",
     blurb: "A 28 mm neck that only just falls short of the usual landing length, over a big sac.",
     debrief:
-      "Fourteen millimetres of neck is just under the 15 most devices want, and at 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough. The 22 mm left iliac needs a 24 mm limb. The neck leans 25° forward and to the left, so its long axis on an axial slice reads about 31 mm, which would wrongly take a 36. Calcified plaque sits on its right wall.",
+      "On the slices the neck is 14 mm, just under the 15 most devices want, but it leans, so along the vessel it's 15.5: just over. At 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough, and here the centerline is what settles it. The 22 mm left iliac needs a 24 mm limb. The neck leans 25° forward and to the left, so its long axis on an axial slice reads about 31 mm, which would wrongly take a 36. Calcified plaque sits on its right wall.",
     neckRadiusMm: 14,
     sacRadiusMm: 37,
     ciaRadiusMm: { right: 8, left: 11 },

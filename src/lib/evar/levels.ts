@@ -72,5 +72,11 @@ export function hintsFor(c: EvarCase): Hint[] {
     around("Aneurysm start", sacStartSlice, 3, 2),
     around("Widest part of the sac", c.sacPeakSlice, 4, 6),
     around("Iliacs, clear of the bifurcation", c.bifurcationSlice + 8, 2, 6),
+    around("Aortic bifurcation", c.bifurcationSlice, 3, 2),
+    {
+      label: "Internal iliac origins",
+      from: Math.min(c.internalIliacSlice.right, c.internalIliacSlice.left) + 1 - 3,
+      to: Math.min(c.slices, Math.max(c.internalIliacSlice.right, c.internalIliacSlice.left) + 1 + 2),
+    },
   ];
 }

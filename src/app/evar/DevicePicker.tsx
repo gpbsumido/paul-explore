@@ -57,8 +57,8 @@ export default function DevicePicker({ pick, onChange }: { pick: DevicePick; onC
         Devices
       </h3>
       <p className="mb-3 text-[13px] text-muted">
-        Size an Endurant II/IIs from your numbers. Lengths are listed but not graded: they come
-        from a centerline, which these axial phantoms don&apos;t have.
+        Size an Endurant II/IIs from your numbers. Lengths are graded along the centerline: each
+        side has to seal 15 mm into its common iliac without covering the internal iliac.
       </p>
 
       <fieldset className="mb-3">

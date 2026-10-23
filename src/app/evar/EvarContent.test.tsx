@@ -429,8 +429,8 @@ describe("EvarContent lengths", () => {
     markAt(firstCase.bifurcationSlice, /mark this slice as aortic bifurcation/i);
     markAt(firstCase.internalIliacSlice.right, /mark this slice as right internal iliac origin/i);
     const expected = anatomyFor(firstCase);
-    expect(screen.getByText(/renal to bifurcation/i).closest("div")).toHaveTextContent(`${expected.renalToBifurcation.toFixed(1)} mm`);
-    expect(screen.getByText(/renal to right internal iliac/i).closest("div")).toHaveTextContent(
+    expect(screen.getByText(/renal to bifurcation/i).closest("li")).toHaveTextContent(`${expected.renalToBifurcation.toFixed(1)} mm`);
+    expect(screen.getByText(/renal to right internal iliac/i).closest("li")).toHaveTextContent(
       `${expected.renalToInternalIliac.right.toFixed(1)} mm`,
     );
   });

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
-import type { DeviceGrade } from "@/lib/evar/endurant";
+import type { DeviceGrade, LengthGrade, Reach } from "@/lib/evar/endurant";
 import type { Outcome } from "@/lib/evar/game";
 import type { EvarCase } from "@/lib/evar/phantom";
 import type { ReferenceRow } from "@/lib/evar/references";
@@ -50,6 +50,19 @@ const DEVICE_VERDICT_TEXT = {
 
 const graft = (value: number | null) => (value === null ? "No standard device" : `${value} mm`);
 
+/** A reach or a landing window, rounded to the millimetre: "152 mm", "123–143 mm", or "up to 96 mm" for the gate. */
+const span = (r: Reach) => {
+  const [min, max] = [Math.round(r.min), Math.round(r.max)];
+  if (min === 0) return `up to ${max} mm`;
+  return min === max ? `${min} mm` : `${min}–${max} mm`;
+};
+
+const LENGTH_VERDICT_TEXT: Record<LengthGrade["verdict"], string> = {
+  match: "✓ Lands",
+  mismatch: "✗ Misses",
+  unpicked: "Not picked",
+};
+
 const points = (value: number) => String(Math.round(value));
 
 type Props = {
@@ -57,6 +70,7 @@ type Props = {
   outcome: Outcome;
   rows: readonly TaskScore[];
   grades: readonly DeviceGrade[];
+  lengths: readonly LengthGrade[];
   evarCase: EvarCase;
   override: ReferenceRow | null;
   elapsedMs: number;
@@ -78,6 +92,7 @@ export default function ResultsDialog({
   outcome,
   rows,
   grades,
+  lengths,
   evarCase,
   override,
   elapsedMs,
@@ -86,7 +101,8 @@ export default function ResultsDialog({
   onTryAgain,
   onNextCase,
 }: Props) {
-  const matched = grades.filter((row) => row.verdict === "match").length;
+  const checks = [...grades, ...lengths];
+  const matched = checks.filter((row) => row.verdict === "match").length;
   const newBest = outcome.total > 0 && (bestBefore === null || outcome.total > bestBefore);
 
   return (
@@ -132,7 +148,7 @@ export default function ResultsDialog({
           {outcome.within} of {rows.length} within tolerance, in {clock(elapsedMs)}.
         </p>
         <p className="mb-3 text-[14px] text-muted">
-          {matched} of {grades.length} device sizes match the sizing table.
+          {matched} of {checks.length} device checks match the sizing sheet.
         </p>
 
         <div className="overflow-x-auto">
@@ -196,6 +212,38 @@ export default function ResultsDialog({
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full text-left text-[13px]">
+            <caption className="mb-2 text-left text-[15px] font-bold text-foreground">Lengths</caption>
+            <thead className="text-muted">
+              <tr>
+                <th scope="col" className="py-1.5 pr-3 font-medium">Check</th>
+                <th scope="col" className="py-1.5 pr-3 font-medium">Picked</th>
+                <th scope="col" className="py-1.5 pr-3 font-medium">Has to end, real anatomy</th>
+                <th scope="col" className="py-1.5 pr-3 font-medium">Has to end, your marks</th>
+                <th scope="col" className="py-1.5 font-medium">Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lengths.map((row) => (
+                <tr key={row.id} className="border-t border-border">
+                  <th scope="row" className="py-2 pr-3 font-normal text-foreground">{row.label}</th>
+                  <td className="py-2 pr-3 font-mono">{row.picked === null ? "–" : span(row.picked)}</td>
+                  <td className="py-2 pr-3 font-mono">{span(row.window)}</td>
+                  <td className="py-2 pr-3 font-mono">{row.fromYours === undefined ? "–" : span(row.fromYours)}</td>
+                  <td className={`py-2 ${row.verdict === "match" ? "font-semibold text-foreground" : "text-muted"}`}>
+                    {LENGTH_VERDICT_TEXT[row.verdict]}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-2 text-[13px] text-muted">
+            Lengths run down the centerline from the lowest renal. Each side has to end at least 15 mm into its
+            common iliac and short of the internal iliac, and the contralateral gate has to end above the bifurcation.
+          </p>
         </div>
 
         <p className="mt-4 text-[14px] leading-relaxed text-muted">{evarCase.debrief}</p>

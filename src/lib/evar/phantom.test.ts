@@ -361,7 +361,7 @@ describe("EVAR phantom", () => {
       const c = byId("long-neck");
       const yours = anatomyFor(c, { renal: c.lowestRenalSlice + 1, bifurcation: c.bifurcationSlice - 1 });
       expect(yours.renalToBifurcation).toBeCloseTo(centerlineMm(c, c.lowestRenalSlice + 1, c.bifurcationSlice - 1));
-      expect(yours.renalToInternalIliac.right).toBeUndefined();
+      expect(yours.renalToInternalIliac?.right).toBeUndefined();
     });
 
     it("draws each internal iliac as a second vessel splitting off below its origin", () => {

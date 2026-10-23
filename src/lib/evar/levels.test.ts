@@ -84,6 +84,20 @@ describe("hintsFor", () => {
     expect(widest.to).toBeGreaterThanOrEqual(evarCase.sacPeakSlice + 1);
   });
 
+  it("points at the bifurcation and the internal iliac origins, for marking lengths", () => {
+    const evarCase = EVAR_CASES[0];
+    const hints = hintsFor(evarCase);
+    const bifurcation = hints.find((h) => /aortic bifurcation/i.test(h.label))!;
+    expect(bifurcation.from).toBeLessThanOrEqual(evarCase.bifurcationSlice + 1);
+    expect(bifurcation.to).toBeGreaterThanOrEqual(evarCase.bifurcationSlice + 1);
+    const internal = hints.find((h) => /internal iliac/i.test(h.label))!;
+    const origins = [evarCase.internalIliacSlice.right + 1, evarCase.internalIliacSlice.left + 1];
+    origins.forEach((at) => {
+      expect(internal.from).toBeLessThanOrEqual(at);
+      expect(internal.to).toBeGreaterThanOrEqual(at);
+    });
+  });
+
   it("doesn't centre the range on the answer, so the midpoint isn't a giveaway", () => {
     const evarCase = EVAR_CASES[0];
     const renal = hintsFor(evarCase).find((h) => /lowest renal/i.test(h.label))!;
