@@ -693,6 +693,67 @@ no Math.hypot     20.7 ms   (1.8x, inside budget)`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-10-23-results"
+        date="October 23, 2026"
+        title="The practice has a memory now, and it stays in the browser"
+      >
+        <p>
+          A personal best tells you that you got better once. It doesn&apos;t
+          tell you whether you&apos;re getting better, which is the whole point
+          of practising.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every finished case is kept, not just the best one.
+        </h3>
+        <p className="text-muted">
+          <code>/evar/results</code> shows a card per level with attempts,
+          the average number of measurements within tolerance and the best
+          points, a line of measurements within tolerance attempt by attempt,
+          and a table of every attempt, newest first. The table is the text
+          version of the chart, so the chart itself is hidden from screen
+          readers rather than described twice.
+        </p>
+        <pre className={pre}>
+          {`{ id, levelId, caseId, finishedAt, within, stars, total, timedOut,
+  deltas: { neckDiameter: 0.4, maxSac: -1.2 } }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I kept it on the device, not on the API.
+        </h3>
+        <p className="text-muted">
+          Practice is anonymous for anyone outside the study, and the study
+          already keeps its own record for people who consented. Putting
+          everyone&apos;s practice on the API would mean an account or a
+          tracking id for people who only came to measure a neck. So the
+          history sits in localStorage next to the personal bests, capped at
+          500 attempts and checked against a schema on the way in, so garbage
+          reads as an empty history rather than a crash.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My first version recorded the attempt on every render.
+        </h3>
+        <p className="text-muted">
+          I built the entry in render and recorded it in an effect that
+          depended on it. The entry was a new object every render, so the
+          effect ran every render too, and only the id-based de-duplication
+          stopped the history filling up. The lint caught it before a test
+          did:
+        </p>
+        <pre className={pre}>
+          {`The 'historyEntry' conditional could make the dependencies of useEffect
+Hook change on every render.`}
+        </pre>
+        <p className="text-muted">
+          It now works the way the study panel already did: a set of attempt
+          ids already kept, checked inside the effect, so each attempt is
+          written once with the result it finished with.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -706,6 +767,7 @@ no Math.hypot     20.7 ms   (1.8x, inside budget)`}
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
           "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
+          "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
@@ -714,11 +776,11 @@ no Math.hypot     20.7 ms   (1.8x, inside budget)`}
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
-          "Personal bests live on one device. Signed-in study participants already have a record on the API, so their bests could follow them.",
+          "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "An admin results page that filters everyone's attempts by level, case and training level, and a page where a participant sees their own accuracy over time.",
+          "An admin results page that filters everyone's attempts by level, case and training level.",
           "Zoom and pan on the viewer.",
         ]}
       />
