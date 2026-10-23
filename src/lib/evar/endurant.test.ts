@@ -11,6 +11,7 @@ import {
 import { EVAR_CASES, referenceFor } from "./phantom";
 
 const longNeck = referenceFor(EVAR_CASES.find((c) => c.id === "long-neck")!);
+const shortNeck = referenceFor(EVAR_CASES.find((c) => c.id === "short-neck")!);
 
 const pick = (overrides: Partial<DevicePick> = {}): DevicePick => ({
   ipsilateral: "right",
@@ -71,7 +72,11 @@ describe("the catalogue", () => {
 
 describe("gradeDevices", () => {
   it("passes picks that match the table for the real anatomy", () => {
-    const rows = gradeDevices(pick({ contraLimb: "ETLW1613C93EE", ipsiExtension: "ETLW1616C93EE" }), longNeck, {});
+    const rows = gradeDevices(
+      pick({ mainBody: "ETBF3220C145EE", contraLimb: "ETLW1620C93EE", ipsiExtension: "ETLW1624C93EE" }),
+      shortNeck,
+      {},
+    );
     expect(rows.map((r) => r.verdict)).toEqual(["match", "match", "match"]);
   });
 
@@ -82,10 +87,10 @@ describe("gradeDevices", () => {
   });
 
   it("follows the chosen side, so the contralateral limb lands in the other iliac", () => {
-    const rows = gradeDevices(pick({ ipsilateral: "left", contraLimb: "ETLW1616C93EE", mainBody: "ETBF2813C145EE" }), longNeck, {});
-    expect(row(rows, "contralateral").expected).toBe(16);
+    const rows = gradeDevices(pick({ ipsilateral: "left", contraLimb: "ETLW1624C93EE", mainBody: "ETBF3220C145EE" }), shortNeck, {});
+    expect(row(rows, "contralateral").expected).toBe(24);
     expect(row(rows, "contralateral").verdict).toBe("match");
-    expect(row(rows, "ipsilateral").expected).toBe(13);
+    expect(row(rows, "ipsilateral").expected).toBe(20);
   });
 
   it("says what the table gives for your own measurements too", () => {
@@ -94,6 +99,13 @@ describe("gradeDevices", () => {
     expect(main.expected).toBe(28);
     expect(main.fromYours).toBe(25);
     expect(main.verdict).toBe("mismatch");
+  });
+
+  it("oversizes a 13 mm iliac to a 16 mm limb, as the sheet does", () => {
+    expect(longNeck.leftCia).toBeCloseTo(13);
+    const rows = gradeDevices(pick({ ipsilateral: "right", contraLimb: "ETLW1613C93EE" }), longNeck, {});
+    expect(row(rows, "contralateral").expected).toBe(16);
+    expect(row(rows, "contralateral").verdict).toBe("mismatch");
   });
 
   it("leaves an unpicked device unpicked", () => {
