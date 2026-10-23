@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -131,21 +131,304 @@ the role "button" and name \`/record caliper as proximal neck diameter/i\``}
         </pre>
       </Section>
 
+      <Update
+        id="update-2026-10-22-levels"
+        date="October 22, 2026"
+        title="Easy, Medium, and a Hard that gives you five minutes"
+      >
+        <p>
+          One page with one standard is a test, not practice. I split it into
+          three levels, and each one changes something real: which anatomy you
+          get, whether you&apos;re told where to look, how close counts, and
+          whether there&apos;s a clock.
+        </p>
+        <pre className={pre}>
+          {`Easy    long neck              hints   ±3 mm / ±8 mm   no clock
+Medium  long + short neck      none    ±2 mm / ±5 mm   no clock
+Hard    short + hostile neck   none    ±2 mm / ±5 mm   5:00, hands in at 0:00`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The neck doesn&apos;t end where I told the phantom it ends.
+        </h3>
+        <p className="text-muted">
+          Hard needed a case worse than the short neck: 30 mm wide, about a
+          centimetre long, with a right iliac wide enough to need the biggest
+          limb. I first put the renal at slice 32 and the end of the straight
+          neck at 36, which reads as 8 mm, and the reference came out at 14.
+          The phantom flares the sac
+          in on a smoothstep, and the scoring says the sac starts at the first
+          slice more than 10% wider than the neck, not where the flare begins.
+          The curve is so flat at the start that it takes three more slices to
+          get there.
+        </p>
+        <pre className={pre}>
+          {`neckEndSlice 36, sacPeak 52, neck 15 mm, sac 35 mm
+z=37  t=0.063  r=15.22   (need > 16.5)
+z=38  t=0.125  r=15.86
+z=39  t=0.188  r=16.85   <- sac starts here
+renal 34 -> neck length (39 - 34) x 2 mm = 10 mm`}
+        </pre>
+        <p className="mt-3 text-muted">
+          So the hostile case&apos;s renal sits at slice 34 and its flare
+          begins at 36, and the test pins the neck length the scoring will
+          actually use rather than the number I typed into the case.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A hint centred on the answer is just the answer.
+        </h3>
+        <p className="text-muted">
+          Easy tells you which slices to look at: the lowest renal, where the
+          aneurysm starts, the widest part of the sac, a stretch of iliac clear
+          of the bifurcation. A range of plus or minus three slices would have
+          handed over the answer as its midpoint, so each range sits a little
+          off-centre, and a test checks the midpoint isn&apos;t the answer.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The clock is visible every second and speaks three times.
+        </h3>
+        <p className="text-muted">
+          The countdown has <code className={code}>role=&quot;timer&quot;</code>,
+          which isn&apos;t a live region by default, and that&apos;s right: a
+          screen reader reading every second aloud would make the exercise
+          impossible. Next to it, a polite live region stays empty until a
+          minute is left, then thirty seconds, then time&apos;s up. At zero your
+          answers are handed in as they stand, and the results line says how
+          many landed and how long it took.
+        </p>
+        <p className="mt-3 text-muted">
+          Handing in at zero happens inside the interval callback, not in an
+          effect that watches the remaining time. The lint rules here
+          don&apos;t allow setting state inside an effect body or reading the
+          clock while rendering, and keeping the tick as the only thing that
+          reads <code className={code}>Date.now()</code> is cleaner anyway.
+          Start over resets the clock, which on a practice page is fine. It
+          matters more once attempts are recorded, where the first try is the
+          one that counts.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-22-devices"
+        date="October 22, 2026"
+        title="Picking the graft, and why a 13 mm iliac gets a 16 mm limb"
+      >
+        <p>
+          The measurements only matter because of what they decide. So after
+          measuring, you now pick the stent graft: which iliac the main body
+          goes up, then an Endurant II/IIs main body, a contralateral limb, and
+          anything extra on the main body&apos;s own leg, from the
+          manufacturer&apos;s public sizing sheet.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The sheet is two lookup tables and a catalogue.
+        </h3>
+        <p className="text-muted">
+          A neck diameter maps to a main-body diameter, an iliac diameter maps
+          to a limb diameter, and the catalogue says which combinations of
+          diameter, leg and length exist. I transcribed it as data, rounded
+          measurements to the whole millimetre the bands are written in, and
+          treat anything off either end as &quot;no standard device&quot;. I
+          left out the one limb length the sheet marks as not available
+          everywhere.
+        </p>
+        <pre className={pre}>
+          {`neck   19-20  21-22  23-25  26-28  29-32
+body     23     25     28     32     36
+
+iliac   8-9  10-11  12-14  15-18  19-22  23-25
+limb     10     13     16     20     24     28`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I wrote the test expecting a 13 mm limb in a 13 mm iliac. The table disagreed.
+        </h3>
+        <p className="text-muted">
+          My first grading test picked a 13 mm limb for the long-neck
+          case&apos;s 13 mm left iliac and expected a match. It failed, and the
+          code was right: 13 falls in the 12 to 14 band, and that band gets a
+          16. A limb has to be oversized to seal, which is the whole point of
+          the table, and I&apos;d skipped straight past it. It also meant both
+          of that case&apos;s iliacs land on 16, so it couldn&apos;t tell me
+          whether a limb went to the right side. The side tests use the
+          short-neck case instead, where the iliacs need 24 and 20.
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected [ 'match', 'mismatch', 'match' ]
+  to deeply equal [ 'match', 'match', 'match' ]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The verdict is about the anatomy, and a second column says why you missed.
+        </h3>
+        <p className="text-muted">
+          Each pick is graded against what the table gives for the real
+          anatomy. Next to it is what the table gives for your own
+          measurements. When those two differ, the pick went wrong because a
+          measurement did, and that&apos;s a different lesson from reading the
+          table wrong. Only diameters are graded. Lengths come from a
+          centerline, and an axial phantom doesn&apos;t have one, so lengths
+          are listed for choosing but not scored.
+        </p>
+        <p className="mt-3 text-muted">
+          The page says plainly that this is the public sheet, for practice,
+          not affiliated with Medtronic and not for clinical use. A sizing
+          table on a practice site that looks authoritative is a liability,
+          and the instructions for use are the real source.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-22-study"
+        date="October 22, 2026"
+        title="Every attempt recorded once, for anyone who opts in"
+      >
+        <p>
+          The point of scoring people is to find out whether they get better.
+          So signed-in users can now join a study: agree to a consent text,
+          say where they are in training, and every attempt they check is
+          saved to a record that can be compared over a career. Practice works
+          exactly the same without joining, or without signing in at all.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Consent is versioned, and the text says it&apos;s a draft.
+        </h3>
+        <p className="text-muted">
+          A study needs ethics approval before its data can go in a paper, and
+          this one doesn&apos;t have it yet. The consent version is{" "}
+          <code className={code}>2026-10-draft</code>, the form says so in its
+          first line, and changing the text means changing the version, which
+          re-stamps when each person agreed. Rows are keyed by a random
+          participant id, and the export carries that id and nothing that
+          names anyone.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A network blip shouldn&apos;t turn one attempt into two data points.
+        </h3>
+        <p className="text-muted">
+          The browser makes an id when an attempt starts and sends it with the
+          answers. Checking twice, retrying after a timeout, or a request that
+          landed but whose response didn&apos;t all send the same id, and the
+          insert ignores the repeat. A duplicated attempt in a learning-curve
+          study isn&apos;t noise, it&apos;s a fake extra practice session.
+        </p>
+        <pre className={pre}>
+          {`INSERT INTO evar_attempts (participant_id, client_attempt_id, ...)
+VALUES ($1, $2, ...)
+ON CONFLICT (client_attempt_id) DO NOTHING
+RETURNING *`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I capped measurements at 300 mm. A caliper across the whole slice is 460.
+        </h3>
+        <p className="text-muted">
+          The API validates every number, and my first bound was 300 mm on the
+          grounds that no aorta is that wide. That&apos;s true, and beside the
+          point: the study records what people actually measured, including
+          the caliper someone drags corner to corner by mistake. With the 300
+          cap that whole attempt would have been rejected, and the most
+          interesting wrong answers would never reach the data. The bound is
+          now 1000 mm, which only stops garbage.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Withdrawing deletes, it doesn&apos;t hide.
+        </h3>
+        <p className="text-muted">
+          I considered a withdrawn flag and decided against it. If someone
+          leaves a study, the honest version is that their data is gone, not
+          filtered out of a query someone might forget to filter. Withdraw
+          asks once, then deletes the participant, and the attempts go with
+          it.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-22-references"
+        date="October 22, 2026"
+        title="Correcting an answer without a deploy"
+      >
+        <p>
+          The phantom computes every reference exactly, but exact only means
+          exactly what I defined. If a vascular surgeon looks at a case and
+          says the neck is 26, not 24, I want to change that number on a
+          page, not in a geometry file. So there&apos;s now an admin page at{" "}
+          <code className={code}>/evar/admin</code> that sets a case&apos;s
+          five answers by hand.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An override replaces five numbers and nothing else.
+        </h3>
+        <p className="text-muted">
+          Hints, the slice the sac starts on and the Hard-level clock all
+          still come from the geometry. Only the scored values change, and if
+          the API is unreachable the page quietly scores against the phantom,
+          because practice shouldn&apos;t break when an admin feature does.
+        </p>
+        <pre className={pre}>
+          {`const row = overrides.find((o) => o.caseId === c.id);
+if (!row) return phantom;
+return { ...phantom, neckDiameter: row.neckDiameter, neckLength: row.neckLength,
+  maxSac: row.maxSac, rightCia: row.rightCia, leftCia: row.leftCia };`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Changing the answer key mid-study is only safe because attempts keep theirs.
+        </h3>
+        <p className="text-muted">
+          A correction changes scores for everyone from the next load. For
+          practice that&apos;s the point. For the study it would be a quiet
+          disaster if old attempts were re-scored against the new key, but
+          each recorded score already carries the reference it was judged
+          against, so an analysis can see exactly which key was live.
+        </p>
+        <pre className={pre}>
+          {`scores: [{ id: "neckDiameter", yours: 24.2, reference: 26, verdict: "outside" }, ...]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I keyed each form on its save time. That ate the Saved message.
+        </h3>
+        <p className="text-muted">
+          My first idea for Reset to phantom was to key each case&apos;s form
+          on when it was last saved, so a reset would remount it with the
+          phantom&apos;s numbers. It would have, and it would also have
+          remounted after every save, wiping the confirmation the moment the
+          refetch landed. Reset now puts the phantom values back itself, and
+          the form stays mounted.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "Two phantom cases with different anatomy: a long straight neck, and a short neck with a wide right iliac that changes the plan.",
+          "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
+          "Three phantom cases: a long straight neck, a short neck with a wide right iliac, and a hostile 30 mm, 10 mm neck with an ectatic right iliac.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
-          "Five scored measurements against exact references, with written tolerances and a debrief on what the anatomy means for the repair.",
+          "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
+          "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
+          "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
+          "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
         ]}
         couldImprove={[
+          "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
           "The phantom is tidy. Real necks are conical, calcified and angled, and the cases don't yet include the ugly ones that make sizing hard.",
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
+          "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
+          "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Zoom and pan on the viewer, and a hostile-neck case.",
+          "A download on this site for the study export, which the API already serves to admins by participant id only.",
+          "Zoom and pan on the viewer.",
         ]}
       />
     </ThoughtLayout>

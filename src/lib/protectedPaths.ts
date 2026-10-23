@@ -20,6 +20,9 @@ const SESSION_PROTECTED_PREFIXES = [
   // ZeroProof admin surfaces (the ESPN-league registry). Signed-in isn't enough:
   // the page 404s anyone off the admin allowlist, like /to-do.
   "/zeroproof/admin",
+  // Setting EVAR reference answers. The practice at /evar stays public; this
+  // page 404s anyone off the admin allowlist, like /to-do.
+  "/evar/admin",
   // Organizer surfaces. `/check-in` itself stays public: a volunteer arriving
   // from a poster link should see what the page is for and a sign-in button,
   // not a redirect they cannot place.

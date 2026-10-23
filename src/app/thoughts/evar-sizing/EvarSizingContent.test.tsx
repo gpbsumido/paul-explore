@@ -17,6 +17,35 @@ describe("EvarSizingContent", () => {
     ).toHaveAttribute("href", "/evar");
   });
 
+  it("has a dated update on the difficulty levels", () => {
+    render(<EvarSizingContent />);
+    expect(screen.getAllByText(/update.*october 22, 2026/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /five minutes/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on picking the device", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /16 mm limb/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on recording attempts for the study", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /recorded once/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on correcting reference answers", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /without a deploy/i }),
+    ).toBeInTheDocument();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<EvarSizingContent />);
     expect(
