@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import type { DeviceGrade } from "@/lib/evar/endurant";
 import type { Outcome } from "@/lib/evar/game";
@@ -201,6 +202,9 @@ export default function ResultsDialog({
       </Modal.Body>
       <Modal.Footer>
         <div className="flex flex-wrap justify-end gap-2">
+          <Link href="/evar/results" className={`${button} mr-auto`}>
+            All your results
+          </Link>
           <button type="button" className={button} onClick={onReview}>
             Review the scan
           </button>

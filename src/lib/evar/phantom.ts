@@ -49,23 +49,45 @@ const SLICES = 100;
 const WALL_MM = 1.5;
 const RENAL_RADIUS_MM = 3;
 
-const BODY = { x: 192, y: 205, rx: 165, ry: 125 };
-const SPINE = { x: 192, y: 282, r: 25 };
-const CANAL = { x: 192, y: 322, r: 10 };
-const VISCERA = { x: 192, y: 150, rx: 115, ry: 55 };
+const BODY = { x: 192, y: 190, rx: 165, ry: 135 };
+/** A lumbar vertebral body, wider than it is deep. */
+const SPINE = { x: 192, y: 238, rx: 26, ry: 21 };
+const CANAL = { x: 192, y: 268, r: 9 };
+const LAMINA_R = 15;
+const SPINOUS = { x: 192, y: 290, rx: 5, ry: 13 };
+const ERECTOR = { y: 292, dx: 30, rx: 22, ry: 16 };
+const VISCERA = { x: 192, y: 140, rx: 115, ry: 55 };
+const LIVER = { x: 125, y: 150, rx: 80, ry: 65 };
+const SPLEEN = { x: 297, y: 170, rx: 32, ry: 42 };
+const KIDNEY = { y: 235, dx: 95, rx: 24, ry: 36 };
+const IVC = { rx: 13, ry: 9 };
+/** Skin, then subcutaneous fat, then the muscle of the abdominal wall, in pixels in from the outline. */
+const LAYERS = { skin: 2, fat: 16, muscle: 24 };
+const BOWEL_LOOPS = 9;
+/** Spacing of the coarse noise grid. CT noise is grainy rather than per-pixel, and this is what makes it so. */
+const GRAIN = 3;
 
 const HU = {
   air: -1000,
   fat: -90,
   soft: 35,
+  muscle: 50,
+  liver: 70,
+  spleen: 110,
   wall: 70,
   thrombus: 45,
   lumen: 360,
+  ivc: 115,
   calcium: 750,
   cortex: 650,
   marrow: 230,
-  kidney: 170,
+  /** Arterial phase: the renal cortex enhances well before the medulla. */
+  renalCortex: 190,
+  renalMedulla: 110,
   csf: 15,
+  bowelFluid: 10,
+  table: 200,
+  foam: -850,
 };
 
 const smoothstep = (t: number) => {
@@ -73,8 +95,18 @@ const smoothstep = (t: number) => {
   return c * c * (3 - 2 * c);
 };
 
-const insideEllipse = (x: number, y: number, e: { x: number; y: number; rx: number; ry: number }) =>
-  ((x - e.x) / e.rx) ** 2 + ((y - e.y) / e.ry) ** 2 <= 1;
+type Ellipse = { x: number; y: number; rx: number; ry: number };
+
+const ellipseQ = (x: number, y: number, e: Ellipse) => ((x - e.x) / e.rx) ** 2 + ((y - e.y) / e.ry) ** 2;
+
+const insideEllipse = (x: number, y: number, e: Ellipse) => ellipseQ(x, y, e) <= 1;
+
+const shrink = (e: Ellipse, by: number): Ellipse => ({ ...e, rx: e.rx - by, ry: e.ry - by });
+
+const SKIN_INNER = shrink(BODY, LAYERS.skin);
+const FAT_INNER = shrink(BODY, LAYERS.fat);
+const MUSCLE_INNER = shrink(BODY, LAYERS.muscle);
+const ERECTORS: readonly Ellipse[] = [-1, 1].map((side) => ({ x: SPINE.x + side * ERECTOR.dx, y: ERECTOR.y, rx: ERECTOR.rx, ry: ERECTOR.ry }));
 
 /** Small, fast, seeded PRNG so the noise is the same every time a slice is drawn. */
 function mulberry32(seed: number) {
@@ -112,7 +144,7 @@ function makeCase(params: CaseParams): EvarCase {
   // centre forward rather than through the spine.
   const centreAt = (z: number): Point => {
     const radiusPx = outerRadiusMm(params, Math.min(z, params.bifurcationSlice - 1)) / PIXEL_MM;
-    return { x: SPINE.x + 20 + driftAt(z), y: SPINE.y - SPINE.r - radiusPx - 2 };
+    return { x: SPINE.x + 20 + driftAt(z), y: SPINE.y - SPINE.ry - radiusPx - 2 };
   };
 
   const iliacCentresAt = (z: number) => {
@@ -141,7 +173,7 @@ function makeCase(params: CaseParams): EvarCase {
 export const EVAR_CASES: readonly EvarCase[] = [
   makeCase({
     id: "long-neck",
-    title: "Case 1: long straight neck",
+    title: "Long straight neck",
     blurb: "A textbook infrarenal aneurysm with a long, parallel neck and modest iliacs.",
     debrief:
       "Comfortably inside the usual instructions for use: a neck well over 15 mm long and under 32 mm wide, and iliacs that will take a standard limb.",
@@ -158,7 +190,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
   }),
   makeCase({
     id: "short-neck",
-    title: "Case 2: short neck, wide right iliac",
+    title: "Short neck, wide right iliac",
     blurb: "A bigger sac that flares almost straight off the renals, with an ectatic right common iliac.",
     debrief:
       "The neck is shorter than the 15 mm most devices ask for, and the right common iliac is wide enough to need a flared limb or an iliac branch. This is the case where measuring carefully changes the plan.",
@@ -175,7 +207,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
   }),
   makeCase({
     id: "hostile-neck",
-    title: "Case 3: hostile neck",
+    title: "Hostile neck",
     blurb: "A wide neck that only runs a centimetre before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
     debrief:
       "A 30 mm neck sits at the top of the range a standard main body covers, and 10 mm is about the shortest landing zone current devices accept at all. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely.",
@@ -189,6 +221,108 @@ export const EVAR_CASES: readonly EvarCase[] = [
     bifurcationSlice: 72,
     driftPx: 10,
     seed: 37,
+  }),
+  makeCase({
+    id: "small-sac",
+    title: "Small sac, long neck",
+    blurb: "A modest aneurysm under a long, narrow neck, with iliacs a millimetre apart.",
+    debrief:
+      "At 52 mm the sac sits between the usual thresholds for repair, 55 mm in men and 50 mm in women, so whether to fix it at all is the real question. If you do, a 20 mm neck takes the smallest main body on the sheet, and the 12 and 11 mm iliacs fall either side of a limb boundary.",
+    neckRadiusMm: 10,
+    sacRadiusMm: 26,
+    ciaRadiusMm: { right: 6, left: 5.5 },
+    lowestRenalSlice: 28,
+    otherRenalAbove: 2,
+    neckEndSlice: 40,
+    sacPeakSlice: 60,
+    bifurcationSlice: 80,
+    driftPx: 2,
+    seed: 41,
+  }),
+  makeCase({
+    id: "wide-sac",
+    title: "Wide sac, generous neck",
+    blurb: "A big but simple aneurysm under a long, parallel neck.",
+    debrief:
+      "A 25 mm neck runs well past the 15 mm devices ask for and takes a 28 mm main body. Both iliacs land in the same limb band, so the size of the sac is the only thing that looks frightening here, and it doesn't change the device.",
+    neckRadiusMm: 12.5,
+    sacRadiusMm: 32,
+    ciaRadiusMm: { right: 8, left: 7.5 },
+    lowestRenalSlice: 32,
+    otherRenalAbove: 3,
+    neckEndSlice: 42,
+    sacPeakSlice: 60,
+    bifurcationSlice: 80,
+    driftPx: 4,
+    seed: 53,
+  }),
+  makeCase({
+    id: "narrow-iliacs",
+    title: "Narrow iliacs",
+    blurb: "An easy neck above small common iliacs on both sides.",
+    debrief:
+      "The neck is the easy part. At 9 and 10 mm the iliacs need the two narrowest limbs on the sheet, and iliacs this small usually mean small external iliacs too, so getting an 18 Fr main body up them becomes the question. A millimetre either way changes the limb.",
+    neckRadiusMm: 11,
+    sacRadiusMm: 29,
+    ciaRadiusMm: { right: 4.5, left: 5 },
+    lowestRenalSlice: 30,
+    otherRenalAbove: 2,
+    neckEndSlice: 40,
+    sacPeakSlice: 62,
+    bifurcationSlice: 80,
+    driftPx: 5,
+    seed: 67,
+  }),
+  makeCase({
+    id: "ectatic-left",
+    title: "Wide left iliac",
+    blurb: "A straightforward neck and sac, with the wide common iliac on the left this time.",
+    debrief:
+      "The short neck case's iliac problem on the other side. The 19 mm left common iliac takes a 24 mm limb and the 13 mm right a 16. Which side the main body goes up decides which leg the wide limb belongs on, so check the device picker agrees with the side you chose.",
+    neckRadiusMm: 12,
+    sacRadiusMm: 30,
+    ciaRadiusMm: { right: 6.5, left: 9.5 },
+    lowestRenalSlice: 32,
+    otherRenalAbove: 3,
+    neckEndSlice: 40,
+    sacPeakSlice: 56,
+    bifurcationSlice: 76,
+    driftPx: 6,
+    seed: 79,
+  }),
+  makeCase({
+    id: "short-wide",
+    title: "Short, wide neck",
+    blurb: "A 28 mm neck that only just falls short of the usual landing length, over a big sac.",
+    debrief:
+      "Fourteen millimetres of neck is just under the 15 most devices want, and at 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough. The 22 mm left iliac needs a 24 mm limb.",
+    neckRadiusMm: 14,
+    sacRadiusMm: 37,
+    ciaRadiusMm: { right: 8, left: 11 },
+    lowestRenalSlice: 34,
+    otherRenalAbove: 2,
+    neckEndSlice: 38,
+    sacPeakSlice: 54,
+    bifurcationSlice: 74,
+    driftPx: 9,
+    seed: 83,
+  }),
+  makeCase({
+    id: "giant-sac",
+    title: "Giant sac, wide iliacs",
+    blurb: "An 8 cm aneurysm that pushes everything aside, over two wide common iliacs.",
+    debrief:
+      "An 80 mm sac shoves the IVC and the bowel out of its way. The neck is only just long enough at 16 mm, and both common iliacs need the 28 mm limb, the widest on the sheet. Any wider and they'd need an iliac branch device, or the internal iliac coiled and the limb taken down into the external.",
+    neckRadiusMm: 13.5,
+    sacRadiusMm: 40,
+    ciaRadiusMm: { right: 11.5, left: 12.5 },
+    lowestRenalSlice: 32,
+    otherRenalAbove: 3,
+    neckEndSlice: 37,
+    sacPeakSlice: 54,
+    bifurcationSlice: 70,
+    driftPx: 10,
+    seed: 97,
   }),
 ];
 
@@ -211,28 +345,119 @@ function vesselHU(dx: number, dy: number, outerPx: number, neckPx: number, z: nu
   return HU.thrombus;
 }
 
-function backgroundHU(c: EvarCase, x: number, y: number, z: number): number {
-  if (!insideEllipse(x, y, BODY)) return HU.air;
-  const innerBody = { ...BODY, rx: BODY.rx - 14, ry: BODY.ry - 12 };
-  if (!insideEllipse(x, y, innerBody)) return HU.soft;
+/**
+ * Everything around the vessels that changes from slice to slice, worked out
+ * once per slice rather than once per pixel.
+ */
+type Scene = {
+  kidneys: { outline: Ellipse; sinus: Ellipse }[];
+  liver: Ellipse | null;
+  spleen: Ellipse | null;
+  psoas: Ellipse[];
+  bowel: { x: number; y: number; r: number; gas: boolean }[];
+};
 
-  const spineD = Math.hypot(x - SPINE.x, y - SPINE.y);
-  if (spineD <= SPINE.r) return spineD > SPINE.r - 3 ? HU.cortex : HU.marrow;
-  if (Math.hypot(x - CANAL.x, y - CANAL.y) <= CANAL.r) return HU.csf;
+function sceneAt(c: EvarCase, z: number): Scene {
+  const kz = (z - (c.lowestRenalSlice - 2)) / 22;
+  const kidneyScale = Math.abs(kz) < 1 ? Math.sqrt(1 - kz * kz) : 0;
+  const kidneys =
+    kidneyScale === 0
+      ? []
+      : [-1, 1].map((side) => {
+          const outline = { x: SPINE.x + side * KIDNEY.dx, y: KIDNEY.y, rx: KIDNEY.rx * kidneyScale, ry: KIDNEY.ry * kidneyScale };
+          // The sinus opens toward the spine, where the renal vessels go in.
+          const sinus = { x: outline.x - side * outline.rx * 0.35, y: outline.y, rx: outline.rx * 0.4, ry: outline.ry * 0.45 };
+          return { outline, sinus };
+        });
 
-  const kidneyMid = c.lowestRenalSlice - 2;
-  const kidneyHalf = 22;
-  const kz = (z - kidneyMid) / kidneyHalf;
-  if (Math.abs(kz) < 1) {
-    const scale = Math.sqrt(1 - kz * kz);
-    const kidney = { y: 245, rx: 24 * scale, ry: 36 * scale };
-    if (insideEllipse(x, y, { ...kidney, x: SPINE.x - 88 }) || insideEllipse(x, y, { ...kidney, x: SPINE.x + 88 })) {
-      return HU.kidney;
+  // The liver fills the patient's right upper abdomen and is gone a little above the renals.
+  const liverEnd = c.lowestRenalSlice - 6;
+  const liverScale = z < liverEnd ? Math.sqrt(1 - (z / liverEnd) ** 2) : 0;
+  const liver = liverScale === 0 ? null : { ...LIVER, rx: LIVER.rx * liverScale, ry: LIVER.ry * liverScale };
+  const spleenEnd = c.lowestRenalSlice - 12;
+  const spleenScale = z < spleenEnd ? Math.sqrt(1 - (z / spleenEnd) ** 2) : 0;
+  const spleen = spleenScale === 0 ? null : { ...SPLEEN, rx: SPLEEN.rx * spleenScale, ry: SPLEEN.ry * spleenScale };
+
+  // Psoas starts as a sliver beside the upper lumbar spine and thickens toward the pelvis.
+  const t = z / (SLICES - 1);
+  const psoasRx = 5 + 17 * t;
+  const psoas = [-1, 1].map((side) => ({
+    x: SPINE.x + side * (SPINE.rx + psoasRx - 5),
+    y: SPINE.y + 4,
+    rx: psoasRx,
+    ry: 5 + 13 * t,
+  }));
+
+  // Seeded per case so the bowel is the same every visit, drifting a little from slice to slice.
+  const random = mulberry32(c.seed * 104729);
+  const bowel = Array.from({ length: BOWEL_LOOPS }, (_, i) => {
+    const phase = random() * Math.PI * 2;
+    const r = 10 + random() * 8;
+    const gx = (random() - 0.5) * 1.4 * (VISCERA.rx - 18);
+    const gy = (random() - 0.5) * 1.4 * (VISCERA.ry - 18);
+    return {
+      x: VISCERA.x + gx + 6 * Math.sin(z / 9 + phase),
+      y: VISCERA.y + gy + 4 * Math.cos(z / 11 + phase),
+      r,
+      gas: i % 2 === 0,
+    };
+  });
+
+  return { kidneys, liver, spleen, psoas, bowel };
+}
+
+/** The scanner table: two thin shells with foam between, curving up at the sides. */
+function tableHU(x: number, y: number): number | null {
+  const dx = x - BODY.x;
+  if (Math.abs(dx) > 170) return null;
+  const top = BODY.y + BODY.ry + 6 - 0.0008 * dx * dx;
+  const depth = y - top;
+  if (depth < 0 || depth > 10) return null;
+  return depth < 3 || depth > 8 ? HU.table : HU.foam;
+}
+
+function backgroundHU(scene: Scene, x: number, y: number): number {
+  if (!insideEllipse(x, y, BODY)) return tableHU(x, y) ?? HU.air;
+  if (!insideEllipse(x, y, SKIN_INNER)) return HU.soft;
+  if (!insideEllipse(x, y, FAT_INNER)) return HU.fat;
+  if (!insideEllipse(x, y, MUSCLE_INNER)) return HU.muscle;
+
+  const spineQ = ellipseQ(x, y, SPINE);
+  if (spineQ <= 1) return spineQ > 0.75 ? HU.cortex : HU.marrow;
+  const canalD2 = (x - CANAL.x) ** 2 + (y - CANAL.y) ** 2;
+  if (canalD2 <= CANAL.r ** 2) return HU.csf;
+  // Pedicles and laminae close the canal behind the body, and the spinous process points back from them.
+  if (canalD2 <= LAMINA_R ** 2 && y > CANAL.y - 4) return HU.cortex;
+  if (insideEllipse(x, y, SPINOUS)) return HU.cortex;
+  if (ERECTORS.some((e) => insideEllipse(x, y, e)) || scene.psoas.some((p) => insideEllipse(x, y, p))) return HU.muscle;
+  const kidney = scene.kidneys.find((k) => insideEllipse(x, y, k.outline));
+  if (kidney) {
+    if (insideEllipse(x, y, kidney.sinus)) return HU.fat;
+    return ellipseQ(x, y, kidney.outline) > 0.6 ? HU.renalCortex : HU.renalMedulla;
+  }
+  if (scene.liver && insideEllipse(x, y, scene.liver)) return HU.liver;
+  if (scene.spleen && insideEllipse(x, y, scene.spleen)) return HU.spleen;
+
+  if (insideEllipse(x, y, VISCERA)) {
+    const loop = scene.bowel.find((b) => (x - b.x) ** 2 + (y - b.y) ** 2 <= b.r ** 2);
+    if (loop) {
+      if ((x - loop.x) ** 2 + (y - loop.y) ** 2 > (loop.r - 2.5) ** 2) return HU.soft;
+      // Supine, so gas floats to the front of the loop above a flat fluid level.
+      return loop.gas && y - loop.y < loop.r * 0.2 ? HU.air : HU.bowelFluid;
     }
   }
-
-  if (insideEllipse(x, y, VISCERA)) return HU.soft;
   return HU.fat;
+}
+
+/**
+ * The IVC on the patient's right of the aorta, resting on the spine. A big
+ * sac shoves it further right. It ends a little below the bifurcation,
+ * where it would split into the iliac veins.
+ */
+function ivcAt(c: EvarCase, z: number, aortaCentre: Point, aortaPx: number): Ellipse | null {
+  if (z > c.bifurcationSlice + 4) return null;
+  const pushed = aortaPx > 0 ? aortaCentre.x - aortaPx - 4 - IVC.rx : Infinity;
+  return { x: Math.min(SPINE.x - 32, pushed), y: SPINE.y - SPINE.ry - IVC.ry - 1, rx: IVC.rx, ry: IVC.ry };
 }
 
 /** Bright band running out to a kidney, if this slice cuts through a renal artery. */
@@ -254,15 +479,65 @@ function renalHU(c: EvarCase, x: number, y: number, z: number): number | null {
   return null;
 }
 
+/** A [1, 2, 1] blur across and then down, standing in for partial volume and the reconstruction kernel. */
+function blur(src: Float32Array): Float32Array {
+  const across = new Float32Array(src.length);
+  const out = new Float32Array(src.length);
+  for (let y = 0; y < SIZE; y += 1) {
+    for (let x = 0; x < SIZE; x += 1) {
+      const i = y * SIZE + x;
+      const left = src[x > 0 ? i - 1 : i];
+      const right = src[x < SIZE - 1 ? i + 1 : i];
+      across[i] = (left + 2 * src[i] + right) / 4;
+    }
+  }
+  for (let y = 0; y < SIZE; y += 1) {
+    for (let x = 0; x < SIZE; x += 1) {
+      const i = y * SIZE + x;
+      const up = across[y > 0 ? i - SIZE : i];
+      const down = across[y < SIZE - 1 ? i + SIZE : i];
+      out[i] = (up + 2 * across[i] + down) / 4;
+    }
+  }
+  return out;
+}
+
+/**
+ * Noise that looks like CT: values on a coarse grid, interpolated so
+ * neighbouring pixels move together, plus a little fine speckle on top.
+ */
+function grainyNoise(random: () => number): Float32Array {
+  const cells = SIZE / GRAIN + 2;
+  const coarse = Float32Array.from({ length: cells * cells }, () => (random() + random() + random() - 1.5) * 36);
+  const out = new Float32Array(SIZE * SIZE);
+  for (let y = 0; y < SIZE; y += 1) {
+    const gy = y / GRAIN;
+    const y0 = Math.floor(gy);
+    const fy = gy - y0;
+    for (let x = 0; x < SIZE; x += 1) {
+      const gx = x / GRAIN;
+      const x0 = Math.floor(gx);
+      const fx = gx - x0;
+      const i = y0 * cells + x0;
+      const top = coarse[i] * (1 - fx) + coarse[i + 1] * fx;
+      const bottom = coarse[i + cells] * (1 - fx) + coarse[i + cells + 1] * fx;
+      out[y * SIZE + x] = top * (1 - fy) + bottom * fy + (random() - 0.5) * 16;
+    }
+  }
+  return out;
+}
+
 /** One axial slice in Hounsfield units, row-major, `size * size` long. */
 export function sliceHU(c: EvarCase, z: number): Int16Array {
-  const out = new Int16Array(SIZE * SIZE);
+  const tissue = new Float32Array(SIZE * SIZE);
   const random = mulberry32(c.seed * 7919 + z);
+  const scene = sceneAt(c, z);
   const neckPx = c.neckRadiusMm / PIXEL_MM;
   const aortaPx = outerRadiusMm(c, z) / PIXEL_MM;
   const centre = c.centreAt(z);
   const iliacs = c.iliacCentresAt(z);
   const iliacPx = { right: c.ciaRadiusMm.right / PIXEL_MM, left: c.ciaRadiusMm.left / PIXEL_MM };
+  const ivc = ivcAt(c, z, centre, aortaPx);
 
   for (let y = 0; y < SIZE; y += 1) {
     for (let x = 0; x < SIZE; x += 1) {
@@ -274,12 +549,15 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
           vesselHU(x - iliacs.right.x, y - iliacs.right.y, iliacPx.right, iliacPx.right, z) ??
           vesselHU(x - iliacs.left.x, y - iliacs.left.y, iliacPx.left, iliacPx.left, z);
       }
-      hu ??= renalHU(c, x, y, z) ?? backgroundHU(c, x, y, z);
-      const noise = hu === HU.air ? 0 : (random() - 0.5) * 24;
-      out[y * SIZE + x] = Math.round(hu + noise);
+      hu ??= renalHU(c, x, y, z) ?? (ivc && insideEllipse(x, y, ivc) ? HU.ivc : backgroundHU(scene, x, y));
+      tissue[y * SIZE + x] = hu;
     }
   }
-  return out;
+
+  const smooth = blur(tissue);
+  const noise = grainyNoise(random);
+  // Air outside the patient stays flat, so the noise doesn't paint a halo round the body.
+  return Int16Array.from(smooth, (hu, i) => Math.round(tissue[i] === HU.air ? hu : hu + noise[i]));
 }
 
 /**

@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-23 - version 7.24.1
+
+- The EVAR Sizing write-up opens with an update timeline, the same jump list the operator dashboard and the other long write-ups use. It had ten dated updates and nothing at the top to find them by. A test checks the timeline links every update section on the page, newest first, so the next update can't be added without its entry.
+
+## 2026-10-23 - version 7.24.0
+
+- New admin-only `/evar/admin/results` page, behind the same allowlist gate as `/evar/admin`: everyone's recorded study attempts, filtered by level, case, training level, timed out and an inclusive UTC date range, with a count of attempts and participants, how often each measurement landed within tolerance out of how often it was measured, and a table of the attempts. "Download these as CSV" writes just the filtered rows in the full export's columns. The admin page links to it.
+- Filtering runs in the browser on the export the admin page already fetches (`src/lib/evar/studyFilters.ts`), now shared through one `useStudyExport` query, so there's no new endpoint. Unmeasured answers count as not measured rather than missed, so a timeout doesn't drag a measurement's rate down. The filters live in component state, so a filtered view can't be linked to yet.
+
+## 2026-10-23 - version 7.23.0
+
+- New `/evar/results` page: every EVAR case finished on this device, with a card per level (attempts, average measurements within tolerance, best points), a chart of measurements within tolerance attempt by attempt, and a table of every attempt, newest first. The chart is hidden from screen readers because the table carries the same numbers. The results popup links to it.
+- The history lives in localStorage (`src/lib/evar/history.ts`) next to the personal bests, because practice is anonymous outside the study. Each attempt is kept once under its attempt id, the newest 500 are kept, and storage is checked against a schema so anything malformed reads as an empty history.
+- The chart loads after the rest of the page. With recharts in the first load, `/evar/results` came to 418KB gzipped against the 360KB ceiling for routes without a named budget; split out, it's 307KB.
+
+## 2026-10-23 - version 7.22.0
+
+- `/evar` has six more phantom cases, two per level, so Easy plays three cases and Medium and Hard four each. Easy adds a small sac under a narrow neck and a big sac under a generous one, both inside the sizing sheet. Medium adds narrow 9 and 10 mm iliacs, and the wide iliac on the left for once. Hard adds a 28 mm neck that's 14 mm long, a millimetre under the usual landing length, and an 8 cm sac with both iliacs on the 28 mm limb. Existing cases keep their ids and their order, so personal bests and study rows still line up. Case titles dropped their numbers, which stopped making sense once a level could play cases 1, 4 and 5.
+- The phantom draws the abdomen around the aorta: the IVC on the patient's right (pushed over by a big sac), liver and spleen on the upper slices, arterial-phase kidneys with cortex, medulla and a fat sinus, psoas growing toward the pelvis, a vertebra with laminae, a spinous process and the erector muscles behind it, a skin, fat and muscle body wall, bowel loops with gas over a fluid level, and the scanner table. The aorta, iliacs and every reference answer are unchanged.
+- Slices get a light [1, 2, 1] blur for partial volume and grainy noise interpolated from a coarse grid, instead of independent per-pixel speckle. Drawing a slice went from 11.5 to about 21 ms, after taking ellipse allocation and `Math.hypot` out of the pixel loop.
+- Real deidentified scans are still a follow-up. I couldn't fetch an open aortic CTA set from where I built this, most of them are normal aortas, and each case would need its answers measured by hand.
+
+## 2026-10-23 - version 7.21.1
+
+- `/evar` follows the site theme again. The 7.21.0 stage forced `data-theme="dark"` on its wrapper, so light mode was a light header over a near-black page. Only the scan stays black, as it should.
+- The floating dock is a near-opaque surface instead of glass. It slides over the panels while scrolling, and at glass opacity the task rows and viewer help read straight through the slider and buttons.
+
 ## 2026-10-23 - version 7.21.0
 
 - `/evar` is now a full-height dark stage instead of a page of stacked sections. A floating top bar holds the level, case, clock and personal best. The measurements and the device picker float either side of a viewer sized to the screen, and the window, slice, caliper and Check answers controls sit in a dock that stays on screen while scrolling. Below `lg` it all stacks. The intro and the research panel moved under the stage.

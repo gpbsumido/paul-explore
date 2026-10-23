@@ -11,6 +11,48 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-24-0",
+    date: "2026-10-23",
+    version: "7.24.0",
+    category: "feature",
+    tags: ["evar", "research"],
+    title: "Filtering the EVAR study results",
+    summary:
+      "The EVAR study now has a results page for its admin, so the recorded attempts can be read without downloading a spreadsheet first.",
+    body: [
+      "Attempts can be narrowed by level, case, training level, whether the clock ran out and a date range, with how often each measurement landed within tolerance and a CSV of just the rows on screen. It only shows study data from people who consented.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-23-0",
+    date: "2026-10-23",
+    version: "7.23.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "Your EVAR results over time",
+    summary:
+      "EVAR sizing practice remembers every case you finish on this device, so you can see whether your measurements are getting better.",
+    body: [
+      "The new results page sums up each level you've played, charts how many measurements landed within tolerance attempt by attempt, and lists every attempt. It's all kept in your browser, so it works without signing in and nothing is sent anywhere.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-22-0",
+    date: "2026-10-23",
+    version: "7.22.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "More EVAR cases, realer scans",
+    summary:
+      "EVAR sizing practice has nine cases now, two more on every level, and the scans look like an abdomen instead of a diagram.",
+    body: [
+      "Easy gets two more straightforward aneurysms, Medium gets narrow iliacs and a wide one on the left, and Hard gets a neck just short of the usual landing length and an 8 cm sac. Every slice now shows the organs around the aorta too: the IVC, liver, spleen, kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy noise like a real scanner.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-21-0",
     date: "2026-10-23",
     version: "7.21.0",

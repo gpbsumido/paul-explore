@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import EvarSizingContent from "./EvarSizingContent";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -59,6 +59,46 @@ describe("EvarSizingContent", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: /stars for the skill/i }),
     ).toBeInTheDocument();
+  });
+
+  it("has a dated update on undoing the forced dark stage", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /reading room/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on the new cases and the more realistic scan", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /has an IVC/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on the results page", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /practice has a memory/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on the admin results page", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /a spreadsheet i don.t have to open/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens with a timeline that jumps to every dated update, newest first", () => {
+    const { container } = render(<EvarSizingContent />);
+    const timeline = screen.getByRole("navigation", { name: /update timeline/i });
+    const targets = within(timeline)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    const updates = [...container.querySelectorAll("section[id^='update-']")].map((s) => `#${s.id}`);
+
+    expect(updates.length).toBeGreaterThan(0);
+    expect(targets).toEqual([...updates].reverse());
   });
 
   it("closes with what shipped and what is next", () => {

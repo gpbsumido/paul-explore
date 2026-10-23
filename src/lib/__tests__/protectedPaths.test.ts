@@ -24,6 +24,7 @@ describe("isSessionProtectedPath", () => {
 
   it("gates the EVAR reference admin but leaves the practice public", () => {
     expect(isSessionProtectedPath("/evar/admin")).toBe(true);
+    expect(isSessionProtectedPath("/evar/admin/results")).toBe(true);
     expect(isSessionProtectedPath("/evar")).toBe(false);
   });
 
