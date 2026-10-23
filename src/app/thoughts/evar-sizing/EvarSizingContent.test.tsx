@@ -125,6 +125,18 @@ describe("EvarSizingContent", () => {
     expect(screen.queryByText(/lengths need a centerline before they can be scored/i)).toBeNull();
   });
 
+  it("has a dated update on the Gore and Cook sheets", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /three tables, one 22 mm iliac/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer says there's only one manufacturer's sheet", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/only one manufacturer's sheet/i)).toBeNull();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });
