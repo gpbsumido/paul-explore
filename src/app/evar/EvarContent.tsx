@@ -8,6 +8,8 @@ import SliceViewer from "./SliceViewer";
 import DevicePicker from "./DevicePicker";
 import ResearchPanel from "./ResearchPanel";
 import ResultsDialog from "./ResultsDialog";
+import FeatureTour from "@/components/GuidedTour/FeatureTour";
+import type { TourStep } from "@/components/GuidedTour/types";
 import UnscoredDialog from "./UnscoredDialog";
 import { clock, mm } from "./format";
 import { APP_VERSION } from "@/lib/appVersion";
@@ -48,6 +50,49 @@ const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string 
 const START_SLICE = 20;
 const NO_DEVICES: DevicePick = { sheet: "endurant", ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
 const TICK_MS = 250;
+
+/** The first-run walk round the page, on the same engine as ZeroProof's. */
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "Take a quick tour?",
+    body: "New to EVAR sizing? I'll show you round the page in a few clicks: where the scan is, what to measure, and how it gets checked.",
+  },
+  {
+    anchor: "evar-intro",
+    title: "Measure it the way you'd plan a repair",
+    body: "Each case is a CT of an abdominal aortic aneurysm. Measure the neck, the sac and the iliacs, pick a stent graft, and see how close you got.",
+  },
+  {
+    anchor: "evar-levels",
+    title: "Levels",
+    body: "Easy tells you which slices to look at and is forgiving. Medium has standard tolerances. Hard has the worst anatomy and five minutes on the clock.",
+  },
+  {
+    anchor: "evar-cases",
+    title: "Cases",
+    body: "Each level has its own cases. Most are drawn from numbers, so the answers are exact; the last one on Medium is a real patient's scan.",
+  },
+  {
+    anchor: "evar-scan",
+    title: "The scan",
+    body: "Scroll through the slices with the slider or Page Up and Page Down. Click two points to measure, drag to pan, and scroll or pinch to zoom. It all works from the keyboard too.",
+  },
+  {
+    anchor: "evar-measurements",
+    title: "Measurements",
+    body: "Record the caliper as each diameter, and mark the slices the lengths run between: the lowest renal, where the aneurysm starts, the bifurcation and the internal iliacs.",
+  },
+  {
+    anchor: "evar-devices",
+    title: "Devices",
+    body: "Pick a manufacturer, which side the main body goes up, and the sizes. They're graded against that manufacturer's own sizing table.",
+  },
+  {
+    anchor: "evar-dock",
+    title: "Check answers",
+    body: "Switch between the angio and soft-tissue windows here, and press Check answers when you're done to see your score, what you missed, and why.",
+  },
+];
 /** Stable empties for a scan with no reference, so effects that depend on them don't rerun every render. */
 const NO_ROWS: ReturnType<typeof score> = [];
 const NO_GRADES: ReturnType<typeof gradeDevices> = [];
@@ -80,12 +125,15 @@ const clockWarning = (remainingMs: number) => {
 
 /** A labelled group of pill-styled native radios. */
 function PillGroup({
+  id,
   legend,
   name,
   options,
   value,
   onChange,
 }: {
+  /** For the guided tour to point at. */
+  id?: string;
   legend: string;
   name: string;
   options: readonly { value: string; label: string }[];
@@ -93,7 +141,7 @@ function PillGroup({
   onChange: (value: string) => void;
 }) {
   return (
-    <fieldset>
+    <fieldset id={id}>
       <legend className="mb-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">
         {legend}
       </legend>
@@ -326,11 +374,16 @@ export default function EvarContent() {
         <div className="text-foreground">
           <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-7xl flex-col gap-3 px-3 py-3 sm:px-4">
             <header className={`${panel} flex flex-wrap items-end gap-x-6 gap-y-3`}>
-              <div className="mr-auto">
+              <div id="evar-intro" className="mr-auto">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Practice</p>
                 <h1 className="text-xl font-bold text-foreground">EVAR sizing</h1>
+                <div className="mt-2">
+                  {/* "Tour" rather than "Take the tour", so the title block stays narrow and Best doesn't wrap. */}
+                  <FeatureTour label="EVAR sizing" storageKey="evar-tour-seen" steps={TOUR_STEPS} buttonLabel="Tour" />
+                </div>
               </div>
               <PillGroup
+                id="evar-levels"
                 legend="Level"
                 name="evar-level"
                 options={LEVELS.map((l) => ({ value: l.id, label: l.label }))}
@@ -338,6 +391,7 @@ export default function EvarContent() {
                 onChange={(value) => pickLevel(LEVELS.find((l) => l.id === value)?.id ?? "medium")}
               />
               <PillGroup
+                id="evar-cases"
                 legend="Case"
                 name="evar-case"
                 options={cases.map((c, i) => ({ value: String(i), label: c.title }))}
@@ -364,7 +418,7 @@ export default function EvarContent() {
             </header>
 
             <div className="grid flex-1 grid-cols-1 items-start gap-3 lg:grid-cols-[19rem_minmax(0,1fr)_17rem]">
-              <section aria-label="Scan" className="flex flex-col items-center lg:col-start-2 lg:row-start-1">
+              <section id="evar-scan" aria-label="Scan" className="flex flex-col items-center lg:col-start-2 lg:row-start-1">
                 <SliceViewer
                   key={evarCase.id}
                   size={evarCase.size}
@@ -380,6 +434,7 @@ export default function EvarContent() {
               </section>
 
               <section
+                id="evar-measurements"
                 aria-labelledby="evar-tasks-heading"
                 className={`${panel} lg:col-start-1 lg:row-start-1`}
               >
@@ -468,12 +523,12 @@ export default function EvarContent() {
                 </ul>
               </section>
 
-              <div className={`${panel} lg:col-start-3 lg:row-start-1 [&>section]:mt-0`}>
+              <div id="evar-devices" className={`${panel} lg:col-start-3 lg:row-start-1 [&>section]:mt-0`}>
                 <DevicePicker pick={devices} onChange={setDevices} gradesLengths={phantom !== null} />
               </div>
             </div>
 
-            <div className={`${dock} sticky bottom-3 z-20 flex flex-wrap items-center gap-x-5 gap-y-3`}>
+            <div id="evar-dock" className={`${dock} sticky bottom-3 z-20 flex flex-wrap items-center gap-x-5 gap-y-3`}>
               <PillGroup
                 legend="Window"
                 name="evar-window"
