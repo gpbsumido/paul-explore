@@ -32,6 +32,13 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on recording attempts for the study", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /recorded once/i }),
+    ).toBeInTheDocument();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<EvarSizingContent />);
     expect(
