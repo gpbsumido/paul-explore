@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
@@ -10,6 +10,11 @@ import { EVAR_CASES, referenceFor } from "@/lib/evar/phantom";
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
 const firstCase = EVAR_CASES[0];
+
+// Personal bests live in localStorage, so one test's finish mustn't become the next one's best to beat.
+afterEach(() => {
+  window.localStorage.clear();
+});
 
 /** The page reads sign-in state through react-query, so it needs a client. */
 const renderPage = () =>
@@ -148,7 +153,9 @@ describe("EvarContent", () => {
       act(() => {
         vi.advanceTimersByTime(4 * 60_000);
       });
-      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
+      // The results popup is open by now, which hides the stage behind it.
+      expect(screen.getByRole("timer", { hidden: true })).toHaveTextContent("0:00");
+      expect(screen.getByRole("dialog", { name: /how you did/i })).toBeInTheDocument();
       expect(screen.getByRole("table", { name: /results/i })).toBeInTheDocument();
       expect(screen.getByText(/time's up/i)).toBeInTheDocument();
     } finally {
@@ -223,5 +230,84 @@ describe("EvarContent", () => {
   it("has no axe violations", async () => {
     const { container } = renderPage();
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+/** Marks both ends of the neck on the right slices, which scores the length within tolerance. */
+function markNeckLength() {
+  const ref = referenceFor(firstCase);
+  fireEvent.change(sliceSlider(), { target: { value: String(firstCase.lowestRenalSlice) } });
+  fireEvent.click(screen.getByRole("button", { name: /mark this slice as lowest renal artery/i }));
+  fireEvent.change(sliceSlider(), { target: { value: String(ref.sacStartSlice) } });
+  fireEvent.click(screen.getByRole("button", { name: /mark this slice as aneurysm start/i }));
+}
+
+const checkAnswers = () => fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+const resultsDialog = () => screen.getByRole("dialog", { name: /how you did/i });
+
+describe("EvarContent results popup", () => {
+  it("pops up stars and points when the answers are checked", () => {
+    renderPage();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    markNeckLength();
+    checkAnswers();
+
+    const dialog = resultsDialog();
+    expect(within(dialog).getByText(/0 of 3 stars/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/\d+ points/i)).toBeInTheDocument();
+    expect(within(dialog).getByRole("table", { name: /results/i })).toBeInTheDocument();
+  });
+
+  it("calls the first scored finish a personal best, and a worse one not", () => {
+    renderPage();
+    markNeckLength();
+    checkAnswers();
+    expect(within(resultsDialog()).getByText(/new personal best/i)).toBeInTheDocument();
+
+    fireEvent.click(within(resultsDialog()).getByRole("button", { name: /try again/i }));
+    checkAnswers();
+    expect(within(resultsDialog()).getByText(/0 points/i)).toBeInTheDocument();
+    expect(within(resultsDialog()).queryByText(/new personal best/i)).toBeNull();
+  });
+
+  it("starts the same case fresh on Try again", () => {
+    renderPage();
+    keyboardCaliper(10);
+    fireEvent.click(screen.getByRole("button", { name: /record caliper as proximal neck diameter/i }));
+    checkAnswers();
+    fireEvent.click(within(resultsDialog()).getByRole("button", { name: /try again/i }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[0].title) })).toBeChecked();
+    expect(screen.getByRole("button", { name: /record caliper as proximal neck diameter/i })).toBeDisabled();
+    expect(screen.getAllByText("Not recorded")).toHaveLength(4);
+  });
+
+  it("moves on to the next case", () => {
+    renderPage();
+    checkAnswers();
+    fireEvent.click(within(resultsDialog()).getByRole("button", { name: /next case/i }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) })).toBeChecked();
+  });
+
+  it("closes to review the scan and opens again from Show results", () => {
+    renderPage();
+    checkAnswers();
+    fireEvent.click(within(resultsDialog()).getByRole("button", { name: /review the scan/i }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.change(sliceSlider(), { target: { value: "40" } });
+    expect(sliceSlider()).toHaveValue("40");
+
+    fireEvent.click(screen.getByRole("button", { name: /show results/i }));
+    expect(resultsDialog()).toBeInTheDocument();
+  });
+
+  it("has no axe violations with the popup open", async () => {
+    renderPage();
+    checkAnswers();
+    expect(await axe(resultsDialog())).toHaveNoViolations();
   });
 });

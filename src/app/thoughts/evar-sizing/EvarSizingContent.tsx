@@ -461,6 +461,96 @@ ipsilateral_side,mainBody_code,mainBody_picked,mainBody_expected,mainBody_verdic
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-stage"
+        date="October 23, 2026"
+        title="Stars for the skill, points for everything else"
+      >
+        <p>
+          The practice worked, but it read like a form. The scan was a 576px
+          square in a page of stacked sections, and finishing a case dropped a
+          table under the buttons. So I gave the scan the screen and made
+          finishing a case feel like finishing something.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The scan is the thing to look at, so everything else floats.
+        </h3>
+        <p className="text-muted">
+          The page is now a dark stage the height of the screen, dark in
+          either site theme the way a reading room is. A top bar holds the
+          level, case, clock and best. The measurements and the device picker
+          sit either side of a viewer sized to whatever height is left, and the
+          window, slice and caliper controls live in a dock that stays on
+          screen while scrolling. The dark comes from nesting the theme rather
+          than hard-coding colours, so every token underneath still works:
+        </p>
+        <pre className={pre}>
+          {`<div data-theme="dark" className="bg-background text-foreground">
+  ...
+  <SliceViewer className="max-w-[min(100%,calc(100dvh_-_17rem))]" />`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Points reward everything. Stars only count measuring.
+        </h3>
+        <p className="text-muted">
+          A pass is worth 50 just for landing inside tolerance, and up to 100
+          for landing on the answer, so a measurement right on the edge still
+          beats one just outside it. Device sizes that match the table add 50
+          each, Hard adds a bonus for time left, and the level scales the lot.
+          Stars ignore all of that and count measurements within tolerance,
+          because measuring is the skill this exists to practise. A perfect
+          device pick on wrong numbers shouldn&apos;t look like a good run.
+        </p>
+        <pre className={pre}>
+          {`measurement  50 + 50 × (1 − |off by| / tolerance), 0 outside
+device       50 per size that matches the table
+time bonus   Hard only, 100 × time left / 5:00
+level        ×1 Easy, ×1.5 Medium, ×2 Hard
+stars        5 within → 3, 4 → 2, 3 → 1`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A best compared against itself is always a tie.
+        </h3>
+        <p className="text-muted">
+          Bests live in localStorage per level and case, because practice is
+          anonymous and there&apos;s no account to hang them on. The catch is
+          that the best gets written the moment a case finishes, so by the time
+          the popup asks whether this run beat it, the stored best already is
+          this run. The popup compares against the best from when the attempt
+          started instead, read once on Try again, Next case or a level change.
+        </p>
+        <pre className={pre}>
+          {`const [bestAtStart, setBestAtStart] = useState(() => bestFor(medium, 0));
+// ...
+useEffect(() => {
+  if (total !== null) recordBest(level.id, evarCase.id, total);
+}, [total, level.id, evarCase.id]);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The popup hides the page, which broke the test that checks twice.
+        </h3>
+        <p className="text-muted">
+          The study records an attempt once however many times its answers are
+          checked, and a test pressed Check answers twice to prove it. With the
+          results in a modal, the stage behind it is hidden from assistive tech
+          and Check answers becomes Show results once a case is done, so the
+          second press had nothing to find:
+        </p>
+        <pre className={pre}>
+          {`TestingLibraryElementError: Unable to find an accessible element with
+the role "button" and name \`/check answers/i\``}
+        </pre>
+        <p className="mt-3 text-muted">
+          The guarantee still mattered, just through a different door. The test
+          now closes the popup to review the scan and opens it again, and still
+          expects exactly one recorded attempt.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -472,6 +562,7 @@ ipsilateral_side,mainBody_code,mainBody_picked,mainBody_expected,mainBody_verdic
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
+          "A full-height dark stage with floating controls, and a results popup with stars, points and a personal best per level and case.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
@@ -480,6 +571,7 @@ ipsilateral_side,mainBody_code,mainBody_picked,mainBody_expected,mainBody_verdic
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
+          "Personal bests live on one device. Signed-in study participants already have a record on the API, so their bests could follow them.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",

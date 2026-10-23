@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-23 - version 7.21.0
+
+- `/evar` is now a full-height dark stage instead of a page of stacked sections. A floating top bar holds the level, case, clock and personal best. The measurements and the device picker float either side of a viewer sized to the screen, and the window, slice, caliper and Check answers controls sit in a dock that stays on screen while scrolling. Below `lg` it all stacks. The intro and the research panel moved under the stage.
+- Finishing a case, by Check answers or the Hard clock running out, opens a results popup with stars, points and the same results and device tables as before. From there, Next case moves on, Try again restarts the case, and Review the scan closes the popup so the answers can be checked against the images, with Show results to bring it back.
+- Points live in `src/lib/evar/game.ts`. Each measurement within tolerance scores 50 to 100 depending on how close it landed, each device size that matches the table scores 50, and Hard adds up to 100 for time left; the level then multiplies the total by 1, 1.5 or 2. Stars count measurements alone (five within tolerance is three stars), since that's the skill being practised.
+- Personal bests are kept per level and case in localStorage (`src/lib/evar/personalBest.ts`), because practice is anonymous and there's no account to hang them on. The popup compares against the best from before the attempt, so equalling it isn't called a new one.
+
+## 2026-10-23 - version 7.20.1
+
+- `/tcg/pocket` no longer hangs when portfolio_api stalls. Both of its server-side reads went to the API with no timeout: the feature-flag fleet behind the Pocket gate, then the catalog. During the 5.28.0 outage the page never finished loading, and the public a11y e2e timed out on PRs that had nothing to do with it.
+- `fetchCatalog` now goes through `fetchUpstream` with its 8s deadline and returns `null` on a timeout, so `/tcg/pocket` and `/tcg/pokemon/sets` render their unavailable state. `fetchFlagsFromApi` gets the same 8s deadline and throws, so `loadFleet` falls back to the seed flags.
+
 ## 2026-10-22 - version 7.20.0
 
 - `/evar/admin` has a study data card above the reference forms. It says how many attempts and participants are recorded, and downloads the study as a CSV (one line per attempt, with the participant's training level, year, specialty and consent version alongside, and each measurement's yours/reference/verdict and each device's code/picked/expected/verdict as columns) or as the raw JSON. Not measured and not picked are blank cells, so a spreadsheet reads them as missing.

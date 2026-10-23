@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-21-0",
+    date: "2026-10-23",
+    version: "7.21.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR practice scores you",
+    summary:
+      "EVAR sizing practice now fills the screen with the scan, and every finished case ends in a results popup with stars, points and a personal best to beat.",
+    body: [
+      "The scan sits in the middle of a dark stage, with the measurements on one side, the device picker on the other, and the slice and caliper controls in a dock along the bottom. Points reward how close each measurement landed and each device that matches the sizing table, with a time bonus on Hard. Stars count measurements alone. Personal bests are kept per level and case on this device.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-20-0",
     date: "2026-10-22",
     version: "7.20.0",
