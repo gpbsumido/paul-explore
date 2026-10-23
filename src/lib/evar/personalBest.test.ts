@@ -7,6 +7,14 @@ afterEach(() => {
 });
 
 describe("personal bests", () => {
+  it("forgets bests set on the first phantom, whose anatomy has since changed", () => {
+    window.localStorage.setItem("evar-best:medium:long-neck", "400");
+    window.localStorage.setItem("evar-best:hard:giant-sac", "820");
+    expect(readBest("medium", "long-neck")).toBeNull();
+    expect(window.localStorage.getItem("evar-best:medium:long-neck")).toBeNull();
+    expect(window.localStorage.getItem("evar-best:hard:giant-sac")).toBeNull();
+  });
+
   it("has nothing before the first finish", () => {
     expect(readBest("medium", "long-neck")).toBeNull();
   });

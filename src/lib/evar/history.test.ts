@@ -20,6 +20,12 @@ const entry = (overrides: Partial<HistoryEntry> = {}): HistoryEntry => ({
 });
 
 describe("attempt history", () => {
+  it("forgets attempts finished on the first phantom, whose anatomy has since changed", () => {
+    window.localStorage.setItem("evar-history", JSON.stringify([entry()]));
+    expect(readHistory()).toEqual([]);
+    expect(window.localStorage.getItem("evar-history")).toBeNull();
+  });
+
   it("is empty before anything is finished", () => {
     expect(readHistory()).toEqual([]);
   });
