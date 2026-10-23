@@ -35,10 +35,16 @@ const EMPTY: readonly HistoryEntry[] = [];
 
 const listeners = new Set<() => void>();
 
+// Once per page load: the snapshot below is read on every render.
+let tidied = false;
+
 const readRaw = (): string | null => {
   if (typeof window === "undefined") return null;
   try {
-    window.localStorage.removeItem(RETIRED_KEY);
+    if (!tidied) {
+      window.localStorage.removeItem(RETIRED_KEY);
+      tidied = true;
+    }
     return window.localStorage.getItem(KEY);
   } catch {
     return null;

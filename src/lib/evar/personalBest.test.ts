@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { readBest, recordBest, usePersonalBest } from "./personalBest";
 
@@ -13,6 +13,19 @@ describe("personal bests", () => {
     expect(readBest("medium", "long-neck")).toBeNull();
     expect(window.localStorage.getItem("evar-best:medium:long-neck")).toBeNull();
     expect(window.localStorage.getItem("evar-best:hard:giant-sac")).toBeNull();
+  });
+
+  // Every reader asks on every render, and with hundreds of cases there are
+  // hundreds of best keys; walking all of them each time was the cost.
+  it("walks storage for old bests once, not on every read", () => {
+    recordBest("medium", "long-neck", 100);
+    recordBest("medium", "short-neck", 200);
+    const key = vi.spyOn(Storage.prototype, "key");
+    readBest("medium", "long-neck");
+    readBest("medium", "short-neck");
+    readBest("medium", "long-neck");
+    expect(key.mock.calls.length).toBeLessThanOrEqual(2);
+    key.mockRestore();
   });
 
   it("has nothing before the first finish", () => {
