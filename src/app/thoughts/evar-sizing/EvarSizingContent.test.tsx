@@ -46,6 +46,21 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on downloading the study", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /one line per attempt/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on scoring practice", () => {
+    render(<EvarSizingContent />);
+    expect(screen.getAllByText(/update.*october 23, 2026/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /stars for the skill/i }),
+    ).toBeInTheDocument();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<EvarSizingContent />);
     expect(

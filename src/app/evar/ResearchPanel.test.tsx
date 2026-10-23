@@ -114,7 +114,9 @@ describe("EVAR research panel", () => {
 
     checkAnswers();
     expect(await screen.findByText(/saved to your record/i)).toBeInTheDocument();
-    checkAnswers();
+    // Checking again is now closing the results popup and opening it back up.
+    fireEvent.click(screen.getByRole("button", { name: /review the scan/i }));
+    fireEvent.click(screen.getByRole("button", { name: /show results/i }));
 
     await waitFor(() => expect(state.posts).toHaveLength(1));
     expect(state.posts[0]).toMatchObject({ caseId: "long-neck", level: "medium", timedOut: false });

@@ -75,7 +75,12 @@ export function toCsv<T>(
  * second copy of the object-URL dance is a second place to forget the revoke.
  */
 export function downloadCsv(filename: string, content: string): void {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  downloadText(filename, content, "text/csv;charset=utf-8;");
+}
+
+/** The same download for any text, so a JSON export doesn't need its own copy. */
+export function downloadText(filename: string, content: string, type: string): void {
+  const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;

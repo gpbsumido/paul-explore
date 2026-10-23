@@ -109,6 +109,12 @@ describe("AdminReferencesContent", () => {
     expect(await within(caseGroup(shortNeck.title)).findByText(/phantom geometry/i)).toBeInTheDocument();
   });
 
+  it("puts the study data above the reference forms", async () => {
+    api();
+    renderAdmin();
+    expect(await screen.findByRole("heading", { name: /study data/i })).toBeInTheDocument();
+  });
+
   it("has no axe violations", async () => {
     api();
     const { container } = renderAdmin();

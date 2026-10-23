@@ -48,11 +48,20 @@ const flagPayloadSchema = z.union([
   flagSchema.transform((flag) => ({ flag })),
 ]);
 
-/** Reads the whole fleet and the environment list from the feature-flags API. */
+/**
+ * Reads the whole fleet and the environment list from the feature-flags API.
+ *
+ * Gives up after eight seconds, the same deadline as `fetchUpstream`, so a
+ * stalled API throws and `loadFleet` falls back to the seed. Without it the
+ * Pocket gate waited forever and took /tcg/pocket down with it.
+ */
 export async function fetchFlagsFromApi(): Promise<
   z.infer<typeof flagsPayloadSchema>
 > {
-  const res = await fetch(BASE, { cache: "no-store" });
+  const res = await fetch(BASE, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(8_000),
+  });
   if (!res.ok) {
     throw new FlagsApiError(res.status);
   }

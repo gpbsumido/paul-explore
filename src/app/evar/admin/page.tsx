@@ -5,8 +5,8 @@ import { isAllowedEmail } from "@/lib/emailAllowlist";
 import AdminReferencesContent from "./AdminReferencesContent";
 
 export const metadata: Metadata = {
-  title: "References · EVAR Sizing admin",
-  description: "Set the reference answers each EVAR practice case is scored against.",
+  title: "EVAR Sizing admin",
+  description: "Download the EVAR study data and set the reference answers each practice case is scored against.",
   robots: { index: false, follow: false },
 };
 
