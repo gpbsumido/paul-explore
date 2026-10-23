@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, UpdateTimeline, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -45,6 +45,61 @@ export default function EvarSizingContent() {
         </>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-10-23-admin-results",
+            date: "Oct 23, 2026",
+            title: "A spreadsheet I don't have to open",
+          },
+          {
+            id: "update-2026-10-23-results",
+            date: "Oct 23, 2026",
+            title: "The practice has a memory now, and it stays in the browser",
+          },
+          {
+            id: "update-2026-10-23-cases-and-scan",
+            date: "Oct 23, 2026",
+            title: "Six more cases, and a scan that finally has an IVC",
+          },
+          {
+            id: "update-2026-10-23-light-mode",
+            date: "Oct 23, 2026",
+            title: "A reading room is dark, but this page isn't one",
+          },
+          {
+            id: "update-2026-10-23-stage",
+            date: "Oct 23, 2026",
+            title: "Stars for the skill, points for everything else",
+          },
+          {
+            id: "update-2026-10-22-study-export",
+            date: "Oct 22, 2026",
+            title: "One line per attempt, because that's what a spreadsheet wants",
+          },
+          {
+            id: "update-2026-10-22-references",
+            date: "Oct 22, 2026",
+            title: "Correcting an answer without a deploy",
+          },
+          {
+            id: "update-2026-10-22-study",
+            date: "Oct 22, 2026",
+            title: "Every attempt recorded once, for anyone who opts in",
+          },
+          {
+            id: "update-2026-10-22-devices",
+            date: "Oct 22, 2026",
+            title: "Picking the graft, and why a 13 mm iliac gets a 16 mm limb",
+          },
+          {
+            id: "update-2026-10-22-levels",
+            date: "Oct 22, 2026",
+            title: "Easy, Medium, and a Hard that gives you five minutes",
+          },
+        ]}
+      />
+
       <Section title="I wanted real scans, and shipped a phantom">
         <p className="text-muted">
           The obvious version uses deidentified patient CTA. There are openly

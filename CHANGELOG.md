@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-23 - version 7.24.1
+
+- The EVAR Sizing write-up opens with an update timeline, the same jump list the operator dashboard and the other long write-ups use. It had ten dated updates and nothing at the top to find them by. A test checks the timeline links every update section on the page, newest first, so the next update can't be added without its entry.
+
 ## 2026-10-23 - version 7.24.0
 
 - New admin-only `/evar/admin/results` page, behind the same allowlist gate as `/evar/admin`: everyone's recorded study attempts, filtered by level, case, training level, timed out and an inclusive UTC date range, with a count of attempts and participants, how often each measurement landed within tolerance out of how often it was measured, and a table of the attempts. "Download these as CSV" writes just the filtered rows in the full export's columns. The admin page links to it.
