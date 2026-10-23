@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { EVAR_CASES } from "@/lib/evar/phantom";
@@ -37,7 +37,9 @@ async function send(url: string, method: string, body?: unknown): Promise<unknow
 }
 
 /** Agreeing to the draft consent and saying where you are in training. */
-function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }) {
+export function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }) {
+  // The form can be on the page twice, in the first-visit dialog and the panel, so its ids can't be fixed.
+  const idBase = useId();
   const [trainingLevel, setTrainingLevel] = useState("");
   const [trainingYear, setTrainingYear] = useState("");
   const [specialty, setSpecialty] = useState("");
@@ -80,11 +82,11 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div>
-          <label htmlFor="evar-training-level" className="text-[13px] text-muted">
+          <label htmlFor={`${idBase}-level`} className="text-[13px] text-muted">
             Training level
           </label>
           <select
-            id="evar-training-level"
+            id={`${idBase}-level`}
             className={field}
             value={trainingLevel}
             onChange={(e) => setTrainingLevel(e.target.value)}
@@ -98,11 +100,11 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
           </select>
         </div>
         <div>
-          <label htmlFor="evar-training-year" className="text-[13px] text-muted">
+          <label htmlFor={`${idBase}-year`} className="text-[13px] text-muted">
             Year of training (optional)
           </label>
           <input
-            id="evar-training-year"
+            id={`${idBase}-year`}
             type="number"
             min={1}
             max={15}
@@ -112,11 +114,11 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
           />
         </div>
         <div>
-          <label htmlFor="evar-specialty" className="text-[13px] text-muted">
+          <label htmlFor={`${idBase}-specialty`} className="text-[13px] text-muted">
             Specialty (optional)
           </label>
           <input
-            id="evar-specialty"
+            id={`${idBase}-specialty`}
             type="text"
             maxLength={80}
             className={field}

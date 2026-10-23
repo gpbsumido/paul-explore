@@ -31,12 +31,14 @@ function useHydrated(): boolean {
  * a tour. Until someone clicks, the open state is derived rather than stored,
  * which also keeps it out of an effect.
  */
-export function useGuidedTour(storageKey: string) {
+export function useGuidedTour(storageKey: string, { autoOpen = true }: { autoOpen?: boolean } = {}) {
   const [seen, setSeen] = usePersistentState(storageKey, false);
   const hydrated = useHydrated();
   // null until the visitor starts or closes it; after that, their choice wins
   const [choice, setChoice] = useState<boolean | null>(null);
-  const open = choice ?? (hydrated && !seen);
+  // `autoOpen` lets a page hold the first-visit open back until something
+  // that has to come first is done, like EVAR asking about its study.
+  const open = choice ?? (hydrated && !seen && autoOpen);
 
   const start = () => setChoice(true);
   const close = () => {
