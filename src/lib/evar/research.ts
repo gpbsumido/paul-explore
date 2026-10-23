@@ -9,7 +9,8 @@
 
 import { z } from "zod";
 import type { Attempt, TaskScore } from "./measure";
-import type { DeviceGrade, DevicePick } from "./endurant";
+import type { DevicePick } from "./devices";
+import type { DeviceGrade } from "./sheets";
 import type { LevelId } from "./levels";
 
 /**
@@ -67,7 +68,7 @@ export type AttemptPayload = {
   measurements: Attempt;
   scores: { id: string; yours: number | null; reference: number; verdict: TaskScore["verdict"] }[];
   devices:
-    | (DevicePick & {
+    | (Omit<DevicePick, "sheet"> & {
         grades: { id: string; code: string | null; picked: number | null; expected: number | null; verdict: DeviceGrade["verdict"] }[];
       })
     | null;
@@ -104,14 +105,19 @@ export function toAttemptPayload(input: {
     timedOut: input.timeLimitMs !== null && durationMs >= input.timeLimitMs,
     measurements: input.attempt,
     scores: input.scores.map(({ id, yours, reference, verdict }) => ({ id, yours, reference, verdict })),
+    // The API's device schema is strict and has no sheet, and the codes already say whose device it is.
+    // Where a shared band edge allows two sizes, the first stands for both; the verdict already says whether the pick was one.
     devices: picked
       ? {
-          ...input.devices,
+          ipsilateral: input.devices.ipsilateral,
+          mainBody: input.devices.mainBody,
+          contraLimb: input.devices.contraLimb,
+          ipsiExtension: input.devices.ipsiExtension,
           grades: input.grades.map(({ id, code, picked: diameter, expected, verdict }) => ({
             id,
             code,
             picked: diameter,
-            expected,
+            expected: expected[0] ?? null,
             verdict,
           })),
         }

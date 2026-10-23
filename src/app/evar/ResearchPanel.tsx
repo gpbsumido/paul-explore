@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { EVAR_CASES } from "@/lib/evar/phantom";
+import { caseTitle } from "@/lib/evar/caseCatalogue";
+import { useScanCases } from "@/lib/evar/useScanCases";
 import { LEVELS } from "@/lib/evar/levels";
 import {
   CONSENT_VERSION,
@@ -37,7 +38,9 @@ async function send(url: string, method: string, body?: unknown): Promise<unknow
 }
 
 /** Agreeing to the draft consent and saying where you are in training. */
-function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }) {
+export function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }) {
+  // The form can be on the page twice, in the first-visit dialog and the panel, so its ids can't be fixed.
+  const idBase = useId();
   const [trainingLevel, setTrainingLevel] = useState("");
   const [trainingYear, setTrainingYear] = useState("");
   const [specialty, setSpecialty] = useState("");
@@ -80,11 +83,11 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div>
-          <label htmlFor="evar-training-level" className="text-[13px] text-muted">
+          <label htmlFor={`${idBase}-level`} className="text-[13px] text-muted">
             Training level
           </label>
           <select
-            id="evar-training-level"
+            id={`${idBase}-level`}
             className={field}
             value={trainingLevel}
             onChange={(e) => setTrainingLevel(e.target.value)}
@@ -98,11 +101,11 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
           </select>
         </div>
         <div>
-          <label htmlFor="evar-training-year" className="text-[13px] text-muted">
+          <label htmlFor={`${idBase}-year`} className="text-[13px] text-muted">
             Year of training (optional)
           </label>
           <input
-            id="evar-training-year"
+            id={`${idBase}-year`}
             type="number"
             min={1}
             max={15}
@@ -112,11 +115,11 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
           />
         </div>
         <div>
-          <label htmlFor="evar-specialty" className="text-[13px] text-muted">
+          <label htmlFor={`${idBase}-specialty`} className="text-[13px] text-muted">
             Specialty (optional)
           </label>
           <input
-            id="evar-specialty"
+            id={`${idBase}-specialty`}
             type="text"
             maxLength={80}
             className={field}
@@ -151,6 +154,7 @@ function JoinForm({ onJoined }: { onJoined: (participant: Participant) => void }
 function ParticipantView({ participant, onWithdrawn }: { participant: Participant; onWithdrawn: () => void }) {
   const [confirming, setConfirming] = useState(false);
   const keepRef = useRef<HTMLButtonElement>(null);
+  const { scans } = useScanCases();
   const attempts = useQuery({
     queryKey: queryKeys.evar.attempts(),
     queryFn: async () => attemptsResponseSchema.parse(await send("/api/evar/attempts", "GET")).attempts,
@@ -194,7 +198,7 @@ function ParticipantView({ participant, onWithdrawn }: { participant: Participan
               {rows.map((row) => (
                 <tr key={row.id} className="border-t border-border">
                   <td className="py-1.5 pr-3">{new Date(row.submittedAt).toLocaleDateString()}</td>
-                  <td className="py-1.5 pr-3">{EVAR_CASES.find((c) => c.id === row.caseId)?.title ?? row.caseId}</td>
+                  <td className="py-1.5 pr-3">{caseTitle(row.caseId, scans)}</td>
                   <td className="py-1.5 pr-3">{LEVELS.find((l) => l.id === row.level)?.label ?? row.level}</td>
                   <td className="py-1.5 pr-3 font-mono">
                     {row.scores.filter((s) => s.verdict === "within").length} / {row.scores.length}

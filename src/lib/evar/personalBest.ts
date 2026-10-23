@@ -14,12 +14,29 @@ import type { LevelId } from "./levels";
 
 const listeners = new Set<() => void>();
 
-const keyFor = (levelId: LevelId, caseId: string) => `evar-best:${levelId}:${caseId}`;
+const keyFor = (levelId: LevelId, caseId: string) => `evar-best-v2:${levelId}:${caseId}`;
+
+// Once per page load: readers ask on every render, and there's a key per level and case.
+let tidied = false;
+
+/**
+ * Bests set on the first phantom, before the necks got tapers, angles,
+ * thrombus and calcium, aren't comparable with anything now, so they go.
+ */
+function forgetRetired() {
+  if (tidied) return;
+  tidied = true;
+  const retired = Array.from({ length: window.localStorage.length }, (_, i) => window.localStorage.key(i)).filter(
+    (key): key is string => key !== null && key.startsWith("evar-best:"),
+  );
+  retired.forEach((key) => window.localStorage.removeItem(key));
+}
 
 /** The best total so far, or null when there isn't one or storage holds garbage. */
 export function readBest(levelId: LevelId, caseId: string): number | null {
   if (typeof window === "undefined") return null;
   try {
+    forgetRetired();
     const raw = window.localStorage.getItem(keyFor(levelId, caseId));
     const value = raw === null ? Number.NaN : Number(raw);
     return Number.isFinite(value) ? value : null;

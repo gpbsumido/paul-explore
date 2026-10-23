@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
 import { axe } from "@/test/a11y";
 import { EVAR_CASES } from "@/lib/evar/phantom";
+import { parseManifest } from "@/lib/evar/scans";
+import manifest from "../../../../public/evar/scans/manifest.json";
+
+const [realScan] = parseManifest(manifest, "/evar/scans");
 import AdminReferencesContent from "./AdminReferencesContent";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -52,29 +56,45 @@ const renderAdmin = () =>
     </QueryClientProvider>,
   );
 
+/** A case's form only exists once its row is opened, so there aren't hundreds of forms on the page. */
+const openCase = async (title: string) => {
+  fireEvent.click(await screen.findByRole("button", { name: new RegExp(`^${title}`) }));
+  return screen.getByRole("group", { name: new RegExp(title) });
+};
 const caseGroup = (title: string) => screen.getByRole("group", { name: new RegExp(title) });
 
 describe("AdminReferencesContent", () => {
   it("shows each case's current values and where they came from", async () => {
     api();
     renderAdmin();
-    await screen.findByDisplayValue("From the 3D reconstruction");
+    await screen.findByRole("button", { name: new RegExp(`^${shortNeck.title}`) });
 
-    const hand = caseGroup(shortNeck.title);
+    const hand = await openCase(shortNeck.title);
+    expect(within(hand).getByDisplayValue("From the 3D reconstruction")).toBeInTheDocument();
     expect(within(hand).getByText(/set by hand/i)).toBeInTheDocument();
     expect(within(hand).getByRole("spinbutton", { name: /neck diameter/i })).toHaveValue(26);
 
-    const phantom = caseGroup(longNeck.title);
+    const phantom = await openCase(longNeck.title);
     expect(within(phantom).getByText(/phantom geometry/i)).toBeInTheDocument();
     expect(within(phantom).queryByRole("button", { name: /reset/i })).toBeNull();
+  });
+
+  it("lists the real case with empty answers to fill in, and no phantom to fall back to", async () => {
+    api();
+    renderAdmin();
+    await screen.findByRole("button", { name: new RegExp(`^${shortNeck.title}`) });
+    const real = await openCase(realScan.title);
+    expect(within(real).getByText(/no answers yet/i)).toBeInTheDocument();
+    expect(within(real).getByRole("spinbutton", { name: /neck diameter/i })).toHaveValue(null);
+    expect(within(real).queryByRole("button", { name: /reset/i })).toBeNull();
   });
 
   it("saves all five values and the note for one case", async () => {
     const state = api();
     renderAdmin();
-    await screen.findByDisplayValue("From the 3D reconstruction");
+    await screen.findByRole("button", { name: new RegExp(`^${shortNeck.title}`) });
 
-    const group = caseGroup(longNeck.title);
+    const group = await openCase(longNeck.title);
     fireEvent.change(within(group).getByRole("spinbutton", { name: /neck diameter/i }), { target: { value: "25" } });
     fireEvent.change(within(group).getByRole("textbox", { name: /note/i }), { target: { value: "Checked by hand" } });
     fireEvent.click(within(group).getByRole("button", { name: /save/i }));
@@ -91,9 +111,9 @@ describe("AdminReferencesContent", () => {
   it("won't save an empty or non-positive value", async () => {
     const state = api();
     renderAdmin();
-    await screen.findByDisplayValue("From the 3D reconstruction");
+    await screen.findByRole("button", { name: new RegExp(`^${shortNeck.title}`) });
 
-    const group = caseGroup(longNeck.title);
+    const group = await openCase(longNeck.title);
     fireEvent.change(within(group).getByRole("spinbutton", { name: /max sac/i }), { target: { value: "" } });
     expect(within(group).getByRole("button", { name: /save/i })).toBeDisabled();
     expect(state.puts).toHaveLength(0);
@@ -102,11 +122,39 @@ describe("AdminReferencesContent", () => {
   it("resets a hand-set case back to the phantom", async () => {
     const state = api();
     renderAdmin();
-    await screen.findByDisplayValue("From the 3D reconstruction");
+    await screen.findByRole("button", { name: new RegExp(`^${shortNeck.title}`) });
 
-    fireEvent.click(within(caseGroup(shortNeck.title)).getByRole("button", { name: /reset to phantom/i }));
+    fireEvent.click(within(await openCase(shortNeck.title)).getByRole("button", { name: /reset to phantom/i }));
     await waitFor(() => expect(state.deletes).toEqual([shortNeck.id]));
     expect(await within(caseGroup(shortNeck.title)).findByText(/phantom geometry/i)).toBeInTheDocument();
+  });
+
+  it("only builds a case's form once its row is opened", async () => {
+    api();
+    renderAdmin();
+    await screen.findByRole("button", { name: new RegExp(`^${longNeck.title}`) });
+    expect(screen.queryAllByRole("spinbutton")).toHaveLength(0);
+    await openCase(longNeck.title);
+    expect(screen.getAllByRole("spinbutton")).toHaveLength(5);
+  });
+
+  it("finds a case by searching for it", async () => {
+    api();
+    renderAdmin();
+    await screen.findByRole("button", { name: new RegExp(`^${longNeck.title}`) });
+    fireEvent.change(screen.getByRole("searchbox", { name: /find a case/i }), { target: { value: "hostile" } });
+    expect(screen.getByRole("button", { name: /^hostile neck/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: new RegExp(`^${longNeck.title}`) })).toBeNull();
+  });
+
+  it("can narrow the list to cases that still need answers", async () => {
+    api();
+    renderAdmin();
+    await screen.findByRole("button", { name: new RegExp(`^${realScan.title}`) });
+    fireEvent.click(screen.getByRole("checkbox", { name: /only cases that need answers/i }));
+    expect(screen.getByRole("button", { name: new RegExp(`^${realScan.title}`) })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: new RegExp(`^${longNeck.title}`) })).toBeNull();
+    expect(screen.queryByRole("button", { name: new RegExp(`^${shortNeck.title}`) })).toBeNull();
   });
 
   it("puts the study data above the reference forms", async () => {
@@ -118,7 +166,7 @@ describe("AdminReferencesContent", () => {
   it("has no axe violations", async () => {
     api();
     const { container } = renderAdmin();
-    await screen.findByDisplayValue("From the 3D reconstruction");
+    await screen.findByRole("button", { name: new RegExp(`^${shortNeck.title}`) });
     expect(await axe(container)).toHaveNoViolations();
   });
 });

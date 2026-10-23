@@ -20,14 +20,17 @@ export default function FeatureTour({
   steps,
   buttonClassName,
   buttonLabel = "Take the tour",
+  autoOpen = true,
 }: {
   label: string;
   storageKey: string;
   steps: TourStep[];
   buttonClassName?: string;
   buttonLabel?: string;
+  /** False holds back the first-visit open until the page is ready for it. */
+  autoOpen?: boolean;
 }) {
-  const { open, start, close } = useGuidedTour(storageKey);
+  const { open, start, close } = useGuidedTour(storageKey, { autoOpen });
 
   return (
     <>

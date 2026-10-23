@@ -89,6 +89,87 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on zooming the viewer", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /two pixels is not a fair test/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer lists zoom as missing", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/there is no zoom/i)).toBeNull();
+  });
+
+  it("has a dated update on the hostile necks", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /every neck was a clean tube/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer calls every neck a parallel tube", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/every neck is a parallel tube/i)).toBeNull();
+  });
+
+  it("has a dated update on grading lengths along the centerline", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /the slices said 10 mm/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer says lengths can't be graded", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/lengths need a centerline before they can be scored/i)).toBeNull();
+  });
+
+  it("has a dated update on the Gore and Cook sheets", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /three tables, one 22 mm iliac/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer says there's only one manufacturer's sheet", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/only one manufacturer's sheet/i)).toBeNull();
+  });
+
+  it("has a dated update on the real CTA case", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /fifty-six scans, one aneurysm/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer lists real CTA cases as upcoming", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/real deidentified CTA cases from an openly licensed aortic dataset/i)).toBeNull();
+  });
+
+  it("has a dated update on the guided tour", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /the page had grown past explaining itself/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on simplifying the page and asking about the study first", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /thirteen rows and a disclaimer/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a dated update on the full review", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /asked where the aorta was 145,933 times/i }),
+    ).toBeInTheDocument();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });

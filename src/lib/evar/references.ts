@@ -10,6 +10,8 @@
 
 import { z } from "zod";
 import { referenceFor, type EvarCase } from "./phantom";
+import type { Reference } from "./measure";
+import type { PracticeCase } from "./scans";
 
 const referenceRowSchema = z.object({
   caseId: z.string(),
@@ -27,7 +29,7 @@ export const referencesResponseSchema = z.object({ references: z.array(reference
 export type ReferenceRow = z.infer<typeof referenceRowSchema>;
 
 /** The case's reference, with a hand-set row for it taking over the five scored values. */
-export function referenceWithOverride(c: EvarCase, overrides: readonly ReferenceRow[]) {
+function referenceWithOverride(c: EvarCase, overrides: readonly ReferenceRow[]) {
   const phantom = referenceFor(c);
   const row = overrides.find((o) => o.caseId === c.id);
   if (!row) return phantom;
@@ -39,4 +41,16 @@ export function referenceWithOverride(c: EvarCase, overrides: readonly Reference
     rightCia: row.rightCia,
     leftCia: row.leftCia,
   };
+}
+
+/**
+ * What a case is scored against: a phantom's own geometry under any hand-set
+ * row, or a real scan's hand-set row and nothing else. Null means nobody has
+ * measured that scan yet.
+ */
+export function referenceForCase(c: PracticeCase, overrides: readonly ReferenceRow[]): Reference | null {
+  if (c.kind === "phantom") return referenceWithOverride(c, overrides);
+  const row = overrides.find((o) => o.caseId === c.id);
+  if (!row) return null;
+  return { neckDiameter: row.neckDiameter, neckLength: row.neckLength, maxSac: row.maxSac, rightCia: row.rightCia, leftCia: row.leftCia };
 }

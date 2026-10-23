@@ -5,6 +5,7 @@
  */
 
 import { EVAR_CASES, referenceFor, type EvarCase } from "./phantom";
+import type { PracticeCase, ScanCase } from "./scans";
 import { TOLERANCE_MM, type TaskId } from "./measure";
 
 export type LevelId = "easy" | "medium" | "hard";
@@ -13,7 +14,10 @@ export type Level = {
   id: LevelId;
   label: string;
   blurb: string;
+  /** The phantoms it plays, in order. */
   caseIds: readonly string[];
+  /** Whether every real scan is offered after them. */
+  includesScans: boolean;
   hints: boolean;
   tolerance: Record<TaskId, number>;
   timeLimitMs: number | null;
@@ -25,6 +29,7 @@ export const LEVELS: readonly Level[] = [
     label: "Easy",
     blurb: "Straightforward cases, with hints on which slices to look at. Diameters pass within 3 mm and lengths within 8 mm.",
     caseIds: ["long-neck", "small-sac", "wide-sac"],
+    includesScans: false,
     hints: true,
     tolerance: { neckDiameter: 3, neckLength: 8, maxSac: 3, rightCia: 3, leftCia: 3 },
     timeLimitMs: null,
@@ -32,8 +37,9 @@ export const LEVELS: readonly Level[] = [
   {
     id: "medium",
     label: "Medium",
-    blurb: "Four cases, no hints. Diameters pass within 2 mm and lengths within 5 mm.",
+    blurb: "Standard phantoms and every real scan, no hints. Diameters pass within 2 mm and lengths within 5 mm.",
     caseIds: ["long-neck", "short-neck", "narrow-iliacs", "ectatic-left"],
+    includesScans: true,
     hints: false,
     tolerance: TOLERANCE_MM,
     timeLimitMs: null,
@@ -43,15 +49,22 @@ export const LEVELS: readonly Level[] = [
     label: "Hard",
     blurb: "The awkward anatomy, no hints, standard tolerances, and five minutes. When the clock runs out your answers are handed in as they are.",
     caseIds: ["short-neck", "hostile-neck", "short-wide", "giant-sac"],
+    includesScans: false,
     hints: false,
     tolerance: TOLERANCE_MM,
     timeLimitMs: 5 * 60 * 1000,
   },
 ];
 
-/** The cases a level plays, in the order it lists them. */
-export function casesFor(level: Level): EvarCase[] {
-  return level.caseIds.flatMap((id) => EVAR_CASES.filter((c) => c.id === id));
+const PHANTOMS = new Map(EVAR_CASES.map((c) => [c.id, c]));
+
+/**
+ * The cases a level plays: its phantoms in the order it lists them, then,
+ * where the level takes them, every real scan the manifest has.
+ */
+export function casesFor(level: Level, scans: readonly ScanCase[] = []): PracticeCase[] {
+  const phantoms = level.caseIds.flatMap((id) => PHANTOMS.get(id) ?? []);
+  return level.includesScans ? [...phantoms, ...scans] : phantoms;
 }
 
 export type Hint = { label: string; from: number; to: number };
@@ -72,5 +85,11 @@ export function hintsFor(c: EvarCase): Hint[] {
     around("Aneurysm start", sacStartSlice, 3, 2),
     around("Widest part of the sac", c.sacPeakSlice, 4, 6),
     around("Iliacs, clear of the bifurcation", c.bifurcationSlice + 8, 2, 6),
+    around("Aortic bifurcation", c.bifurcationSlice, 3, 2),
+    {
+      label: "Internal iliac origins",
+      from: Math.min(c.internalIliacSlice.right, c.internalIliacSlice.left) + 1 - 3,
+      to: Math.min(c.slices, Math.max(c.internalIliacSlice.right, c.internalIliacSlice.left) + 1 + 2),
+    },
   ];
 }

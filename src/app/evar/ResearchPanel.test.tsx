@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
@@ -68,6 +68,9 @@ function study({ signedIn = true, joined = false } = {}) {
 }
 
 const renderPage = () => {
+  // The first-visit study dialog asks the same thing; these tests are about the panel.
+  window.localStorage.setItem("evar-study-asked", "true");
+  window.localStorage.setItem("evar-tour-seen", "true");
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
@@ -121,6 +124,31 @@ describe("EVAR research panel", () => {
     await waitFor(() => expect(state.posts).toHaveLength(1));
     expect(state.posts[0]).toMatchObject({ caseId: "long-neck", level: "medium", timedOut: false });
     expect(state.posts[0].clientAttemptId).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("names a real scan by its title in the list of recorded attempts", async () => {
+    study({ joined: true });
+    server.use(
+      http.get("/api/evar/attempts", () =>
+        HttpResponse.json({
+          attempts: [
+            {
+              id: "44444444-4444-4444-8444-444444444444",
+              caseId: "avt-r6",
+              level: "medium",
+              submittedAt: "2026-10-23T10:00:00.000Z",
+              durationMs: 90_000,
+              timedOut: false,
+              scores: [{ verdict: "within" }],
+            },
+          ],
+        }),
+      ),
+    );
+    renderPage();
+    const table = await screen.findByRole("table", { name: /your recorded attempts/i });
+    expect(await within(table).findByText(/real ct: aneurysm with thrombus/i)).toBeInTheDocument();
+    expect(within(table).queryByText("avt-r6")).toBeNull();
   });
 
   it("asks before withdrawing, then deletes and goes back to the consent form", async () => {

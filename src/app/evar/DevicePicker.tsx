@@ -1,6 +1,8 @@
 "use client";
 
-import { EXTENSIONS, LIMBS, MAIN_BODIES, type Device, type DevicePick, type Side } from "@/lib/evar/endurant";
+import type { Device, DeviceGroup, DevicePick, SheetId, Side } from "@/lib/evar/devices";
+import { SHEETS } from "@/lib/evar/sheets";
+import Disclosure from "./Disclosure";
 
 const select =
   "mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono text-[13px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -19,7 +21,7 @@ function DeviceSelect({
   id: string;
   label: string;
   empty: string;
-  groups: readonly { label: string; devices: readonly Device[] }[];
+  groups: readonly DeviceGroup[];
   value: string | null;
   onChange: (code: string | null) => void;
 }) {
@@ -45,21 +47,54 @@ function DeviceSelect({
 }
 
 /**
- * Picking the stent graft from your measurements: which side the main body
- * goes up, then the main body, the contralateral limb, and anything extra on
- * the main body's own leg.
+ * Picking the stent graft from your measurements: whose device, which side
+ * the main body goes up, then the main body, the contralateral limb, and
+ * anything extra on the main body's own side. Changing manufacturer clears
+ * the picks, since no code belongs to two sheets.
  */
-export default function DevicePicker({ pick, onChange }: { pick: DevicePick; onChange: (pick: DevicePick) => void }) {
+export default function DevicePicker({
+  pick,
+  onChange,
+  gradesLengths = true,
+}: {
+  pick: DevicePick;
+  onChange: (pick: DevicePick) => void;
+  /** False on a real scan, which has no centerline to grade lengths along. */
+  gradesLengths?: boolean;
+}) {
   const sides: readonly Side[] = ["right", "left"];
+  const sheet = SHEETS[pick.sheet];
+  const sheetIds = Object.keys(SHEETS) as SheetId[];
   return (
-    <section aria-labelledby="evar-devices-heading" className="mt-6">
-      <h3 id="evar-devices-heading" className="mb-1 text-[15px] font-bold text-foreground">
+    <section aria-labelledby="evar-devices-heading">
+      {/* The tab already says what this is, so the heading is for screen readers. */}
+      <h3 id="evar-devices-heading" className="sr-only">
         Devices
       </h3>
       <p className="mb-3 text-[13px] text-muted">
-        Size an Endurant II/IIs from your numbers. Lengths are listed but not graded: they come
-        from a centerline, which these axial phantoms don&apos;t have.
+        Size a stent graft from your numbers.{" "}
+        {gradesLengths
+          ? `Lengths are graded along the centerline: each side has to seal ${sheet.distalSealMm} mm into its common iliac without covering the internal iliac.`
+          : "On a real scan only the diameters are graded, since there's no centerline to measure lengths along."}
       </p>
+
+      <fieldset className="mb-3">
+        <legend className="text-[13px] text-muted">Manufacturer</legend>
+        <div className="mt-1 flex flex-col gap-1">
+          {sheetIds.map((id) => (
+            <label key={id} className="flex items-center gap-1.5 text-[14px] text-foreground">
+              <input
+                type="radio"
+                name="evar-sheet"
+                value={id}
+                checked={pick.sheet === id}
+                onChange={() => onChange({ ...pick, sheet: id, mainBody: null, contraLimb: null, ipsiExtension: null })}
+              />
+              {SHEETS[id].name}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="mb-3">
         <legend className="text-[13px] text-muted">Main body goes up the</legend>
@@ -83,10 +118,7 @@ export default function DevicePicker({ pick, onChange }: { pick: DevicePick; onC
         id="evar-main-body"
         label="Main body"
         empty="Choose a main body"
-        groups={[
-          { label: "Endurant II bifurcated (ETBF)", devices: MAIN_BODIES.filter((d) => d.code.startsWith("ETBF")) },
-          { label: "Endurant IIs (ESBF)", devices: MAIN_BODIES.filter((d) => d.code.startsWith("ESBF")) },
-        ]}
+        groups={sheet.catalogue.mainBodies}
         value={pick.mainBody}
         onChange={(mainBody) => onChange({ ...pick, mainBody })}
       />
@@ -94,27 +126,25 @@ export default function DevicePicker({ pick, onChange }: { pick: DevicePick; onC
         id="evar-contra-limb"
         label="Contralateral limb"
         empty="Choose a limb"
-        groups={[{ label: "Limbs (ETLW)", devices: LIMBS }]}
+        groups={sheet.catalogue.contraLimbs}
         value={pick.contraLimb}
         onChange={(contraLimb) => onChange({ ...pick, contraLimb })}
       />
       <DeviceSelect
         id="evar-ipsi-extension"
         label="Ipsilateral extension"
-        empty="None, the main body's leg seals"
-        groups={[
-          { label: "Limbs (ETLW)", devices: LIMBS },
-          { label: "Iliac extensions (ETEW)", devices: EXTENSIONS },
-        ]}
+        empty={sheet.noIpsiExtension}
+        groups={sheet.catalogue.ipsiExtensions}
         value={pick.ipsiExtension}
         onChange={(ipsiExtension) => onChange({ ...pick, ipsiExtension })}
       />
 
-      <p className="text-[12px] text-muted">
-        Sizing from Medtronic&apos;s public Endurant II/IIs sizing sheet, for practice only. Not
-        affiliated with Medtronic and not for clinical use; the instructions for use are the
-        source of truth.
-      </p>
+      <Disclosure label="About these sizing tables">
+        <p className="text-[12px] text-muted">
+          Sizing from {sheet.source}, for practice only. {sheet.codesNote} Not affiliated with{" "}
+          {sheet.maker} and not for clinical use; the instructions for use are the source of truth.
+        </p>
+      </Disclosure>
     </section>
   );
 }

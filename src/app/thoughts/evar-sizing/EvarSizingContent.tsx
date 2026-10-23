@@ -48,6 +48,46 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-review",
+            date: "Oct 23, 2026",
+            title: "A slice asked where the aorta was 145,933 times",
+          },
+          {
+            id: "update-2026-10-23-simpler",
+            date: "Oct 23, 2026",
+            title: "Thirteen rows and a disclaimer, all at once",
+          },
+          {
+            id: "update-2026-10-23-tour",
+            date: "Oct 23, 2026",
+            title: "The page had grown past explaining itself",
+          },
+          {
+            id: "update-2026-10-23-real-cta",
+            date: "Oct 23, 2026",
+            title: "Fifty-six scans, one aneurysm",
+          },
+          {
+            id: "update-2026-10-23-sheets",
+            date: "Oct 23, 2026",
+            title: "Three tables, one 22 mm iliac, three different answers",
+          },
+          {
+            id: "update-2026-10-23-centerline",
+            date: "Oct 23, 2026",
+            title: "The slices said 10 mm. The vessel said 16.",
+          },
+          {
+            id: "update-2026-10-23-hostile-necks",
+            date: "Oct 23, 2026",
+            title: "Every neck was a clean tube, which is the one thing real necks never are",
+          },
+          {
+            id: "update-2026-10-23-zoom",
+            date: "Oct 23, 2026",
+            title: "Two pixels is not a fair test",
+          },
+          {
             id: "update-2026-10-23-admin-results",
             date: "Oct 23, 2026",
             title: "A spreadsheet I don't have to open",
@@ -864,6 +904,658 @@ Hook change on every render.`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-zoom"
+        date="October 23, 2026"
+        title="Two pixels is not a fair test"
+      >
+        <p>
+          A slice is 384 pixels across at 0.85 mm a pixel, so the 2 mm
+          diameter tolerance is a little over two pixels. On a laptop
+          that&apos;s tight. On a phone, where the whole slice is narrower
+          than a thumb is long, it was mostly luck. The viewer zooms now,
+          from 1× to 8×, and pans.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Zoom is a view, so the calipers never find out.
+        </h3>
+        <p className="text-muted">
+          Caliper points were already stored in image pixels, and that&apos;s
+          what made this small. Zoom is a scale plus the image point sitting
+          in the middle of the viewport. Drawing goes through it, and so does
+          turning a click back into an image point, but the points themselves
+          don&apos;t change. <code className={code}>distanceMm</code>, the
+          scoring and the live readout are untouched, and the test I cared
+          most about says ten pixels is the same number of millimetres at 4×
+          as at 1×.
+        </p>
+        <pre className={pre}>
+          {`// zooming keeps the anchor under the pointer
+const ratio = view.scale / scale;
+x: anchor.x - (anchor.x - view.x) * ratio,
+y: anchor.y - (anchor.y - view.y) * ratio,`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A click had to move to the end of the press.
+        </h3>
+        <p className="text-muted">
+          Before, a point went down the instant the mouse did. With panning,
+          the same press might be the start of a drag, and there&apos;s no
+          way to tell until it moves. So a point is placed when the press
+          ends, and only if it wandered less than 4 screen pixels. Anything
+          further is a pan. Two fingers make a pinch, which never places
+          anything, even when one of them lifts first.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The keyboard gets all of it.
+        </h3>
+        <p className="text-muted">
+          + and − zoom around the crosshair, 0 resets, and the arrows pan the
+          view along when the crosshair walks off the edge, so a keyboard
+          user never steers a cursor they can&apos;t see. The zoom level sits
+          in a live region beside the buttons. The scroll wheel needed a
+          listener attached by hand, because React adds wheel listeners as
+          passive, and a passive listener can&apos;t stop the page scrolling
+          underneath the image.
+        </p>
+        <p className="mt-3 text-muted">
+          Zoom carries across slices, because scrolling down a neck at 4× is
+          the point, and resets when the case changes. The canvas is drawn at
+          twice the slice&apos;s size so the caliper lines stay sharp when
+          the anatomy under them is enlarged eight times.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-hostile-necks"
+        date="October 23, 2026"
+        title="Every neck was a clean tube, which is the one thing real necks never are"
+      >
+        <p>
+          The organs around the aorta made the slices look right, but the
+          neck, the part that decides the device, was still a parallel round
+          tube with nothing in its wall. Every case now has at least one thing
+          a real neck has: a taper or a flare, a lean that makes it oval on an
+          axial slice, a crescent of thrombus, or calcified plaque.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An angled neck is an oval, and only the short side is true.
+        </h3>
+        <p className="text-muted">
+          Cut a tube that leans at θ with a horizontal plane and you get an
+          ellipse whose short axis is the real diameter and whose long axis is
+          that divided by cos θ. So the phantom draws each vessel in its own
+          frame: squash the long direction back by the stretch, then decide
+          wall, thrombus, lumen or plaque as if it were round. At 50° the
+          hostile neck&apos;s 30 mm reads nearly 47 along its long axis. On
+          three of the cases, measuring the long axis moves you up a main body
+          size, and on the hostile neck and the giant sac it takes you off the
+          sheet. The measuring
+          note now says to take the short axis.
+        </p>
+        <pre className={pre}>
+          {`const along = (dx * toward.x + dy * toward.y) / stretch;
+const across = -dx * toward.y + dy * toward.x;
+// ...then everything is decided on a round section`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A flaring neck ends earlier than it looks.
+        </h3>
+        <p className="text-muted">
+          The neck runs to where the aorta first passes 110% of its diameter
+          at the renals. On a neck that widens on the way down, that happens
+          before the sac visibly starts. The wide left iliac case now flares
+          from 24 mm, and its neck length dropped from 22 mm to 8 without the
+          sac moving at all. That&apos;s the lesson, so the debrief says it.
+        </p>
+        <p className="mt-3 text-muted">
+          I&apos;d first put the flare on the wide sac case, which is on Easy.
+          It made that neck 10 mm long, under every device&apos;s minimum, and
+          a case that hostile doesn&apos;t belong on the level that promises
+          straightforward anatomy. The flare moved to a Medium case, and the
+          wide sac got a calcified arc instead.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My calcium test was measuring in the wrong frame.
+        </h3>
+        <p className="text-muted">
+          The test walks round the wall a degree at a time and counts how much
+          of the plaque arc is bright. On the hostile neck it found half of
+          what it expected:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected 30 to be greater than 36`}
+        </pre>
+        <p className="text-muted">
+          The drawing was right. The arc is defined in the vessel&apos;s own
+          frame, and on an oval that squashes it into fewer degrees on the
+          image, so a 60° arc covers about 42° of screen. The test now checks
+          plaque on a round neck, where the two frames agree, and the oval is
+          covered by its own test.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Thrombus moves the lumen, never the wall.
+        </h3>
+        <p className="text-muted">
+          A crescent of thrombus shrinks the lumen and pushes it away from that
+          side, and the outer wall stays exactly where the reference says it
+          is. The contrast edge is the easy edge to measure to and the wrong
+          one, and now three necks punish it. Calcified plaque does the same
+          thing from the other direction: it&apos;s the brightest thing on the
+          angio window, it sits in the wall, and the outer edge is past it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Old answers were for different anatomy, so they&apos;re gone.
+        </h3>
+        <p className="text-muted">
+          Only one reference moved, but every image did. A best set on a round
+          neck isn&apos;t one to beat on an oval one, so device history and
+          personal bests moved to new storage keys and the old ones are
+          deleted.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-centerline"
+        date="October 23, 2026"
+        title="The slices said 10 mm. The vessel said 16."
+      >
+        <p>
+          Device lengths were listed but never graded, because a length is
+          measured along the vessel and an axial stack only knows how far
+          apart two slices are. Once the necks could lean, that gap stopped
+          being a footnote: the hostile neck is five slices long, 10 mm on the
+          scanner&apos;s z axis, and 16 mm along the aorta.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The phantom already had a centerline. It just never added it up.
+        </h3>
+        <p className="text-muted">
+          <code className={code}>centreAt</code> and{" "}
+          <code className={code}>iliacCentresAt</code> already say where the
+          vessel is on every slice. The centerline is those points joined in
+          3D: each step is the slice spacing, plus however far the centre
+          moved sideways. Down a straight neck that&apos;s 2 mm a slice. Through
+          a neck leaning 50° it&apos;s about 3, and down an iliac heading out
+          toward the hip it&apos;s a little over 2.
+        </p>
+        <pre className={pre}>
+          {`total += Math.hypot((q.x - p.x) * c.pixelMm, (q.y - p.y) * c.pixelMm, c.sliceMm);`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Neck length now runs along it, for the answer and for your marks
+          alike: you still pick the renal and the sac start on the slices, and
+          the distance between them is measured down the vessel. Two debriefs
+          changed because of it. The short, wide neck is 14 mm on the slices
+          and 15.5 along the vessel, which moves it from just under the usual
+          minimum to just over.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A limb has to stop somewhere, so the iliacs needed a place to stop.
+        </h3>
+        <p className="text-muted">
+          The IFU&apos;s rule for overall length is lowest renal to just above
+          the internal iliac. The phantom&apos;s common iliacs ran off the
+          bottom of the stack without branching, so each one now gives off an
+          internal iliac, back and out toward the pelvis. My first version sent
+          it straight back, and the test that probes for contrast behind the
+          common iliac found bone instead: the iliacs run over the vertebral
+          body, so straight back is into it.
+        </p>
+        <pre className={pre}>
+          {`AssertionError: right: expected 612 to be less than 150`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Three new slices to mark sit under the neck: the aortic bifurcation
+          and each internal iliac origin. They aren&apos;t scored tasks, which
+          would have meant new API columns. They give your own lengths, and
+          those feed the device grading.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The sizing sheet&apos;s footnotes are the length tables.
+        </h3>
+        <p className="text-muted">
+          Endurant&apos;s sheet gives each limb&apos;s total contralateral
+          covered length with a bifurcated body: the limb plus 50 mm, assuming
+          the minimum 30 mm of overlap, and 10 mm less on the 124 mm body. More
+          overlap is allowed, up to five stents, so a limb really reaches a
+          range, not a number. The same footnote puts the end of the
+          contralateral gate 80 mm down, and the IFU wants that above the
+          bifurcation.
+        </p>
+        <pre className={pre}>
+          {`gate               ends 80 mm down (70 on the 124 mm body), above the bifurcation
+contralateral      limb + 30 to 50 mm
+ipsilateral        body, or body + extension - 30 to 50 mm overlap
+Endurant IIs ipsi  limb + 50 to 70 mm
+a side lands       15 mm into its common iliac .. the internal iliac origin`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I guessed the hostile gate wouldn&apos;t fit. The centerline said it does, easily.
+        </h3>
+        <p className="text-muted">
+          On the hostile case the slices put the bifurcation 76 mm below the
+          renal, and I wrote that only the 124 mm body&apos;s gate would clear it.
+          Then I printed the centerline: 101 mm. The sac pushes the vessel
+          forward off the spine and back again, and the centerline bows with
+          it, so every case has 100 to 118 mm from renal to bifurcation and
+          every gate fits. That&apos;s the same lesson as the neck, from the
+          other end: the axial distance is the one that&apos;s easy to read
+          and the one that&apos;s wrong.
+        </p>
+
+        <p className="mt-3 text-muted">
+          The results get a Lengths table under Devices, with where each side
+          has to end for the real anatomy and where your marks say it does.
+          The study payload still records the three diameter grades, because
+          the API caps that list at five and length verdicts can be worked out
+          again from the device codes it already stores.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-sheets"
+        date="October 23, 2026"
+        title="Three tables, one 22 mm iliac, three different answers"
+      >
+        <p>
+          With only Endurant on the page, &quot;which limb does this iliac
+          take?&quot; had one answer, and that made the table look like
+          anatomy. It isn&apos;t. Each manufacturer oversizes differently, so
+          you can now pick Gore Excluder Conformable or Cook Zenith Alpha
+          instead, and the same measurements get graded against that
+          device&apos;s own table.
+        </p>
+        <pre className={pre}>
+          {`22 mm common iliac
+  Endurant II/IIs     24 mm limb
+  Excluder Conformable 27 mm leg
+  Zenith Alpha        no standard leg (the table stops at 20)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every sheet answers the same five questions.
+        </h3>
+        <p className="text-muted">
+          What goes on the neck, what goes in an iliac, what&apos;s in the
+          catalogue, how far each side reaches, and how much seal it needs. That
+          became a <code className={code}>Sheet</code> type, and the grading
+          from the last two updates moved out of the Endurant file to read
+          whichever sheet a pick came from. Gore&apos;s comes from the IFU the
+          FDA hosts for the Conformable, and Cook&apos;s from its own Zenith
+          Alpha IFU.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Gore&apos;s bands share their edges, so one iliac can take two legs.
+        </h3>
+        <p className="text-muted">
+          Endurant and Cook write their bands in whole millimetres with no
+          overlap. Gore writes the iliac bands to the half millimetre, and
+          12 to 13.5 is followed by 13.5 to 14.5, so a 13.5 mm iliac is
+          allowed a 14.5 or a 16. The grading had assumed one right answer per
+          row, so the expected size became a list, and the results read
+          &quot;14.5 or 16 mm&quot;. The study API stores one number there,
+          so it gets the first, next to a verdict that already says whether
+          the pick was one of them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Gore couldn&apos;t land on half the cases, and the anatomy was the problem.
+        </h3>
+        <p className="text-muted">
+          I wrote a test that every case has some stack that lands on both
+          sides with every sheet. Endurant and Cook passed. Gore failed on the
+          first case it tried:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: excluder long-neck left: expected false to be true`}
+        </pre>
+        <p className="text-muted">
+          Gore counts 5.5 cm of trunk plus the leg&apos;s label, and its
+          shortest leg is 9.5 cm, so its contralateral side always reaches at
+          least 150 mm. The phantom&apos;s internal iliacs came off 140 to
+          153 mm from the renals, because a 100-slice stack left room for
+          only about 40 mm of common iliac. Real ones run nearer 50 to 60. So
+          the stack grew to 120 slices and the internal iliacs moved down to
+          about 60 mm along each iliac. The device was fine. The phantom had
+          been built short to fit the scroll bar.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Some codes are real and some I had to build.
+        </h3>
+        <p className="text-muted">
+          Endurant&apos;s codes are Medtronic&apos;s, and the Excluder trunk
+          codes are in the FDA summary. Neither document lists Gore&apos;s leg
+          numbers or Cook&apos;s part numbers, so those are built from the
+          table&apos;s sizes, and the picker says which is which. A practice
+          tool that invents official-looking part numbers is teaching
+          something false.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-real-cta"
+        date="October 23, 2026"
+        title="Fifty-six scans, one aneurysm"
+      >
+        <p>
+          The first section of this page says I wanted real scans and shipped
+          a phantom because a segmentation doesn&apos;t come with an answer key.
+          That&apos;s still true, but the admin page fixed the answer key: a
+          case can have its five answers set by hand. So Medium now ends with
+          a real, deidentified CTA of an infrarenal aneurysm.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The open aortic datasets are mostly healthy aortas, or cropped to the sac.
+        </h3>
+        <p className="text-muted">
+          I measured every segmentation in the AVT collection rather than trust
+          the description. Fifty-six scans, and the infrarenal aorta is 16 to
+          26 mm wide in all but one. The two openly licensed 4D-CTA aneurysm
+          sets on Zenodo are real aneurysms, but cropped to about 70 mm round
+          the sac, with no renals and no iliacs, which is everything a sizing
+          exercise needs. The one AVT case that is an aneurysm turned out to
+          live in a folder that said so all along.
+        </p>
+        <pre className={pre}>
+          {`'Rider/R6 (AAA)/R6.nrrd' 296.2 MB
+'Rider/R6 (AAA)/R6.seg.nrrd' 0.4 MB`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          296 MB became 7 by keeping only what the windows can show.
+        </h3>
+        <p className="text-muted">
+          A script crops it to 256 pixels square round the aorta and iliacs at
+          its own 0.72 mm spacing, averages it into 2 mm slices, and keeps from
+          about 4 cm above the renals to the internal iliacs. The first try
+          gzipped to 9 MB and barely shrank, because CT noise doesn&apos;t
+          compress. What did work was noticing that the two windows only ever
+          show −160 to 450 HU, each spread over 256 greys, so one byte a voxel
+          at 2.4 HU a step loses nothing anyone can see.
+        </p>
+        <pre className={pre}>
+          {`{ "size": 256, "slices": 127, "pixelMm": 0.7246, "sliceMm": 2,
+  "huMin": -160, "huStep": 2.4, "bytes": 7051231 }`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The values in this file are stored with a +1024 offset, so my first
+          picture of it was solid white until I subtracted it. It&apos;s fetched
+          when the case is opened, never with the page, and gunzipped in the
+          browser.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It isn&apos;t scored until I measure it.
+        </h3>
+        <p className="text-muted">
+          There&apos;s no geometry behind a real scan, so the honest default is
+          no answer. Until its five numbers are saved on the admin page, the
+          case says it isn&apos;t scored, the end shows your measurements
+          without a verdict, and nothing goes to the study, the results page or
+          a personal best. Once they&apos;re saved it scores like any other
+          case. Lengths on it run straight down the slices, because it has no
+          centerline yet, and the page says that too.
+        </p>
+        <p className="mt-3 text-muted">
+          The scan is CC BY 4.0, from AVT on figshare, which builds on
+          TCIA&apos;s RIDER collection. The attribution sits under the case
+          whenever it&apos;s open, and the folder it&apos;s served from has a
+          note of what I changed.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-tour"
+        date="October 23, 2026"
+        title="The page had grown past explaining itself"
+      >
+        <p>
+          Three levels, ten cases, five measurements, five slices to mark,
+          three manufacturers, zoom, and a dock of controls. Someone landing on
+          it for the first time had no way in except to start clicking. It now
+          has the guided tour ZeroProof got first.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It&apos;s ZeroProof&apos;s tour, pointed at different ids.
+        </h3>
+        <p className="text-muted">
+          The engine is shared: <code className={code}>FeatureTour</code>{" "}
+          renders the button and the overlay, and its hook remembers per page
+          whether you&apos;ve seen it. All this page adds is eight steps and an
+          id on each part they describe. The first step asks before anything
+          gets spotlighted, and it opens by itself only once.
+        </p>
+        <pre className={pre}>
+          {`evar-intro  evar-levels  evar-cases  evar-scan
+evar-measurements  evar-devices  evar-dock`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A tour that opens itself opens in every test too.
+        </h3>
+        <p className="text-muted">
+          Every page test starts with empty storage, which to the tour looks
+          like a first visit, so each one would have run under an overlay. The
+          shared render helper marks the tour seen, and the tour has its own
+          four tests, the same ones ZeroProof&apos;s has: it asks on a first
+          visit, stays shut once seen, reopens from the button, and walks to
+          the end.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-simpler"
+        date="October 23, 2026"
+        title="Thirteen rows and a disclaimer, all at once"
+      >
+        <p>
+          Every update above added something worth having, and every one of
+          them added it to the screen. By the end, the left panel had thirteen
+          rows, the right had a full device picker and a five-line
+          disclaimer, and the scan had a paragraph of controls under it, all
+          visible from the first second. Meanwhile the one thing that should
+          come first, whether you want to be in the study, was at the very
+          bottom of the page.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The study question comes before anything else now.
+        </h3>
+        <p className="text-muted">
+          A first-time visitor who hasn&apos;t joined gets a dialog about the
+          study before the tour or the scan. Signed in, it&apos;s the consent
+          form itself. Signed out, it&apos;s sign in or practise without
+          joining. The answer is remembered, and the tour waits for it: the
+          shared tour hook grew an <code className={code}>autoOpen</code>{" "}
+          flag so a page can hold its first-visit open back until something
+          else is done. The panel at the bottom stays, for your record and the
+          way to withdraw.
+        </p>
+        <p className="mt-3 text-muted">
+          Putting the consent form in a dialog put it on the page twice, and
+          the test for consenting in the dialog couldn&apos;t find the
+          training level:
+        </p>
+        <pre className={pre}>
+          {`TestingLibraryElementError: Unable to find an accessible element
+  with the role "combobox" and name \`/training level/i\``}
+        </pre>
+        <p className="text-muted">
+          Both copies used the same hard-coded ids, so the dialog&apos;s label
+          pointed at the panel&apos;s select. The form takes generated ids now.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Measuring and sizing are two jobs, so they&apos;re two tabs.
+        </h3>
+        <p className="text-muted">
+          The left panel is Measure and Size the graft, with Measure counting
+          how many of the five you&apos;ve recorded. The device column went
+          with it, so the scan has the width it was sharing. The tour opens
+          each tab as it reaches it, the way ZeroProof&apos;s switches tabs.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Useful once, in the way every time after: those fold.
+        </h3>
+        <p className="text-muted">
+          Diameters and the neck length stay open, because they&apos;re the
+          task. The landmarks only graft lengths need, the measuring rules,
+          the viewer controls, the sizing tables&apos; source and the real
+          scan&apos;s full citation each fold behind a labelled disclosure. On
+          the real scan, the one-line credit and its licence stay visible.
+          Nothing was removed, and the viewer&apos;s controls are still its
+          description for screen readers while they&apos;re folded.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-review"
+        date="October 23, 2026"
+        title="A slice asked where the aorta was 145,933 times"
+      >
+        <p>
+          After eight updates in a day I went through the whole feature as if
+          someone else had written it: correctness, speed, accessibility,
+          consistency, and whether it would survive the next step, which is
+          hundreds of real scans from an actual source instead of one. Twelve
+          things came out of it, plus three asks along the way. The ones worth
+          writing down are below.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The slowest line in the phantom asked the same question for every pixel.
+        </h3>
+        <p className="text-muted">
+          A phantom slice took 40.8 ms. Most of that was the renal arteries:
+          to decide whether a pixel sat on one, they worked out where the
+          aorta&apos;s centre was, and that walks the neck slice by slice. Once
+          per pixel. A test that counts the calls said exactly how bad:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected 145933 to be less than 10`}
+        </pre>
+        <p className="text-muted">
+          Working the renal and iliac geometry out once per slice took it to
+          20.7 ms. The worse half was that a slice was being drawn on every
+          re-render of the page: every caliper click, every mark, four times a
+          second on Hard. I&apos;d written a comment saying the React Compiler
+          kept the slice function stable. The compiler isn&apos;t switched on
+          in this app, so the comment described something that never happened.
+          Slices are cached where they&apos;re made now, so it doesn&apos;t
+          matter who asks or how often. Hard&apos;s clock moved into its own
+          component, so the page stopped re-rendering with it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Hundreds of scans can&apos;t live in git, so the list moved next to the files.
+        </h3>
+        <p className="text-muted">
+          R6 is 7 MB, written into the code and committed. At a few hundred
+          scans that&apos;s gigabytes of repository and a code change for every
+          case. Now there&apos;s a manifest beside the files, checked against a
+          schema, with each dataset&apos;s citation and licence written once
+          and attached to every scan from it. Point{" "}
+          <code className={code}>NEXT_PUBLIC_EVAR_SCANS_URL</code> at object
+          storage and the files and the list move together; the CSP picks up
+          the origin. The prep script now adds its own manifest entry, so a new
+          scan is one command and two uploads. Re-running it on R6 rebuilt the
+          committed file byte for byte.
+        </p>
+        <pre className={pre}>
+          {`node scripts/prepare-evar-scan.mjs R7.nrrd avt-r7.u8.gz --offset 1024 \\
+  --top 300 --bottom 550 --cx 290 --cy 250 \\
+  --id avt-r7 --dataset avt --case R7 --title "AVT R7"`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The pages had to hold that many, too. Real scans pick from a select
+          next to the phantom pills, and the admin page lists every case as a
+          row that only builds its form when opened, with a search and a
+          filter for scans still waiting on answers. Before, a real scan showed
+          up as <code className={code}>avt-r6</code> in your results and the
+          study panel, because each page looked titles up in its own list of
+          phantoms; there&apos;s one lookup now.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Opening a scan stalled the page long enough to fail CI.
+        </h3>
+        <p className="text-muted">
+          The previous update&apos;s checks failed on two tests that waited for
+          the scan to finish loading. Decoding 8.3 million voxels with a
+          callback and a rounding per voxel took 383 ms here and over a second
+          on CI, and blocked the browser the same way. A byte only has 256
+          values, so a lookup table took it to 39 ms. Here the volume stays one
+          byte a voxel and decodes a slice at a time, the download is cancelled
+          if you move on, it&apos;s released half a minute after you leave it,
+          and a scan that won&apos;t load says so with a Try again instead of
+          loading forever.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The wheel now does what it does in a PACS.
+        </h3>
+        <p className="text-muted">
+          Scrolling over the scan zoomed it, which no radiology viewer does and
+          which trapped the page whenever the pointer crossed the image. The
+          wheel steps through slices now, adding up small trackpad scrolls, and
+          Ctrl or Command with it zooms, which is also what a pinch sends. The
+          zoom readout had been a live region, so a wheel zoom read out every
+          step to a screen reader; now only the button and keyboard steps are
+          announced.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One screen, the real scan first, and a way into admin.
+        </h3>
+        <p className="text-muted">
+          The measurement panel made the page taller than the window, and the
+          scan&apos;s size was a guess at the header and dock heights that left
+          its bottom behind the dock once the header wrapped. On desktop the
+          stage is exactly one screen now: the panel scrolls with its tabs
+          pinned, and the scan sizes to the height it actually has through a
+          container query. The page also opens on Medium&apos;s real CT,
+          read on the server so it doesn&apos;t swap in after load, and anyone
+          on the admin allowlist gets an Admin link instead of having to know
+          the URL.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One fix broke every personal best on the way in.
+        </h3>
+        <p className="text-muted">
+          The stores were tidying away old keys on every read, so I added a
+          flag to do it once, and called it <code className={code}>retired</code>,
+          in a function that already had a local called{" "}
+          <code className={code}>retired</code>. The assignment threw inside a{" "}
+          <code className={code}>try</code>, the error was swallowed, and every
+          best read back as nothing:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected null to be 400 // Object.is equality`}
+        </pre>
+        <p className="text-muted">
+          The existing tests caught it before it went anywhere. Typecheck would
+          have flagged it as well; I just ran the tests first.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -871,8 +1563,16 @@ Hook change on every render.`}
           "Slices with the abdomen drawn around the aorta: IVC, liver, spleen, arterial-phase kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy, slightly soft noise.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
+          "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
+          "A real, deidentified CTA of an infrarenal aneurysm on Medium, which the page opens on, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
+          "Real scans listed in a manifest beside their files, servable from object storage, and added with one command that writes the volume and the manifest entry.",
+          "An Admin link for anyone on the admin allowlist, and an admin list that finds cases by search and filters to scans still waiting on answers.",
+          "One job at a time: the study is asked about first, measuring and sizing are separate tabs, and anything needed once folds away until asked for.",
+          "A guided tour for first-time visitors, on the same engine as ZeroProof's, that walks the page from levels to checking answers.",
+          "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
-          "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
+          "Device selection from three sizing sheets, Endurant II/IIs, Gore Excluder Conformable and Cook Zenith Alpha, with each diameter graded against that sheet's table for the real anatomy and for your own numbers.",
+          "Lengths along a centerline: neck length measured down the vessel, marks for the bifurcation and internal iliacs, and each side's device reach graded against where it has to land.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
@@ -881,17 +1581,16 @@ Hook change on every render.`}
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
         ]}
         couldImprove={[
-          "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
-          "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
-          "The phantom is still tidy. The organs are there now, but every neck is a parallel tube and every organ an ellipse. Real necks are conical, calcified, angled and sometimes lined with thrombus.",
-          "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
+          "Three sheets, but each is one device family. There are no aorto-uni-iliac or iliac branch devices, so a case that needs one can only be called off the sheet.",
+          "Everything you see is axial. Lengths are measured along the phantom's centerline, but there's no curved planar reformat to look down it, which is the step real planning software takes.",
+          "The organs are still ellipses, and each angled neck leans in one straight line rather than curving, so there's no tortuous aorta yet.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
           "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
         ]}
         upcoming={[
-          "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Zoom and pan on the viewer.",
+          "Healthy real aortas from the same collection as normal-anatomy cases, one at a time, since each is about 7 MB.",
+          "My own reference measurements for the real case, so it scores.",
         ]}
       />
     </ThoughtLayout>

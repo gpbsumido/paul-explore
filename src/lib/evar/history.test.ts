@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { readHistory, recordAttempt, summarize, useHistory, type HistoryEntry } from "./history";
 
@@ -20,6 +20,23 @@ const entry = (overrides: Partial<HistoryEntry> = {}): HistoryEntry => ({
 });
 
 describe("attempt history", () => {
+  it("forgets attempts finished on the first phantom, whose anatomy has since changed", () => {
+    window.localStorage.setItem("evar-history", JSON.stringify([entry()]));
+    expect(readHistory()).toEqual([]);
+    expect(window.localStorage.getItem("evar-history")).toBeNull();
+  });
+
+  // useSyncExternalStore reads the snapshot on every render, so tidying v1
+  // away there meant a storage write per render.
+  it("tidies the old storage away once, not on every read", () => {
+    const removeItem = vi.spyOn(Storage.prototype, "removeItem");
+    readHistory();
+    readHistory();
+    readHistory();
+    expect(removeItem.mock.calls.length).toBeLessThanOrEqual(1);
+    removeItem.mockRestore();
+  });
+
   it("is empty before anything is finished", () => {
     expect(readHistory()).toEqual([]);
   });

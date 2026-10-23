@@ -5,14 +5,14 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import PageHeader from "@/components/PageHeader";
 import { LEVELS } from "@/lib/evar/levels";
-import { EVAR_CASES } from "@/lib/evar/phantom";
+import { caseTitle } from "@/lib/evar/caseCatalogue";
+import { useScanCases } from "@/lib/evar/useScanCases";
 import { summarize, useHistory, type HistoryEntry, type LevelSummary } from "@/lib/evar/history";
 
 const link =
   "paul-touch-min inline-flex items-center rounded-lg border border-border bg-surface px-4 py-2 text-[14px] text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
 
 const levelLabel = (id: string) => LEVELS.find((l) => l.id === id)?.label ?? id;
-const caseTitle = (id: string) => EVAR_CASES.find((c) => c.id === id)?.title ?? id;
 const when = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 // recharts is over 100KB gzipped and the chart sits below the cards, so it loads after them.
@@ -73,6 +73,7 @@ function AccuracyChart({ history }: { history: readonly HistoryEntry[] }) {
  */
 export default function ResultsHistoryContent() {
   const history = useHistory();
+  const { scans } = useScanCases();
   const summaries = summarize(history);
   const newestFirst = [...history].reverse();
 
@@ -130,7 +131,7 @@ export default function ResultsHistoryContent() {
                       <td className="py-2 pr-3 text-muted">{when.format(e.finishedAt)}</td>
                       <td className="py-2 pr-3">{levelLabel(e.levelId)}</td>
                       <th scope="row" className="py-2 pr-3 font-normal text-foreground">
-                        {caseTitle(e.caseId)}
+                        {caseTitle(e.caseId, scans)}
                         {e.timedOut ? <span className="ml-2 text-[12px] text-muted">(timed out)</span> : null}
                       </th>
                       <td className="py-2 pr-3 font-mono">{`${e.within} of 5`}</td>

@@ -11,6 +11,138 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-8-0-0",
+    date: "2026-10-23",
+    version: "8.0.0",
+    category: "improvement",
+    tags: ["evar", "practice", "research"],
+    title: "The rebuilt EVAR sizing practice",
+    summary:
+      "Version 8 brings the rebuilt EVAR sizing practice to everyone, with harder and more realistic cases, three makers' sizing tables, a real CT scan, and a research study that starts fresh.",
+    body: [
+      "Over the last few updates the EVAR sizing practice was rebuilt. You can zoom and pan the scan, the practice necks are tapered, angled, calcified or lined with thrombus like real ones, graft lengths are measured along the vessel, and you can size a Medtronic Endurant, a Gore Excluder or a Cook Zenith Alpha. There's a real, deidentified CT scan to practise on, a short tour, and a calmer page that shows one job at a time.",
+      "Every practice case changed, so earlier results can't be compared with new ones, and the research study starts again: attempts recorded on the old cases are cleared. If you joined the study, you're still in it and don't need to sign up again.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-32-0",
+    date: "2026-10-23",
+    version: "7.32.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "EVAR sizing, faster and ready for more real scans",
+    summary:
+      "EVAR sizing practice opens on its real CT scan, fits on one screen, scrolls through slices with the mouse wheel, and is ready for many more real scans.",
+    body: [
+      "The practice scans draw about twice as fast and stop redrawing when nothing has changed. The mouse wheel now moves through the slices the way it does in hospital imaging software, and holding Ctrl or Command while you scroll zooms. On a computer the whole practice fits on one screen, with the measurement list scrolling on its own.",
+      "Real scans are now listed in one place alongside their files, so many more can be added without changing the site, and you can pick from them in a list. If a scan can't load, the page says so and lets you try again.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-31-0",
+    date: "2026-10-23",
+    version: "7.31.0",
+    category: "improvement",
+    tags: ["evar", "practice", "research"],
+    title: "A calmer EVAR sizing page",
+    summary:
+      "EVAR sizing practice asks about its research study first, then shows one job at a time instead of everything at once.",
+    body: [
+      "The first time you visit, you're asked whether you'd like to join the study before anything else, and your answer is remembered. After that, measuring and choosing the graft are separate tabs, the scan gets more room, and things you only need now and then, like the viewer controls and the extra landmarks for graft lengths, fold away until you open them.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-30-0",
+    date: "2026-10-23",
+    version: "7.30.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "A tour of EVAR sizing practice",
+    summary:
+      "EVAR sizing practice offers a short guided tour the first time you open it, so you know where the scan, the measurements and the devices are.",
+    body: [
+      "It asks before it starts, takes a few clicks, and points at each part of the page in turn, from choosing a level to checking your answers. You can open it again any time from the button under the title.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-29-0",
+    date: "2026-10-23",
+    version: "7.29.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "A real CT scan in EVAR practice",
+    summary:
+      "EVAR sizing practice has its first real patient scan: a deidentified CT of an abdominal aortic aneurysm, from an openly licensed research collection.",
+    body: [
+      "It's the last case on Medium, and you measure it with the same tools as the practice cases. Real anatomy is messier than the practice scans, which is the point.",
+      "Until its answers have been measured by hand it isn't scored: you'll see your own numbers, and nothing from it is saved. The scan's source and licence are shown with it.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-28-0",
+    date: "2026-10-23",
+    version: "7.28.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR sizing with Gore and Cook devices",
+    summary:
+      "EVAR sizing practice lets you size a Gore Excluder or a Cook Zenith Alpha as well as a Medtronic Endurant, each graded against its own sizing table.",
+    body: [
+      "Pick a manufacturer and choose from its devices. The same measurements can call for different sizes from different makers, and one iliac can sometimes take either of two legs on a Gore table, so the results say which sizes would have worked.",
+      "The scans also got a little taller, so the iliac arteries have a realistic length to land a graft in.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-27-0",
+    date: "2026-10-23",
+    version: "7.27.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR graft lengths, graded",
+    summary:
+      "EVAR sizing practice now grades the graft lengths you pick, not just the diameters, measured along the vessel instead of straight down the scan.",
+    body: [
+      "Mark where the aorta splits and where each internal iliac branches off, and the page works out the distances along the vessel. When you check your answers, each leg of the graft has to end safely inside its common iliac without covering the internal iliac, and the results show where it had to land next to where you said.",
+      "Neck length is measured along the vessel too. On a neck that leans, that can be quite a bit longer than the slices suggest.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-26-0",
+    date: "2026-10-23",
+    version: "7.26.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "EVAR necks that fight back",
+    summary:
+      "Every EVAR practice case now has a neck with something real to get wrong: a taper, an angle, calcium or thrombus.",
+    body: [
+      "Some necks narrow or widen on the way down, so where the neck ends moves. Some lean, which turns the neck into an oval on the scan, and only the short side is the true width. Others have calcified plaque in the wall or a layer of clot lining one side, and the measurement still goes to the outer wall. Each case's debrief explains what its neck does.",
+      "The cases changed shape, so results and personal bests from the old versions have been cleared.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-25-0",
+    date: "2026-10-23",
+    version: "7.25.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "Zoom in on the EVAR scans",
+    summary:
+      "The EVAR sizing scans zoom and pan now, so a two-millimetre tolerance is a fair test on a phone.",
+    body: [
+      "Scroll, pinch or use the buttons in the corner to zoom up to eight times, and drag to move around. Your calipers measure the same distance at any zoom, and the zoom stays put as you scroll through the slices. It all works from the keyboard too: plus and minus zoom, and zero resets.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-24-0",
     date: "2026-10-23",
     version: "7.24.0",

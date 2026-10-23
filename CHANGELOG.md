@@ -1,5 +1,73 @@
 # Changelog
 
+## 2026-10-23 - version 8.0.0
+
+- **A major release, alongside portfolio_api 6.0.0.** It ships 7.25.0 through 7.32.0, the EVAR sizing rebuild, to production, with nothing new beyond them. The major number marks what doesn't carry over from 7.24.
+- **The EVAR study starts again.** portfolio_api 6.0.0's migration `051` deletes every recorded attempt and hand-set reference, because 7.26.0 changed every phantom's anatomy under the same case ids. Participants stay joined and don't consent again.
+- **Earlier results don't compare.** The same case ids now draw tapered, angled, calcified or thrombus-lined necks (7.26.0), lengths are graded along a centerline (7.27.0), and the results and bests a device kept before 7.26.0 went with v1 storage.
+- **The wheel steps slices** (7.32.0). Over the scan it moves through the stack the way a PACS does, and Ctrl or ⌘ with the wheel, or a pinch, zooms.
+
+## 2026-10-23 - version 7.32.0
+
+A full review of `/evar`, with hundreds of real scans in mind.
+
+- Performance: the renal arteries worked out the aorta's centre once per pixel (145,933 `centreAt` calls per slice) and the iliacs allocated per pixel; both are per slice now, taking a phantom slice from 40.8 to 20.7 ms, and the last 24 slices are cached. The viewer had been redrawing its slice on every page render on the false assumption that the React Compiler kept `sliceAt` stable; it isn't enabled. Hard's 250 ms clock moved into `Countdown`, so the page no longer re-renders four times a second.
+- Real scans come from `manifest.json` beside their files, validated by `parseManifest` with each dataset's citation and licence attached, and served from `NEXT_PUBLIC_EVAR_SCANS_URL` (this site's `/evar/scans` when unset), whose origin joins the CSP `connect-src`. `scripts/prepare-evar-scan.mjs` adds or replaces its manifest entry with `--id --dataset --case --title`, checks the id and dataset first, and keeps a scan's own words on a re-run; rebuilding R6 reproduces the committed file byte for byte.
+- A loaded scan stays one byte a voxel and decodes a slice at a time through a lookup table, cached per slice; downloads take the query's abort signal, are released 30 s after you leave, and a failed load shows an error with Try again instead of loading forever.
+- Medium offers every scan in the manifest through a select beside the phantom pills, and the page opens on its first real scan, read on the server by `loadInitialScans` so it doesn't swap in after load. `caseCatalogue` names cases the same way everywhere, so a real scan no longer shows as `avt-r6` in your results or the study panel.
+- The admin references page lists every case as a row that builds its form only when opened, with a search and an "only cases that need answers" filter. Allowlisted admins get an Admin link in the EVAR header, from the `isFlagAdmin` `/api/me` already returns.
+- The wheel steps through slices, adding up small trackpad scrolls, and Ctrl or Command with it zooms; only button and keyboard zoom steps are announced to screen readers.
+- On desktop the stage is exactly one screen: the measurement panel scrolls with its tabs pinned, and the scan sizes to its real height through a container query instead of a guessed offset that left it behind the dock.
+- History and best-score stores tidy old keys once per page load instead of on every snapshot read. `mainBodyDiameterFor` and `limbDiameterFor` are gone (grading uses each sheet's lookups), and internal-only exports are no longer exported. Copy no longer says the scans aren't patient images, names R6 in code, or gives Medium a case count.
+
+## 2026-10-23 - version 7.31.0
+
+- `/evar` asks about the research study before anything else. A first-time visitor who hasn't joined gets `StudyWelcome`: the consent form when signed in, or "Sign in to join" and "Practise without joining" when not. The answer is remembered in `evar-study-asked`, and the guided tour waits for it through a new `autoOpen` option on `useGuidedTour` and `FeatureTour`. The study panel at the bottom stays for the record and withdrawal.
+- The task panel is two tabs, Measure (counting `n of 5`) and Size the graft, so the device column is gone and the scan takes the width. The page is two columns on desktop instead of three, and the skeleton matches.
+- Diameters and neck length stay open. The graft-length landmarks, "How to measure", the viewer controls, the sizing tables' source and disclaimer, and the real scan's full citation fold behind a shared `Disclosure`. The scan's one-line credit and licence stay visible. The tour opens each tab as it reaches it.
+- `JoinForm` uses generated ids, since it can now be on the page twice; the hard-coded ones pointed the dialog's labels at the panel's fields.
+- Best moves from its own header column to beside the Tour button, so the header stays on one row with five cases.
+- Decoding a real scan goes through a 256-entry lookup table instead of a callback and `Math.round` per voxel: 383 ms down to 39 ms for the 8.3 million voxels of R6. The slow version blocked the main thread when the scan opened, and on CI it ran past the page tests' one-second wait, which is what failed this PR's checks.
+
+## 2026-10-23 - version 7.30.0
+
+- `/evar` has a guided tour, on the same shared `FeatureTour` and `useGuidedTour` as ZeroProof's. It opens once for a first-time visitor (`evar-tour-seen` in localStorage), asks before spotlighting anything, and walks eight steps: what the page is for, levels, cases, the scan and its zoom, measurements, devices, and checking answers. A "Tour" button under the page title reopens it; the shorter label keeps the title block narrow enough that Best doesn't wrap.
+- The anchors are ids on the parts they describe (`evar-intro`, `evar-levels`, `evar-cases`, `evar-scan`, `evar-measurements`, `evar-devices`, `evar-dock`); `PillGroup` takes an optional `id`. `EvarTour.test.tsx` mirrors ZeroProof's tour tests, and the other page tests mark the tour seen so they don't run under it.
+
+## 2026-10-23 - version 7.29.0
+
+- EVAR practice has its first real CTA case: AVT case R6, the one infrarenal aneurysm in the Aortic Vessel Tree collection (CC BY 4.0, figshare doi:10.6084/m9.figshare.14806362, building on TCIA's RIDER collection, doi:10.7937/K9/TCIA.2015.U1X8A5NR). It's the last case on Medium.
+- `scripts/prepare-evar-scan.mjs` turns the 296 MB source into `public/evar/scans/avt-r6.u8.gz` (7.05 MB): cropped to 256 px round the aorta and iliacs at 0.7246 mm, averaged into 2 mm slices, the +1024 offset removed, and stored one byte a voxel over -160 to 452 HU, finer than either window's grey steps. `public/evar/scans/ATTRIBUTION.md` cites the sources and lists the changes.
+- `src/lib/evar/scans.ts` adds `ScanCase`, `decodeScan`, `scanSlice` and `loadScan`, which fetches when the case is opened and gunzips with `DecompressionStream`. `SliceViewer` now takes `size` and `sliceAt`, so phantoms and scans share it, and shows "Loading the scan" until the volume arrives.
+- A scan is scored only against an admin's hand-set answers (`referenceForCase`). Until then the page says it isn't scored, the end shows your numbers in `UnscoredDialog`, and nothing goes to the study, history or bests. Lengths on a scan run straight down the slices. The admin references page lists the scan with blank answers and "Clear the answers" in place of a phantom reset, and admin results know its title.
+
+## 2026-10-23 - version 7.28.0
+
+- EVAR device selection offers three sizing sheets: Medtronic Endurant II/IIs, Gore Excluder Conformable (from the FDA-hosted IFU for P200030/S014, Tables 29 to 31) and Cook Zenith Alpha (from Cook's IFU T_ZALPHA_REV5, Tables 9.5.1 and 9.5.2, section 10.1.6). The picker gains a manufacturer choice that clears the picks, and its groups, empty choices and disclaimer come from the sheet.
+- `src/lib/evar/devices.ts` holds the `Sheet` type and band lookup; `src/lib/evar/sheets.ts` holds the registry and grading moved out of `endurant.ts`, which now exports the `ENDURANT` sheet. Gore reaches 5.5 cm of trunk (6.5 on 32/36) plus the leg's label with a fixed 3 cm overlap and needs 10 mm of seal; Cook adds a leg's label plus 28 mm to the main body's limb with 16 to 32 mm of overlap, needs a separate leg on both sides, and has no standard leg over 20 mm.
+- Gore's half-millimetre iliac bands share their edges, so `expected` and `fromYours` are lists and the results read "14.5 or 16 mm". `toAttemptPayload` sends the first allowed size and leaves `sheet` out, since the API's device schema is strict and the codes name the manufacturer.
+- The phantom stack is 120 slices and each internal iliac comes off about 60 mm down its common iliac. At 100 slices there was room for about 40 mm, and Gore's shortest contralateral stack (150 mm) couldn't land on several cases. A test now checks every case has a landing stack on both sides with every sheet.
+- Endurant and Excluder trunk codes are real part numbers. Gore leg and all Cook codes are built from the table's sizes, and the picker says so.
+
+## 2026-10-23 - version 7.27.0
+
+- EVAR lengths are measured along a centerline. `centerlineMm` in `src/lib/evar/phantom.ts` adds up the 3D steps between slices, through an angled neck and on down one iliac, and `anatomyFor` gives renal to bifurcation and renal to each internal iliac, from the case's landmarks or from marked slices. Neck length now runs along the vessel for the reference and for your marks: the hostile neck is 10 mm on the slices and 16 along the vessel. The giant sac's neck is shortened to stay about 16 mm, and the hostile and short-wide debriefs say what the centerline changed.
+- Each common iliac gives off an internal iliac, back and out toward the pelvis, from `internalIliacSlice`. Where the lumens meet, lumen wins over wall.
+- Three new slices to mark on the page, the aortic bifurcation and each internal iliac origin, show renal-to-landmark lengths. They aren't scored tasks, so the API and admin references don't change.
+- Endurant length grading from the US sizing sheet's covered-length footnotes and the FDA-hosted IFU: `reachFor` gives the contralateral reach (limb + 30 to 50 mm, 10 less on the 124 mm body), the ipsilateral reach (the body, or body + extension at 30 to 50 mm overlap, or limb + 50 to 70 on an IIs) and where the gate ends (80 mm, 70 on the 124). `gradeLengths` passes the gate above the bifurcation and each side that can end 15 mm into its common iliac and short of the internal iliac. The results add a Lengths table, length checks count as device points, and Easy hints point at the new landmarks. Every case has stacks that land.
+- The study payload keeps its three diameter grades; length verdicts can be recomputed from the device codes it already records.
+
+## 2026-10-23 - version 7.26.0
+
+- Every EVAR phantom neck now has at least one thing a real neck has. `CaseParams` gains `neckTaperMm` (a conical or flaring neck), `neckAngle` (the neck leans away from the sac's axis, so its axial cut is an oval `1/cos θ` long along the tilt with the true diameter across it), `neckThrombus` (a crescent that moves the lumen off-centre and leaves the outer wall alone) and `calcium` (arcs of plaque in the wall that bulge a millimetre in). The drawing and `referenceFor` read the same numbers, so the answers still match the image.
+- The nine cases are reworked, not added to. Only `ectatic-left`'s neck length moved (22 to 8 mm, because its neck flares past 110% early); every other reference is unchanged, and each debrief now says what its neck does and what measuring the long axis of an oval would cost. The measuring note says to take the short axis.
+- Device history and personal bests move to v2 localStorage keys and the v1 keys are removed on read, so nothing from the old anatomy is left to compare against.
+
+## 2026-10-23 - version 7.25.0
+
+- The EVAR slice viewer zooms from 1× to 8× and pans. Scroll or pinch zooms at the pointer, a drag pans, and corner buttons step the zoom with the level in a live region. From the keyboard, + and − zoom around the crosshair, 0 resets, and the view follows the crosshair when it walks off screen. At full size a 2 mm tolerance was about two pixels, which on a phone was mostly luck.
+- Caliper points stay in image pixels, so measurements, scoring and the readout don't change with zoom. The view maths is pure, in `src/lib/evar/zoom.ts`. A click now places its point when the press ends, and only if it moved less than 4 px; anything further is a pan. Zoom carries across slices and resets on a new case. The canvas draws at twice the slice size so caliper lines stay sharp, and the wheel listener is attached by hand because React's is passive and can't stop the page scrolling.
+
 ## 2026-10-23 - version 7.24.1
 
 - The EVAR Sizing write-up opens with an update timeline, the same jump list the operator dashboard and the other long write-ups use. It had ten dated updates and nothing at the top to find them by. A test checks the timeline links every update section on the page, newest first, so the next update can't be added without its entry.

@@ -4,7 +4,7 @@
  * turns them into a number worth chasing.
  */
 
-import type { DeviceGrade } from "./endurant";
+import type { DeviceGrade } from "./sheets";
 import type { Level, LevelId } from "./levels";
 import type { TaskScore } from "./measure";
 
@@ -47,7 +47,8 @@ export function outcomeFor({
   remainingMs,
 }: {
   scores: readonly TaskScore[];
-  grades: readonly DeviceGrade[];
+  /** Every device check, diameters and lengths alike; each match is worth the same. */
+  grades: readonly Pick<DeviceGrade, "verdict">[];
   level: Level;
   remainingMs: number | null;
 }): Outcome {

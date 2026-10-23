@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { LEVELS, casesFor, hintsFor } from "./levels";
+import manifest from "../../../public/evar/scans/manifest.json";
+import { parseManifest } from "./scans";
+
+const scans = parseManifest(manifest, "/evar/scans");
 import { EVAR_CASES, referenceFor } from "./phantom";
 import { TOLERANCE_MM } from "./measure";
-import { limbDiameterFor, mainBodyDiameterFor } from "./endurant";
+import { ENDURANT } from "./endurant";
 
 const level = (id: string) => LEVELS.find((l) => l.id === id)!;
 
@@ -45,13 +49,14 @@ describe("cases per level", () => {
     expect(level("hard").caseIds).toEqual(["short-neck", "hostile-neck", "short-wide", "giant-sac"]);
   });
 
-  it("only sizes Easy and Medium cases that a standard device fits", () => {
+  // A real scan has no answers until someone measures it, so this is about the phantoms.
+  it("only sizes Easy and Medium phantoms that a standard device fits", () => {
     [level("easy"), level("medium")].forEach((l) => {
-      casesFor(l).forEach((c) => {
+      casesFor(l, scans).flatMap((c) => (c.kind === "phantom" ? [c] : [])).forEach((c) => {
         const ref = referenceFor(c);
-        expect(mainBodyDiameterFor(ref.neckDiameter), c.id).not.toBeNull();
-        expect(limbDiameterFor(ref.rightCia), c.id).not.toBeNull();
-        expect(limbDiameterFor(ref.leftCia), c.id).not.toBeNull();
+        expect(ENDURANT.mainBodyDiametersFor(ref.neckDiameter), c.id).not.toEqual([]);
+        expect(ENDURANT.limbDiametersFor(ref.rightCia), c.id).not.toEqual([]);
+        expect(ENDURANT.limbDiametersFor(ref.leftCia), c.id).not.toEqual([]);
       });
     });
   });
@@ -61,6 +66,20 @@ describe("cases per level", () => {
       const c = EVAR_CASES.find((e) => e.id === id)!;
       expect(referenceFor(c).neckLength, id).toBeLessThanOrEqual(16);
     });
+  });
+});
+
+describe("real cases", () => {
+  it("puts every real scan on Medium, after its phantoms, and none on Easy or Hard", () => {
+    const level = (id: string) => LEVELS.find((l) => l.id === id)!;
+    const medium = casesFor(level("medium"), scans);
+    expect(medium.slice(-scans.length).map((c) => c.id)).toEqual(scans.map((s) => s.id));
+    expect(casesFor(level("easy"), scans).some((c) => c.kind === "scan")).toBe(false);
+    expect(casesFor(level("hard"), scans).some((c) => c.kind === "scan")).toBe(false);
+  });
+
+  it("never states a case count its blurb would have to keep up with", () => {
+    LEVELS.forEach((l) => expect(l.blurb, l.id).not.toMatch(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\s+cases\b/i));
   });
 });
 
@@ -82,6 +101,20 @@ describe("hintsFor", () => {
     const widest = range(/widest/i);
     expect(widest.from).toBeLessThanOrEqual(evarCase.sacPeakSlice + 1);
     expect(widest.to).toBeGreaterThanOrEqual(evarCase.sacPeakSlice + 1);
+  });
+
+  it("points at the bifurcation and the internal iliac origins, for marking lengths", () => {
+    const evarCase = EVAR_CASES[0];
+    const hints = hintsFor(evarCase);
+    const bifurcation = hints.find((h) => /aortic bifurcation/i.test(h.label))!;
+    expect(bifurcation.from).toBeLessThanOrEqual(evarCase.bifurcationSlice + 1);
+    expect(bifurcation.to).toBeGreaterThanOrEqual(evarCase.bifurcationSlice + 1);
+    const internal = hints.find((h) => /internal iliac/i.test(h.label))!;
+    const origins = [evarCase.internalIliacSlice.right + 1, evarCase.internalIliacSlice.left + 1];
+    origins.forEach((at) => {
+      expect(internal.from).toBeLessThanOrEqual(at);
+      expect(internal.to).toBeGreaterThanOrEqual(at);
+    });
   });
 
   it("doesn't centre the range on the answer, so the midpoint isn't a giveaway", () => {
