@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
@@ -14,6 +14,7 @@ import { toAttemptPayload } from "@/lib/evar/research";
 import { gradeDevices, type DevicePick } from "@/lib/evar/endurant";
 import { outcomeFor } from "@/lib/evar/game";
 import { readBest, recordBest, usePersonalBest } from "@/lib/evar/personalBest";
+import { recordAttempt, type HistoryEntry } from "@/lib/evar/history";
 import { referenceWithOverride, referencesResponseSchema } from "@/lib/evar/references";
 import { queryKeys } from "@/lib/queryKeys";
 import { LEVELS, casesFor, hintsFor, type Level, type LevelId } from "@/lib/evar/levels";
@@ -187,6 +188,30 @@ export default function EvarContent() {
   useEffect(() => {
     if (total !== null) recordBest(level.id, evarCase.id, total);
   }, [total, level.id, evarCase.id]);
+
+  const historyEntry: HistoryEntry | null =
+    outcome === null || finishedAt === null
+      ? null
+      : {
+          id: clientAttemptId,
+          levelId: level.id,
+          caseId: evarCase.id,
+          finishedAt,
+          within: outcome.within,
+          stars: outcome.stars,
+          total: outcome.total,
+          timedOut: remaining !== null && remaining <= 0,
+          deltas: Object.fromEntries(rows.flatMap((row) => (row.delta === null ? [] : [[row.id, row.delta]]))),
+        };
+
+  // Once per attempt, the same way the study records it, so reopening the
+  // popup or re-rendering doesn't add the attempt again.
+  const kept = useRef(new Set<string>());
+  useEffect(() => {
+    if (historyEntry === null || kept.current.has(historyEntry.id)) return;
+    kept.current.add(historyEntry.id);
+    recordAttempt(historyEntry);
+  }, [historyEntry]);
 
   const submission =
     finishedAt === null
