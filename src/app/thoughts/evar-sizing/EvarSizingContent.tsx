@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -131,12 +131,92 @@ the role "button" and name \`/record caliper as proximal neck diameter/i\``}
         </pre>
       </Section>
 
+      <Update
+        id="update-2026-10-22-levels"
+        date="October 22, 2026"
+        title="Easy, Medium, and a Hard that gives you five minutes"
+      >
+        <p>
+          One page with one standard is a test, not practice. I split it into
+          three levels, and each one changes something real: which anatomy you
+          get, whether you&apos;re told where to look, how close counts, and
+          whether there&apos;s a clock.
+        </p>
+        <pre className={pre}>
+          {`Easy    long neck              hints   ±3 mm / ±8 mm   no clock
+Medium  long + short neck      none    ±2 mm / ±5 mm   no clock
+Hard    short + hostile neck   none    ±2 mm / ±5 mm   5:00, hands in at 0:00`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The neck doesn&apos;t end where I told the phantom it ends.
+        </h3>
+        <p className="text-muted">
+          Hard needed a case worse than the short neck: 30 mm wide, about a
+          centimetre long, with a right iliac wide enough to need the biggest
+          limb. I first put the renal at slice 32 and the end of the straight
+          neck at 36, which reads as 8 mm, and the reference came out at 14.
+          The phantom flares the sac
+          in on a smoothstep, and the scoring says the sac starts at the first
+          slice more than 10% wider than the neck, not where the flare begins.
+          The curve is so flat at the start that it takes three more slices to
+          get there.
+        </p>
+        <pre className={pre}>
+          {`neckEndSlice 36, sacPeak 52, neck 15 mm, sac 35 mm
+z=37  t=0.063  r=15.22   (need > 16.5)
+z=38  t=0.125  r=15.86
+z=39  t=0.188  r=16.85   <- sac starts here
+renal 34 -> neck length (39 - 34) x 2 mm = 10 mm`}
+        </pre>
+        <p className="mt-3 text-muted">
+          So the hostile case&apos;s renal sits at slice 34 and its flare
+          begins at 36, and the test pins the neck length the scoring will
+          actually use rather than the number I typed into the case.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A hint centred on the answer is just the answer.
+        </h3>
+        <p className="text-muted">
+          Easy tells you which slices to look at: the lowest renal, where the
+          aneurysm starts, the widest part of the sac, a stretch of iliac clear
+          of the bifurcation. A range of plus or minus three slices would have
+          handed over the answer as its midpoint, so each range sits a little
+          off-centre, and a test checks the midpoint isn&apos;t the answer.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The clock is visible every second and speaks three times.
+        </h3>
+        <p className="text-muted">
+          The countdown has <code className={code}>role=&quot;timer&quot;</code>,
+          which isn&apos;t a live region by default, and that&apos;s right: a
+          screen reader reading every second aloud would make the exercise
+          impossible. Next to it, a polite live region stays empty until a
+          minute is left, then thirty seconds, then time&apos;s up. At zero your
+          answers are handed in as they stand, and the results line says how
+          many landed and how long it took.
+        </p>
+        <p className="mt-3 text-muted">
+          Handing in at zero happens inside the interval callback, not in an
+          effect that watches the remaining time. The lint rules here
+          don&apos;t allow setting state inside an effect body or reading the
+          clock while rendering, and keeping the tick as the only thing that
+          reads <code className={code}>Date.now()</code> is cleaner anyway.
+          Start over resets the clock, which on a practice page is fine. It
+          matters more once attempts are recorded, where the first try is the
+          one that counts.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "Two phantom cases with different anatomy: a long straight neck, and a short neck with a wide right iliac that changes the plan.",
+          "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
+          "Three phantom cases: a long straight neck, a short neck with a wide right iliac, and a hostile 30 mm, 10 mm neck with an ectatic right iliac.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
-          "Five scored measurements against exact references, with written tolerances and a debrief on what the anatomy means for the repair.",
+          "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
         ]}
         couldImprove={[
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
@@ -145,7 +225,9 @@ the role "button" and name \`/record caliper as proximal neck diameter/i\``}
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Zoom and pan on the viewer, and a hostile-neck case.",
+          "Picking the stent graft from the measurements, off the manufacturer's sizing table.",
+          "Opt-in recording of attempts, so results can be compared over a training career.",
+          "Zoom and pan on the viewer.",
         ]}
       />
     </ThoughtLayout>

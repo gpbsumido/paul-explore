@@ -17,6 +17,14 @@ describe("EvarSizingContent", () => {
     ).toHaveAttribute("href", "/evar");
   });
 
+  it("has a dated update on the difficulty levels", () => {
+    render(<EvarSizingContent />);
+    expect(screen.getByText(/update.*october 22, 2026/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /five minutes/i }),
+    ).toBeInTheDocument();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<EvarSizingContent />);
     expect(
