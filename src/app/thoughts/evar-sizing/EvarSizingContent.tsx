@@ -406,6 +406,61 @@ return { ...phantom, neckDiameter: row.neckDiameter, neckLength: row.neckLength,
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-22-study-export"
+        date="October 22, 2026"
+        title="One line per attempt, because that's what a spreadsheet wants"
+      >
+        <p>
+          The API has served the study export to admins since the research
+          tracking landed, but only as JSON from a curl. The admin page now has
+          a study data card that says how much has been recorded and downloads
+          it as a CSV or as the raw JSON.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The export is two lists. Analysis wants one table.
+        </h3>
+        <p className="text-muted">
+          Participants and attempts come back separately, so a training level
+          isn&apos;t repeated on every attempt. Anyone opening this in a
+          spreadsheet or R wants the opposite: one row per attempt with the
+          profile next to it, and every measurement and device grade as its own
+          column. So the CSV joins them, and an attempt whose participant
+          isn&apos;t in the export keeps an empty profile rather than
+          disappearing.
+        </p>
+        <pre className={pre}>
+          {`participant_id,training_level,training_year,specialty,consent_version,attempt_id,case_id,level,
+app_version,started_at,submitted_at,duration_ms,time_limit_ms,timed_out,
+neckDiameter_yours,neckDiameter_reference,neckDiameter_verdict, ... leftCia_verdict,
+ipsilateral_side,mainBody_code,mainBody_picked,mainBody_expected,mainBody_verdict, ... ipsilateral_verdict`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I wrote my own CSV quoting, then found the site already had a better one.
+        </h3>
+        <p className="text-muted">
+          Specialty is free text, so it needs quoting for commas, quotes and
+          line breaks. I had that half written before I found the shared CSV
+          helper, which also defuses a cell starting with{" "}
+          <code className={code}>=</code>, so a participant can&apos;t type a
+          formula that runs when I open the file. Mine didn&apos;t do that.
+        </p>
+        <pre className={pre}>
+          {`specialty: =HYPERLINK(1)   ->   '=HYPERLINK(1)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Missing is blank, not zero.
+        </h3>
+        <p className="text-muted">
+          A measurement nobody made, or a limb nobody picked, is an empty cell,
+          so a spreadsheet treats it as missing rather than averaging in a zero.
+          The JSON download is there for anything the flattening loses.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -416,6 +471,7 @@ return { ...phantom, neckDiameter: row.neckDiameter, neckLength: row.neckLength,
           "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
+          "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
@@ -427,7 +483,7 @@ return { ...phantom, neckDiameter: row.neckDiameter, neckLength: row.neckLength,
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "A download on this site for the study export, which the API already serves to admins by participant id only.",
+          "An admin results page that filters everyone's attempts by level, case and training level, and a page where a participant sees their own accuracy over time.",
           "Zoom and pan on the viewer.",
         ]}
       />
