@@ -70,6 +70,11 @@ export function toOrigin(raw: string | undefined): string | null {
  * `remoteOrigins` are micro-frontend remotes this page loads at runtime (the
  * work portfolio). Each one needs its scripts, its stylesheet, its images and
  * its manifest fetch allowed, and nothing more.
+ *
+ * `scansUrl` is where EVAR's real CT scans and their manifest live
+ * (`NEXT_PUBLIC_EVAR_SCANS_URL`). Served from this site it adds nothing; from
+ * object storage, its origin goes in connect-src, which is all the page does
+ * with it.
  */
 export function buildCsp(
   media?: string,
@@ -77,16 +82,20 @@ export function buildCsp(
     dev = false,
     apiUrl,
     remoteOrigins = [],
-  }: { dev?: boolean; apiUrl?: string; remoteOrigins?: string[] } = {},
+    scansUrl,
+  }: { dev?: boolean; apiUrl?: string; remoteOrigins?: string[]; scansUrl?: string } = {},
 ): string {
   const origin = toOrigin(media);
   const api = toOrigin(apiUrl);
+  // A relative URL isn't an origin, and same-origin is already 'self'.
+  const scans = toOrigin(scansUrl);
   const remotes = remoteOrigins.map((r) => ` ${r}`).join("");
   const img = [...IMG_ORIGINS, ...(origin ? [origin] : [])];
   const connect = [
     ...CONNECT_ORIGINS,
     ...(origin ? [origin] : []),
     ...(api ? [api] : []),
+    ...(scans ? [scans] : []),
   ];
 
   // React's development build calls eval() to rebuild callstacks that crossed

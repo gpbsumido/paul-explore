@@ -3,7 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { EVAR_CASES } from "@/lib/evar/phantom";
+import { caseTitle } from "@/lib/evar/caseCatalogue";
+import { useScanCases } from "@/lib/evar/useScanCases";
 import { LEVELS } from "@/lib/evar/levels";
 import {
   CONSENT_VERSION,
@@ -153,6 +154,7 @@ export function JoinForm({ onJoined }: { onJoined: (participant: Participant) =>
 function ParticipantView({ participant, onWithdrawn }: { participant: Participant; onWithdrawn: () => void }) {
   const [confirming, setConfirming] = useState(false);
   const keepRef = useRef<HTMLButtonElement>(null);
+  const { scans } = useScanCases();
   const attempts = useQuery({
     queryKey: queryKeys.evar.attempts(),
     queryFn: async () => attemptsResponseSchema.parse(await send("/api/evar/attempts", "GET")).attempts,
@@ -196,7 +198,7 @@ function ParticipantView({ participant, onWithdrawn }: { participant: Participan
               {rows.map((row) => (
                 <tr key={row.id} className="border-t border-border">
                   <td className="py-1.5 pr-3">{new Date(row.submittedAt).toLocaleDateString()}</td>
-                  <td className="py-1.5 pr-3">{EVAR_CASES.find((c) => c.id === row.caseId)?.title ?? row.caseId}</td>
+                  <td className="py-1.5 pr-3">{caseTitle(row.caseId, scans)}</td>
                   <td className="py-1.5 pr-3">{LEVELS.find((l) => l.id === row.level)?.label ?? row.level}</td>
                   <td className="py-1.5 pr-3 font-mono">
                     {row.scores.filter((s) => s.verdict === "within").length} / {row.scores.length}

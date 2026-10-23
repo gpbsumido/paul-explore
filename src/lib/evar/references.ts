@@ -29,7 +29,7 @@ export const referencesResponseSchema = z.object({ references: z.array(reference
 export type ReferenceRow = z.infer<typeof referenceRowSchema>;
 
 /** The case's reference, with a hand-set row for it taking over the five scored values. */
-export function referenceWithOverride(c: EvarCase, overrides: readonly ReferenceRow[]) {
+function referenceWithOverride(c: EvarCase, overrides: readonly ReferenceRow[]) {
   const phantom = referenceFor(c);
   const row = overrides.find((o) => o.caseId === c.id);
   if (!row) return phantom;

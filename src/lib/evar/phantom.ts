@@ -687,21 +687,25 @@ function ivcAt(c: EvarCase, z: number, aortaCentre: Point, aortaPx: number): Ell
   return { x: Math.min(SPINE.x - 32, pushed), y: SPINE.y - SPINE.ry - IVC.ry - 1, rx: IVC.rx, ry: IVC.ry };
 }
 
-/** Bright band running out to a kidney, if this slice cuts through a renal artery. */
-function renalHU(c: EvarCase, x: number, y: number, z: number): number | null {
-  const centre = c.centreAt(z);
+type RenalBand = { side: number; halfPx: number };
+
+/** The renal arteries this slice cuts through, if any, worked out once per slice. */
+function renalBandsAt(c: EvarCase, z: number): RenalBand[] {
   const renals = [
     { slice: c.lowestRenalSlice, side: -1 },
     { slice: c.lowestRenalSlice - c.otherRenalAbove, side: 1 },
   ];
-  for (const renal of renals) {
+  return renals.flatMap((renal) => {
     const dz = Math.abs(z - renal.slice) * SLICE_MM;
-    if (dz > RENAL_RADIUS_MM) continue;
-    const halfPx = Math.sqrt(RENAL_RADIUS_MM ** 2 - dz ** 2) / PIXEL_MM;
-    const towardKidney = (x - centre.x) * renal.side;
-    if (towardKidney > 0 && towardKidney < 75 && Math.abs(y - centre.y) <= halfPx) {
-      return HU.lumen;
-    }
+    return dz > RENAL_RADIUS_MM ? [] : [{ side: renal.side, halfPx: Math.sqrt(RENAL_RADIUS_MM ** 2 - dz ** 2) / PIXEL_MM }];
+  });
+}
+
+/** Bright band running out to a kidney, if this pixel is on one of the slice's renal arteries. */
+function renalHU(bands: readonly RenalBand[], centre: Point, x: number, y: number): number | null {
+  for (const band of bands) {
+    const towardKidney = (x - centre.x) * band.side;
+    if (towardKidney > 0 && towardKidney < 75 && Math.abs(y - centre.y) <= band.halfPx) return HU.lumen;
   }
   return null;
 }
@@ -754,8 +758,31 @@ function grainyNoise(random: () => number): Float32Array {
   return out;
 }
 
-/** One axial slice in Hounsfield units, row-major, `size * size` long. */
+/** Slices drawn recently, so scrolling back and re-rendering don't draw them again. About 290 KB each. */
+const SLICE_CACHE_SIZE = 24;
+const sliceCache = new Map<string, Int16Array>();
+
+/**
+ * One axial slice in Hounsfield units, row-major, `size * size` long. The
+ * same case and slice always gives back the same array, so treat it as
+ * read-only.
+ */
 export function sliceHU(c: EvarCase, z: number): Int16Array {
+  const key = `${c.id}:${z}`;
+  const hit = sliceCache.get(key);
+  if (hit) {
+    // Re-inserting moves it to the newest end, so the oldest is what gets dropped.
+    sliceCache.delete(key);
+    sliceCache.set(key, hit);
+    return hit;
+  }
+  const drawn = drawSlice(c, z);
+  sliceCache.set(key, drawn);
+  if (sliceCache.size > SLICE_CACHE_SIZE) sliceCache.delete(sliceCache.keys().next().value ?? key);
+  return drawn;
+}
+
+function drawSlice(c: EvarCase, z: number): Int16Array {
   const tissue = new Float32Array(SIZE * SIZE);
   const random = mulberry32(c.seed * 7919 + z);
   const scene = sceneAt(c, z);
@@ -766,9 +793,18 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
   const iliacs = c.iliacCentresAt(z);
   const iliacPx = { right: c.ciaRadiusMm.right / PIXEL_MM, left: c.ciaRadiusMm.left / PIXEL_MM };
   const ivc = ivcAt(c, z, centre, aortaPx);
-  const internals = (["right", "left"] as const).flatMap((side) => c.internalIliacCentreAt(z, side) ?? []);
   const internalPx = INTERNAL_ILIAC_RADIUS_MM / PIXEL_MM;
   const internalSection = round(internalPx, internalPx - wallPx);
+  // Below the bifurcation: both common iliacs and any internal iliacs, each with its section, worked out once.
+  const iliacVessels = [
+    { at: iliacs.right, section: round(iliacPx.right, iliacPx.right - wallPx) },
+    { at: iliacs.left, section: round(iliacPx.left, iliacPx.left - wallPx) },
+    ...(["right", "left"] as const).flatMap((side) => {
+      const at = c.internalIliacCentreAt(z, side);
+      return at ? [{ at, section: internalSection }] : [];
+    }),
+  ];
+  const renalBands = renalBandsAt(c, z);
 
   for (let y = 0; y < SIZE; y += 1) {
     for (let x = 0; x < SIZE; x += 1) {
@@ -777,14 +813,16 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
         hu = vesselHU(x - centre.x, y - centre.y, aorta, z);
       } else {
         // Where an internal iliac leaves its common iliac the two lumens run together, so lumen wins over wall.
-        const hits = [
-          vesselHU(x - iliacs.right.x, y - iliacs.right.y, round(iliacPx.right, iliacPx.right - wallPx), z),
-          vesselHU(x - iliacs.left.x, y - iliacs.left.y, round(iliacPx.left, iliacPx.left - wallPx), z),
-          ...internals.map((at) => vesselHU(x - at.x, y - at.y, internalSection, z)),
-        ];
-        hu = hits.includes(HU.lumen) ? HU.lumen : (hits.find((h) => h !== null) ?? null);
+        for (const vessel of iliacVessels) {
+          const h = vesselHU(x - vessel.at.x, y - vessel.at.y, vessel.section, z);
+          if (h === HU.lumen) {
+            hu = h;
+            break;
+          }
+          hu ??= h;
+        }
       }
-      hu ??= renalHU(c, x, y, z) ?? (ivc && insideEllipse(x, y, ivc) ? HU.ivc : backgroundHU(scene, x, y));
+      hu ??= renalHU(renalBands, centre, x, y) ?? (ivc && insideEllipse(x, y, ivc) ? HU.ivc : backgroundHU(scene, x, y));
       tissue[y * SIZE + x] = hu;
     }
   }

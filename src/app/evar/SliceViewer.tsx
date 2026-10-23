@@ -11,6 +11,8 @@ type Props = {
   size: number;
   /** One axial slice in HU, or null while a scan is still loading. */
   sliceAt: (z: number) => Int16Array | null;
+  /** Set when a scan failed to load, so the viewer can say so instead of loading forever. */
+  loadError?: { onRetry: () => void } | null;
   slice: number;
   window: CtWindow;
   points: readonly Point[];
@@ -34,6 +36,11 @@ const BACKING = 2;
 const DRAG_PX = 4;
 /** Each button press or key doubles or halves the zoom. */
 const STEP = 2;
+/** How far a wheel or trackpad scrolls, in pixels, to move one slice. A mouse notch is 50 to 120. */
+const SLICE_SCROLL_PX = 40;
+/** What a line or a page of scroll is worth in pixels, for wheels that report those. */
+const LINE_PX = 16;
+const PAGE_PX = 400;
 
 /** Windowed greyscale RGBA for one slice, ready for putImageData. */
 function sliceRgba(hu: Int16Array, window: CtWindow): Uint8ClampedArray<ArrayBuffer> {
@@ -78,7 +85,18 @@ type Gesture = {
  * + and -, so the whole exercise works without a pointer. Points are always in
  * image pixels, so a caliper reads the same at any zoom.
  */
-export default function SliceViewer({ size, sliceAt, slice, window, points, onPlace, onClear, onSliceStep, className = "max-w-[576px]" }: Props) {
+export default function SliceViewer({
+  size,
+  sliceAt,
+  loadError = null,
+  slice,
+  window,
+  points,
+  onPlace,
+  onClear,
+  onSliceStep,
+  className = "max-w-[576px]",
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [cursor, setCursor] = useState<Point>({ x: size / 2, y: size / 2 });
@@ -87,8 +105,8 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
   const pointers = useRef(new Map<number, Point>());
   const gesture = useRef<Gesture | null>(null);
 
-  // Drawing a phantom slice is real work, so it only happens when the slice or
-  // its source changes; the parent keeps `sliceAt` stable for that reason.
+  // Slices are cached where they're made, so this hands back the same array
+  // for the same slice and the greyscale below only reruns when it changes.
   const hu = useMemo(() => sliceAt(slice), [sliceAt, slice]);
   const rgba = useMemo(() => (hu === null ? null : sliceRgba(hu, window)), [hu, window]);
 
@@ -140,18 +158,38 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
     return { x: (clientX - rect.left) / rect.width, y: (clientY - rect.top) / rect.height };
   };
 
-  // React attaches wheel listeners as passive, which can't stop the page
-  // scrolling under the image, so this one is attached by hand.
+  // The wheel listener below is attached once, so it reads the latest
+  // slice-step callback through a ref rather than the one from its first render.
+  const onSliceStepRef = useRef(onSliceStep);
+  useEffect(() => {
+    onSliceStepRef.current = onSliceStep;
+  });
+
+  // The wheel steps through slices, the way every PACS does; Ctrl or Command
+  // with it zooms, which is also what a trackpad pinch sends. React attaches
+  // wheel listeners as passive, which can't stop the page scrolling under the
+  // image, so this one is attached by hand.
   useEffect(() => {
     const surface = surfaceRef.current;
     if (!surface) return;
+    let scrolled = 0;
     const onWheel = (event: WheelEvent) => {
-      const rect = surface.getBoundingClientRect();
-      if (rect.width === 0) return;
       event.preventDefault();
-      const at = { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height };
-      const factor = Math.exp(-event.deltaY * 0.002);
-      setView((v) => zoomAt(v, factor, toImage(v, at, size), size));
+      const rect = surface.getBoundingClientRect();
+      if (event.ctrlKey || event.metaKey) {
+        if (rect.width === 0) return;
+        const at = { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height };
+        const factor = Math.exp(-event.deltaY * 0.002);
+        setView((v) => zoomAt(v, factor, toImage(v, at, size), size));
+        return;
+      }
+      // Lines and pages become pixels, and small trackpad scrolls add up, so a
+      // mouse notch is one slice and a trackpad moves a slice every so far.
+      const px = event.deltaMode === 1 ? event.deltaY * LINE_PX : event.deltaMode === 2 ? event.deltaY * (rect.height || PAGE_PX) : event.deltaY;
+      scrolled += px;
+      if (Math.abs(scrolled) < SLICE_SCROLL_PX) return;
+      onSliceStepRef.current(Math.sign(scrolled));
+      scrolled = 0;
     };
     surface.addEventListener("wheel", onWheel, { passive: false });
     return () => surface.removeEventListener("wheel", onWheel);
@@ -159,8 +197,15 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
 
   const clamp = (v: number) => Math.min(size - 1, Math.max(0, v));
 
-  const zoomAround = (factor: number, anchor: Point) => setView((v) => zoomAt(v, factor, anchor, size));
-  const zoomCentre = (factor: number) => setView((v) => zoomAt(v, factor, { x: v.x, y: v.y }, size));
+  // Zooming from the buttons or keys says where it landed; a wheel or pinch
+  // zoom moves too smoothly to announce, and its level is on screen.
+  const [announcement, setAnnouncement] = useState("");
+  const zoomTo = (next: View) => {
+    setView(next);
+    setAnnouncement(`Zoomed to ${zoomLabel(next.scale)}.`);
+  };
+  const zoomAround = (factor: number, anchor: Point) => zoomTo(zoomAt(view, factor, anchor, size));
+  const zoomCentre = (factor: number) => zoomTo(zoomAt(view, factor, { x: view.x, y: view.y }, size));
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const arrow = ARROWS[event.key];
@@ -184,7 +229,7 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
     }
     if (event.key === "0") {
       event.preventDefault();
-      setView(fullView(size));
+      zoomTo(fullView(size));
       return;
     }
     if (event.key === "Enter" || event.key === " ") {
@@ -299,11 +344,22 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
           className="block aspect-square w-full rounded-xl bg-black"
         />
       </div>
-      {hu === null ? (
+      {hu !== null ? null : loadError ? (
+        <div role="alert" className="absolute inset-x-4 top-1/2 flex -translate-y-1/2 flex-col items-center gap-2 text-center text-[14px] font-semibold text-white">
+          <p>Couldn&apos;t load this scan. Check your connection and try again.</p>
+          <button
+            type="button"
+            onClick={loadError.onRetry}
+            className="rounded-md border border-white/40 bg-black/60 px-3 py-1.5 text-[13px] hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
         <p className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[14px] font-semibold text-white">
           Loading the scan…
         </p>
-      ) : null}
+      )}
       <span aria-hidden className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-white">
         R
       </span>
@@ -314,22 +370,26 @@ export default function SliceViewer({ size, sliceAt, slice, window, points, onPl
         <button type="button" aria-label="Zoom out" className={zoomButton} disabled={view.scale <= MIN_SCALE} onClick={() => zoomCentre(1 / STEP)}>
           −
         </button>
-        <span aria-live="polite" className="min-w-10 rounded-md bg-black/60 px-1.5 py-1 text-center font-mono text-xs font-semibold text-white">
+        <span className="min-w-10 rounded-md bg-black/60 px-1.5 py-1 text-center font-mono text-xs font-semibold text-white">
           {zoomLabel(view.scale)}
         </span>
         <button type="button" aria-label="Zoom in" className={zoomButton} disabled={view.scale >= MAX_SCALE} onClick={() => zoomCentre(STEP)}>
           +
         </button>
-        <button type="button" aria-label="Reset zoom" className={zoomButton} disabled={view.scale <= MIN_SCALE} onClick={() => setView(fullView(size))}>
+        <button type="button" aria-label="Reset zoom" className={zoomButton} disabled={view.scale <= MIN_SCALE} onClick={() => zoomTo(fullView(size))}>
           1:1
         </button>
       </div>
+      <p aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <Disclosure label="Viewer controls" className="mt-2">
         <p id="evar-viewer-help" className="text-[13px] text-muted">
-          The patient&apos;s right is on the left of the image. Click two points to measure, drag to
-          pan, and scroll or pinch to zoom. From the keyboard, focus the image, move with the arrow
-          keys (Shift for bigger steps) and press Enter at each end; + and − zoom and 0 resets.
-          Escape clears; Page Up and Page Down change slice.
+          The patient&apos;s right is on the left of the image. Scroll to move through the slices,
+          click two points to measure, and drag to pan. Pinch, or hold Ctrl or ⌘ and scroll, to
+          zoom. From the keyboard, focus the image, move with the arrow keys (Shift for bigger
+          steps) and press Enter at each end; + and − zoom and 0 resets. Escape clears; Page Up
+          and Page Down change slice.
         </p>
       </Disclosure>
     </div>

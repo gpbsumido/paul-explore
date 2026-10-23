@@ -21,6 +21,7 @@ export const queryKeys = {
     attempts: () => ["evar", "attempts"] as const,
     references: () => ["evar", "references"] as const,
     scan: (id: string) => ["evar", "scan", id] as const,
+    scanManifest: () => ["evar", "scan-manifest"] as const,
     studyExport: () => ["evar", "study-export"] as const,
   },
 

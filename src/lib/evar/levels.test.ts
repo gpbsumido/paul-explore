@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { LEVELS, casesFor, hintsFor } from "./levels";
+import manifest from "../../../public/evar/scans/manifest.json";
+import { parseManifest } from "./scans";
+
+const scans = parseManifest(manifest, "/evar/scans");
 import { EVAR_CASES, referenceFor } from "./phantom";
 import { TOLERANCE_MM } from "./measure";
-import { limbDiameterFor, mainBodyDiameterFor } from "./endurant";
+import { ENDURANT } from "./endurant";
 
 const level = (id: string) => LEVELS.find((l) => l.id === id)!;
 
@@ -41,18 +45,18 @@ describe("LEVELS", () => {
 describe("cases per level", () => {
   it("gives every level two new cases, keeping the ones it had first", () => {
     expect(level("easy").caseIds).toEqual(["long-neck", "small-sac", "wide-sac"]);
-    expect(level("medium").caseIds).toEqual(["long-neck", "short-neck", "narrow-iliacs", "ectatic-left", "avt-r6"]);
+    expect(level("medium").caseIds).toEqual(["long-neck", "short-neck", "narrow-iliacs", "ectatic-left"]);
     expect(level("hard").caseIds).toEqual(["short-neck", "hostile-neck", "short-wide", "giant-sac"]);
   });
 
   // A real scan has no answers until someone measures it, so this is about the phantoms.
   it("only sizes Easy and Medium phantoms that a standard device fits", () => {
     [level("easy"), level("medium")].forEach((l) => {
-      casesFor(l).flatMap((c) => (c.kind === "phantom" ? [c] : [])).forEach((c) => {
+      casesFor(l, scans).flatMap((c) => (c.kind === "phantom" ? [c] : [])).forEach((c) => {
         const ref = referenceFor(c);
-        expect(mainBodyDiameterFor(ref.neckDiameter), c.id).not.toBeNull();
-        expect(limbDiameterFor(ref.rightCia), c.id).not.toBeNull();
-        expect(limbDiameterFor(ref.leftCia), c.id).not.toBeNull();
+        expect(ENDURANT.mainBodyDiametersFor(ref.neckDiameter), c.id).not.toEqual([]);
+        expect(ENDURANT.limbDiametersFor(ref.rightCia), c.id).not.toEqual([]);
+        expect(ENDURANT.limbDiametersFor(ref.leftCia), c.id).not.toEqual([]);
       });
     });
   });
@@ -66,11 +70,16 @@ describe("cases per level", () => {
 });
 
 describe("real cases", () => {
-  it("puts the real aneurysm on Medium, after the phantoms", () => {
-    const medium = LEVELS.find((l) => l.id === "medium")!;
-    const cases = casesFor(medium);
-    expect(cases.at(-1)?.id).toBe("avt-r6");
-    expect(cases.at(-1)?.kind).toBe("scan");
+  it("puts every real scan on Medium, after its phantoms, and none on Easy or Hard", () => {
+    const level = (id: string) => LEVELS.find((l) => l.id === id)!;
+    const medium = casesFor(level("medium"), scans);
+    expect(medium.slice(-scans.length).map((c) => c.id)).toEqual(scans.map((s) => s.id));
+    expect(casesFor(level("easy"), scans).some((c) => c.kind === "scan")).toBe(false);
+    expect(casesFor(level("hard"), scans).some((c) => c.kind === "scan")).toBe(false);
+  });
+
+  it("never states a case count its blurb would have to keep up with", () => {
+    LEVELS.forEach((l) => expect(l.blurb, l.id).not.toMatch(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\s+cases\b/i));
   });
 });
 

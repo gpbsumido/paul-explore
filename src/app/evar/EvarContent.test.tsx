@@ -6,7 +6,8 @@ import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EvarContent from "./EvarContent";
 import { EVAR_CASES, referenceFor, anatomyFor } from "@/lib/evar/phantom";
-import { SCAN_CASES } from "@/lib/evar/scans";
+import { parseManifest } from "@/lib/evar/scans";
+import manifest from "../../../public/evar/scans/manifest.json";
 import { gzipSync } from "node:zlib";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -485,7 +486,7 @@ describe("EvarContent manufacturers", () => {
 });
 
 describe("EvarContent real CTA", () => {
-  const scan = SCAN_CASES[0];
+  const [scan] = parseManifest(manifest, "/evar/scans");
 
   /** A uniform volume, so the page has something to draw without shipping the real file to the test. */
   function serveScan() {
@@ -494,9 +495,15 @@ describe("EvarContent real CTA", () => {
     );
   }
 
+  /** Real scans are picked from a select, since there will be hundreds of them. */
+  const pickScan = async () => {
+    const select = await screen.findByRole("combobox", { name: /real scan/i });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: scan.title }).getAttribute("value") } });
+  };
+
   const openScan = async () => {
     renderPage();
-    fireEvent.click(screen.getByRole("radio", { name: new RegExp(scan.title) }));
+    await pickScan();
     await waitFor(() => expect(screen.queryByText(/loading the scan/i)).toBeNull());
   };
 
@@ -589,5 +596,145 @@ describe("EvarContent, one job at a time", () => {
     expect(screen.getByText(/not affiliated with/i)).not.toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: /about these sizing tables/i }));
     expect(screen.getByText(/not affiliated with medtronic/i)).toBeVisible();
+  });
+});
+
+describe("EvarContent real CTA, when things go wrong", () => {
+  const [scan] = parseManifest(manifest, "/evar/scans");
+
+  it("says when a scan won't load, and tries again on request", async () => {
+    let fail = true;
+    server.use(
+      http.get(scan.file, () =>
+        fail ? new HttpResponse(null, { status: 503 }) : new HttpResponse(gzipSync(new Uint8Array(scan.size * scan.size * scan.slices).fill(100))),
+      ),
+    );
+    renderPage();
+    const select = await screen.findByRole("combobox", { name: /real scan/i });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: scan.title }).getAttribute("value") } });
+    expect(await screen.findByText(/couldn.t load this scan/i)).toBeInTheDocument();
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    await waitFor(() => expect(screen.queryByText(/couldn.t load this scan/i)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(/loading the scan/i)).toBeNull());
+  });
+
+  // Once the scans live in object storage, that storage being down mustn't take the phantoms with it.
+  it("still practises on the phantoms when the scan list can't be read", async () => {
+    let asked = 0;
+    server.use(
+      http.get("/evar/scans/manifest.json", () => {
+        asked += 1;
+        return new HttpResponse(null, { status: 503 });
+      }),
+    );
+    renderPage();
+    await waitFor(() => expect(asked).toBe(1));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(screen.getByRole("radio", { name: firstCase.title })).toBeChecked();
+    expect(screen.queryByRole("combobox", { name: /real scan/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+    expect(screen.getByRole("table", { name: /results/i })).toBeInTheDocument();
+  });
+
+  it("keeps phantoms as pills and real scans in a select, with no phantom pill checked while a scan is open", async () => {
+    server.use(http.get(scan.file, () => new HttpResponse(gzipSync(new Uint8Array(scan.size * scan.size * scan.slices)))));
+    renderPage();
+    expect(screen.getByRole("radio", { name: firstCase.title })).toBeChecked();
+    expect(screen.queryByRole("radio", { name: new RegExp(scan.title) })).toBeNull();
+    const select = await screen.findByRole("combobox", { name: /real scan/i });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: scan.title }).getAttribute("value") } });
+    expect(screen.getByRole("radio", { name: firstCase.title })).not.toBeChecked();
+    expect(select).toHaveDisplayValue(scan.title);
+  });
+});
+
+describe("EvarContent scroll wheel", () => {
+  const zoomLevel = () => within(screen.getByRole("group", { name: /zoom/i })).getByText(/×$/);
+  const sizeViewer = () =>
+    vi.spyOn(viewer(), "getBoundingClientRect").mockReturnValue(DOMRect.fromRect({ x: 0, y: 0, width: 384, height: 384 }));
+
+  // Every PACS steps through slices with the wheel, and zooming on a plain
+  // scroll trapped the page whenever the pointer crossed the scan.
+  it("steps through slices with the wheel, the way a PACS does", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.change(sliceSlider(), { target: { value: "30" } });
+    fireEvent.wheel(viewer(), { deltaY: 100 });
+    expect(sliceSlider()).toHaveValue("31");
+    fireEvent.wheel(viewer(), { deltaY: -100 });
+    fireEvent.wheel(viewer(), { deltaY: -100 });
+    expect(sliceSlider()).toHaveValue("29");
+    expect(zoomLevel()).toHaveTextContent("1×");
+  });
+
+  it("adds up a trackpad's small scrolls before moving a slice", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.change(sliceSlider(), { target: { value: "30" } });
+    fireEvent.wheel(viewer(), { deltaY: 15 });
+    fireEvent.wheel(viewer(), { deltaY: 15 });
+    expect(sliceSlider()).toHaveValue("30");
+    fireEvent.wheel(viewer(), { deltaY: 15 });
+    expect(sliceSlider()).toHaveValue("31");
+  });
+
+  it("zooms with Ctrl or Command held, which is also what a trackpad pinch sends", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.change(sliceSlider(), { target: { value: "30" } });
+    fireEvent.wheel(viewer(), { deltaY: -300, ctrlKey: true, clientX: 192, clientY: 192 });
+    expect(zoomLevel()).not.toHaveTextContent(/^1×$/);
+    expect(sliceSlider()).toHaveValue("30");
+    fireEvent.wheel(viewer(), { deltaY: -300, metaKey: true, clientX: 192, clientY: 192 });
+    expect(sliceSlider()).toHaveValue("30");
+  });
+
+  it("announces a zoom step from the buttons or keys, not every tick of a wheel zoom", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.wheel(viewer(), { deltaY: -120, ctrlKey: true, clientX: 192, clientY: 192 });
+    expect(screen.queryByText(/zoomed to/i)).toBeNull();
+    expect(zoomLevel()).not.toHaveAttribute("aria-live");
+    fireEvent.click(screen.getByRole("button", { name: /reset zoom/i }));
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    expect(screen.getByText("Zoomed to 2×.")).toBeInTheDocument();
+  });
+});
+
+describe("EvarContent admin link", () => {
+  const meAs = (isFlagAdmin: boolean) =>
+    server.use(http.get("/api/me", () => HttpResponse.json({ name: "Me", email: "me@example.com", sub: "auth0|me", isFlagAdmin })));
+
+  it("gives an allowlisted admin a way into the admin pages", async () => {
+    meAs(true);
+    renderPage();
+    expect(await screen.findByRole("link", { name: /^admin$/i })).toHaveAttribute("href", "/evar/admin");
+  });
+
+  it("shows nothing of the sort to anyone else", async () => {
+    meAs(false);
+    renderPage();
+    await screen.findByRole("tab", { name: /measure/i });
+    await waitFor(() => expect(screen.queryByRole("link", { name: /^admin$/i })).toBeNull());
+  });
+});
+
+describe("EvarContent first visit", () => {
+  const scans = parseManifest(manifest, "/evar/scans");
+
+  it("opens on Medium's first real scan when the page has the scans to hand", async () => {
+    server.use(http.get(scans[0].file, () => new HttpResponse(gzipSync(new Uint8Array(scans[0].size * scans[0].size * scans[0].slices)))));
+    window.localStorage.setItem("evar-tour-seen", "true");
+    window.localStorage.setItem("evar-study-asked", "true");
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <EvarContent initialScans={scans} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByRole("radio", { name: /medium/i })).toBeChecked();
+    expect(screen.getByRole("combobox", { name: /real scan/i })).toHaveDisplayValue(scans[0].title);
+    expect(screen.getByRole("radio", { name: firstCase.title })).not.toBeChecked();
+    expect(screen.getByText(scans[0].blurb)).toBeInTheDocument();
   });
 });

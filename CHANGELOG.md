@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-10-23 - version 7.32.0
+
+A full review of `/evar`, with hundreds of real scans in mind.
+
+- Performance: the renal arteries worked out the aorta's centre once per pixel (145,933 `centreAt` calls per slice) and the iliacs allocated per pixel; both are per slice now, taking a phantom slice from 40.8 to 20.7 ms, and the last 24 slices are cached. The viewer had been redrawing its slice on every page render on the false assumption that the React Compiler kept `sliceAt` stable; it isn't enabled. Hard's 250 ms clock moved into `Countdown`, so the page no longer re-renders four times a second.
+- Real scans come from `manifest.json` beside their files, validated by `parseManifest` with each dataset's citation and licence attached, and served from `NEXT_PUBLIC_EVAR_SCANS_URL` (this site's `/evar/scans` when unset), whose origin joins the CSP `connect-src`. `scripts/prepare-evar-scan.mjs` adds or replaces its manifest entry with `--id --dataset --case --title`, checks the id and dataset first, and keeps a scan's own words on a re-run; rebuilding R6 reproduces the committed file byte for byte.
+- A loaded scan stays one byte a voxel and decodes a slice at a time through a lookup table, cached per slice; downloads take the query's abort signal, are released 30 s after you leave, and a failed load shows an error with Try again instead of loading forever.
+- Medium offers every scan in the manifest through a select beside the phantom pills, and the page opens on its first real scan, read on the server by `loadInitialScans` so it doesn't swap in after load. `caseCatalogue` names cases the same way everywhere, so a real scan no longer shows as `avt-r6` in your results or the study panel.
+- The admin references page lists every case as a row that builds its form only when opened, with a search and an "only cases that need answers" filter. Allowlisted admins get an Admin link in the EVAR header, from the `isFlagAdmin` `/api/me` already returns.
+- The wheel steps through slices, adding up small trackpad scrolls, and Ctrl or Command with it zooms; only button and keyboard zoom steps are announced to screen readers.
+- On desktop the stage is exactly one screen: the measurement panel scrolls with its tabs pinned, and the scan sizes to its real height through a container query instead of a guessed offset that left it behind the dock.
+- History and best-score stores tidy old keys once per page load instead of on every snapshot read. `mainBodyDiameterFor` and `limbDiameterFor` are gone (grading uses each sheet's lookups), and internal-only exports are no longer exported. Copy no longer says the scans aren't patient images, names R6 in code, or gives Medium a case count.
+
 ## 2026-10-23 - version 7.31.0
 
 - `/evar` asks about the research study before anything else. A first-time visitor who hasn't joined gets `StudyWelcome`: the consent form when signed in, or "Sign in to join" and "Practise without joining" when not. The answer is remembered in `evar-study-asked`, and the guided tour waits for it through a new `autoOpen` option on `useGuidedTour` and `FeatureTour`. The study panel at the bottom stays for the record and withdrawal.

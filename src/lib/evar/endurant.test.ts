@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { MAIN_BODIES, LIMBS, EXTENSIONS, mainBodyDiameterFor, limbDiameterFor, reachFor } from "./endurant";
+import { ENDURANT } from "./endurant";
+
+const { mainBodyDiametersFor, limbDiametersFor, reachFor } = ENDURANT;
+const devicesIn = (groups: typeof ENDURANT.catalogue.mainBodies) => groups.flatMap((g) => g.devices);
+const MAIN_BODIES = devicesIn(ENDURANT.catalogue.mainBodies);
+const LIMBS = devicesIn(ENDURANT.catalogue.contraLimbs);
+const EXTENSIONS = devicesIn(ENDURANT.catalogue.ipsiExtensions).filter((d) => d.code.startsWith("ETEW"));
 import { gradeDevices, gradeLengths } from "./sheets";
 import type { DevicePick } from "./devices";
 import { EVAR_CASES, referenceFor, type Anatomy } from "./phantom";
@@ -18,32 +24,32 @@ const pick = (overrides: Partial<DevicePick> = {}): DevicePick => ({
 
 const row = (rows: ReturnType<typeof gradeDevices>, id: string) => rows.find((r) => r.id === id)!;
 
-describe("mainBodyDiameterFor", () => {
+describe("mainBodyDiametersFor", () => {
   it("reads the proximal table, rounding the neck to the nearest mm", () => {
-    expect(mainBodyDiameterFor(19)).toBe(23);
-    expect(mainBodyDiameterFor(20.4)).toBe(23);
-    expect(mainBodyDiameterFor(22.6)).toBe(28);
-    expect(mainBodyDiameterFor(28)).toBe(32);
-    expect(mainBodyDiameterFor(32)).toBe(36);
+    expect(mainBodyDiametersFor(19)).toEqual([23]);
+    expect(mainBodyDiametersFor(20.4)).toEqual([23]);
+    expect(mainBodyDiametersFor(22.6)).toEqual([28]);
+    expect(mainBodyDiametersFor(28)).toEqual([32]);
+    expect(mainBodyDiametersFor(32)).toEqual([36]);
   });
 
   it("has no standard main body outside 19 to 32 mm", () => {
-    expect(mainBodyDiameterFor(18.4)).toBeNull();
-    expect(mainBodyDiameterFor(32.6)).toBeNull();
+    expect(mainBodyDiametersFor(18.4)).toEqual([]);
+    expect(mainBodyDiametersFor(32.6)).toEqual([]);
   });
 });
 
-describe("limbDiameterFor", () => {
+describe("limbDiametersFor", () => {
   it("reads the distal table, rounding the iliac to the nearest mm", () => {
-    expect(limbDiameterFor(8)).toBe(10);
-    expect(limbDiameterFor(11.5)).toBe(16);
-    expect(limbDiameterFor(18)).toBe(20);
-    expect(limbDiameterFor(25)).toBe(28);
+    expect(limbDiametersFor(8)).toEqual([10]);
+    expect(limbDiametersFor(11.5)).toEqual([16]);
+    expect(limbDiametersFor(18)).toEqual([20]);
+    expect(limbDiametersFor(25)).toEqual([28]);
   });
 
   it("has no standard limb outside 8 to 25 mm", () => {
-    expect(limbDiameterFor(7.4)).toBeNull();
-    expect(limbDiameterFor(26)).toBeNull();
+    expect(limbDiametersFor(7.4)).toEqual([]);
+    expect(limbDiametersFor(26)).toEqual([]);
   });
 });
 

@@ -70,6 +70,7 @@ const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   dev: process.env.NODE_ENV === "development",
   apiUrl: API_URL,
   remoteOrigins: REMOTE ? [REMOTE.origin] : [],
+  scansUrl: process.env.NEXT_PUBLIC_EVAR_SCANS_URL,
 });
 
 const RATE_WINDOW_MS = 60_000;
