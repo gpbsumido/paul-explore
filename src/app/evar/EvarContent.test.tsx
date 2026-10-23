@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import EvarContent from "./EvarContent";
 import { EVAR_CASES, referenceFor } from "@/lib/evar/phantom";
@@ -97,6 +97,66 @@ describe("EvarContent", () => {
     expect(
       screen.getByRole("button", { name: /record caliper as proximal neck diameter/i }),
     ).toBeDisabled();
+  });
+
+  it("starts on Medium, with no hints and no clock", () => {
+    render(<EvarContent />);
+    expect(screen.getByRole("radio", { name: /medium/i })).toBeChecked();
+    expect(screen.queryByRole("list", { name: /hints/i })).toBeNull();
+    expect(screen.queryByRole("timer")).toBeNull();
+  });
+
+  it("shows where to look on Easy", () => {
+    render(<EvarContent />);
+    fireEvent.click(screen.getByRole("radio", { name: /easy/i }));
+    const hints = screen.getByRole("list", { name: /hints/i });
+    expect(within(hints).getByText(/lowest renal artery/i)).toBeInTheDocument();
+    expect(within(hints).getByText(/widest/i)).toBeInTheDocument();
+  });
+
+  it("only offers the cases that belong to the level", () => {
+    render(<EvarContent />);
+    fireEvent.click(screen.getByRole("radio", { name: /hard/i }));
+    expect(screen.getByRole("radio", { name: /hostile/i })).toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: new RegExp(EVAR_CASES[0].title) })).toBeNull();
+  });
+
+  it("counts Hard down from 5:00 and hands the answers in at 0:00", () => {
+    vi.useFakeTimers();
+    try {
+      render(<EvarContent />);
+      fireEvent.click(screen.getByRole("radio", { name: /hard/i }));
+      expect(screen.getByRole("timer")).toHaveTextContent("5:00");
+
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(screen.getByRole("timer")).toHaveTextContent("4:00");
+      expect(screen.queryByRole("table", { name: /results/i })).toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(4 * 60_000);
+      });
+      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
+      expect(screen.getByRole("table", { name: /results/i })).toBeInTheDocument();
+      expect(screen.getByText(/time's up/i)).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("gives a score and the time taken when the answers are checked", () => {
+    vi.useFakeTimers();
+    try {
+      render(<EvarContent />);
+      act(() => {
+        vi.advanceTimersByTime(83_000);
+      });
+      fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+      expect(screen.getByText(/0 of 5 within tolerance/i)).toHaveTextContent("1:23");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("has no axe violations", async () => {

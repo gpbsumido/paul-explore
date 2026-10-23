@@ -38,6 +38,12 @@ describe("score", () => {
     expect(rows.find((r) => r.id === "maxSac")!.verdict).toBe("outside");
   });
 
+  it("scores against whatever tolerances the level hands it", () => {
+    const wide = { ...TOLERANCE_MM, neckDiameter: 3 };
+    expect(score({ neckDiameter: 26.5 }, reference)[0].verdict).toBe("outside");
+    expect(score({ neckDiameter: 26.5 }, reference, wide)[0].verdict).toBe("within");
+  });
+
   it("leaves an unmeasured task unmeasured rather than failing it", () => {
     const rows = score({}, reference);
     expect(rows).toHaveLength(5);

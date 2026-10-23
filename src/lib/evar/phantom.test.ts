@@ -63,6 +63,15 @@ describe("EVAR phantom", () => {
     );
   });
 
+  it("has a hostile case: a wide, short neck and an ectatic right iliac", () => {
+    const hostile = EVAR_CASES.find((c) => c.id === "hostile-neck")!;
+    const ref = referenceFor(hostile);
+    expect(ref.neckDiameter).toBeCloseTo(30);
+    expect(ref.neckLength).toBe(10);
+    expect(ref.rightCia).toBeCloseTo(24);
+    expect(ref.leftCia).toBeLessThan(ref.rightCia);
+  });
+
   it("starts the sac where the diameter first passes 110% of the neck", () => {
     const evarCase = EVAR_CASES[1];
     const { sacStartSlice } = referenceFor(evarCase);
