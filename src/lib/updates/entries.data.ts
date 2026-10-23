@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-28-0",
+    date: "2026-10-23",
+    version: "7.28.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR sizing with Gore and Cook devices",
+    summary:
+      "EVAR sizing practice lets you size a Gore Excluder or a Cook Zenith Alpha as well as a Medtronic Endurant, each graded against its own sizing table.",
+    body: [
+      "Pick a manufacturer and choose from its devices. The same measurements can call for different sizes from different makers, and one iliac can sometimes take either of two legs on a Gore table, so the results say which sizes would have worked.",
+      "The scans also got a little taller, so the iliac arteries have a realistic length to land a graft in.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-27-0",
     date: "2026-10-23",
     version: "7.27.0",

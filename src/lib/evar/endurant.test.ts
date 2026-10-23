@@ -1,21 +1,14 @@
 import { describe, it, expect } from "vitest";
-import {
-  MAIN_BODIES,
-  LIMBS,
-  EXTENSIONS,
-  mainBodyDiameterFor,
-  limbDiameterFor,
-  gradeDevices,
-  gradeLengths,
-  reachFor,
-  type DevicePick,
-} from "./endurant";
+import { MAIN_BODIES, LIMBS, EXTENSIONS, mainBodyDiameterFor, limbDiameterFor, reachFor } from "./endurant";
+import { gradeDevices, gradeLengths } from "./sheets";
+import type { DevicePick } from "./devices";
 import { EVAR_CASES, referenceFor, type Anatomy } from "./phantom";
 
 const longNeck = referenceFor(EVAR_CASES.find((c) => c.id === "long-neck")!);
 const shortNeck = referenceFor(EVAR_CASES.find((c) => c.id === "short-neck")!);
 
 const pick = (overrides: Partial<DevicePick> = {}): DevicePick => ({
+  sheet: "endurant",
   ipsilateral: "right",
   mainBody: "ETBF2816C145EE",
   contraLimb: "ETLW1613C93EE",
@@ -90,23 +83,23 @@ describe("gradeDevices", () => {
 
   it("follows the chosen side, so the contralateral limb lands in the other iliac", () => {
     const rows = gradeDevices(pick({ ipsilateral: "left", contraLimb: "ETLW1624C93EE", mainBody: "ETBF3220C145EE" }), shortNeck, {});
-    expect(row(rows, "contralateral").expected).toBe(24);
+    expect(row(rows, "contralateral").expected).toEqual([24]);
     expect(row(rows, "contralateral").verdict).toBe("match");
-    expect(row(rows, "ipsilateral").expected).toBe(20);
+    expect(row(rows, "ipsilateral").expected).toEqual([20]);
   });
 
   it("says what the table gives for your own measurements too", () => {
     const rows = gradeDevices(pick({ mainBody: "ETBF2516C145EE" }), longNeck, { neckDiameter: 21.4 });
     const main = row(rows, "mainBody");
-    expect(main.expected).toBe(28);
-    expect(main.fromYours).toBe(25);
+    expect(main.expected).toEqual([28]);
+    expect(main.fromYours).toEqual([25]);
     expect(main.verdict).toBe("mismatch");
   });
 
   it("oversizes a 13 mm iliac to a 16 mm limb, as the sheet does", () => {
     expect(longNeck.leftCia).toBeCloseTo(13);
     const rows = gradeDevices(pick({ ipsilateral: "right", contraLimb: "ETLW1613C93EE" }), longNeck, {});
-    expect(row(rows, "contralateral").expected).toBe(16);
+    expect(row(rows, "contralateral").expected).toEqual([16]);
     expect(row(rows, "contralateral").verdict).toBe("mismatch");
   });
 

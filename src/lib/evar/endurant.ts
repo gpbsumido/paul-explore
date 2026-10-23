@@ -5,10 +5,7 @@
  * real case; the IFU and the sheet are the source of truth.
  */
 
-import type { Attempt, Reference } from "./measure";
-import type { Anatomy, MarkedAnatomy } from "./phantom";
-
-type Band = { from: number; to: number; graft: number };
+import { exactly, findDevice, lookup, type Band, type Device, type DevicePick, type Reach, type Sheet, type SheetReach } from "./devices";
 
 /** Aortic neck diameter (mm) to main-body proximal diameter. */
 const PROXIMAL: readonly Band[] = [
@@ -30,21 +27,8 @@ const DISTAL: readonly Band[] = [
 ];
 
 /** The sheet's bands are whole millimetres, so the measurement is rounded first. */
-const lookup = (bands: readonly Band[], mm: number) => {
-  const rounded = Math.round(mm);
-  return bands.find((b) => rounded >= b.from && rounded <= b.to)?.graft ?? null;
-};
-
-export const mainBodyDiameterFor = (neckMm: number) => lookup(PROXIMAL, neckMm);
-export const limbDiameterFor = (iliacMm: number) => lookup(DISTAL, iliacMm);
-
-export type Device = {
-  code: string;
-  proximal: number;
-  distal: number;
-  lengthMm: number;
-  fr: number;
-};
+export const mainBodyDiameterFor = (neckMm: number) => lookup(PROXIMAL, neckMm)[0] ?? null;
+export const limbDiameterFor = (iliacMm: number) => lookup(DISTAL, iliacMm)[0] ?? null;
 
 const device = (family: string, proximal: number, distal: number, lengthMm: number, fr: number): Device => ({
   code: `${family}${proximal}${distal}C${lengthMm}EE`,
@@ -85,80 +69,19 @@ export const EXTENSIONS: readonly Device[] = [
   device("ETEW", 28, 28, 82, 18),
 ];
 
-const byCode = (code: string | null) =>
-  code === null ? null : ([...MAIN_BODIES, ...LIMBS, ...EXTENSIONS].find((d) => d.code === code) ?? null);
-
-export type Side = "right" | "left";
-
-export type DevicePick = {
-  ipsilateral: Side;
-  mainBody: string | null;
-  contraLimb: string | null;
-  /** A limb or iliac extension on the main body's own leg; null means the leg seals on its own. */
-  ipsiExtension: string | null;
+const CATALOGUE: Sheet["catalogue"] = {
+  mainBodies: [
+    { label: "Endurant II bifurcated (ETBF)", devices: MAIN_BODIES.filter((d) => d.code.startsWith("ETBF")) },
+    { label: "Endurant IIs (ESBF)", devices: MAIN_BODIES.filter((d) => d.code.startsWith("ESBF")) },
+  ],
+  contraLimbs: [{ label: "Limbs (ETLW)", devices: LIMBS }],
+  ipsiExtensions: [
+    { label: "Limbs (ETLW)", devices: LIMBS },
+    { label: "Iliac extensions (ETEW)", devices: EXTENSIONS },
+  ],
 };
 
-export type DeviceGrade = {
-  id: "mainBody" | "contralateral" | "ipsilateral";
-  label: string;
-  /** The code that decided this row, if anything was picked. */
-  code: string | null;
-  picked: number | null;
-  /** What the table gives for the reference anatomy; null means no standard device fits. */
-  expected: number | null;
-  /**
-   * What the table gives for your own measurement, so a wrong pick can be
-   * traced to a wrong number. Undefined when you didn't measure it.
-   */
-  fromYours: number | null | undefined;
-  verdict: "match" | "mismatch" | "unpicked";
-};
-
-const ciaKey = (side: Side) => (side === "right" ? "rightCia" : "leftCia");
-const other = (side: Side): Side => (side === "right" ? "left" : "right");
-
-/**
- * Grades three diameters: the main body's proximal end against the neck, and
- * whatever seals in each common iliac against that iliac. Lengths are graded
- * separately by `gradeLengths`.
- */
-export function gradeDevices(pick: DevicePick, reference: Reference, yours: Attempt): DeviceGrade[] {
-  const main = byCode(pick.mainBody);
-  const contra = byCode(pick.contraLimb);
-  const ipsiSeal = byCode(pick.ipsiExtension) ?? main;
-  const fromYours = (mm: number | undefined, table: (v: number) => number | null) =>
-    mm === undefined ? undefined : table(mm);
-
-  const grade = (
-    id: DeviceGrade["id"],
-    label: string,
-    chosen: Device | null,
-    picked: number | null,
-    expected: number | null,
-    yoursMm: number | undefined,
-    table: (v: number) => number | null,
-  ): DeviceGrade => ({
-    id,
-    label,
-    code: chosen?.code ?? null,
-    picked,
-    expected,
-    fromYours: fromYours(yoursMm, table),
-    verdict: picked === null ? "unpicked" : picked === expected ? "match" : "mismatch",
-  });
-
-  const contraSide = ciaKey(other(pick.ipsilateral));
-  const ipsiSide = ciaKey(pick.ipsilateral);
-
-  return [
-    grade("mainBody", "Main body", main, main?.proximal ?? null, mainBodyDiameterFor(reference.neckDiameter), yours.neckDiameter, mainBodyDiameterFor),
-    grade("contralateral", "Contralateral limb", contra, contra?.distal ?? null, limbDiameterFor(reference[contraSide]), yours[contraSide], limbDiameterFor),
-    grade("ipsilateral", "Ipsilateral seal", ipsiSeal, ipsiSeal?.distal ?? null, limbDiameterFor(reference[ipsiSide]), yours[ipsiSide], limbDiameterFor),
-  ];
-}
-
-/** A span of millimetres down the centerline from the lowest renal. */
-export type Reach = { min: number; max: number };
+const byCode = (code: string | null) => findDevice({ catalogue: CATALOGUE }, code);
 
 /** Every overlap the IFU allows when one component sits inside another: 3 to 5 stents. */
 const OVERLAP = { min: 30, max: 50 };
@@ -170,19 +93,18 @@ const IIS_IPSI_ADD = { min: 50, max: 70 };
 export const DISTAL_SEAL_MM = 15;
 
 const shortBody = (main: Device) => main.code.startsWith("ETBF") && main.lengthMm === 124;
-const exactly = (mm: number): Reach => ({ min: mm, max: mm });
 
 /**
  * How far each side of a pick reaches down from the top of the main body, as
  * the range overlap allows, and how far down the contralateral gate ends.
  * Taken from the Endurant II/IIs sizing sheet's covered-length footnotes.
  */
-export function reachFor(pick: DevicePick): { gateMm: number | null; contra: Reach | null; ipsi: Reach | null } {
+export function reachFor(pick: DevicePick): SheetReach {
   const main = byCode(pick.mainBody);
   if (!main) return { gateMm: null, contra: null, ipsi: null };
   const add = shortBody(main) ? CONTRA_ADD.short : CONTRA_ADD.standard;
   const contraLimb = byCode(pick.contraLimb);
-  const contra = contraLimb
+  const contra: Reach | null = contraLimb
     ? { min: contraLimb.lengthMm + add - (OVERLAP.max - OVERLAP.min), max: contraLimb.lengthMm + add }
     : null;
   const extension = byCode(pick.ipsiExtension);
@@ -197,62 +119,17 @@ export function reachFor(pick: DevicePick): { gateMm: number | null; contra: Rea
   return { gateMm: add + OVERLAP.min, contra, ipsi };
 }
 
-export type LengthGrade = {
-  id: "gate" | "contraReach" | "ipsiReach";
-  label: string;
-  picked: Reach | null;
-  /** Where the end has to land for the real anatomy. */
-  window: Reach;
-  /** Where it would have to land by your own marks; undefined when you didn't mark them. */
-  fromYours: Reach | undefined;
-  verdict: "match" | "mismatch" | "unpicked";
+export const ENDURANT: Sheet = {
+  id: "endurant",
+  name: "Medtronic Endurant II/IIs",
+  maker: "Medtronic",
+  source: "Medtronic's public Endurant II/IIs sizing sheet (US, 12/2020) and the FDA-hosted IFU",
+  codesNote: "Codes are Medtronic's own.",
+  mainBodyDiametersFor: (neckMm) => lookup(PROXIMAL, neckMm),
+  limbDiametersFor: (iliacMm) => lookup(DISTAL, iliacMm),
+  catalogue: CATALOGUE,
+  noIpsiExtension: "None, the main body's leg seals",
+  ipsiSeal: (main, extension) => extension ?? main,
+  reachFor,
+  distalSealMm: DISTAL_SEAL_MM,
 };
-
-const overlaps = (a: Reach, b: Reach) => a.min <= b.max && b.min <= a.max;
-
-/** The landing window on one side: past 15 mm of common iliac, short of the internal iliac. */
-function sealWindow(toBifurcation: number | undefined, toInternal: number | undefined): Reach | undefined {
-  if (toBifurcation === undefined || toInternal === undefined) return undefined;
-  return { min: toBifurcation + DISTAL_SEAL_MM, max: toInternal };
-}
-
-/**
- * Grades the lengths: the contralateral gate has to end above the aortic
- * bifurcation, and each side has to be able to end in its common iliac, at
- * least 15 mm in and short of the internal iliac.
- */
-export function gradeLengths(pick: DevicePick, anatomy: Anatomy, yours: MarkedAnatomy): LengthGrade[] {
-  const reach = reachFor(pick);
-  const contraSide = other(pick.ipsilateral);
-  const grade = (id: LengthGrade["id"], label: string, picked: Reach | null, window: Reach, fromYours: Reach | undefined): LengthGrade => ({
-    id,
-    label,
-    picked,
-    window,
-    fromYours,
-    verdict: picked === null ? "unpicked" : overlaps(picked, window) ? "match" : "mismatch",
-  });
-  return [
-    grade(
-      "gate",
-      "Gate above the bifurcation",
-      reach.gateMm === null ? null : exactly(reach.gateMm),
-      { min: 0, max: anatomy.renalToBifurcation },
-      yours.renalToBifurcation === undefined ? undefined : { min: 0, max: yours.renalToBifurcation },
-    ),
-    grade(
-      "contraReach",
-      "Contralateral reach",
-      reach.contra,
-      sealWindow(anatomy.renalToBifurcation, anatomy.renalToInternalIliac[contraSide])!,
-      sealWindow(yours.renalToBifurcation, yours.renalToInternalIliac?.[contraSide]),
-    ),
-    grade(
-      "ipsiReach",
-      "Ipsilateral reach",
-      reach.ipsi,
-      sealWindow(anatomy.renalToBifurcation, anatomy.renalToInternalIliac[pick.ipsilateral])!,
-      sealWindow(yours.renalToBifurcation, yours.renalToInternalIliac?.[pick.ipsilateral]),
-    ),
-  ];
-}

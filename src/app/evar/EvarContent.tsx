@@ -11,7 +11,8 @@ import ResultsDialog from "./ResultsDialog";
 import { clock, mm } from "./format";
 import { APP_VERSION } from "@/lib/appVersion";
 import { toAttemptPayload } from "@/lib/evar/research";
-import { gradeDevices, gradeLengths, type DevicePick } from "@/lib/evar/endurant";
+import { SHEETS, gradeDevices, gradeLengths } from "@/lib/evar/sheets";
+import type { DevicePick } from "@/lib/evar/devices";
 import { anatomyFor, centerlineMm, type Landmarks } from "@/lib/evar/phantom";
 import { outcomeFor } from "@/lib/evar/game";
 import { readBest, recordBest, usePersonalBest } from "@/lib/evar/personalBest";
@@ -43,7 +44,7 @@ const LENGTH_MARKS: readonly { key: "bifurcation" | "rightInternalIliac" | "left
 const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string } => t.id !== "neckLength");
 
 const START_SLICE = 20;
-const NO_DEVICES: DevicePick = { ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
+const NO_DEVICES: DevicePick = { sheet: "endurant", ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
 const TICK_MS = 250;
 
 const button =
@@ -490,6 +491,7 @@ export default function EvarContent() {
             rows={rows}
             grades={grades}
             lengths={lengths}
+            sheet={SHEETS[devices.sheet]}
             evarCase={evarCase}
             override={override}
             elapsedMs={finishedAt - startedAt}

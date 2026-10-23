@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-sheets",
+            date: "Oct 23, 2026",
+            title: "Three tables, one 22 mm iliac, three different answers",
+          },
+          {
             id: "update-2026-10-23-centerline",
             date: "Oct 23, 2026",
             title: "The slices said 10 mm. The vessel said 16.",
@@ -1139,6 +1144,88 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-sheets"
+        date="October 23, 2026"
+        title="Three tables, one 22 mm iliac, three different answers"
+      >
+        <p>
+          With only Endurant on the page, &quot;which limb does this iliac
+          take?&quot; had one answer, and that made the table look like
+          anatomy. It isn&apos;t. Each manufacturer oversizes differently, so
+          you can now pick Gore Excluder Conformable or Cook Zenith Alpha
+          instead, and the same measurements get graded against that
+          device&apos;s own table.
+        </p>
+        <pre className={pre}>
+          {`22 mm common iliac
+  Endurant II/IIs     24 mm limb
+  Excluder Conformable 27 mm leg
+  Zenith Alpha        no standard leg (the table stops at 20)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every sheet answers the same five questions.
+        </h3>
+        <p className="text-muted">
+          What goes on the neck, what goes in an iliac, what&apos;s in the
+          catalogue, how far each side reaches, and how much seal it needs. That
+          became a <code className={code}>Sheet</code> type, and the grading
+          from the last two updates moved out of the Endurant file to read
+          whichever sheet a pick came from. Gore&apos;s comes from the IFU the
+          FDA hosts for the Conformable, and Cook&apos;s from its own Zenith
+          Alpha IFU.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Gore&apos;s bands share their edges, so one iliac can take two legs.
+        </h3>
+        <p className="text-muted">
+          Endurant and Cook write their bands in whole millimetres with no
+          overlap. Gore writes the iliac bands to the half millimetre, and
+          12 to 13.5 is followed by 13.5 to 14.5, so a 13.5 mm iliac is
+          allowed a 14.5 or a 16. The grading had assumed one right answer per
+          row, so the expected size became a list, and the results read
+          &quot;14.5 or 16 mm&quot;. The study API stores one number there,
+          so it gets the first, next to a verdict that already says whether
+          the pick was one of them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Gore couldn&apos;t land on half the cases, and the anatomy was the problem.
+        </h3>
+        <p className="text-muted">
+          I wrote a test that every case has some stack that lands on both
+          sides with every sheet. Endurant and Cook passed. Gore failed on the
+          first case it tried:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: excluder long-neck left: expected false to be true`}
+        </pre>
+        <p className="text-muted">
+          Gore counts 5.5 cm of trunk plus the leg&apos;s label, and its
+          shortest leg is 9.5 cm, so its contralateral side always reaches at
+          least 150 mm. The phantom&apos;s internal iliacs came off 140 to
+          153 mm from the renals, because a 100-slice stack left room for
+          only about 40 mm of common iliac. Real ones run nearer 50 to 60. So
+          the stack grew to 120 slices and the internal iliacs moved down to
+          about 60 mm along each iliac. The device was fine. The phantom had
+          been built short to fit the scroll bar.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Some codes are real and some I had to build.
+        </h3>
+        <p className="text-muted">
+          Endurant&apos;s codes are Medtronic&apos;s, and the Excluder trunk
+          codes are in the FDA summary. Neither document lists Gore&apos;s leg
+          numbers or Cook&apos;s part numbers, so those are built from the
+          table&apos;s sizes, and the picker says which is which. A practice
+          tool that invents official-looking part numbers is teaching
+          something false.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1149,7 +1236,7 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
           "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
-          "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
+          "Device selection from three sizing sheets, Endurant II/IIs, Gore Excluder Conformable and Cook Zenith Alpha, with each diameter graded against that sheet's table for the real anatomy and for your own numbers.",
           "Lengths along a centerline: neck length measured down the vessel, marks for the bifurcation and internal iliacs, and each side's device reach graded against where it has to land.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
@@ -1159,7 +1246,7 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
         ]}
         couldImprove={[
-          "Only one manufacturer's sheet.",
+          "Three sheets, but each is one device family. There are no aorto-uni-iliac or iliac branch devices, so a case that needs one can only be called off the sheet.",
           "Everything you see is axial. Lengths are measured along the phantom's centerline, but there's no curved planar reformat to look down it, which is the step real planning software takes.",
           "The organs are still ellipses, and each angled neck leans in one straight line rather than curving, so there's no tortuous aorta yet.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
