@@ -51,7 +51,16 @@ function DeviceSelect({
  * anything extra on the main body's own side. Changing manufacturer clears
  * the picks, since no code belongs to two sheets.
  */
-export default function DevicePicker({ pick, onChange }: { pick: DevicePick; onChange: (pick: DevicePick) => void }) {
+export default function DevicePicker({
+  pick,
+  onChange,
+  gradesLengths = true,
+}: {
+  pick: DevicePick;
+  onChange: (pick: DevicePick) => void;
+  /** False on a real scan, which has no centerline to grade lengths along. */
+  gradesLengths?: boolean;
+}) {
   const sides: readonly Side[] = ["right", "left"];
   const sheet = SHEETS[pick.sheet];
   const sheetIds = Object.keys(SHEETS) as SheetId[];
@@ -61,8 +70,10 @@ export default function DevicePicker({ pick, onChange }: { pick: DevicePick; onC
         Devices
       </h3>
       <p className="mb-3 text-[13px] text-muted">
-        Size a stent graft from your numbers. Lengths are graded along the centerline: each side
-        has to seal {sheet.distalSealMm} mm into its common iliac without covering the internal iliac.
+        Size a stent graft from your numbers.{" "}
+        {gradesLengths
+          ? `Lengths are graded along the centerline: each side has to seal ${sheet.distalSealMm} mm into its common iliac without covering the internal iliac.`
+          : "On a real scan only the diameters are graded, since there's no centerline to measure lengths along."}
       </p>
 
       <fieldset className="mb-3">

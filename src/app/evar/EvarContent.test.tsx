@@ -486,6 +486,7 @@ describe("EvarContent real CTA", () => {
     serveScan();
     await openScan();
     expect(screen.getAllByText(/CC BY 4\.0/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/only the diameters are graded/i)).toBeInTheDocument();
     keyboardCaliper(10);
     expect(screen.getByRole("status")).toHaveTextContent(`${(10 * scan.pixelMm).toFixed(1)} mm`);
   });

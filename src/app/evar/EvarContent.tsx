@@ -469,7 +469,7 @@ export default function EvarContent() {
               </section>
 
               <div className={`${panel} lg:col-start-3 lg:row-start-1 [&>section]:mt-0`}>
-                <DevicePicker pick={devices} onChange={setDevices} />
+                <DevicePicker pick={devices} onChange={setDevices} gradesLengths={phantom !== null} />
               </div>
             </div>
 
