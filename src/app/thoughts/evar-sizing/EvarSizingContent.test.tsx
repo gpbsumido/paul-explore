@@ -101,6 +101,18 @@ describe("EvarSizingContent", () => {
     expect(screen.queryByText(/there is no zoom/i)).toBeNull();
   });
 
+  it("has a dated update on the hostile necks", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /every neck was a clean tube/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer calls every neck a parallel tube", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/every neck is a parallel tube/i)).toBeNull();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });
