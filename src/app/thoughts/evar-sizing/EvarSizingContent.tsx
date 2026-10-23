@@ -281,6 +281,74 @@ limb     10     13     16     20     24     28`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-22-study"
+        date="October 22, 2026"
+        title="Every attempt recorded once, for anyone who opts in"
+      >
+        <p>
+          The point of scoring people is to find out whether they get better.
+          So signed-in users can now join a study: agree to a consent text,
+          say where they are in training, and every attempt they check is
+          saved to a record that can be compared over a career. Practice works
+          exactly the same without joining, or without signing in at all.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Consent is versioned, and the text says it&apos;s a draft.
+        </h3>
+        <p className="text-muted">
+          A study needs ethics approval before its data can go in a paper, and
+          this one doesn&apos;t have it yet. The consent version is{" "}
+          <code className={code}>2026-10-draft</code>, the form says so in its
+          first line, and changing the text means changing the version, which
+          re-stamps when each person agreed. Rows are keyed by a random
+          participant id, and the export carries that id and nothing that
+          names anyone.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A network blip shouldn&apos;t turn one attempt into two data points.
+        </h3>
+        <p className="text-muted">
+          The browser makes an id when an attempt starts and sends it with the
+          answers. Checking twice, retrying after a timeout, or a request that
+          landed but whose response didn&apos;t all send the same id, and the
+          insert ignores the repeat. A duplicated attempt in a learning-curve
+          study isn&apos;t noise, it&apos;s a fake extra practice session.
+        </p>
+        <pre className={pre}>
+          {`INSERT INTO evar_attempts (participant_id, client_attempt_id, ...)
+VALUES ($1, $2, ...)
+ON CONFLICT (client_attempt_id) DO NOTHING
+RETURNING *`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I capped measurements at 300 mm. A caliper across the whole slice is 460.
+        </h3>
+        <p className="text-muted">
+          The API validates every number, and my first bound was 300 mm on the
+          grounds that no aorta is that wide. That&apos;s true, and beside the
+          point: the study records what people actually measured, including
+          the caliper someone drags corner to corner by mistake. With the 300
+          cap that whole attempt would have been rejected, and the most
+          interesting wrong answers would never reach the data. The bound is
+          now 1000 mm, which only stops garbage.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Withdrawing deletes, it doesn&apos;t hide.
+        </h3>
+        <p className="text-muted">
+          I considered a withdrawn flag and decided against it. If someone
+          leaves a study, the honest version is that their data is gone, not
+          filtered out of a query someone might forget to filter. Withdraw
+          asks once, then deletes the participant, and the attempts go with
+          it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -289,16 +357,19 @@ limb     10     13     16     20     24     28`}
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
+          "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
           "The phantom is tidy. Real necks are conical, calcified and angled, and the cases don't yet include the ugly ones that make sizing hard.",
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
+          "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Opt-in recording of attempts, so results can be compared over a training career.",
+          "Letting an admin correct a case's reference answers without a deploy.",
+          "A download on this site for the study export, which the API already serves to admins by participant id only.",
           "Zoom and pan on the viewer.",
         ]}
       />
