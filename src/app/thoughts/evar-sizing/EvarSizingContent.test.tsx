@@ -82,6 +82,13 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on the admin results page", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /a spreadsheet i don.t have to open/i }),
+    ).toBeInTheDocument();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<EvarSizingContent />);
     expect(
