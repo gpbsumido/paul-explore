@@ -551,6 +551,46 @@ the role "button" and name \`/check answers/i\``}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-light-mode"
+        date="October 23, 2026"
+        title="A reading room is dark, but this page isn't one"
+      >
+        <p>
+          A few hours after the stage shipped, I looked at it in light mode.
+          The header was light, and everything under it was near-black.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I forced the theme on purpose, and that was the bug.
+        </h3>
+        <p className="text-muted">
+          The stage set its own theme on a wrapper, on the reasoning that CT is
+          read in a dark room. It worked exactly as written, which is why
+          nothing caught it: every token resolved, contrast held, the tests
+          passed. But someone who picked light mode had picked light mode, and
+          a dark slab under a light header reads as broken, not as a reading
+          room. Only the scan needs to be black, and the canvas already is.
+        </p>
+        <pre className={pre}>
+          {`- <div data-theme="dark" className="bg-background text-foreground">
++ <div className="text-foreground">`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Glass is fine for panels that sit still, not for one that floats over them.
+        </h3>
+        <p className="text-muted">
+          The same screenshot showed the dock letting the task rows read
+          through the slider while scrolling. The panels are glass because
+          there&apos;s only the background behind them. The dock moves over
+          text, so it gets a near-opaque surface instead.
+        </p>
+        <pre className={pre}>
+          {`const dock = "rounded-2xl border border-border bg-surface/95 p-4 shadow-lg backdrop-blur";`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -562,7 +602,7 @@ the role "button" and name \`/check answers/i\``}
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
-          "A full-height dark stage with floating controls, and a results popup with stars, points and a personal best per level and case.",
+          "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
