@@ -129,9 +129,12 @@ jobs:
         # each passing on a rerun. A healthy install is about ten seconds, so
         # each attempt gets four minutes before it is killed (with everything
         # it started) and tried again. Every retry leaves a warning annotation
-        # on the run. timeout-minutes is the backstop for all three attempts.
+        # on the run. A retry first clears what the killed attempt left of apt
+        # and dpkg (scripts/install-playwright.sh), since without that the
+        # retries fail on the lock in seconds. timeout-minutes is the backstop
+        # for all three attempts.
         timeout-minutes: 14
-        run: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- pnpm exec playwright install chromium --with-deps
+        run: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- bash scripts/install-playwright.sh
 
       - name: Run @smoke and @a11y e2e tests
         env:
@@ -231,9 +234,12 @@ jobs:
         # each passing on a rerun. A healthy install is about ten seconds, so
         # each attempt gets four minutes before it is killed (with everything
         # it started) and tried again. Every retry leaves a warning annotation
-        # on the run. timeout-minutes is the backstop for all three attempts.
+        # on the run. A retry first clears what the killed attempt left of apt
+        # and dpkg (scripts/install-playwright.sh), since without that the
+        # retries fail on the lock in seconds. timeout-minutes is the backstop
+        # for all three attempts.
         timeout-minutes: 14
-        run: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- pnpm exec playwright install chromium --with-deps
+        run: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- bash scripts/install-playwright.sh
 
       - name: Run public e2e tests (includes axe accessibility scans)
         env:
@@ -432,9 +438,12 @@ jobs:
         # each passing on a rerun. A healthy install is about ten seconds, so
         # each attempt gets four minutes before it is killed (with everything
         # it started) and tried again. Every retry leaves a warning annotation
-        # on the run. timeout-minutes is the backstop for all three attempts.
+        # on the run. A retry first clears what the killed attempt left of apt
+        # and dpkg (scripts/install-playwright.sh), since without that the
+        # retries fail on the lock in seconds. timeout-minutes is the backstop
+        # for all three attempts.
         timeout-minutes: 14
-        run: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- pnpm exec playwright install chromium --with-deps
+        run: node scripts/with-retries.mjs --attempts 3 --timeout 240 -- bash scripts/install-playwright.sh
 
       - name: Drive the operator flow against the live API
         run: pnpm exec playwright test --project=public e2e/public/operator-restock.spec.ts
