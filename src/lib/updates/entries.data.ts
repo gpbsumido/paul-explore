@@ -11,6 +11,65 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-19-0",
+    date: "2026-10-22",
+    version: "7.19.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR answers can be corrected",
+    summary:
+      "The reference answers each EVAR practice case is scored against can now be corrected by hand, without waiting for a release.",
+    body: [
+      "Each practice case has exact answers computed from its geometry. When one needs correcting, it can now be changed directly, and the next attempt is scored against the corrected value. Results say when a case's answers were set by hand.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-18-0",
+    date: "2026-10-22",
+    version: "7.18.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "Join a study of how sizing skill develops",
+    summary:
+      "Signed-in users can opt in to having their EVAR sizing attempts recorded, to compare how accuracy changes over training.",
+    body: [
+      "Under the practice there's now a research study. If you sign in and agree to the consent text, each attempt you check is saved under a random participant id, with your training level, so results can later be compared across a career. You can see your recorded attempts and withdraw at any time, which deletes everything.",
+      "The consent text is a draft while the study waits for ethics approval. Practising doesn't need an account and works exactly the same if you don't join.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-17-0",
+    date: "2026-10-22",
+    version: "7.17.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "Pick the stent graft after you measure",
+    summary:
+      "EVAR sizing now asks which main body and limbs you'd use, and checks your choice against a manufacturer's sizing table.",
+    body: [
+      "After measuring, choose the main body, the limb for the other side, and anything extra on the main body's leg. Your picks are checked against the sizing table for the real anatomy, and against what your own measurements would have given, so you can see whether a wrong choice came from a wrong number.",
+      "It uses a manufacturer's public sizing sheet for practice only. It isn't affiliated with the manufacturer and isn't for planning real cases.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-release-7-16-0",
+    date: "2026-10-22",
+    version: "7.16.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR sizing has Easy, Medium and Hard",
+    summary:
+      "Pick a level: Easy tells you where to look, Medium is the standard exercise, and Hard gives you the worst anatomy and five minutes.",
+    body: [
+      "Easy comes with hints on which slices to look at and a bit more room for error. Medium is two cases at standard tolerances. Hard has a new case with a wide, very short neck and a right iliac that needs the biggest limb, and a countdown that hands your answers in when it reaches zero.",
+      "Results now open with your score and how long it took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-15-0",
     date: "2026-10-22",
     version: "7.15.0",

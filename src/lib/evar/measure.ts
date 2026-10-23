@@ -74,15 +74,22 @@ export function toGray(hu: number, window: CtWindow): number {
   return Math.round(Math.min(255, Math.max(0, scaled)));
 }
 
-/** One row per task, in task order, whether or not it was measured. */
-export function score(attempt: Attempt, reference: Reference): TaskScore[] {
+/**
+ * One row per task, in task order, whether or not it was measured. Levels can
+ * pass their own tolerances; anything else gets the standard ones.
+ */
+export function score(
+  attempt: Attempt,
+  reference: Reference,
+  tolerance: Record<TaskId, number> = TOLERANCE_MM,
+): TaskScore[] {
   return TASKS.map(({ id, label }) => {
     const yours = attempt[id] ?? null;
     if (yours === null) {
       return { id, label, yours, reference: reference[id], delta: null, verdict: "unmeasured" };
     }
     const delta = yours - reference[id];
-    const within = Math.abs(delta) <= TOLERANCE_MM[id] + 1e-9;
+    const within = Math.abs(delta) <= tolerance[id] + 1e-9;
     return {
       id,
       label,

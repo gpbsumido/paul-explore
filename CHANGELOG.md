@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-22 - version 7.19.0
+
+- EVAR Sizing reference answers can be corrected by hand. `/evar/admin` shows one form per case with its five scored values (neck diameter and length, max sac, both common iliacs) and a note, prefilled with the hand-set row or the phantom's own numbers. Save overrides the case for everyone on their next load; Reset to phantom deletes the row.
+- `/evar` fetches the overrides from the new public `/api/evar/references` proxy and scores, grades devices and records attempts against them, with a line in the results when a case's answers were set by hand. If the request fails, it scores against the phantom as before. Hints and the sac-start slice still come from the geometry.
+- The admin page is gated the same way as `/to-do`: `/evar/admin` is session-protected, the page is force-dynamic and 404s anyone off the admin allowlist, and the `PUT`/`DELETE` proxy at `/api/evar/admin/references/[caseId]` sits behind `withAdminBackend` with the case id run through `safeSegment`.
+
+## 2026-10-22 - version 7.18.0
+
+- EVAR Sizing has an opt-in research study under the practice. Signed out, it explains the study and links to sign in. Signed in, it shows a draft consent text, asks for training level (plus optional year and specialty), and only enables Join once both are given. Practice works the same whether or not anyone joins.
+- Once joined, every checked attempt is posted to `/api/evar/attempts` with its raw measurements, scores, device picks and grades, start and finish times, the level's time limit, whether time ran out, and the app version. The page makes a `clientAttemptId` when an attempt starts and a new one on Start over, and the API ignores a repeat of it, so a second Check answers or a retry never becomes a second data point.
+- Participants see their recorded attempts in a table, and can withdraw. Withdraw asks first, moves focus to Keep my data, then deletes the participant and every attempt.
+- New BFF proxies at `/api/evar/participant` (GET, PUT, DELETE) and `/api/evar/attempts` (GET, POST) forward to portfolio_api with the user's token. The consent version is `2026-10-draft` because the study has no ethics approval yet, and nothing recorded can be published until it does.
+
+## 2026-10-22 - version 7.17.0
+
+- EVAR Sizing now asks which stent graft you'd pick. Choose which iliac the main body goes up, then an Endurant II/IIs main body (ETBF or ESBF), a contralateral limb (ETLW) and an optional ipsilateral limb or iliac extension (ETEW), with every option showing its diameters, length and sheath size.
+- The sizing comes from Medtronic's public Endurant II/IIs sheet, transcribed into `src/lib/evar/endurant.ts`: the neck-to-main-body and iliac-to-limb tables, and the catalogue of codes that exist. Measurements round to the whole millimetre before lookup, and anything off the table is "no standard device". I left out the one limb length the sheet marks as not available everywhere.
+- Results gain a Devices table. Each sealing diameter (main body proximal, contralateral limb, ipsilateral seal) is graded against the table for the real anatomy, with a second column for what the table gives for your own measurements, so a wrong pick can be traced back to a wrong number. Lengths are listed but not graded, because the axial phantoms have no centerline.
+- The picker carries a disclaimer: practice only, not affiliated with Medtronic, not for clinical use.
+
+## 2026-10-22 - version 7.16.0
+
+- EVAR Sizing has Easy, Medium and Hard levels. Each one changes something real: Easy plays the long-neck case with slice-range hints for the lowest renal, the aneurysm start, the widest sac and a clean stretch of iliac, and passes diameters within 3 mm and lengths within 8. Medium is the old page, two cases and standard tolerances. Hard plays the short neck and a new hostile neck with no hints and a five-minute clock that hands the answers in at 0:00.
+- Added a third phantom case, the hostile neck: 30 mm wide and 10 mm long before the sac starts, a 70 mm sac, and a 24 mm right common iliac. The 10 mm comes from the scoring's own definition (first slice more than 10% wider than the neck), not the slice the flare begins at, and the test pins that.
+- The hint ranges sit off-centre so their midpoint isn't the answer. The countdown is a `role="timer"` that stays quiet, with a polite live region that only speaks at one minute, thirty seconds and time's up.
+- `score()` takes the level's tolerances, defaulting to the standard ones, and the results open with how many measurements landed and how long it took.
+
 ## 2026-10-22 - version 7.15.0
 
 - Added EVAR Sizing at `/evar`, a practice page for the measurements that decide an endovascular aneurysm repair: proximal neck diameter, neck length, maximum sac diameter, and both common iliac diameters. Scroll the axial slices, place a two-point caliper, record each measurement, then check them against the case's reference with a per-task verdict and a debrief on what the anatomy means.
