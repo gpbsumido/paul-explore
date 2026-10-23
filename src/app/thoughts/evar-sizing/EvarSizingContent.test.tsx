@@ -89,6 +89,18 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on zooming the viewer", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /two pixels is not a fair test/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer lists zoom as missing", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/there is no zoom/i)).toBeNull();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });
