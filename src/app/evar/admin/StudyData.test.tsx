@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, type JsonBodyType } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
 import { axe } from "@/test/a11y";
@@ -14,7 +14,7 @@ const renderStudyData = () =>
     </QueryClientProvider>,
   );
 
-const withExport = (body: unknown, status = 200) =>
+const withExport = (body: JsonBodyType, status = 200) =>
   server.use(http.get("/api/evar/admin/export", () => HttpResponse.json(body, { status })));
 
 /** Catches the file the page hands the browser, instead of navigating. */
@@ -50,11 +50,12 @@ describe("StudyData", () => {
     withExport(makeStudyExport());
     const { blobs, names } = captureDownloads();
     renderStudyData();
-    fireEvent.click(await screen.findByRole("button", { name: /download csv/i }));
+    await screen.findByText(/1 attempt from 1 participant/i);
+    fireEvent.click(screen.getByRole("button", { name: /download csv/i }));
 
     expect(names[0]).toMatch(/^evar-study-\d{4}-\d{2}-\d{2}\.csv$/);
     expect(blobs[0].type).toContain("text/csv");
-    const lines = (await blobs[0].text()).trimEnd().split("\n");
+    const lines = (await blobs[0].text()).split("\r\n");
     expect(lines[0]).toMatch(/^participant_id,/);
     expect(lines).toHaveLength(2);
   });
@@ -63,7 +64,8 @@ describe("StudyData", () => {
     withExport(makeStudyExport());
     const { blobs, names } = captureDownloads();
     renderStudyData();
-    fireEvent.click(await screen.findByRole("button", { name: /download json/i }));
+    await screen.findByText(/1 attempt from 1 participant/i);
+    fireEvent.click(screen.getByRole("button", { name: /download json/i }));
 
     expect(names[0]).toMatch(/\.json$/);
     expect(JSON.parse(await blobs[0].text())).toEqual(makeStudyExport());

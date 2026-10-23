@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { makeAttempt, makeParticipant, makeStudyExport } from "@/test/factories/evar";
-import { studyExportSchema, toCsv, toStudyRows } from "./studyExport";
+import { studyExportSchema, toStudyCsv, toStudyRows } from "./studyExport";
 
 describe("studyExportSchema", () => {
   it("reads what the API sends", () => {
@@ -25,9 +25,9 @@ describe("toStudyRows", () => {
   });
 });
 
-describe("toCsv", () => {
+describe("toStudyCsv", () => {
   it("writes a header and one line per attempt, measurements and devices as columns", () => {
-    const [header, line, ...rest] = toCsv(toStudyRows(makeStudyExport())).trimEnd().split("\n");
+    const [header, line, ...rest] = toStudyCsv(toStudyRows(makeStudyExport())).split("\r\n");
     expect(rest).toHaveLength(0);
     const columns = header.split(",");
     const values = line.split(",");
@@ -44,11 +44,16 @@ describe("toCsv", () => {
   });
 
   it("quotes cells with commas, quotes or line breaks", () => {
-    const csv = toCsv(toStudyRows(makeStudyExport({ participants: [makeParticipant({ specialty: 'Vascular, "IR"\nmostly' })] })));
+    const csv = toStudyCsv(toStudyRows(makeStudyExport({ participants: [makeParticipant({ specialty: 'Vascular, "IR"\nmostly' })] })));
     expect(csv).toContain('"Vascular, ""IR""\nmostly"');
   });
 
+  it("stops a spreadsheet running free text as a formula", () => {
+    const csv = toStudyCsv(toStudyRows(makeStudyExport({ participants: [makeParticipant({ specialty: "=HYPERLINK(1)" })] })));
+    expect(csv).toContain("'=HYPERLINK(1)");
+  });
+
   it("is just the header when there's nothing to export", () => {
-    expect(toCsv([]).trimEnd().split("\n")).toHaveLength(1);
+    expect(toStudyCsv([]).split("\r\n")).toHaveLength(1);
   });
 });
