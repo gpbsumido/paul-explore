@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-19-0",
+    date: "2026-10-22",
+    version: "7.19.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR answers can be corrected",
+    summary:
+      "The reference answers each EVAR practice case is scored against can now be corrected by hand, without waiting for a release.",
+    body: [
+      "Each practice case has exact answers computed from its geometry. When one needs correcting, it can now be changed directly, and the next attempt is scored against the corrected value. Results say when a case's answers were set by hand.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-18-0",
     date: "2026-10-22",
     version: "7.18.0",

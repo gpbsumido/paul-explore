@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-22 - version 7.19.0
+
+- EVAR Sizing reference answers can be corrected by hand. `/evar/admin` shows one form per case with its five scored values (neck diameter and length, max sac, both common iliacs) and a note, prefilled with the hand-set row or the phantom's own numbers. Save overrides the case for everyone on their next load; Reset to phantom deletes the row.
+- `/evar` fetches the overrides from the new public `/api/evar/references` proxy and scores, grades devices and records attempts against them, with a line in the results when a case's answers were set by hand. If the request fails, it scores against the phantom as before. Hints and the sac-start slice still come from the geometry.
+- The admin page is gated the same way as `/to-do`: `/evar/admin` is session-protected, the page is force-dynamic and 404s anyone off the admin allowlist, and the `PUT`/`DELETE` proxy at `/api/evar/admin/references/[caseId]` sits behind `withAdminBackend` with the case id run through `safeSegment`.
+
 ## 2026-10-22 - version 7.18.0
 
 - EVAR Sizing has an opt-in research study under the practice. Signed out, it explains the study and links to sign in. Signed in, it shows a draft consent text, asks for training level (plus optional year and specialty), and only enables Join once both are given. Practice works the same whether or not anyone joins.
