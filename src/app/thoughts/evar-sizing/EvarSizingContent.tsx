@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-centerline",
+            date: "Oct 23, 2026",
+            title: "The slices said 10 mm. The vessel said 16.",
+          },
+          {
             id: "update-2026-10-23-hostile-necks",
             date: "Oct 23, 2026",
             title: "Every neck was a clean tube, which is the one thing real necks never are",
@@ -1033,6 +1038,107 @@ const across = -dx * toward.y + dy * toward.x;
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-centerline"
+        date="October 23, 2026"
+        title="The slices said 10 mm. The vessel said 16."
+      >
+        <p>
+          Device lengths were listed but never graded, because a length is
+          measured along the vessel and an axial stack only knows how far
+          apart two slices are. Once the necks could lean, that gap stopped
+          being a footnote: the hostile neck is five slices long, 10 mm on the
+          scanner&apos;s z axis, and 16 mm along the aorta.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The phantom already had a centerline. It just never added it up.
+        </h3>
+        <p className="text-muted">
+          <code className={code}>centreAt</code> and{" "}
+          <code className={code}>iliacCentresAt</code> already say where the
+          vessel is on every slice. The centerline is those points joined in
+          3D: each step is the slice spacing, plus however far the centre
+          moved sideways. Down a straight neck that&apos;s 2 mm a slice. Through
+          a neck leaning 50° it&apos;s about 3, and down an iliac heading out
+          toward the hip it&apos;s a little over 2.
+        </p>
+        <pre className={pre}>
+          {`total += Math.hypot((q.x - p.x) * c.pixelMm, (q.y - p.y) * c.pixelMm, c.sliceMm);`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Neck length now runs along it, for the answer and for your marks
+          alike: you still pick the renal and the sac start on the slices, and
+          the distance between them is measured down the vessel. Two debriefs
+          changed because of it. The short, wide neck is 14 mm on the slices
+          and 15.5 along the vessel, which moves it from just under the usual
+          minimum to just over.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A limb has to stop somewhere, so the iliacs needed a place to stop.
+        </h3>
+        <p className="text-muted">
+          The IFU&apos;s rule for overall length is lowest renal to just above
+          the internal iliac. The phantom&apos;s common iliacs ran off the
+          bottom of the stack without branching, so each one now gives off an
+          internal iliac, back and out toward the pelvis. My first version sent
+          it straight back, and the test that probes for contrast behind the
+          common iliac found bone instead: the iliacs run over the vertebral
+          body, so straight back is into it.
+        </p>
+        <pre className={pre}>
+          {`AssertionError: right: expected 612 to be less than 150`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Three new slices to mark sit under the neck: the aortic bifurcation
+          and each internal iliac origin. They aren&apos;t scored tasks, which
+          would have meant new API columns. They give your own lengths, and
+          those feed the device grading.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The sizing sheet&apos;s footnotes are the length tables.
+        </h3>
+        <p className="text-muted">
+          Endurant&apos;s sheet gives each limb&apos;s total contralateral
+          covered length with a bifurcated body: the limb plus 50 mm, assuming
+          the minimum 30 mm of overlap, and 10 mm less on the 124 mm body. More
+          overlap is allowed, up to five stents, so a limb really reaches a
+          range, not a number. The same footnote puts the end of the
+          contralateral gate 80 mm down, and the IFU wants that above the
+          bifurcation.
+        </p>
+        <pre className={pre}>
+          {`gate               ends 80 mm down (70 on the 124 mm body), above the bifurcation
+contralateral      limb + 30 to 50 mm
+ipsilateral        body, or body + extension - 30 to 50 mm overlap
+Endurant IIs ipsi  limb + 50 to 70 mm
+a side lands       15 mm into its common iliac .. the internal iliac origin`}
+        </pre>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I guessed the hostile gate wouldn&apos;t fit. The centerline said it does, easily.
+        </h3>
+        <p className="text-muted">
+          On the hostile case the slices put the bifurcation 76 mm below the
+          renal, and I wrote that only the 124 mm body&apos;s gate would clear it.
+          Then I printed the centerline: 101 mm. The sac pushes the vessel
+          forward off the spine and back again, and the centerline bows with
+          it, so every case has 100 to 118 mm from renal to bifurcation and
+          every gate fits. That&apos;s the same lesson as the neck, from the
+          other end: the axial distance is the one that&apos;s easy to read
+          and the one that&apos;s wrong.
+        </p>
+
+        <p className="mt-3 text-muted">
+          The results get a Lengths table under Devices, with where each side
+          has to end for the real anatomy and where your marks say it does.
+          The study payload still records the three diameter grades, because
+          the API caps that list at five and length verdicts can be worked out
+          again from the device codes it already stores.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1044,6 +1150,7 @@ const across = -dx * toward.y + dy * toward.x;
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
+          "Lengths along a centerline: neck length measured down the vessel, marks for the bifurcation and internal iliacs, and each side's device reach graded against where it has to land.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
@@ -1052,8 +1159,8 @@ const across = -dx * toward.y + dy * toward.x;
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
         ]}
         couldImprove={[
-          "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
-          "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
+          "Only one manufacturer's sheet.",
+          "Everything you see is axial. Lengths are measured along the phantom's centerline, but there's no curved planar reformat to look down it, which is the step real planning software takes.",
           "The organs are still ellipses, and each angled neck leans in one straight line rather than curving, so there's no tortuous aorta yet.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
