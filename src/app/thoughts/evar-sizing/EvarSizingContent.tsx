@@ -754,6 +754,61 @@ Hook change on every render.`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-admin-results"
+        date="October 23, 2026"
+        title="A spreadsheet I don't have to open"
+      >
+        <p>
+          The study download was the right shape for analysis and the wrong
+          shape for a quick look. To answer &quot;are the students timing out
+          on Hard?&quot; I had to download a CSV, open it and build a filter
+          by hand, every time.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The filters run on what the admin page already fetched.
+        </h3>
+        <p className="text-muted">
+          <code>/evar/admin/results</code> reads the same export the download
+          card uses, through one shared query, and narrows it in the browser
+          by level, case, training level, timed out and a date range. There
+          is no new endpoint and no query language on the API. The study is a
+          few hundred attempts at most, so filtering them in memory is
+          cheaper than another round trip, and the rows the page shows are
+          exactly the rows the CSV would have.
+        </p>
+        <pre className={pre}>
+          {`filterStudyRows(rows, { level: "hard", caseId: null,
+  trainingLevel: "medical-student", timedOut: true,
+  from: "2026-10-01", to: null })`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An unmeasured answer isn&apos;t a wrong one.
+        </h3>
+        <p className="text-muted">
+          The summary table gives, for each of the five measurements, how
+          often it landed within tolerance out of how often it was taken. A
+          timed-out attempt that never got to the iliacs counts as not
+          measured rather than missed, so the share answers &quot;when people
+          measure this, do they get it right&quot; instead of blending that
+          with &quot;did they run out of time&quot;. The timed-out filter is
+          there for the second question.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The download follows the filters.
+        </h3>
+        <p className="text-muted">
+          &quot;Download these as CSV&quot; writes the filtered rows with the
+          same columns as the full export, so a cut I find on the page goes
+          straight into R without redoing it. The filters live in the page,
+          not the URL, which keeps it simple and means a filtered view
+          can&apos;t be shared as a link yet.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -768,6 +823,7 @@ Hook change on every render.`}
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
           "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
           "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
+          "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
@@ -780,7 +836,6 @@ Hook change on every render.`}
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "An admin results page that filters everyone's attempts by level, case and training level.",
           "Zoom and pan on the viewer.",
         ]}
       />
