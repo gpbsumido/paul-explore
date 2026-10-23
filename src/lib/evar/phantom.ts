@@ -173,6 +173,23 @@ export const EVAR_CASES: readonly EvarCase[] = [
     driftPx: 8,
     seed: 23,
   }),
+  makeCase({
+    id: "hostile-neck",
+    title: "Case 3: hostile neck",
+    blurb: "A wide neck that only runs a centimetre before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
+    debrief:
+      "A 30 mm neck sits at the top of the range a standard main body covers, and 10 mm is about the shortest landing zone current devices accept at all. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely.",
+    neckRadiusMm: 15,
+    sacRadiusMm: 35,
+    ciaRadiusMm: { right: 12, left: 6 },
+    lowestRenalSlice: 34,
+    otherRenalAbove: 2,
+    neckEndSlice: 36,
+    sacPeakSlice: 52,
+    bifurcationSlice: 72,
+    driftPx: 10,
+    seed: 37,
+  }),
 ];
 
 /**
