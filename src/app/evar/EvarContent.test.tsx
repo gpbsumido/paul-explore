@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, within, act } from "@testing-library/react";
+import { render, screen, fireEvent, within, act, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EvarContent from "./EvarContent";
 import { EVAR_CASES, referenceFor, anatomyFor } from "@/lib/evar/phantom";
+import { SCAN_CASES } from "@/lib/evar/scans";
+import { gzipSync } from "node:zlib";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
@@ -461,5 +463,56 @@ describe("EvarContent manufacturers", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: /zenith alpha/i }));
     expect(within(mainBody()).getAllByRole("option", { name: /ZIMB/ }).length).toBeGreaterThan(0);
+  });
+});
+
+describe("EvarContent real CTA", () => {
+  const scan = SCAN_CASES[0];
+
+  /** A uniform volume, so the page has something to draw without shipping the real file to the test. */
+  function serveScan() {
+    server.use(
+      http.get(scan.file, () => new HttpResponse(gzipSync(new Uint8Array(scan.size * scan.size * scan.slices).fill(100)))),
+    );
+  }
+
+  const openScan = async () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("radio", { name: new RegExp(scan.title) }));
+    await waitFor(() => expect(screen.queryByText(/loading the scan/i)).toBeNull());
+  };
+
+  it("loads the real case, measures in its own pixels, and credits where it came from", async () => {
+    serveScan();
+    await openScan();
+    expect(screen.getAllByText(/CC BY 4\.0/).length).toBeGreaterThan(0);
+    keyboardCaliper(10);
+    expect(screen.getByRole("status")).toHaveTextContent(`${(10 * scan.pixelMm).toFixed(1)} mm`);
+  });
+
+  it("says it isn't scored yet when nobody has measured it, and keeps nothing", async () => {
+    serveScan();
+    await openScan();
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+    expect(within(screen.getByRole("dialog")).getByText(/isn.t scored yet/i)).toBeInTheDocument();
+    expect(window.localStorage.getItem("evar-history-v2")).toBeNull();
+  });
+
+  it("scores it like any other case once there's a reference", async () => {
+    serveScan();
+    server.use(
+      http.get("/api/evar/references", () =>
+        HttpResponse.json({
+          references: [
+            { caseId: scan.id, neckDiameter: 22, neckLength: 18, maxSac: 34, rightCia: 13, leftCia: 12, note: null, updatedAt: "2026-10-23T12:00:00.000Z" },
+          ],
+        }),
+      ),
+    );
+    await openScan();
+    await waitFor(() => expect(screen.queryByText(/isn.t scored yet/i)).toBeNull());
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+    const results = within(screen.getByRole("dialog")).getByRole("table", { name: /results/i });
+    expect(within(results).getByRole("row", { name: /proximal neck diameter/i })).toHaveTextContent("22.0 mm");
   });
 });

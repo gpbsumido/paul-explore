@@ -64,6 +64,15 @@ describe("cases per level", () => {
   });
 });
 
+describe("real cases", () => {
+  it("puts the real aneurysm on Medium, after the phantoms", () => {
+    const medium = LEVELS.find((l) => l.id === "medium")!;
+    const cases = casesFor(medium);
+    expect(cases.at(-1)?.id).toBe("avt-r6");
+    expect(cases.at(-1)?.kind).toBe("scan");
+  });
+});
+
 describe("hintsFor", () => {
   it("gives slice ranges, counted from 1, that contain the real answer", () => {
     const evarCase = EVAR_CASES[0];
