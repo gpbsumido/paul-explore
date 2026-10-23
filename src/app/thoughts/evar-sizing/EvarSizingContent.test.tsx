@@ -149,6 +149,13 @@ describe("EvarSizingContent", () => {
     expect(screen.queryByText(/real deidentified CTA cases from an openly licensed aortic dataset/i)).toBeNull();
   });
 
+  it("has a dated update on the guided tour", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /the page had grown past explaining itself/i }),
+    ).toBeInTheDocument();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });

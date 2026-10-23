@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-tour",
+            date: "Oct 23, 2026",
+            title: "The page had grown past explaining itself",
+          },
+          {
             id: "update-2026-10-23-real-cta",
             date: "Oct 23, 2026",
             title: "Fifty-six scans, one aneurysm",
@@ -1304,6 +1309,46 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-tour"
+        date="October 23, 2026"
+        title="The page had grown past explaining itself"
+      >
+        <p>
+          Three levels, ten cases, five measurements, five slices to mark,
+          three manufacturers, zoom, and a dock of controls. Someone landing on
+          it for the first time had no way in except to start clicking. It now
+          has the guided tour ZeroProof got first.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It&apos;s ZeroProof&apos;s tour, pointed at different ids.
+        </h3>
+        <p className="text-muted">
+          The engine is shared: <code className={code}>FeatureTour</code>{" "}
+          renders the button and the overlay, and its hook remembers per page
+          whether you&apos;ve seen it. All this page adds is eight steps and an
+          id on each part they describe. The first step asks before anything
+          gets spotlighted, and it opens by itself only once.
+        </p>
+        <pre className={pre}>
+          {`evar-intro  evar-levels  evar-cases  evar-scan
+evar-measurements  evar-devices  evar-dock`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A tour that opens itself opens in every test too.
+        </h3>
+        <p className="text-muted">
+          Every page test starts with empty storage, which to the tour looks
+          like a first visit, so each one would have run under an overlay. The
+          shared render helper marks the tour seen, and the tour has its own
+          four tests, the same ones ZeroProof&apos;s has: it asks on a first
+          visit, stays shut once seen, reopens from the button, and walks to
+          the end.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1313,6 +1358,7 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
           "A real, deidentified CTA of an infrarenal aneurysm on Medium, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
+          "A guided tour for first-time visitors, on the same engine as ZeroProof's, that walks the page from levels to checking answers.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Device selection from three sizing sheets, Endurant II/IIs, Gore Excluder Conformable and Cook Zenith Alpha, with each diameter graded against that sheet's table for the real anatomy and for your own numbers.",
