@@ -41,13 +41,14 @@ describe("LEVELS", () => {
 describe("cases per level", () => {
   it("gives every level two new cases, keeping the ones it had first", () => {
     expect(level("easy").caseIds).toEqual(["long-neck", "small-sac", "wide-sac"]);
-    expect(level("medium").caseIds).toEqual(["long-neck", "short-neck", "narrow-iliacs", "ectatic-left"]);
+    expect(level("medium").caseIds).toEqual(["long-neck", "short-neck", "narrow-iliacs", "ectatic-left", "avt-r6"]);
     expect(level("hard").caseIds).toEqual(["short-neck", "hostile-neck", "short-wide", "giant-sac"]);
   });
 
-  it("only sizes Easy and Medium cases that a standard device fits", () => {
+  // A real scan has no answers until someone measures it, so this is about the phantoms.
+  it("only sizes Easy and Medium phantoms that a standard device fits", () => {
     [level("easy"), level("medium")].forEach((l) => {
-      casesFor(l).forEach((c) => {
+      casesFor(l).flatMap((c) => (c.kind === "phantom" ? [c] : [])).forEach((c) => {
         const ref = referenceFor(c);
         expect(mainBodyDiameterFor(ref.neckDiameter), c.id).not.toBeNull();
         expect(limbDiameterFor(ref.rightCia), c.id).not.toBeNull();
@@ -61,6 +62,15 @@ describe("cases per level", () => {
       const c = EVAR_CASES.find((e) => e.id === id)!;
       expect(referenceFor(c).neckLength, id).toBeLessThanOrEqual(16);
     });
+  });
+});
+
+describe("real cases", () => {
+  it("puts the real aneurysm on Medium, after the phantoms", () => {
+    const medium = LEVELS.find((l) => l.id === "medium")!;
+    const cases = casesFor(medium);
+    expect(cases.at(-1)?.id).toBe("avt-r6");
+    expect(cases.at(-1)?.kind).toBe("scan");
   });
 });
 

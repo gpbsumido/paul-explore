@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
 import { axe } from "@/test/a11y";
 import { EVAR_CASES } from "@/lib/evar/phantom";
+import { SCAN_CASES } from "@/lib/evar/scans";
 import AdminReferencesContent from "./AdminReferencesContent";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -67,6 +68,16 @@ describe("AdminReferencesContent", () => {
     const phantom = caseGroup(longNeck.title);
     expect(within(phantom).getByText(/phantom geometry/i)).toBeInTheDocument();
     expect(within(phantom).queryByRole("button", { name: /reset/i })).toBeNull();
+  });
+
+  it("lists the real case with empty answers to fill in, and no phantom to fall back to", async () => {
+    api();
+    renderAdmin();
+    await screen.findByDisplayValue("From the 3D reconstruction");
+    const real = caseGroup(SCAN_CASES[0].title);
+    expect(within(real).getByText(/no answers yet/i)).toBeInTheDocument();
+    expect(within(real).getByRole("spinbutton", { name: /neck diameter/i })).toHaveValue(null);
+    expect(within(real).queryByRole("button", { name: /reset/i })).toBeNull();
   });
 
   it("saves all five values and the note for one case", async () => {

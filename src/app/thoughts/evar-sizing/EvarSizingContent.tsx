@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-real-cta",
+            date: "Oct 23, 2026",
+            title: "Fifty-six scans, one aneurysm",
+          },
+          {
             id: "update-2026-10-23-sheets",
             date: "Oct 23, 2026",
             title: "Three tables, one 22 mm iliac, three different answers",
@@ -1226,6 +1231,79 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-real-cta"
+        date="October 23, 2026"
+        title="Fifty-six scans, one aneurysm"
+      >
+        <p>
+          The first section of this page says I wanted real scans and shipped
+          a phantom because a segmentation doesn&apos;t come with an answer key.
+          That&apos;s still true, but the admin page fixed the answer key: a
+          case can have its five answers set by hand. So Medium now ends with
+          a real, deidentified CTA of an infrarenal aneurysm.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The open aortic datasets are mostly healthy aortas, or cropped to the sac.
+        </h3>
+        <p className="text-muted">
+          I measured every segmentation in the AVT collection rather than trust
+          the description. Fifty-six scans, and the infrarenal aorta is 16 to
+          26 mm wide in all but one. The two openly licensed 4D-CTA aneurysm
+          sets on Zenodo are real aneurysms, but cropped to about 70 mm round
+          the sac, with no renals and no iliacs, which is everything a sizing
+          exercise needs. The one AVT case that is an aneurysm turned out to
+          live in a folder that said so all along.
+        </p>
+        <pre className={pre}>
+          {`'Rider/R6 (AAA)/R6.nrrd' 296.2 MB
+'Rider/R6 (AAA)/R6.seg.nrrd' 0.4 MB`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          296 MB became 7 by keeping only what the windows can show.
+        </h3>
+        <p className="text-muted">
+          A script crops it to 256 pixels square round the aorta and iliacs at
+          its own 0.72 mm spacing, averages it into 2 mm slices, and keeps from
+          about 4 cm above the renals to the internal iliacs. The first try
+          gzipped to 9 MB and barely shrank, because CT noise doesn&apos;t
+          compress. What did work was noticing that the two windows only ever
+          show −160 to 450 HU, each spread over 256 greys, so one byte a voxel
+          at 2.4 HU a step loses nothing anyone can see.
+        </p>
+        <pre className={pre}>
+          {`{ "size": 256, "slices": 127, "pixelMm": 0.7246, "sliceMm": 2,
+  "huMin": -160, "huStep": 2.4, "bytes": 7051231 }`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The values in this file are stored with a +1024 offset, so my first
+          picture of it was solid white until I subtracted it. It&apos;s fetched
+          when the case is opened, never with the page, and gunzipped in the
+          browser.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It isn&apos;t scored until I measure it.
+        </h3>
+        <p className="text-muted">
+          There&apos;s no geometry behind a real scan, so the honest default is
+          no answer. Until its five numbers are saved on the admin page, the
+          case says it isn&apos;t scored, the end shows your measurements
+          without a verdict, and nothing goes to the study, the results page or
+          a personal best. Once they&apos;re saved it scores like any other
+          case. Lengths on it run straight down the slices, because it has no
+          centerline yet, and the page says that too.
+        </p>
+        <p className="mt-3 text-muted">
+          The scan is CC BY 4.0, from AVT on figshare, which builds on
+          TCIA&apos;s RIDER collection. The attribution sits under the case
+          whenever it&apos;s open, and the folder it&apos;s served from has a
+          note of what I changed.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1234,6 +1312,7 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
+          "A real, deidentified CTA of an infrarenal aneurysm on Medium, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Device selection from three sizing sheets, Endurant II/IIs, Gore Excluder Conformable and Cook Zenith Alpha, with each diameter graded against that sheet's table for the real anatomy and for your own numbers.",
@@ -1254,7 +1333,8 @@ a side lands       15 mm into its common iliac .. the internal iliac origin`}
           "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
         ]}
         upcoming={[
-          "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
+          "Healthy real aortas from the same collection as normal-anatomy cases, one at a time, since each is about 7 MB.",
+          "My own reference measurements for the real case, so it scores.",
         ]}
       />
     </ThoughtLayout>

@@ -6,6 +6,7 @@ import { downloadCsv } from "@/lib/csv";
 import { LEVELS } from "@/lib/evar/levels";
 import { TASKS } from "@/lib/evar/measure";
 import { EVAR_CASES } from "@/lib/evar/phantom";
+import { SCAN_CASES } from "@/lib/evar/scans";
 import { TRAINING_LEVELS } from "@/lib/evar/research";
 import { toStudyCsv, toStudyRows, type StudyRow } from "@/lib/evar/studyExport";
 import { NO_FILTERS, filterStudyRows, summarizeStudy, type StudyFilters } from "@/lib/evar/studyFilters";
@@ -23,7 +24,7 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const stamp = () => new Date().toISOString().slice(0, 10);
 
 const levelLabel = (id: string) => LEVELS.find((l) => l.id === id)?.label ?? id;
-const caseTitle = (id: string) => EVAR_CASES.find((c) => c.id === id)?.title ?? id;
+const caseTitle = (id: string) => [...EVAR_CASES, ...SCAN_CASES].find((c) => c.id === id)?.title ?? id;
 const trainingLabel = (value: string | null) =>
   value === null ? "–" : (TRAINING_LEVELS.find((t) => t.value === value)?.label ?? value);
 
@@ -115,7 +116,7 @@ export default function AdminResultsContent() {
             <Select
               label="Case"
               value={filters.caseId ?? ""}
-              options={EVAR_CASES.map((c) => ({ value: c.id, label: c.title }))}
+              options={[...EVAR_CASES, ...SCAN_CASES].map((c) => ({ value: c.id, label: c.title }))}
               onChange={(v) => set({ caseId: orNull(v) })}
             />
             <Select

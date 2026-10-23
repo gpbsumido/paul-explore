@@ -5,7 +5,7 @@ import Modal from "@/components/ui/Modal";
 import type { DeviceGrade, LengthGrade } from "@/lib/evar/sheets";
 import type { Reach, Sheet } from "@/lib/evar/devices";
 import type { Outcome } from "@/lib/evar/game";
-import type { EvarCase } from "@/lib/evar/phantom";
+import type { PracticeCase } from "@/lib/evar/scans";
 import type { ReferenceRow } from "@/lib/evar/references";
 import type { TaskScore } from "@/lib/evar/measure";
 import { clock, mm } from "./format";
@@ -75,7 +75,7 @@ type Props = {
   lengths: readonly LengthGrade[];
   /** Whose sizing sheet the devices were graded against. */
   sheet: Sheet;
-  evarCase: EvarCase;
+  evarCase: PracticeCase;
   override: ReferenceRow | null;
   elapsedMs: number;
   /** The best for this level and case before this attempt, so a tie isn't called a new best. */
@@ -219,6 +219,7 @@ export default function ResultsDialog({
           </table>
         </div>
 
+{lengths.length === 0 ? null : (
         <div className="mt-6 overflow-x-auto">
           <table className="w-full text-left text-[13px]">
             <caption className="mb-2 text-left text-[15px] font-bold text-foreground">Lengths</caption>
@@ -250,6 +251,7 @@ export default function ResultsDialog({
             common iliac and short of the internal iliac, and the contralateral gate has to end above the bifurcation.
           </p>
         </div>
+        )}
 
         <p className="mt-4 text-[14px] leading-relaxed text-muted">{evarCase.debrief}</p>
         {sheet.id === "endurant" ? null : (

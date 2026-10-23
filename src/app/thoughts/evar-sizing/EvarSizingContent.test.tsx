@@ -137,6 +137,18 @@ describe("EvarSizingContent", () => {
     expect(screen.queryByText(/only one manufacturer's sheet/i)).toBeNull();
   });
 
+  it("has a dated update on the real CTA case", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /fifty-six scans, one aneurysm/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer lists real CTA cases as upcoming", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/real deidentified CTA cases from an openly licensed aortic dataset/i)).toBeNull();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });

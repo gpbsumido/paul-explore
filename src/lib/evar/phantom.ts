@@ -75,6 +75,7 @@ export type Landmarks = {
 };
 
 export type EvarCase = CaseParams & {
+  kind: "phantom";
   size: number;
   /** Image direction the neck leans toward, and how stretched an axial cut through it is, at a slice. */
   sectionAt: (z: number) => { toward: Point; stretch: number };
@@ -278,6 +279,7 @@ function makeCase(params: CaseParams): EvarCase {
 
   return {
     ...params,
+    kind: "phantom",
     size: SIZE,
     pixelMm: PIXEL_MM,
     sliceMm: SLICE_MM,

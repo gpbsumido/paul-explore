@@ -5,6 +5,7 @@
  */
 
 import { EVAR_CASES, referenceFor, type EvarCase } from "./phantom";
+import { SCAN_CASES, type PracticeCase } from "./scans";
 import { TOLERANCE_MM, type TaskId } from "./measure";
 
 export type LevelId = "easy" | "medium" | "hard";
@@ -33,7 +34,7 @@ export const LEVELS: readonly Level[] = [
     id: "medium",
     label: "Medium",
     blurb: "Four cases, no hints. Diameters pass within 2 mm and lengths within 5 mm.",
-    caseIds: ["long-neck", "short-neck", "narrow-iliacs", "ectatic-left"],
+    caseIds: ["long-neck", "short-neck", "narrow-iliacs", "ectatic-left", "avt-r6"],
     hints: false,
     tolerance: TOLERANCE_MM,
     timeLimitMs: null,
@@ -49,9 +50,11 @@ export const LEVELS: readonly Level[] = [
   },
 ];
 
-/** The cases a level plays, in the order it lists them. */
-export function casesFor(level: Level): EvarCase[] {
-  return level.caseIds.flatMap((id) => EVAR_CASES.filter((c) => c.id === id));
+const PRACTICE_CASES: readonly PracticeCase[] = [...EVAR_CASES, ...SCAN_CASES];
+
+/** The cases a level plays, phantoms and real scans, in the order it lists them. */
+export function casesFor(level: Level): PracticeCase[] {
+  return level.caseIds.flatMap((id) => PRACTICE_CASES.filter((c) => c.id === id));
 }
 
 export type Hint = { label: string; from: number; to: number };
