@@ -446,3 +446,20 @@ describe("EvarContent lengths", () => {
     expect(within(lengths).getByRole("row", { name: /ipsilateral reach/i })).toBeInTheDocument();
   });
 });
+
+describe("EvarContent manufacturers", () => {
+  it("offers each manufacturer's own devices, and clears the picks when it changes", () => {
+    renderPage();
+    const mainBody = () => screen.getByRole("combobox", { name: /main body/i });
+    fireEvent.change(mainBody(), { target: { value: "ETBF2816C145EE" } });
+    expect(mainBody()).toHaveValue("ETBF2816C145EE");
+
+    fireEvent.click(screen.getByRole("radio", { name: /gore excluder/i }));
+    expect(mainBody()).toHaveValue("");
+    expect(within(mainBody()).getByRole("option", { name: /CXT281416/ })).toBeInTheDocument();
+    expect(within(mainBody()).queryByRole("option", { name: /ETBF2816C145EE/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("radio", { name: /zenith alpha/i }));
+    expect(within(mainBody()).getByRole("option", { name: /ZIMB/ })).toBeInTheDocument();
+  });
+});

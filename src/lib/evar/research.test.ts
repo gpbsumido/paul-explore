@@ -2,12 +2,13 @@ import { describe, it, expect } from "vitest";
 import { toAttemptPayload, participantResponseSchema, attemptsResponseSchema } from "./research";
 import { EVAR_CASES, referenceFor } from "./phantom";
 import { score } from "./measure";
-import { gradeDevices, type DevicePick } from "./endurant";
+import { gradeDevices } from "./sheets";
+import type { DevicePick } from "./devices";
 
 const evarCase = EVAR_CASES[0];
 const reference = referenceFor(evarCase);
 const attempt = { neckDiameter: 22.4, neckLength: 24 };
-const noDevices: DevicePick = { ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
+const noDevices: DevicePick = { sheet: "endurant", ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
 
 const payload = (overrides: Partial<Parameters<typeof toAttemptPayload>[0]> = {}) =>
   toAttemptPayload({
@@ -62,6 +63,8 @@ describe("toAttemptPayload", () => {
     const picked: DevicePick = { ...noDevices, mainBody: "ETBF2816C145EE" };
     const body = payload({ devices: picked, grades: gradeDevices(picked, reference, attempt) });
     expect(body.devices).toMatchObject({ ipsilateral: "right", mainBody: "ETBF2816C145EE", contraLimb: null });
+    // The API's device schema is strict, and the codes already say whose sheet it was.
+    expect(body.devices).not.toHaveProperty("sheet");
     expect(body.devices?.grades[0]).toEqual({
       id: "mainBody",
       code: "ETBF2816C145EE",
@@ -69,6 +72,14 @@ describe("toAttemptPayload", () => {
       expected: 28,
       verdict: "match",
     });
+  });
+
+  it("sends one expected size when a shared band edge allows two", () => {
+    const gore: DevicePick = { ...noDevices, sheet: "excluder", contraLimb: "GORE-LEG-14.5-120" };
+    const edge = { ...reference, leftCia: 13.5 };
+    const body = payload({ devices: gore, grades: gradeDevices(gore, edge, attempt) });
+    const contra = body.devices?.grades.find((g) => g.id === "contralateral");
+    expect(contra?.expected).toBe(14.5);
   });
 });
 
