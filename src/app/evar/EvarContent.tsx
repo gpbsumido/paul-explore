@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
@@ -222,11 +223,14 @@ export default function EvarContent() {
   // as the study panel, so react-query shares the answers.
   const me = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; email: string | null }> =>
+    queryFn: (): Promise<{ sub: string | null; email: string | null; isFlagAdmin?: boolean }> =>
       fetch("/api/me").then((r) => (r.ok ? r.json() : { sub: null, email: null })),
     staleTime: 5 * 60_000,
   });
   const signedIn = Boolean(me.data?.sub);
+  // The same allowlist the admin pages check. A hint for showing the link, not the gate:
+  // the pages and their API routes check again on every request.
+  const isAdmin = me.data?.isFlagAdmin === true;
   const participantQuery = useQuery({
     queryKey: queryKeys.evar.participant(),
     queryFn: async () => {
@@ -447,6 +451,14 @@ export default function EvarContent() {
                     buttonLabel="Tour"
                     autoOpen={studySettled}
                   />
+                  {isAdmin ? (
+                    <Link
+                      href="/evar/admin"
+                      className="border-border bg-surface hover:border-primary-500/50 hover:bg-surface-raised text-foreground focus-visible:ring-primary-600 inline-flex h-9 shrink-0 items-center rounded-full border px-4 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                      Admin
+                    </Link>
+                  ) : null}
                 </div>
               </div>
               <PillGroup

@@ -683,3 +683,21 @@ describe("EvarContent scroll wheel", () => {
     expect(screen.getByText("Zoomed to 2×.")).toBeInTheDocument();
   });
 });
+
+describe("EvarContent admin link", () => {
+  const meAs = (isFlagAdmin: boolean) =>
+    server.use(http.get("/api/me", () => HttpResponse.json({ name: "Me", email: "me@example.com", sub: "auth0|me", isFlagAdmin })));
+
+  it("gives an allowlisted admin a way into the admin pages", async () => {
+    meAs(true);
+    renderPage();
+    expect(await screen.findByRole("link", { name: /^admin$/i })).toHaveAttribute("href", "/evar/admin");
+  });
+
+  it("shows nothing of the sort to anyone else", async () => {
+    meAs(false);
+    renderPage();
+    await screen.findByRole("tab", { name: /measure/i });
+    await waitFor(() => expect(screen.queryByRole("link", { name: /^admin$/i })).toBeNull());
+  });
+});
