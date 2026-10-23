@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-23 - version 7.28.0
+
+- EVAR device selection offers three sizing sheets: Medtronic Endurant II/IIs, Gore Excluder Conformable (from the FDA-hosted IFU for P200030/S014, Tables 29 to 31) and Cook Zenith Alpha (from Cook's IFU T_ZALPHA_REV5, Tables 9.5.1 and 9.5.2, section 10.1.6). The picker gains a manufacturer choice that clears the picks, and its groups, empty choices and disclaimer come from the sheet.
+- `src/lib/evar/devices.ts` holds the `Sheet` type and band lookup; `src/lib/evar/sheets.ts` holds the registry and grading moved out of `endurant.ts`, which now exports the `ENDURANT` sheet. Gore reaches 5.5 cm of trunk (6.5 on 32/36) plus the leg's label with a fixed 3 cm overlap and needs 10 mm of seal; Cook adds a leg's label plus 28 mm to the main body's limb with 16 to 32 mm of overlap, needs a separate leg on both sides, and has no standard leg over 20 mm.
+- Gore's half-millimetre iliac bands share their edges, so `expected` and `fromYours` are lists and the results read "14.5 or 16 mm". `toAttemptPayload` sends the first allowed size and leaves `sheet` out, since the API's device schema is strict and the codes name the manufacturer.
+- The phantom stack is 120 slices and each internal iliac comes off about 60 mm down its common iliac. At 100 slices there was room for about 40 mm, and Gore's shortest contralateral stack (150 mm) couldn't land on several cases. A test now checks every case has a landing stack on both sides with every sheet.
+- Endurant and Excluder trunk codes are real part numbers. Gore leg and all Cook codes are built from the table's sizes, and the picker says so.
+
 ## 2026-10-23 - version 7.27.0
 
 - EVAR lengths are measured along a centerline. `centerlineMm` in `src/lib/evar/phantom.ts` adds up the 3D steps between slices, through an angled neck and on down one iliac, and `anatomyFor` gives renal to bifurcation and renal to each internal iliac, from the case's landmarks or from marked slices. Neck length now runs along the vessel for the reference and for your marks: the hostile neck is 10 mm on the slices and 16 along the vessel. The giant sac's neck is shortened to stay about 16 mm, and the hostile and short-wide debriefs say what the centerline changed.
