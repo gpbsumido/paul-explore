@@ -619,6 +619,24 @@ describe("EvarContent real CTA, when things go wrong", () => {
     await waitFor(() => expect(screen.queryByText(/loading the scan/i)).toBeNull());
   });
 
+  // Once the scans live in object storage, that storage being down mustn't take the phantoms with it.
+  it("still practises on the phantoms when the scan list can't be read", async () => {
+    let asked = 0;
+    server.use(
+      http.get("/evar/scans/manifest.json", () => {
+        asked += 1;
+        return new HttpResponse(null, { status: 503 });
+      }),
+    );
+    renderPage();
+    await waitFor(() => expect(asked).toBe(1));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(screen.getByRole("radio", { name: firstCase.title })).toBeChecked();
+    expect(screen.queryByRole("combobox", { name: /real scan/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+    expect(screen.getByRole("table", { name: /results/i })).toBeInTheDocument();
+  });
+
   it("keeps phantoms as pills and real scans in a select, with no phantom pill checked while a scan is open", async () => {
     server.use(http.get(scan.file, () => new HttpResponse(gzipSync(new Uint8Array(scan.size * scan.size * scan.slices)))));
     renderPage();
