@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-23 - version 7.23.0
+
+- New `/evar/results` page: every EVAR case finished on this device, with a card per level (attempts, average measurements within tolerance, best points), a chart of measurements within tolerance attempt by attempt, and a table of every attempt, newest first. The chart is hidden from screen readers because the table carries the same numbers. The results popup links to it.
+- The history lives in localStorage (`src/lib/evar/history.ts`) next to the personal bests, because practice is anonymous outside the study. Each attempt is kept once under its attempt id, the newest 500 are kept, and storage is checked against a schema so anything malformed reads as an empty history.
+
 ## 2026-10-23 - version 7.22.0
 
 - `/evar` has six more phantom cases, two per level, so Easy plays three cases and Medium and Hard four each. Easy adds a small sac under a narrow neck and a big sac under a generous one, both inside the sizing sheet. Medium adds narrow 9 and 10 mm iliacs, and the wide iliac on the left for once. Hard adds a 28 mm neck that's 14 mm long, a millimetre under the usual landing length, and an 8 cm sac with both iliacs on the 28 mm limb. Existing cases keep their ids and their order, so personal bests and study rows still line up. Case titles dropped their numbers, which stopped making sense once a level could play cases 1, 4 and 5.
