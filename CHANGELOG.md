@@ -7,6 +7,7 @@
 - Diameters and neck length stay open. The graft-length landmarks, "How to measure", the viewer controls, the sizing tables' source and disclaimer, and the real scan's full citation fold behind a shared `Disclosure`. The scan's one-line credit and licence stay visible. The tour opens each tab as it reaches it.
 - `JoinForm` uses generated ids, since it can now be on the page twice; the hard-coded ones pointed the dialog's labels at the panel's fields.
 - Best moves from its own header column to beside the Tour button, so the header stays on one row with five cases.
+- Decoding a real scan goes through a 256-entry lookup table instead of a callback and `Math.round` per voxel: 383 ms down to 39 ms for the 8.3 million voxels of R6. The slow version blocked the main thread when the scan opened, and on CI it ran past the page tests' one-second wait, which is what failed this PR's checks.
 
 ## 2026-10-23 - version 7.30.0
 

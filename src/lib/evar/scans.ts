@@ -62,9 +62,16 @@ export const SCAN_CASES: readonly ScanCase[] = [
   },
 ];
 
-/** Every stored byte back as Hounsfield units, to the nearest one. */
+/**
+ * Every stored byte back as Hounsfield units, to the nearest one. A byte only
+ * has 256 values, so they're worked out once into a table and the volume is
+ * a plain lookup per voxel: a callback per voxel took over a second on CI.
+ */
 export function decodeScan(bytes: Uint8Array, c: Pick<ScanCase, "huMin" | "huStep">): Int16Array {
-  return Int16Array.from(bytes, (b) => Math.round(c.huMin + b * c.huStep));
+  const table = Int16Array.from({ length: 256 }, (_, b) => Math.round(c.huMin + b * c.huStep));
+  const hu = new Int16Array(bytes.length);
+  for (let i = 0; i < bytes.length; i += 1) hu[i] = table[bytes[i]];
+  return hu;
 }
 
 /** One axial slice of a decoded volume, row-major, `size * size` long. */
