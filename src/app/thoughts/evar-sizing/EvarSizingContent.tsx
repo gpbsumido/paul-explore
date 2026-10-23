@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-hostile-necks",
+            date: "Oct 23, 2026",
+            title: "Every neck was a clean tube, which is the one thing real necks never are",
+          },
+          {
             id: "update-2026-10-23-zoom",
             date: "Oct 23, 2026",
             title: "Two pixels is not a fair test",
@@ -934,6 +939,100 @@ y: anchor.y - (anchor.y - view.y) * ratio,`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-hostile-necks"
+        date="October 23, 2026"
+        title="Every neck was a clean tube, which is the one thing real necks never are"
+      >
+        <p>
+          The organs around the aorta made the slices look right, but the
+          neck, the part that decides the device, was still a parallel round
+          tube with nothing in its wall. Every case now has at least one thing
+          a real neck has: a taper or a flare, a lean that makes it oval on an
+          axial slice, a crescent of thrombus, or calcified plaque.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An angled neck is an oval, and only the short side is true.
+        </h3>
+        <p className="text-muted">
+          Cut a tube that leans at θ with a horizontal plane and you get an
+          ellipse whose short axis is the real diameter and whose long axis is
+          that divided by cos θ. So the phantom draws each vessel in its own
+          frame: squash the long direction back by the stretch, then decide
+          wall, thrombus, lumen or plaque as if it were round. At 50° the
+          hostile neck&apos;s 30 mm reads nearly 47 along its long axis. On
+          three of the cases, measuring the long axis moves you up a main body
+          size, and on the hostile neck and the giant sac it takes you off the
+          sheet. The measuring
+          note now says to take the short axis.
+        </p>
+        <pre className={pre}>
+          {`const along = (dx * toward.x + dy * toward.y) / stretch;
+const across = -dx * toward.y + dy * toward.x;
+// ...then everything is decided on a round section`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A flaring neck ends earlier than it looks.
+        </h3>
+        <p className="text-muted">
+          The neck runs to where the aorta first passes 110% of its diameter
+          at the renals. On a neck that widens on the way down, that happens
+          before the sac visibly starts. The wide left iliac case now flares
+          from 24 mm, and its neck length dropped from 22 mm to 8 without the
+          sac moving at all. That&apos;s the lesson, so the debrief says it.
+        </p>
+        <p className="mt-3 text-muted">
+          I&apos;d first put the flare on the wide sac case, which is on Easy.
+          It made that neck 10 mm long, under every device&apos;s minimum, and
+          a case that hostile doesn&apos;t belong on the level that promises
+          straightforward anatomy. The flare moved to a Medium case, and the
+          wide sac got a calcified arc instead.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My calcium test was measuring in the wrong frame.
+        </h3>
+        <p className="text-muted">
+          The test walks round the wall a degree at a time and counts how much
+          of the plaque arc is bright. On the hostile neck it found half of
+          what it expected:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected 30 to be greater than 36`}
+        </pre>
+        <p className="text-muted">
+          The drawing was right. The arc is defined in the vessel&apos;s own
+          frame, and on an oval that squashes it into fewer degrees on the
+          image, so a 60° arc covers about 42° of screen. The test now checks
+          plaque on a round neck, where the two frames agree, and the oval is
+          covered by its own test.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Thrombus moves the lumen, never the wall.
+        </h3>
+        <p className="text-muted">
+          A crescent of thrombus shrinks the lumen and pushes it away from that
+          side, and the outer wall stays exactly where the reference says it
+          is. The contrast edge is the easy edge to measure to and the wrong
+          one, and now three necks punish it. Calcified plaque does the same
+          thing from the other direction: it&apos;s the brightest thing on the
+          angio window, it sits in the wall, and the outer edge is past it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Old answers were for different anatomy, so they&apos;re gone.
+        </h3>
+        <p className="text-muted">
+          Only one reference moved, but every image did. A best set on a round
+          neck isn&apos;t one to beat on an oval one, so device history and
+          personal bests moved to new storage keys and the old ones are
+          deleted.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -941,6 +1040,7 @@ y: anchor.y - (anchor.y - view.y) * ratio,`}
           "Slices with the abdomen drawn around the aorta: IVC, liver, spleen, arterial-phase kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy, slightly soft noise.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
+          "Necks with something real to get wrong: conical and flaring necks, angled necks that cut as ovals, thrombus crescents and calcified plaque, across all nine cases.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
@@ -954,7 +1054,7 @@ y: anchor.y - (anchor.y - view.y) * ratio,`}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
-          "The phantom is still tidy. The organs are there now, but every neck is a parallel tube and every organ an ellipse. Real necks are conical, calcified, angled and sometimes lined with thrombus.",
+          "The organs are still ellipses, and each angled neck leans in one straight line rather than curving, so there's no tortuous aorta yet.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
           "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",

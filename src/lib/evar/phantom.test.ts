@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EVAR_CASES, sliceHU, referenceFor, outerRadiusMm } from "./phantom";
+import { EVAR_CASES, sliceHU, referenceFor, outerRadiusMm, neckOffsetMm } from "./phantom";
 
 const huAt = (slice: Int16Array, size: number, x: number, y: number) =>
   slice[Math.round(y) * size + Math.round(x)];
@@ -228,6 +228,95 @@ describe("EVAR phantom", () => {
       const outward = range(0, Math.ceil(radiusPx) + 2).map((step) => huAt(slice, c.size, x + step, y));
       const edge = outward.findIndex((hu) => hu < 100);
       expect(outward.slice(0, edge + 1).some((hu) => hu > 100 && hu < 280)).toBe(true);
+    });
+  });
+
+  describe("hostile necks", () => {
+    const byId = (id: string) => EVAR_CASES.find((c) => c.id === id)!;
+
+    /** Distance in pixels from a point to where the vessel ends, walking outward along a unit direction. */
+    const edgePx = (slice: Int16Array, size: number, from: { x: number; y: number }, dir: { x: number; y: number }) => {
+      const steps = range(0, 200).map((i) => i * 0.5);
+      return steps.find((d) => huAt(slice, size, from.x + dir.x * d, from.y + dir.y * d) < -20) ?? Infinity;
+    };
+
+    const unit = (deg: number) => ({ x: Math.cos((deg * Math.PI) / 180), y: -Math.sin((deg * Math.PI) / 180) });
+
+    it("gives every neck at least one thing a real one has: a taper, an angle, thrombus or calcium", () => {
+      EVAR_CASES.forEach((c) => {
+        const features = [c.neckTaperMm !== 0, c.neckAngle.deg >= 10, c.neckThrombus !== null, c.calcium.length > 0];
+        expect(features.some(Boolean), c.id).toBe(true);
+      });
+    });
+
+    it("narrows a conical neck between the renals and the sac", () => {
+      const c = byId("small-sac");
+      expect(outerRadiusMm(c, c.neckEndSlice)).toBeLessThan(outerRadiusMm(c, c.lowestRenalSlice) - 0.75);
+      expect(referenceFor(c).neckDiameter).toBeCloseTo(c.neckRadiusMm * 2);
+    });
+
+    it("ends a flaring neck where it passes 110% of its diameter at the renals, before the sac bulges", () => {
+      const c = byId("ectatic-left");
+      const { sacStartSlice } = referenceFor(c);
+      expect(sacStartSlice).toBeLessThan(c.neckEndSlice);
+      expect(outerRadiusMm(c, sacStartSlice)).toBeGreaterThan(c.neckRadiusMm * 1.1);
+      expect(outerRadiusMm(c, sacStartSlice - 1)).toBeLessThanOrEqual(c.neckRadiusMm * 1.1);
+    });
+
+    it("moves an angled neck sideways by tan θ a slice above the bend, and not at all below it", () => {
+      const c = byId("hostile-neck");
+      const perSlice = Math.tan((c.neckAngle.deg * Math.PI) / 180) * c.sliceMm;
+      expect(neckOffsetMm(c, c.neckEndSlice + 6)).toBe(0);
+      const middle = c.lowestRenalSlice;
+      expect(neckOffsetMm(c, middle) - neckOffsetMm(c, middle + 1)).toBeCloseTo(perSlice, 1);
+      expect(neckOffsetMm(c, 0)).toBe(neckOffsetMm(c, 5));
+    });
+
+    it("draws an angled neck as an oval: long by 1/cos θ along the tilt, the true diameter across it", () => {
+      const c = byId("hostile-neck");
+      const z = c.lowestRenalSlice + 1;
+      const slice = sliceHU(c, z);
+      const centre = c.centreAt(z);
+      const along = edgePx(slice, c.size, centre, unit(c.neckAngle.towardDeg));
+      const across = edgePx(slice, c.size, centre, unit(c.neckAngle.towardDeg - 90));
+      const truePx = outerRadiusMm(c, z) / c.pixelMm;
+      expect(Math.abs(across - truePx)).toBeLessThanOrEqual(1.5);
+      expect(along / across).toBeCloseTo(1 / Math.cos((c.neckAngle.deg * Math.PI) / 180), 0);
+      expect(along / across).toBeGreaterThan(1.35);
+    });
+
+    it("lines one side of a neck with thrombus: the lumen moves away from it, the outer wall stays round", () => {
+      const c = byId("ectatic-left");
+      const thrombus = c.neckThrombus!;
+      const z = c.lowestRenalSlice + 2;
+      const slice = sliceHU(c, z);
+      const centre = c.centreAt(z);
+      const toward = unit(thrombus.atDeg);
+      const away = { x: -toward.x, y: -toward.y };
+      const depthPx = (outerRadiusMm(c, z) - 1.5 - thrombus.thicknessMm / 2) / c.pixelMm;
+      const at = (dir: { x: number; y: number }) => huAt(slice, c.size, centre.x + dir.x * depthPx, centre.y + dir.y * depthPx);
+      expect(at(toward)).toBeLessThan(160);
+      expect(at(away)).toBeGreaterThan(250);
+      expect(Math.abs(edgePx(slice, c.size, centre, toward) - edgePx(slice, c.size, centre, away))).toBeLessThanOrEqual(1.5);
+    });
+
+    // A round neck, so the arc's degrees on the image are the same as in the vessel.
+    it("puts calcified plaque in the wall where a case lists it, and not on the far side", () => {
+      const c = byId("small-sac");
+      const arc = c.calcium[0];
+      const z = Math.round((arc.fromSlice + arc.toSlice) / 2);
+      const slice = sliceHU(c, z);
+      const centre = c.centreAt(z);
+      const sector = (midDeg: number) =>
+        range(0, Math.round(arc.spanDeg)).reduce((sum, i) => {
+          const deg = midDeg - arc.spanDeg / 2 + i;
+          const dir = unit(deg);
+          const edge = edgePx(slice, c.size, centre, dir);
+          const bright = range(1, 6).some((back) => huAt(slice, c.size, centre.x + dir.x * (edge - back), centre.y + dir.y * (edge - back)) > 450);
+          return sum + (bright ? 1 : 0);
+        }, 0);
+      expect(sector(arc.atDeg)).toBeGreaterThan(arc.spanDeg * 0.6);
+      expect(sector(arc.atDeg + 180)).toBeLessThan(arc.spanDeg * 0.25);
     });
   });
 });

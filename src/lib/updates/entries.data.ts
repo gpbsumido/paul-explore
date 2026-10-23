@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-26-0",
+    date: "2026-10-23",
+    version: "7.26.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "EVAR necks that fight back",
+    summary:
+      "Every EVAR practice case now has a neck with something real to get wrong: a taper, an angle, calcium or thrombus.",
+    body: [
+      "Some necks narrow or widen on the way down, so where the neck ends moves. Some lean, which turns the neck into an oval on the scan, and only the short side is the true width. Others have calcified plaque in the wall or a layer of clot lining one side, and the measurement still goes to the outer wall. Each case's debrief explains what its neck does.",
+      "The cases changed shape, so results and personal bests from the old versions have been cleared.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-25-0",
     date: "2026-10-23",
     version: "7.25.0",

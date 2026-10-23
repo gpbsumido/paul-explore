@@ -10,7 +10,9 @@ import type { LevelId } from "./levels";
  * anyone outside the study, so like the bests it lives in localStorage.
  */
 
-const KEY = "evar-history";
+const KEY = "evar-history-v2";
+/** Attempts on the first phantom, before the necks got tapers, angles, thrombus and calcium. */
+const RETIRED_KEY = "evar-history";
 const LIMIT = 500;
 
 const entrySchema = z.object({
@@ -36,6 +38,7 @@ const listeners = new Set<() => void>();
 const readRaw = (): string | null => {
   if (typeof window === "undefined") return null;
   try {
+    window.localStorage.removeItem(RETIRED_KEY);
     return window.localStorage.getItem(KEY);
   } catch {
     return null;

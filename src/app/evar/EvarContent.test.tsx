@@ -300,14 +300,14 @@ describe("EvarContent results popup", () => {
   it("adds a finished case to this device's results once, and links to them", () => {
     renderPage();
     checkAnswers();
-    const history = JSON.parse(window.localStorage.getItem("evar-history") ?? "[]");
+    const history = JSON.parse(window.localStorage.getItem("evar-history-v2") ?? "[]");
     expect(history).toHaveLength(1);
     expect(history[0]).toMatchObject({ levelId: "medium", caseId: firstCase.id, within: 0, timedOut: false });
     expect(within(resultsDialog()).getByRole("link", { name: /all your results/i })).toHaveAttribute("href", "/evar/results");
 
     fireEvent.click(within(resultsDialog()).getByRole("button", { name: /review the scan/i }));
     fireEvent.click(screen.getByRole("button", { name: /show results/i }));
-    expect(JSON.parse(window.localStorage.getItem("evar-history") ?? "[]")).toHaveLength(1);
+    expect(JSON.parse(window.localStorage.getItem("evar-history-v2") ?? "[]")).toHaveLength(1);
   });
 
   it("closes to review the scan and opens again from Show results", () => {
