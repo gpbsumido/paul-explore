@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-23 - version 7.24.0
+
+- New admin-only `/evar/admin/results` page, behind the same allowlist gate as `/evar/admin`: everyone's recorded study attempts, filtered by level, case, training level, timed out and an inclusive UTC date range, with a count of attempts and participants, how often each measurement landed within tolerance out of how often it was measured, and a table of the attempts. "Download these as CSV" writes just the filtered rows in the full export's columns. The admin page links to it.
+- Filtering runs in the browser on the export the admin page already fetches (`src/lib/evar/studyFilters.ts`), now shared through one `useStudyExport` query, so there's no new endpoint. Unmeasured answers count as not measured rather than missed, so a timeout doesn't drag a measurement's rate down. The filters live in component state, so a filtered view can't be linked to yet.
+
 ## 2026-10-23 - version 7.23.0
 
 - New `/evar/results` page: every EVAR case finished on this device, with a card per level (attempts, average measurements within tolerance, best points), a chart of measurements within tolerance attempt by attempt, and a table of every attempt, newest first. The chart is hidden from screen readers because the table carries the same numbers. The results popup links to it.
