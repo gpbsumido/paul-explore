@@ -18,7 +18,11 @@ const tour = () => screen.getByRole("dialog", { name: /tour/i });
 const next = () => fireEvent.click(within(tour()).getByRole("button", { name: /^next$/i }));
 
 describe("EVAR guided tour", () => {
-  beforeEach(() => window.localStorage.clear());
+  // The study is asked about first; these tests are about what comes after it.
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.localStorage.setItem("evar-study-asked", "true");
+  });
 
   it("asks before touring on a first visit", () => {
     renderPage();
@@ -46,6 +50,15 @@ describe("EVAR guided tour", () => {
     });
     fireEvent.click(within(tour()).getByRole("button", { name: /finish/i }));
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
+  });
+
+  it("opens the Size the graft tab when it gets to the devices", () => {
+    window.localStorage.setItem(TOUR_KEY, "true");
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: /tour$/i }));
+    for (let i = 0; i < 6; i += 1) next();
+    expect(within(tour()).getByRole("heading", { name: /devices/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /size the graft/i })).toHaveAttribute("aria-selected", "true");
   });
 
   it("closes straight away when skipped", () => {
