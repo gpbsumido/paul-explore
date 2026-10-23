@@ -90,7 +90,12 @@ export type EvarCase = CaseParams & {
 const SIZE = 384;
 const PIXEL_MM = 0.85;
 const SLICE_MM = 2;
-const SLICES = 100;
+/**
+ * Room below the bifurcation for a common iliac of about 60 mm along the
+ * vessel, which is what a limb lands in. At 100 slices it was closer to 40,
+ * shorter than real, and too short for some devices' shortest legs.
+ */
+const SLICES = 120;
 const WALL_MM = 1.5;
 const RENAL_RADIUS_MM = 3;
 /** Fat between the back of the aorta and the vertebral body, in pixels. */
@@ -304,7 +309,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 10, towardDeg: 90 },
     neckThrombus: null,
     calcium: [{ atDeg: 150, spanDeg: 40, fromSlice: 31, toSlice: 35 }],
-    internalIliacSlice: { right: 95, left: 96 },
+    internalIliacSlice: { right: 106, left: 108 },
     seed: 11,
   }),
   makeCase({
@@ -326,7 +331,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 30, towardDeg: 0 },
     neckThrombus: null,
     calcium: [],
-    internalIliacSlice: { right: 93, left: 92 },
+    internalIliacSlice: { right: 102, left: 101 },
     seed: 23,
   }),
   makeCase({
@@ -348,7 +353,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 50, towardDeg: 0 },
     neckThrombus: { atDeg: 270, thicknessMm: 4 },
     calcium: [{ atDeg: 180, spanDeg: 60, fromSlice: 33, toSlice: 37 }],
-    internalIliacSlice: { right: 91, left: 93 },
+    internalIliacSlice: { right: 99, left: 102 },
     seed: 37,
   }),
   makeCase({
@@ -370,7 +375,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 0, towardDeg: 0 },
     neckThrombus: null,
     calcium: [{ atDeg: 30, spanDeg: 50, fromSlice: 34, toSlice: 40 }],
-    internalIliacSlice: { right: 96, left: 95 },
+    internalIliacSlice: { right: 108, left: 107 },
     seed: 41,
   }),
   makeCase({
@@ -392,7 +397,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 0, towardDeg: 0 },
     neckThrombus: null,
     calcium: [{ atDeg: 0, spanDeg: 90, fromSlice: 33, toSlice: 41 }],
-    internalIliacSlice: { right: 95, left: 96 },
+    internalIliacSlice: { right: 107, left: 109 },
     seed: 53,
   }),
   makeCase({
@@ -414,7 +419,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 20, towardDeg: 180 },
     neckThrombus: null,
     calcium: [{ atDeg: 0, spanDeg: 70, fromSlice: 31, toSlice: 38 }],
-    internalIliacSlice: { right: 96, left: 95 },
+    internalIliacSlice: { right: 109, left: 108 },
     seed: 67,
   }),
   makeCase({
@@ -436,7 +441,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 0, towardDeg: 0 },
     neckThrombus: { atDeg: 0, thicknessMm: 3 },
     calcium: [],
-    internalIliacSlice: { right: 94, left: 95 },
+    internalIliacSlice: { right: 104, left: 105 },
     seed: 79,
   }),
   makeCase({
@@ -458,7 +463,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 25, towardDeg: 60 },
     neckThrombus: null,
     calcium: [{ atDeg: 200, spanDeg: 80, fromSlice: 34, toSlice: 38 }],
-    internalIliacSlice: { right: 92, left: 94 },
+    internalIliacSlice: { right: 101, left: 104 },
     seed: 83,
   }),
   makeCase({
@@ -480,7 +485,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 40, towardDeg: 30 },
     neckThrombus: { atDeg: 120, thicknessMm: 3 },
     calcium: [],
-    internalIliacSlice: { right: 90, left: 91 },
+    internalIliacSlice: { right: 98, left: 99 },
     seed: 97,
   }),
 ];
