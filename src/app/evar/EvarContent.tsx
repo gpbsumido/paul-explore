@@ -378,7 +378,8 @@ export default function EvarContent() {
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Practice</p>
                 <h1 className="text-xl font-bold text-foreground">EVAR sizing</h1>
                 <div className="mt-2">
-                  <FeatureTour label="EVAR sizing" storageKey="evar-tour-seen" steps={TOUR_STEPS} />
+                  {/* "Tour" rather than "Take the tour", so the title block stays narrow and Best doesn't wrap. */}
+                  <FeatureTour label="EVAR sizing" storageKey="evar-tour-seen" steps={TOUR_STEPS} buttonLabel="Tour" />
                 </div>
               </div>
               <PillGroup

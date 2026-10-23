@@ -2,7 +2,7 @@
 
 ## 2026-10-23 - version 7.30.0
 
-- `/evar` has a guided tour, on the same shared `FeatureTour` and `useGuidedTour` as ZeroProof's. It opens once for a first-time visitor (`evar-tour-seen` in localStorage), asks before spotlighting anything, and walks eight steps: what the page is for, levels, cases, the scan and its zoom, measurements, devices, and checking answers. A "Take the tour" button under the page title reopens it.
+- `/evar` has a guided tour, on the same shared `FeatureTour` and `useGuidedTour` as ZeroProof's. It opens once for a first-time visitor (`evar-tour-seen` in localStorage), asks before spotlighting anything, and walks eight steps: what the page is for, levels, cases, the scan and its zoom, measurements, devices, and checking answers. A "Tour" button under the page title reopens it; the shorter label keeps the title block narrow enough that Best doesn't wrap.
 - The anchors are ids on the parts they describe (`evar-intro`, `evar-levels`, `evar-cases`, `evar-scan`, `evar-measurements`, `evar-devices`, `evar-dock`); `PillGroup` takes an optional `id`. `EvarTour.test.tsx` mirrors ZeroProof's tour tests, and the other page tests mark the tour seen so they don't run under it.
 
 ## 2026-10-23 - version 7.29.0

@@ -31,14 +31,14 @@ describe("EVAR guided tour", () => {
     window.localStorage.setItem(TOUR_KEY, "true");
     renderPage();
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tour$/i }));
     expect(tour()).toBeInTheDocument();
   });
 
   it("walks the page from the levels to checking answers, then finishes", () => {
     window.localStorage.setItem(TOUR_KEY, "true");
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tour$/i }));
     const expected = [/plan a repair/i, /levels/i, /cases/i, /the scan/i, /measurements/i, /devices/i, /check answers/i];
     expected.forEach((title) => {
       next();
