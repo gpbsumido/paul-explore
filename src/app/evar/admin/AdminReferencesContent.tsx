@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { EVAR_CASES, referenceFor, type EvarCase } from "@/lib/evar/phantom";
 import { referencesResponseSchema, type ReferenceRow } from "@/lib/evar/references";
+import StudyData from "./StudyData";
 
 const FIELDS = [
   { id: "neckDiameter", label: "Neck diameter (mm)" },
@@ -169,11 +170,15 @@ export default function AdminReferencesContent() {
   return (
     <div className="min-h-dvh bg-background">
       <PageHeader
-        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "EVAR Sizing", href: "/evar" }, { label: "References" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "EVAR Sizing", href: "/evar" }, { label: "Admin" }]}
         maxWidth="max-w-3xl"
       />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <h1 className="text-2xl font-bold text-foreground">EVAR reference answers</h1>
+        <h1 className="text-2xl font-bold text-foreground">EVAR admin</h1>
+
+        <StudyData />
+
+        <h2 className="mt-10 text-xl font-bold text-foreground">Reference answers</h2>
         <p className="mt-2 text-[14px] text-muted">
           What each case is scored against. Saving a case overrides its phantom geometry for
           everyone, straight away. Recorded attempts keep the reference they were scored with.

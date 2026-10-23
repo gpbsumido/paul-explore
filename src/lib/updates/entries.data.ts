@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-20-0",
+    date: "2026-10-22",
+    version: "7.20.0",
+    category: "feature",
+    tags: ["evar", "research"],
+    title: "EVAR study data can be downloaded",
+    summary:
+      "The recorded EVAR study attempts can now be downloaded from the site as a spreadsheet, one row per attempt.",
+    body: [
+      "Each row has the participant's training level next to their measurements, scores and device picks, so the study can go straight into a spreadsheet or a stats package. Participants stay pseudonymous: an id and a training profile, never a name or an email.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-19-0",
     date: "2026-10-22",
     version: "7.19.0",

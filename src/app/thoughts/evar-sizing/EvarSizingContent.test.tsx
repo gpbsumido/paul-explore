@@ -46,6 +46,13 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on downloading the study", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /one line per attempt/i }),
+    ).toBeInTheDocument();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<EvarSizingContent />);
     expect(

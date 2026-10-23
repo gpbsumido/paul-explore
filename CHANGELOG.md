@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-22 - version 7.20.0
+
+- `/evar/admin` has a study data card above the reference forms. It says how many attempts and participants are recorded, and downloads the study as a CSV (one line per attempt, with the participant's training level, year, specialty and consent version alongside, and each measurement's yours/reference/verdict and each device's code/picked/expected/verdict as columns) or as the raw JSON. Not measured and not picked are blank cells, so a spreadsheet reads them as missing.
+- The CSV goes through the shared `toCsv`, so free text like specialty is quoted and a cell starting with `=` is defused. `downloadCsv` now delegates to a general `downloadText`, which the JSON download uses too.
+- New admin-only `GET /api/evar/admin/export` proxy behind `withAdminBackend`, uncached, forwarding the API's pseudonymous export. The page is retitled EVAR admin.
+
 ## 2026-10-22 - version 7.19.0
 
 - EVAR Sizing reference answers can be corrected by hand. `/evar/admin` shows one form per case with its five scored values (neck diameter and length, max sac, both common iliacs) and a note, prefilled with the hand-set row or the phantom's own numbers. Save overrides the case for everyone on their next load; Reset to phantom deletes the row.
