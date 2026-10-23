@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-23 - version 7.31.0
+
+- `/evar` asks about the research study before anything else. A first-time visitor who hasn't joined gets `StudyWelcome`: the consent form when signed in, or "Sign in to join" and "Practise without joining" when not. The answer is remembered in `evar-study-asked`, and the guided tour waits for it through a new `autoOpen` option on `useGuidedTour` and `FeatureTour`. The study panel at the bottom stays for the record and withdrawal.
+- The task panel is two tabs, Measure (counting `n of 5`) and Size the graft, so the device column is gone and the scan takes the width. The page is two columns on desktop instead of three, and the skeleton matches.
+- Diameters and neck length stay open. The graft-length landmarks, "How to measure", the viewer controls, the sizing tables' source and disclaimer, and the real scan's full citation fold behind a shared `Disclosure`. The scan's one-line credit and licence stay visible. The tour opens each tab as it reaches it.
+- `JoinForm` uses generated ids, since it can now be on the page twice; the hard-coded ones pointed the dialog's labels at the panel's fields.
+
 ## 2026-10-23 - version 7.30.0
 
 - `/evar` has a guided tour, on the same shared `FeatureTour` and `useGuidedTour` as ZeroProof's. It opens once for a first-time visitor (`evar-tour-seen` in localStorage), asks before spotlighting anything, and walks eight steps: what the page is for, levels, cases, the scan and its zoom, measurements, devices, and checking answers. A "Tour" button under the page title reopens it; the shorter label keeps the title block narrow enough that Best doesn't wrap.
