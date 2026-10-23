@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import SliceViewer from "./SliceViewer";
 import DevicePicker from "./DevicePicker";
 import ResearchPanel from "./ResearchPanel";
 import ResultsDialog from "./ResultsDialog";
+import Disclosure from "./Disclosure";
+import StudyWelcome from "./StudyWelcome";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { participantResponseSchema } from "@/lib/evar/research";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import UnscoredDialog from "./UnscoredDialog";
@@ -51,8 +55,19 @@ const START_SLICE = 20;
 const NO_DEVICES: DevicePick = { sheet: "endurant", ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
 const TICK_MS = 250;
 
-/** The first-run walk round the page, on the same engine as ZeroProof's. */
-const TOUR_STEPS: TourStep[] = [
+type TaskTab = "measure" | "devices";
+
+const TASK_TABS: readonly { id: TaskTab; label: string }[] = [
+  { id: "measure", label: "Measure" },
+  { id: "devices", label: "Size the graft" },
+];
+
+/**
+ * The first-run walk round the page, on the same engine as ZeroProof's. The
+ * measuring and devices steps open their tab, so the highlight lands on
+ * something visible.
+ */
+const tourSteps = (showTab: (tab: TaskTab) => void): TourStep[] => [
   {
     title: "Take a quick tour?",
     body: "New to EVAR sizing? I'll show you round the page in a few clicks: where the scan is, what to measure, and how it gets checked.",
@@ -79,11 +94,13 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     anchor: "evar-measurements",
+    onEnter: () => showTab("measure"),
     title: "Measurements",
     body: "Record the caliper as each diameter, and mark the slices the lengths run between: the lowest renal, where the aneurysm starts, the bifurcation and the internal iliacs.",
   },
   {
     anchor: "evar-devices",
+    onEnter: () => showTab("devices"),
     title: "Devices",
     body: "Pick a manufacturer, which side the main body goes up, and the sizes. They're graded against that manufacturer's own sizing table.",
   },
@@ -200,6 +217,34 @@ export default function EvarContent() {
   const [showResults, setShowResults] = useState(false);
   const [bestAtStart, setBestAtStart] = useState(() => bestFor(LEVELS.find((l) => l.id === "medium") ?? LEVELS[0], 0));
   const [clientAttemptId, setClientAttemptId] = useState(() => crypto.randomUUID());
+  const [tab, setTab] = useState<TaskTab>("measure");
+  const [studyAsked, setStudyAsked] = usePersistentState("evar-study-asked", false);
+
+  // The study is asked about before anything else, so it needs to know
+  // whether you're signed in and whether you've already joined. Same queries
+  // as the study panel, so react-query shares the answers.
+  const me = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: (): Promise<{ sub: string | null; email: string | null }> =>
+      fetch("/api/me").then((r) => (r.ok ? r.json() : { sub: null, email: null })),
+    staleTime: 5 * 60_000,
+  });
+  const signedIn = Boolean(me.data?.sub);
+  const participantQuery = useQuery({
+    queryKey: queryKeys.evar.participant(),
+    queryFn: async () => {
+      const res = await fetch("/api/evar/participant");
+      if (!res.ok) throw new Error(`GET /api/evar/participant failed with ${res.status}`);
+      return participantResponseSchema.parse(await res.json()).participant;
+    },
+    enabled: signedIn,
+  });
+  const queryClient = useQueryClient();
+  const joined = Boolean(participantQuery.data);
+  const knowsStudy = !me.isPending && (!signedIn || !participantQuery.isPending);
+  const askStudy = knowsStudy && !studyAsked && !joined;
+  // The tour waits until the study question has been answered, or didn't need asking.
+  const studySettled = knowsStudy && !askStudy;
 
   const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
   const cases = casesFor(level);
@@ -358,6 +403,23 @@ export default function EvarContent() {
     setShowResults(true);
   };
 
+  const measuredCount = TASKS.filter((t) => attempt[t.id] !== undefined).length;
+  const devicesStatus = devices.mainBody === null ? "Not started" : devices.contraLimb === null ? "Main body picked" : "Picked";
+  const tabRefs = useRef<Partial<Record<TaskTab, HTMLButtonElement | null>>>({});
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (!["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const index = TASK_TABS.findIndex((t) => t.id === tab);
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? TASK_TABS.length - 1
+          : (index + (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : TASK_TABS.length - 1)) % TASK_TABS.length;
+    setTab(TASK_TABS[next].id);
+    tabRefs.current[TASK_TABS[next].id]?.focus();
+  };
+
   const status =
     points.length === 0
       ? "No caliper placed."
@@ -379,7 +441,13 @@ export default function EvarContent() {
                 <h1 className="text-xl font-bold text-foreground">EVAR sizing</h1>
                 <div className="mt-2">
                   {/* "Tour" rather than "Take the tour", so the title block stays narrow and Best doesn't wrap. */}
-                  <FeatureTour label="EVAR sizing" storageKey="evar-tour-seen" steps={TOUR_STEPS} buttonLabel="Tour" />
+                  <FeatureTour
+                    label="EVAR sizing"
+                    storageKey="evar-tour-seen"
+                    steps={tourSteps(setTab)}
+                    buttonLabel="Tour"
+                    autoOpen={studySettled}
+                  />
                 </div>
               </div>
               <PillGroup
@@ -417,7 +485,7 @@ export default function EvarContent() {
               )}
             </header>
 
-            <div className="grid flex-1 grid-cols-1 items-start gap-3 lg:grid-cols-[19rem_minmax(0,1fr)_17rem]">
+            <div className="grid flex-1 grid-cols-1 items-start gap-3 lg:grid-cols-[22rem_minmax(0,1fr)]">
               <section id="evar-scan" aria-label="Scan" className="flex flex-col items-center lg:col-start-2 lg:row-start-1">
                 <SliceViewer
                   key={evarCase.id}
@@ -435,97 +503,141 @@ export default function EvarContent() {
 
               <section
                 id="evar-measurements"
-                aria-labelledby="evar-tasks-heading"
+                aria-label="Your work"
                 className={`${panel} lg:col-start-1 lg:row-start-1`}
               >
-                <h2 id="evar-tasks-heading" className="mb-1 text-lg font-bold text-foreground">
-                  Measurements
-                </h2>
-                <p className="mb-2 text-[13px] text-muted">{evarCase.blurb}</p>
-                {scan ? (
-                  <div className="mb-3 rounded-lg border border-border bg-surface px-3 py-2 text-[12px] text-muted">
-                    <p>
-                      {scan.attribution.text} Licence: {scan.attribution.licence}.{" "}
-                      {scan.attribution.links.map((link, i) => (
-                        <span key={link.href}>
-                          {i > 0 ? " · " : null}
-                          <a href={link.href} className="underline underline-offset-2" target="_blank" rel="noreferrer">
-                            {link.label}
-                          </a>
-                        </span>
-                      ))}
-                    </p>
-                    {reference === null ? (
-                      <p className="mt-1.5 font-semibold text-foreground">
-                        This scan isn&apos;t scored yet: nobody has measured it by hand. Practise on it, and
-                        your numbers stay on this page.
-                      </p>
-                    ) : null}
-                    <p className="mt-1.5">Lengths on a real scan run straight down the slices.</p>
-                  </div>
-                ) : null}
-                <p className="mb-3 text-[13px] text-muted">
-                  Diameters are outer wall to outer wall, thrombus included. On an oval neck, measure
-                  across the short axis. The neck runs from the lowest renal artery to where the aorta
-                  first widens by more than 10%.
-                </p>
+                <div role="tablist" aria-label="Task" className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface p-1">
+                  {TASK_TABS.map((t) => (
+                    <button
+                      key={t.id}
+                      id={t.id === "devices" ? "evar-devices" : `evar-tab-${t.id}`}
+                      ref={(el) => {
+                        tabRefs.current[t.id] = el;
+                      }}
+                      type="button"
+                      role="tab"
+                      aria-selected={tab === t.id}
+                      aria-controls={`evar-panel-${t.id}`}
+                      tabIndex={tab === t.id ? 0 : -1}
+                      onClick={() => setTab(t.id)}
+                      onKeyDown={onTabKeyDown}
+                      className={`rounded-lg px-3 py-2 text-left text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 ${
+                        tab === t.id ? "bg-background font-semibold text-foreground shadow-sm" : "text-muted hover:text-foreground"
+                      }`}
+                    >
+                      <span className="block">{t.label}</span>
+                      <span className="block font-mono text-[12px] font-normal text-muted">
+                        {t.id === "measure" ? `${measuredCount} of ${TASKS.length}` : devicesStatus}
+                      </span>
+                    </button>
+                  ))}
+                </div>
 
-                {level.hints && phantom ? (
-                  <ul aria-label="Hints" className="mb-3 list-disc pl-5 text-[13px] text-muted">
-                    {hintsFor(phantom).map((hint) => (
-                      <li key={hint.label}>
-                        {hint.label}: somewhere in slices {hint.from} to {hint.to}
-                      </li>
+                <div id="evar-panel-measure" role="tabpanel" aria-labelledby="evar-tab-measure" hidden={tab !== "measure"}>
+                  <h2 id="evar-tasks-heading" className="sr-only">
+                    Measurements
+                  </h2>
+                  <p className="mb-2 text-[13px] text-muted">{evarCase.blurb}</p>
+                  {scan ? (
+                    <div className="mb-3 rounded-lg border border-border bg-surface px-3 py-2 text-[12px] text-muted">
+                      <p>
+                        Real scan: AVT case R6, {scan.attribution.licence}.
+                      </p>
+                      {reference === null ? (
+                        <p className="mt-1.5 font-semibold text-foreground">
+                          This scan isn&apos;t scored yet: nobody has measured it by hand. Practise on it, and
+                          your numbers stay on this page.
+                        </p>
+                      ) : null}
+                      <Disclosure label="Source and licence" className="mt-1.5">
+                        <p>
+                          {scan.attribution.text} Licence: {scan.attribution.licence}.{" "}
+                          {scan.attribution.links.map((link, i) => (
+                            <span key={link.href}>
+                              {i > 0 ? " · " : null}
+                              <a href={link.href} className="underline underline-offset-2" target="_blank" rel="noreferrer">
+                                {link.label}
+                              </a>
+                            </span>
+                          ))}
+                        </p>
+                        <p className="mt-1.5">Lengths on a real scan run straight down the slices.</p>
+                      </Disclosure>
+                    </div>
+                  ) : null}
+
+                  {level.hints && phantom ? (
+                    <ul aria-label="Hints" className="mb-3 list-disc pl-5 text-[13px] text-muted">
+                      {hintsFor(phantom).map((hint) => (
+                        <li key={hint.label}>
+                          {hint.label}: somewhere in slices {hint.from} to {hint.to}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  <Disclosure label="How to measure" className="mb-3">
+                    <p className="text-[13px] text-muted">
+                      Diameters are outer wall to outer wall, thrombus included. On an oval neck, measure
+                      across the short axis. The neck runs from the lowest renal artery to where the aorta
+                      first widens by more than 10%.
+                    </p>
+                  </Disclosure>
+
+                  <h3 className="mb-1 text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Diameters</h3>
+                  <ul className="mb-3 rounded-xl border border-border bg-surface px-3">
+                    {DIAMETER_TASKS.map((task) => (
+                      <TaskRow key={task.id} label={task.label} value={recorded[task.id] === undefined ? "Not recorded" : mm(recorded[task.id] ?? 0)}>
+                        <RecordButton label={task.label} disabled={caliper === null} onClick={() => caliper !== null && setRecorded((r) => ({ ...r, [task.id]: caliper }))} />
+                      </TaskRow>
                     ))}
                   </ul>
-                ) : null}
 
-                <ul className="rounded-xl border border-border bg-surface px-3">
-                  <TaskRow label={DIAMETER_TASKS[0].label} value={recorded.neckDiameter === undefined ? "Not recorded" : mm(recorded.neckDiameter)}>
-                    <RecordButton label={DIAMETER_TASKS[0].label} disabled={caliper === null} onClick={() => caliper !== null && setRecorded((r) => ({ ...r, neckDiameter: caliper }))} />
-                  </TaskRow>
-                  <TaskRow label="Lowest renal artery" value={marks.renal === undefined ? "Not marked" : `Slice ${marks.renal + 1}`}>
-                    <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, renal: slice }))}>
-                      Mark this slice{" "}<span className="sr-only">as lowest renal artery</span>
-                    </button>
-                  </TaskRow>
-                  <TaskRow label="Aneurysm start" value={marks.sacStart === undefined ? "Not marked" : `Slice ${marks.sacStart + 1}`}>
-                    <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, sacStart: slice }))}>
-                      Mark this slice{" "}<span className="sr-only">as aneurysm start</span>
-                    </button>
-                  </TaskRow>
-                  <TaskRow label="Neck length" value={neckLength === undefined ? "Mark both slices" : mm(neckLength)}>
-                    <span />
-                  </TaskRow>
-                  {LENGTH_MARKS.map(({ key, label }) => (
-                    <TaskRow key={key} label={label} value={marks[key] === undefined ? "Not marked" : `Slice ${(marks[key] ?? 0) + 1}`}>
-                      <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, [key]: slice }))}>
-                        Mark this slice{" "}<span className="sr-only">as {label.toLowerCase()}</span>
+                  <h3 className="mb-1 text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Neck length</h3>
+                  <ul className="mb-3 rounded-xl border border-border bg-surface px-3">
+                    <TaskRow label="Lowest renal artery" value={marks.renal === undefined ? "Not marked" : `Slice ${marks.renal + 1}`}>
+                      <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, renal: slice }))}>
+                        Mark this slice{" "}<span className="sr-only">as lowest renal artery</span>
                       </button>
                     </TaskRow>
-                  ))}
-                  <TaskRow label="Renal to bifurcation" value={yourAnatomy.renalToBifurcation === undefined ? "Mark both slices" : mm(yourAnatomy.renalToBifurcation)}>
-                    <span />
-                  </TaskRow>
-                  {(["right", "left"] as const).map((side) => {
-                    const length = yourAnatomy.renalToInternalIliac?.[side];
-                    return (
-                      <TaskRow key={side} label={`Renal to ${side} internal iliac`} value={length === undefined ? "Mark both slices" : mm(length)}>
+                    <TaskRow label="Aneurysm start" value={marks.sacStart === undefined ? "Not marked" : `Slice ${marks.sacStart + 1}`}>
+                      <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, sacStart: slice }))}>
+                        Mark this slice{" "}<span className="sr-only">as aneurysm start</span>
+                      </button>
+                    </TaskRow>
+                    <TaskRow label="Neck length" value={neckLength === undefined ? "Mark both slices" : mm(neckLength)}>
+                      <span />
+                    </TaskRow>
+                  </ul>
+
+                  <Disclosure label="Landmarks for graft lengths" hint={phantom ? "optional, for length grading" : "optional"}>
+                    <ul className="rounded-xl border border-border bg-surface px-3">
+                      {LENGTH_MARKS.map(({ key, label }) => (
+                        <TaskRow key={key} label={label} value={marks[key] === undefined ? "Not marked" : `Slice ${(marks[key] ?? 0) + 1}`}>
+                          <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, [key]: slice }))}>
+                            Mark this slice{" "}<span className="sr-only">as {label.toLowerCase()}</span>
+                          </button>
+                        </TaskRow>
+                      ))}
+                      <TaskRow label="Renal to bifurcation" value={yourAnatomy.renalToBifurcation === undefined ? "Mark both slices" : mm(yourAnatomy.renalToBifurcation)}>
                         <span />
                       </TaskRow>
-                    );
-                  })}
-                  {DIAMETER_TASKS.slice(1).map((task) => (
-                    <TaskRow key={task.id} label={task.label} value={recorded[task.id] === undefined ? "Not recorded" : mm(recorded[task.id] ?? 0)}>
-                      <RecordButton label={task.label} disabled={caliper === null} onClick={() => caliper !== null && setRecorded((r) => ({ ...r, [task.id]: caliper }))} />
-                    </TaskRow>
-                  ))}
-                </ul>
-              </section>
+                      {(["right", "left"] as const).map((side) => {
+                        const length = yourAnatomy.renalToInternalIliac?.[side];
+                        return (
+                          <TaskRow key={side} label={`Renal to ${side} internal iliac`} value={length === undefined ? "Mark both slices" : mm(length)}>
+                            <span />
+                          </TaskRow>
+                        );
+                      })}
+                    </ul>
+                  </Disclosure>
+                </div>
 
-              <div id="evar-devices" className={`${panel} lg:col-start-3 lg:row-start-1 [&>section]:mt-0`}>
-                <DevicePicker pick={devices} onChange={setDevices} gradesLengths={phantom !== null} />
-              </div>
+                <div id="evar-panel-devices" role="tabpanel" aria-labelledby="evar-devices" hidden={tab !== "devices"}>
+                  <DevicePicker pick={devices} onChange={setDevices} gradesLengths={phantom !== null} />
+                </div>
+              </section>
             </div>
 
             <div id="evar-dock" className={`${dock} sticky bottom-3 z-20 flex flex-wrap items-center gap-x-5 gap-y-3`}>
@@ -600,6 +712,15 @@ export default function EvarContent() {
           <ResearchPanel submission={submission} />
         </div>
 
+        <StudyWelcome
+          open={askStudy}
+          signedIn={signedIn}
+          onJoined={(participant) => {
+            queryClient.setQueryData(queryKeys.evar.participant(), participant);
+            setStudyAsked(true);
+          }}
+          onDecline={() => setStudyAsked(true)}
+        />
         {finishedAt !== null && reference === null ? (
           <UnscoredDialog
             open={showResults}

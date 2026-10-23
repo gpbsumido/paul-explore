@@ -573,21 +573,21 @@ describe("EvarContent, one job at a time", () => {
     renderPage();
     const controls = screen.getByRole("button", { name: /viewer controls/i });
     expect(controls).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByText(/press enter at each end/i)).toBeNull();
+    expect(screen.getByText(/press enter at each end/i)).not.toBeVisible();
     fireEvent.click(controls);
-    expect(screen.getByText(/press enter at each end/i)).toBeInTheDocument();
+    expect(screen.getByText(/press enter at each end/i)).toBeVisible();
 
     const rules = screen.getByRole("button", { name: /how to measure/i });
-    expect(screen.queryByText(/outer wall to outer wall/i)).toBeNull();
+    expect(screen.getByText(/outer wall to outer wall/i)).not.toBeVisible();
     fireEvent.click(rules);
-    expect(screen.getByText(/outer wall to outer wall/i)).toBeInTheDocument();
+    expect(screen.getByText(/outer wall to outer wall/i)).toBeVisible();
   });
 
   it("folds the sizing tables' source and disclaimer away", () => {
     renderPage();
     openDevices();
-    expect(screen.queryByText(/not affiliated with/i)).toBeNull();
+    expect(screen.getByText(/not affiliated with/i)).not.toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: /about these sizing tables/i }));
-    expect(screen.getByText(/not affiliated with medtronic/i)).toBeInTheDocument();
+    expect(screen.getByText(/not affiliated with medtronic/i)).toBeVisible();
   });
 });

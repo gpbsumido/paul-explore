@@ -24,8 +24,9 @@ describe("EVAR guided tour", () => {
     window.localStorage.setItem("evar-study-asked", "true");
   });
 
-  it("asks before touring on a first visit", () => {
+  it("asks before touring on a first visit", async () => {
     renderPage();
+    await screen.findByRole("dialog", { name: /tour/i });
     expect(within(tour()).getByText(/take a quick tour/i)).toBeInTheDocument();
     expect(within(tour()).getByRole("button", { name: /^next$/i })).toBeInTheDocument();
     expect(within(tour()).getByRole("button", { name: /^skip$/i })).toBeInTheDocument();
@@ -61,9 +62,9 @@ describe("EVAR guided tour", () => {
     expect(screen.getByRole("tab", { name: /size the graft/i })).toHaveAttribute("aria-selected", "true");
   });
 
-  it("closes straight away when skipped", () => {
+  it("closes straight away when skipped", async () => {
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: /^skip$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /^skip$/i }));
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
   });
 });
