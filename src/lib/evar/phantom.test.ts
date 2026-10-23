@@ -164,6 +164,29 @@ describe("EVAR phantom", () => {
       expect(Math.abs(imbalance(c.slices - 1))).toBeLessThan(2000);
     });
 
+    it("has a spleen on the patient's left up top, smaller than the liver", () => {
+      const c = EVAR_CASES[0];
+      const half = c.size / 2;
+      const slice = sliceHU(c, 0);
+      const solid = (x0: number, x1: number) => countIn(slice, c.size, { x0, x1, y0: 0, y1: c.size * 0.6 }, 85, 160);
+      expect(solid(half + 60, c.size)).toBeGreaterThan(1500);
+      expect(countIn(sliceHU(c, c.slices - 1), c.size, { x0: half + 60, x1: c.size, y0: 0, y1: c.size * 0.6 }, 85, 160)).toBeLessThan(200);
+    });
+
+    it("shows the kidneys in the arterial phase: bright cortex, darker medulla, fat in the sinus", () => {
+      const c = EVAR_CASES[0];
+      const z = c.lowestRenalSlice - 2;
+      const slice = sliceHU(c, z);
+      const kidneyRow = Math.round(c.size * 0.61);
+      // The patient's left kidney, on the image's right, walked from its outer edge in toward the spine.
+      const inward = range(0, 70).map((step) => huAt(slice, c.size, c.size - 40 - step, kidneyRow));
+      const start = inward.findIndex((hu) => hu > 140);
+      const kidney = inward.slice(start, start + 40);
+      expect(Math.max(...kidney.slice(0, 8))).toBeGreaterThan(170);
+      expect(kidney.slice(8, 20).some((hu) => hu > 70 && hu < 140)).toBe(true);
+      expect(kidney.some((hu) => hu < -40)).toBe(true);
+    });
+
     it("has gas in the bowel", () => {
       EVAR_CASES.forEach((c) => {
         const slice = sliceHU(c, 50);
