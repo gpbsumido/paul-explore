@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-22 - version 7.18.0
+
+- EVAR Sizing has an opt-in research study under the practice. Signed out, it explains the study and links to sign in. Signed in, it shows a draft consent text, asks for training level (plus optional year and specialty), and only enables Join once both are given. Practice works the same whether or not anyone joins.
+- Once joined, every checked attempt is posted to `/api/evar/attempts` with its raw measurements, scores, device picks and grades, start and finish times, the level's time limit, whether time ran out, and the app version. The page makes a `clientAttemptId` when an attempt starts and a new one on Start over, and the API ignores a repeat of it, so a second Check answers or a retry never becomes a second data point.
+- Participants see their recorded attempts in a table, and can withdraw. Withdraw asks first, moves focus to Keep my data, then deletes the participant and every attempt.
+- New BFF proxies at `/api/evar/participant` (GET, PUT, DELETE) and `/api/evar/attempts` (GET, POST) forward to portfolio_api with the user's token. The consent version is `2026-10-draft` because the study has no ethics approval yet, and nothing recorded can be published until it does.
+
 ## 2026-10-22 - version 7.17.0
 
 - EVAR Sizing now asks which stent graft you'd pick. Choose which iliac the main body goes up, then an Endurant II/IIs main body (ETBF or ESBF), a contralateral limb (ETLW) and an optional ipsilateral limb or iliac extension (ETEW), with every option showing its diameters, length and sheath size.

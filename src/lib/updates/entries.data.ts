@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-18-0",
+    date: "2026-10-22",
+    version: "7.18.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "Join a study of how sizing skill develops",
+    summary:
+      "Signed-in users can opt in to having their EVAR sizing attempts recorded, to compare how accuracy changes over training.",
+    body: [
+      "Under the practice there's now a research study. If you sign in and agree to the consent text, each attempt you check is saved under a random participant id, with your training level, so results can later be compared across a career. You can see your recorded attempts and withdraw at any time, which deletes everything.",
+      "The consent text is a draft while the study waits for ethics approval. Practising doesn't need an account and works exactly the same if you don't join.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-17-0",
     date: "2026-10-22",
     version: "7.17.0",
