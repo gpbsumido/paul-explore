@@ -91,7 +91,7 @@ const tourSteps = (showTab: (tab: TaskTab) => void): TourStep[] => [
   {
     anchor: "evar-scan",
     title: "The scan",
-    body: "Scroll through the slices with the slider or Page Up and Page Down. Click two points to measure, drag to pan, and scroll or pinch to zoom. It all works from the keyboard too.",
+    body: "Scroll the mouse wheel, use the slider, or press Page Up and Page Down to move through the slices. Click two points to measure, drag to pan, and pinch or Ctrl-scroll to zoom. It all works from the keyboard too.",
   },
   {
     anchor: "evar-measurements",
@@ -385,6 +385,11 @@ export default function EvarContent() {
     setSlice(Math.min(evarCase.slices - 1, Math.max(0, next)));
     setPoints([]);
   };
+  // A step builds on the latest slice, so a burst of wheel events moves a slice each.
+  const stepSlice = (delta: number) => {
+    setSlice((current) => Math.min(evarCase.slices - 1, Math.max(0, current + delta)));
+    setPoints([]);
+  };
 
   const placePoint = (point: Point) => setPoints((current) => (current.length >= 2 ? [point] : [...current, point]));
 
@@ -533,7 +538,7 @@ export default function EvarContent() {
                   points={points}
                   onPlace={placePoint}
                   onClear={() => setPoints([])}
-                  onSliceStep={(delta) => goToSlice(slice + delta)}
+                  onSliceStep={stepSlice}
                   className="max-w-[min(100%,calc(100dvh_-_17rem))]"
                 />
               </section>

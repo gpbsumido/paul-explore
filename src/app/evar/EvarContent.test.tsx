@@ -630,3 +630,56 @@ describe("EvarContent real CTA, when things go wrong", () => {
     expect(select).toHaveDisplayValue(scan.title);
   });
 });
+
+describe("EvarContent scroll wheel", () => {
+  const zoomLevel = () => within(screen.getByRole("group", { name: /zoom/i })).getByText(/×$/);
+  const sizeViewer = () =>
+    vi.spyOn(viewer(), "getBoundingClientRect").mockReturnValue(DOMRect.fromRect({ x: 0, y: 0, width: 384, height: 384 }));
+
+  // Every PACS steps through slices with the wheel, and zooming on a plain
+  // scroll trapped the page whenever the pointer crossed the scan.
+  it("steps through slices with the wheel, the way a PACS does", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.change(sliceSlider(), { target: { value: "30" } });
+    fireEvent.wheel(viewer(), { deltaY: 100 });
+    expect(sliceSlider()).toHaveValue("31");
+    fireEvent.wheel(viewer(), { deltaY: -100 });
+    fireEvent.wheel(viewer(), { deltaY: -100 });
+    expect(sliceSlider()).toHaveValue("29");
+    expect(zoomLevel()).toHaveTextContent("1×");
+  });
+
+  it("adds up a trackpad's small scrolls before moving a slice", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.change(sliceSlider(), { target: { value: "30" } });
+    fireEvent.wheel(viewer(), { deltaY: 15 });
+    fireEvent.wheel(viewer(), { deltaY: 15 });
+    expect(sliceSlider()).toHaveValue("30");
+    fireEvent.wheel(viewer(), { deltaY: 15 });
+    expect(sliceSlider()).toHaveValue("31");
+  });
+
+  it("zooms with Ctrl or Command held, which is also what a trackpad pinch sends", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.change(sliceSlider(), { target: { value: "30" } });
+    fireEvent.wheel(viewer(), { deltaY: -300, ctrlKey: true, clientX: 192, clientY: 192 });
+    expect(zoomLevel()).not.toHaveTextContent(/^1×$/);
+    expect(sliceSlider()).toHaveValue("30");
+    fireEvent.wheel(viewer(), { deltaY: -300, metaKey: true, clientX: 192, clientY: 192 });
+    expect(sliceSlider()).toHaveValue("30");
+  });
+
+  it("announces a zoom step from the buttons or keys, not every tick of a wheel zoom", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.wheel(viewer(), { deltaY: -120, ctrlKey: true, clientX: 192, clientY: 192 });
+    expect(screen.queryByText(/zoomed to/i)).toBeNull();
+    expect(zoomLevel()).not.toHaveAttribute("aria-live");
+    fireEvent.click(screen.getByRole("button", { name: /reset zoom/i }));
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    expect(screen.getByText("Zoomed to 2×.")).toBeInTheDocument();
+  });
+});
