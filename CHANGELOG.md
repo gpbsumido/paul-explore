@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-23 - version 7.20.1
+
+- `/tcg/pocket` no longer hangs when portfolio_api stalls. Both of its server-side reads went to the API with no timeout: the feature-flag fleet behind the Pocket gate, then the catalog. During the 5.28.0 outage the page never finished loading, and the public a11y e2e timed out on PRs that had nothing to do with it.
+- `fetchCatalog` now goes through `fetchUpstream` with its 8s deadline and returns `null` on a timeout, so `/tcg/pocket` and `/tcg/pokemon/sets` render their unavailable state. `fetchFlagsFromApi` gets the same 8s deadline and throws, so `loadFleet` falls back to the seed flags.
+
 ## 2026-10-22 - version 7.20.0
 
 - `/evar/admin` has a study data card above the reference forms. It says how many attempts and participants are recorded, and downloads the study as a CSV (one line per attempt, with the participant's training level, year, specialty and consent version alongside, and each measurement's yours/reference/verdict and each device's code/picked/expected/verdict as columns) or as the raw JSON. Not measured and not picked are blank cells, so a spreadsheet reads them as missing.
