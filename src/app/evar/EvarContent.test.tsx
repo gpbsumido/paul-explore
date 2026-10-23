@@ -159,6 +159,30 @@ describe("EvarContent", () => {
     }
   });
 
+  it("grades the devices picked against the sizing table", () => {
+    render(<EvarContent />);
+    fireEvent.change(screen.getByRole("combobox", { name: /main body/i }), {
+      target: { value: "ETBF2816C145EE" },
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /contralateral limb/i }), {
+      target: { value: "ETLW1610C93EE" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+
+    const devices = screen.getByRole("table", { name: /devices/i });
+    expect(within(devices).getByRole("row", { name: /main body/i })).toHaveTextContent(/matches the table/i);
+    expect(within(devices).getByRole("row", { name: /contralateral/i })).toHaveTextContent(/doesn't match/i);
+    expect(screen.getByText(/not affiliated with medtronic/i)).toBeInTheDocument();
+  });
+
+  it("forgets the devices when the case changes", () => {
+    render(<EvarContent />);
+    const mainBody = () => screen.getByRole("combobox", { name: /main body/i });
+    fireEvent.change(mainBody(), { target: { value: "ETBF2816C145EE" } });
+    fireEvent.click(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) }));
+    expect(mainBody()).toHaveValue("");
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(<EvarContent />);
     expect(await axe(container)).toHaveNoViolations();
