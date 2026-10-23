@@ -1,10 +1,10 @@
 "use client";
 
 import { useId } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
+import Link from "next/link";
 import { downloadCsv, downloadText } from "@/lib/csv";
-import { studyExportSchema, toStudyCsv, toStudyRows } from "@/lib/evar/studyExport";
+import { toStudyCsv, toStudyRows } from "@/lib/evar/studyExport";
+import { useStudyExport } from "./useStudyExport";
 
 const button =
   "rounded-lg border border-border bg-surface px-3 py-1.5 text-[13px] text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -21,14 +21,7 @@ const stamp = () => new Date().toISOString().slice(0, 10);
  */
 export default function StudyData() {
   const headingId = useId();
-  const study = useQuery({
-    queryKey: queryKeys.evar.studyExport(),
-    queryFn: async () => {
-      const res = await fetch("/api/evar/admin/export");
-      if (!res.ok) throw new Error(`GET /api/evar/admin/export failed with ${res.status}`);
-      return studyExportSchema.parse(await res.json());
-    },
-  });
+  const study = useStudyExport();
 
   const data = study.data;
   const empty = data ? data.attempts.length === 0 : true;
@@ -68,6 +61,9 @@ export default function StudyData() {
         >
           Download JSON
         </button>
+        <Link href="/evar/admin/results" className={button}>
+          See the results
+        </Link>
       </div>
     </section>
   );

@@ -71,6 +71,12 @@ describe("StudyData", () => {
     expect(JSON.parse(await blobs[0].text())).toEqual(makeStudyExport());
   });
 
+  it("links to the filtered results", async () => {
+    withExport(makeStudyExport());
+    renderStudyData();
+    expect(await screen.findByRole("link", { name: /see the results/i })).toHaveAttribute("href", "/evar/admin/results");
+  });
+
   it("has nothing to download before anyone has joined", async () => {
     renderStudyData();
     expect(await screen.findByText(/no attempts recorded yet/i)).toBeInTheDocument();

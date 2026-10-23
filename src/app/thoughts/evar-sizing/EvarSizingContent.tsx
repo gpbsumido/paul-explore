@@ -551,10 +551,269 @@ the role "button" and name \`/check answers/i\``}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-light-mode"
+        date="October 23, 2026"
+        title="A reading room is dark, but this page isn't one"
+      >
+        <p>
+          A few hours after the stage shipped, I looked at it in light mode.
+          The header was light, and everything under it was near-black.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I forced the theme on purpose, and that was the bug.
+        </h3>
+        <p className="text-muted">
+          The stage set its own theme on a wrapper, on the reasoning that CT is
+          read in a dark room. It worked exactly as written, which is why
+          nothing caught it: every token resolved, contrast held, the tests
+          passed. But someone who picked light mode had picked light mode, and
+          a dark slab under a light header reads as broken, not as a reading
+          room. Only the scan needs to be black, and the canvas already is.
+        </p>
+        <pre className={pre}>
+          {`- <div data-theme="dark" className="bg-background text-foreground">
++ <div className="text-foreground">`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Glass is fine for panels that sit still, not for one that floats over them.
+        </h3>
+        <p className="text-muted">
+          The same screenshot showed the dock letting the task rows read
+          through the slider while scrolling. The panels are glass because
+          there&apos;s only the background behind them. The dock moves over
+          text, so it gets a near-opaque surface instead.
+        </p>
+        <pre className={pre}>
+          {`const dock = "rounded-2xl border border-border bg-surface/95 p-4 shadow-lg backdrop-blur";`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-cases-and-scan"
+        date="October 23, 2026"
+        title="Six more cases, and a scan that finally has an IVC"
+      >
+        <p>
+          Easy had one case, so once you&apos;d done it there was nothing left
+          to practise on. And the slices looked like a diagram: a bright circle
+          on a grey oval, with a round bone underneath.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Real scans were the plan again, and still weren&apos;t on the table.
+        </h3>
+        <p className="text-muted">
+          I couldn&apos;t pull an open aortic CTA set down from where I was
+          working, and the sets I know of are mostly normal aortas anyway.
+          Each case would also need its five answers measured by hand before
+          it could be scored. So the phantom got more convincing instead, and
+          real cases stay on the list below.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Two more cases per level, and Easy stopped being one case.
+        </h3>
+        <p className="text-muted">
+          Each case is still just a dozen numbers, so adding six was cheap.
+          The new ones are picked so each level teaches its own thing: Easy
+          gets anatomy any standard device fits, Medium gets narrow iliacs and
+          the wide iliac on the other side, and Hard gets a neck a millimetre
+          under the usual landing length and an 8 cm sac with both iliacs on
+          the widest limb.
+        </p>
+        <pre className={pre}>
+          {`easy:   ["long-neck", "small-sac", "wide-sac"]
+medium: ["long-neck", "short-neck", "narrow-iliacs", "ectatic-left"]
+hard:   ["short-neck", "hostile-neck", "short-wide", "giant-sac"]`}
+        </pre>
+        <p className="text-muted">
+          The titles lost their numbers on the way. Easy would otherwise have
+          read Case 1, Case 4, Case 5.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The aorta was the only thing on the slice that looked like anatomy.
+        </h3>
+        <p className="text-muted">
+          Everything around it is now drawn too: the IVC on the patient&apos;s
+          right, pushed further over by a big sac; the liver and spleen at the
+          top of the stack; kidneys in the arterial phase, with a bright cortex,
+          a darker medulla and fat in the sinus; psoas thickening toward the
+          pelvis; a vertebra with laminae and a spinous process; bowel loops
+          with gas floating above a fluid level; and the scanner table under
+          the patient. None of it moves the aorta or the iliacs, so every
+          reference answer is exactly what it was.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Per-pixel noise looks like a badly tuned TV, not a scanner.
+        </h3>
+        <p className="text-muted">
+          The old noise was independent at every pixel. Real CT noise is
+          grainy, because neighbouring pixels share their reconstruction, and
+          edges are slightly soft from partial volume. Now the tissue gets a
+          small blur, then noise built on a coarse grid and interpolated, with
+          a little fine speckle on top. A test checks neighbouring pixels in
+          the lumen actually move together.
+        </p>
+        <pre className={pre}>
+          {`const coarse = Float32Array.from({ length: cells * cells }, () => (random() + random() + random() - 1.5) * 36);
+...
+out[y * SIZE + x] = top * (1 - fy) + bottom * fy + (random() - 0.5) * 16;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My first bowel-gas test passed before I&apos;d drawn any bowel.
+        </h3>
+        <p className="text-muted">
+          It counted air inside a box in the middle of the slice, and the box
+          reached past the edge of the old body outline, so it was counting the
+          room. I only noticed because a red test came up green. The box is
+          tighter now, and it failed first, the way it should have.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It got 2.3 times slower, and the hot spot wasn&apos;t the new anatomy.
+        </h3>
+        <p className="text-muted">
+          I set a budget of twice the old cost per slice. The first version
+          was over it. Building ellipses inside the pixel loop was some of it,
+          but most of the remainder was <code>Math.hypot</code> in the bowel
+          and canal checks, called on every pixel in the abdomen. Squared
+          distances do the same job.
+        </p>
+        <pre className={pre}>
+          {`before            11.5 ms per slice
+first pass        26.7 ms
+ellipses hoisted  23.7 ms
+no Math.hypot     20.7 ms   (1.8x, inside budget)`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-results"
+        date="October 23, 2026"
+        title="The practice has a memory now, and it stays in the browser"
+      >
+        <p>
+          A personal best tells you that you got better once. It doesn&apos;t
+          tell you whether you&apos;re getting better, which is the whole point
+          of practising.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every finished case is kept, not just the best one.
+        </h3>
+        <p className="text-muted">
+          <code>/evar/results</code> shows a card per level with attempts,
+          the average number of measurements within tolerance and the best
+          points, a line of measurements within tolerance attempt by attempt,
+          and a table of every attempt, newest first. The table is the text
+          version of the chart, so the chart itself is hidden from screen
+          readers rather than described twice.
+        </p>
+        <pre className={pre}>
+          {`{ id, levelId, caseId, finishedAt, within, stars, total, timedOut,
+  deltas: { neckDiameter: 0.4, maxSac: -1.2 } }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I kept it on the device, not on the API.
+        </h3>
+        <p className="text-muted">
+          Practice is anonymous for anyone outside the study, and the study
+          already keeps its own record for people who consented. Putting
+          everyone&apos;s practice on the API would mean an account or a
+          tracking id for people who only came to measure a neck. So the
+          history sits in localStorage next to the personal bests, capped at
+          500 attempts and checked against a schema on the way in, so garbage
+          reads as an empty history rather than a crash.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My first version recorded the attempt on every render.
+        </h3>
+        <p className="text-muted">
+          I built the entry in render and recorded it in an effect that
+          depended on it. The entry was a new object every render, so the
+          effect ran every render too, and only the id-based de-duplication
+          stopped the history filling up. The lint caught it before a test
+          did:
+        </p>
+        <pre className={pre}>
+          {`The 'historyEntry' conditional could make the dependencies of useEffect
+Hook change on every render.`}
+        </pre>
+        <p className="text-muted">
+          It now works the way the study panel already did: a set of attempt
+          ids already kept, checked inside the effect, so each attempt is
+          written once with the result it finished with.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-10-23-admin-results"
+        date="October 23, 2026"
+        title="A spreadsheet I don't have to open"
+      >
+        <p>
+          The study download was the right shape for analysis and the wrong
+          shape for a quick look. To answer &quot;are the students timing out
+          on Hard?&quot; I had to download a CSV, open it and build a filter
+          by hand, every time.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The filters run on what the admin page already fetched.
+        </h3>
+        <p className="text-muted">
+          <code>/evar/admin/results</code> reads the same export the download
+          card uses, through one shared query, and narrows it in the browser
+          by level, case, training level, timed out and a date range. There
+          is no new endpoint and no query language on the API. The study is a
+          few hundred attempts at most, so filtering them in memory is
+          cheaper than another round trip, and the rows the page shows are
+          exactly the rows the CSV would have.
+        </p>
+        <pre className={pre}>
+          {`filterStudyRows(rows, { level: "hard", caseId: null,
+  trainingLevel: "medical-student", timedOut: true,
+  from: "2026-10-01", to: null })`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An unmeasured answer isn&apos;t a wrong one.
+        </h3>
+        <p className="text-muted">
+          The summary table gives, for each of the five measurements, how
+          often it landed within tolerance out of how often it was taken. A
+          timed-out attempt that never got to the iliacs counts as not
+          measured rather than missed, so the share answers &quot;when people
+          measure this, do they get it right&quot; instead of blending that
+          with &quot;did they run out of time&quot;. The timed-out filter is
+          there for the second question.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The download follows the filters.
+        </h3>
+        <p className="text-muted">
+          &quot;Download these as CSV&quot; writes the filtered rows with the
+          same columns as the full export, so a cut I find on the page goes
+          straight into R without redoing it. The filters live in the page,
+          not the URL, which keeps it simple and means a filtered view
+          can&apos;t be shared as a link yet.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
-          "Three phantom cases: a long straight neck, a short neck with a wide right iliac, and a hostile 30 mm, 10 mm neck with an ectatic right iliac.",
+          "Nine phantom cases, three on Easy and four each on Medium and Hard, from a long straight neck to an 8 cm sac with both iliacs on the widest limb.",
+          "Slices with the abdomen drawn around the aorta: IVC, liver, spleen, arterial-phase kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy, slightly soft noise.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
@@ -562,20 +821,21 @@ the role "button" and name \`/check answers/i\``}
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
-          "A full-height dark stage with floating controls, and a results popup with stars, points and a personal best per level and case.",
+          "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
+          "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
+          "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
-          "The phantom is tidy. Real necks are conical, calcified and angled, and the cases don't yet include the ugly ones that make sizing hard.",
+          "The phantom is still tidy. The organs are there now, but every neck is a parallel tube and every organ an ellipse. Real necks are conical, calcified, angled and sometimes lined with thrombus.",
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
-          "Personal bests live on one device. Signed-in study participants already have a record on the API, so their bests could follow them.",
+          "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "An admin results page that filters everyone's attempts by level, case and training level, and a page where a participant sees their own accuracy over time.",
           "Zoom and pan on the viewer.",
         ]}
       />
