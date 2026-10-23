@@ -591,10 +591,113 @@ the role "button" and name \`/check answers/i\``}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-10-23-cases-and-scan"
+        date="October 23, 2026"
+        title="Six more cases, and a scan that finally has an IVC"
+      >
+        <p>
+          Easy had one case, so once you&apos;d done it there was nothing left
+          to practise on. And the slices looked like a diagram: a bright circle
+          on a grey oval, with a round bone underneath.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Real scans were the plan again, and still weren&apos;t on the table.
+        </h3>
+        <p className="text-muted">
+          I couldn&apos;t pull an open aortic CTA set down from where I was
+          working, and the sets I know of are mostly normal aortas anyway.
+          Each case would also need its five answers measured by hand before
+          it could be scored. So the phantom got more convincing instead, and
+          real cases stay on the list below.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Two more cases per level, and Easy stopped being one case.
+        </h3>
+        <p className="text-muted">
+          Each case is still just a dozen numbers, so adding six was cheap.
+          The new ones are picked so each level teaches its own thing: Easy
+          gets anatomy any standard device fits, Medium gets narrow iliacs and
+          the wide iliac on the other side, and Hard gets a neck a millimetre
+          under the usual landing length and an 8 cm sac with both iliacs on
+          the widest limb.
+        </p>
+        <pre className={pre}>
+          {`easy:   ["long-neck", "small-sac", "wide-sac"]
+medium: ["long-neck", "short-neck", "narrow-iliacs", "ectatic-left"]
+hard:   ["short-neck", "hostile-neck", "short-wide", "giant-sac"]`}
+        </pre>
+        <p className="text-muted">
+          The titles lost their numbers on the way. Easy would otherwise have
+          read Case 1, Case 4, Case 5.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The aorta was the only thing on the slice that looked like anatomy.
+        </h3>
+        <p className="text-muted">
+          Everything around it is now drawn too: the IVC on the patient&apos;s
+          right, pushed further over by a big sac; the liver and spleen at the
+          top of the stack; kidneys in the arterial phase, with a bright cortex,
+          a darker medulla and fat in the sinus; psoas thickening toward the
+          pelvis; a vertebra with laminae and a spinous process; bowel loops
+          with gas floating above a fluid level; and the scanner table under
+          the patient. None of it moves the aorta or the iliacs, so every
+          reference answer is exactly what it was.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Per-pixel noise looks like a badly tuned TV, not a scanner.
+        </h3>
+        <p className="text-muted">
+          The old noise was independent at every pixel. Real CT noise is
+          grainy, because neighbouring pixels share their reconstruction, and
+          edges are slightly soft from partial volume. Now the tissue gets a
+          small blur, then noise built on a coarse grid and interpolated, with
+          a little fine speckle on top. A test checks neighbouring pixels in
+          the lumen actually move together.
+        </p>
+        <pre className={pre}>
+          {`const coarse = Float32Array.from({ length: cells * cells }, () => (random() + random() + random() - 1.5) * 36);
+...
+out[y * SIZE + x] = top * (1 - fy) + bottom * fy + (random() - 0.5) * 16;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My first bowel-gas test passed before I&apos;d drawn any bowel.
+        </h3>
+        <p className="text-muted">
+          It counted air inside a box in the middle of the slice, and the box
+          reached past the edge of the old body outline, so it was counting the
+          room. I only noticed because a red test came up green. The box is
+          tighter now, and it failed first, the way it should have.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It got 2.3 times slower, and the hot spot wasn&apos;t the new anatomy.
+        </h3>
+        <p className="text-muted">
+          I set a budget of twice the old cost per slice. The first version
+          was over it. Building ellipses inside the pixel loop was some of it,
+          but most of the remainder was <code>Math.hypot</code> in the bowel
+          and canal checks, called on every pixel in the abdomen. Squared
+          distances do the same job.
+        </p>
+        <pre className={pre}>
+          {`before            11.5 ms per slice
+first pass        26.7 ms
+ellipses hoisted  23.7 ms
+no Math.hypot     20.7 ms   (1.8x, inside budget)`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
-          "Three phantom cases: a long straight neck, a short neck with a wide right iliac, and a hostile 30 mm, 10 mm neck with an ectatic right iliac.",
+          "Nine phantom cases, three on Easy and four each on Medium and Hard, from a long straight neck to an 8 cm sac with both iliacs on the widest limb.",
+          "Slices with the abdomen drawn around the aorta: IVC, liver, spleen, arterial-phase kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy, slightly soft noise.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
@@ -607,7 +710,7 @@ the role "button" and name \`/check answers/i\``}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
-          "The phantom is tidy. Real necks are conical, calcified and angled, and the cases don't yet include the ugly ones that make sizing hard.",
+          "The phantom is still tidy. The organs are there now, but every neck is a parallel tube and every organ an ellipse. Real necks are conical, calcified, angled and sometimes lined with thrombus.",
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
