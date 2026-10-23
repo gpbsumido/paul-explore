@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import PageIntro from "@/components/PageIntro";
 import SliceViewer from "./SliceViewer";
-import { EVAR_CASES, referenceFor } from "@/lib/evar/phantom";
+import { referenceFor, type EvarCase } from "@/lib/evar/phantom";
+import { LEVELS, casesFor, hintsFor, type Level, type LevelId } from "@/lib/evar/levels";
 import {
   TASKS,
   WINDOWS,
@@ -23,6 +24,7 @@ type Marks = { renal?: number; sacStart?: number };
 const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string } => t.id !== "neckLength");
 
 const START_SLICE = 20;
+const TICK_MS = 250;
 
 const button =
   "rounded-lg border border-border bg-surface px-3 py-1.5 text-[13px] text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -31,6 +33,20 @@ const pill =
   "cursor-pointer rounded-full border border-border px-3 py-1 text-[13px] text-muted peer-checked:border-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/40";
 
 const mm = (value: number) => `${value.toFixed(1)} mm`;
+
+/** Milliseconds as m:ss, rounding up so the clock shows 0:00 only when it's out. */
+const clock = (ms: number) => {
+  const seconds = Math.ceil(Math.max(0, ms) / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+};
+
+/** What the timed level announces as it runs down: nothing, then a minute, then thirty seconds. */
+const clockWarning = (remainingMs: number) => {
+  if (remainingMs <= 0) return "Time's up. Your answers have been handed in.";
+  if (remainingMs <= 30_000) return "30 seconds left.";
+  if (remainingMs <= 60_000) return "1 minute left.";
+  return "";
+};
 
 /** A labelled group of pill-styled native radios. */
 function PillGroup({
@@ -88,15 +104,33 @@ function TaskRow({ label, value, children }: { label: string; value: string; chi
  * and the iliacs, then check the numbers against the case's exact references.
  */
 export default function EvarContent() {
+  const [levelId, setLevelId] = useState<LevelId>("medium");
   const [caseIndex, setCaseIndex] = useState(0);
   const [windowId, setWindowId] = useState<WindowId>("angio");
   const [slice, setSlice] = useState(START_SLICE);
   const [points, setPoints] = useState<readonly Point[]>([]);
   const [recorded, setRecorded] = useState<Partial<Record<DiameterTask, number>>>({});
   const [marks, setMarks] = useState<Marks>({});
-  const [checked, setChecked] = useState(false);
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  const [finishedAt, setFinishedAt] = useState<number | null>(null);
 
-  const evarCase = EVAR_CASES[caseIndex];
+  const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
+  const cases = casesFor(level);
+  const evarCase = cases[caseIndex] ?? cases[0];
+  const limit = level.timeLimitMs;
+  const remaining = limit === null ? null : limit - ((finishedAt ?? now) - startedAt);
+
+  useEffect(() => {
+    if (limit === null || finishedAt !== null) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t - startedAt >= limit) setFinishedAt(startedAt + limit);
+    }, TICK_MS);
+    return () => clearInterval(id);
+  }, [limit, finishedAt, startedAt]);
+
   const caliper = points.length === 2 ? distanceMm(points[0], points[1], evarCase.pixelMm) : null;
   const neckLength =
     marks.renal !== undefined && marks.sacStart !== undefined
@@ -112,12 +146,20 @@ export default function EvarContent() {
   const placePoint = (point: Point) => setPoints((current) => (current.length >= 2 ? [point] : [...current, point]));
 
   const startOver = (index: number) => {
+    const t = Date.now();
     setCaseIndex(index);
     setSlice(START_SLICE);
     setPoints([]);
     setRecorded({});
     setMarks({});
-    setChecked(false);
+    setStartedAt(t);
+    setNow(t);
+    setFinishedAt(null);
+  };
+
+  const pickLevel = (id: LevelId) => {
+    setLevelId(id);
+    startOver(0);
   };
 
   const status =
@@ -147,13 +189,36 @@ export default function EvarContent() {
         />
 
         <PillGroup
+          legend="Level"
+          name="evar-level"
+          options={LEVELS.map((l) => ({ value: l.id, label: l.label }))}
+          value={levelId}
+          onChange={(value) => pickLevel(LEVELS.find((l) => l.id === value)?.id ?? "medium")}
+        />
+        <p className="-mt-2 mb-6 text-[14px] text-muted">{level.blurb}</p>
+
+        <PillGroup
           legend="Case"
           name="evar-case"
-          options={EVAR_CASES.map((c, i) => ({ value: String(i), label: c.title }))}
+          options={cases.map((c, i) => ({ value: String(i), label: c.title }))}
           value={String(caseIndex)}
           onChange={(value) => startOver(Number(value))}
         />
         <p className="-mt-2 mb-6 text-[14px] text-muted">{evarCase.blurb}</p>
+
+        {remaining === null ? null : (
+          <div className="mb-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <p className="text-[13px] text-muted">
+              Time left{" "}
+              <span role="timer" aria-label="Time left" className="font-mono text-2xl font-bold text-foreground">
+                {clock(remaining)}
+              </span>
+            </p>
+            <p aria-live="polite" className="text-[14px] font-semibold text-foreground">
+              {clockWarning(remaining)}
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,576px)_1fr]">
           <section aria-label="Scan">
@@ -213,6 +278,16 @@ export default function EvarContent() {
               lowest renal artery to where the aorta first widens by more than 10%.
             </p>
 
+            {level.hints ? (
+              <ul aria-label="Hints" className="mb-3 list-disc pl-5 text-[13px] text-muted">
+                {hintsFor(evarCase).map((hint) => (
+                  <li key={hint.label}>
+                    {hint.label}: somewhere in slices {hint.from} to {hint.to}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
             <ul className="rounded-xl border border-border bg-surface px-4">
               <TaskRow label={DIAMETER_TASKS[0].label} value={recorded.neckDiameter === undefined ? "Not recorded" : mm(recorded.neckDiameter)}>
                 <RecordButton label={DIAMETER_TASKS[0].label} disabled={caliper === null} onClick={() => caliper !== null && setRecorded((r) => ({ ...r, neckDiameter: caliper }))} />
@@ -241,7 +316,7 @@ export default function EvarContent() {
               <button
                 type="button"
                 className={`${button} border-foreground font-semibold`}
-                onClick={() => setChecked(true)}
+                onClick={() => setFinishedAt((f) => f ?? Date.now())}
               >
                 Check answers
               </button>
@@ -250,7 +325,9 @@ export default function EvarContent() {
               </button>
             </div>
 
-            {checked ? <Results attempt={attempt} caseIndex={caseIndex} /> : null}
+            {finishedAt === null ? null : (
+              <Results attempt={attempt} evarCase={evarCase} level={level} elapsedMs={finishedAt - startedAt} />
+            )}
           </section>
         </div>
       </main>
@@ -274,11 +351,24 @@ const VERDICT_TEXT = {
 } as const;
 
 /** Your numbers against the case's, task by task, plus what the anatomy means. */
-function Results({ attempt, caseIndex }: { attempt: Attempt; caseIndex: number }) {
-  const evarCase = EVAR_CASES[caseIndex];
-  const rows = score(attempt, referenceFor(evarCase));
+function Results({
+  attempt,
+  evarCase,
+  level,
+  elapsedMs,
+}: {
+  attempt: Attempt;
+  evarCase: EvarCase;
+  level: Level;
+  elapsedMs: number;
+}) {
+  const rows = score(attempt, referenceFor(evarCase), level.tolerance);
+  const passed = rows.filter((row) => row.verdict === "within").length;
   return (
     <div className="mt-6">
+      <p className="mb-3 text-[15px] font-semibold text-foreground">
+        {passed} of {rows.length} within tolerance, in {clock(elapsedMs)}.
+      </p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-[13px]">
           <caption className="mb-2 text-left text-lg font-bold text-foreground">Results</caption>
