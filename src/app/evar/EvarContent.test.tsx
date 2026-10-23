@@ -329,3 +329,90 @@ describe("EvarContent results popup", () => {
     expect(await axe(resultsDialog())).toHaveNoViolations();
   });
 });
+
+describe("EvarContent zoom", () => {
+  const zoomGroup = () => screen.getByRole("group", { name: /zoom/i });
+  const zoomLevel = () => within(zoomGroup()).getByText(/×$/);
+
+  /** jsdom lays nothing out, so the viewer is given a 384 px box to click in. */
+  function sizeViewer() {
+    vi.spyOn(viewer(), "getBoundingClientRect").mockReturnValue(DOMRect.fromRect({ x: 0, y: 0, width: 384, height: 384 }));
+  }
+
+  function click(x: number, y: number) {
+    fireEvent.pointerDown(viewer(), { clientX: x, clientY: y, pointerId: 1, button: 0 });
+    fireEvent.pointerUp(viewer(), { clientX: x, clientY: y, pointerId: 1, button: 0 });
+  }
+
+  it("steps through the zoom with the buttons, and stops at the ends", () => {
+    renderPage();
+    expect(zoomLevel()).toHaveTextContent("1×");
+    expect(screen.getByRole("button", { name: /zoom out/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /reset zoom/i })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    expect(zoomLevel()).toHaveTextContent("2×");
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    expect(zoomLevel()).toHaveTextContent("8×");
+    expect(screen.getByRole("button", { name: /zoom in/i })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: /reset zoom/i }));
+    expect(zoomLevel()).toHaveTextContent("1×");
+  });
+
+  it("zooms with + and - and resets with 0 from the keyboard", () => {
+    renderPage();
+    viewer().focus();
+    fireEvent.keyDown(viewer(), { key: "+" });
+    fireEvent.keyDown(viewer(), { key: "+" });
+    expect(zoomLevel()).toHaveTextContent("4×");
+    fireEvent.keyDown(viewer(), { key: "-" });
+    expect(zoomLevel()).toHaveTextContent("2×");
+    fireEvent.keyDown(viewer(), { key: "0" });
+    expect(zoomLevel()).toHaveTextContent("1×");
+  });
+
+  it("measures the same millimetres with the keyboard at 4×", () => {
+    renderPage();
+    viewer().focus();
+    fireEvent.keyDown(viewer(), { key: "+" });
+    fireEvent.keyDown(viewer(), { key: "+" });
+    keyboardCaliper(10);
+    expect(screen.getByRole("status")).toHaveTextContent(`${(10 * firstCase.pixelMm).toFixed(1)} mm`);
+  });
+
+  it("places clicks on the anatomy under the pointer, so the same gap on screen is half as far at 2×", () => {
+    renderPage();
+    sizeViewer();
+    click(150, 192);
+    click(250, 192);
+    expect(screen.getByRole("status")).toHaveTextContent(`${(100 * firstCase.pixelMm).toFixed(1)} mm`);
+
+    fireEvent.keyDown(viewer(), { key: "Escape" });
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    click(150, 192);
+    click(250, 192);
+    expect(screen.getByRole("status")).toHaveTextContent(`${(50 * firstCase.pixelMm).toFixed(1)} mm`);
+  });
+
+  it("pans on a drag and places no point", () => {
+    renderPage();
+    sizeViewer();
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    fireEvent.pointerDown(viewer(), { clientX: 200, clientY: 200, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(viewer(), { clientX: 260, clientY: 230, pointerId: 1, button: 0 });
+    fireEvent.pointerUp(viewer(), { clientX: 260, clientY: 230, pointerId: 1, button: 0 });
+    expect(screen.getByRole("status")).toHaveTextContent(/no caliper placed/i);
+  });
+
+  it("keeps the zoom across slices and starts a new case at 1×", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    fireEvent.change(sliceSlider(), { target: { value: "40" } });
+    expect(zoomLevel()).toHaveTextContent("2×");
+
+    fireEvent.click(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) }));
+    expect(zoomLevel()).toHaveTextContent("1×");
+  });
+});

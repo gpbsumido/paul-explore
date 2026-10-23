@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-23-zoom",
+            date: "Oct 23, 2026",
+            title: "Two pixels is not a fair test",
+          },
+          {
             id: "update-2026-10-23-admin-results",
             date: "Oct 23, 2026",
             title: "A spreadsheet I don't have to open",
@@ -864,6 +869,71 @@ Hook change on every render.`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-23-zoom"
+        date="October 23, 2026"
+        title="Two pixels is not a fair test"
+      >
+        <p>
+          A slice is 384 pixels across at 0.85 mm a pixel, so the 2 mm
+          diameter tolerance is a little over two pixels. On a laptop
+          that&apos;s tight. On a phone, where the whole slice is narrower
+          than a thumb is long, it was mostly luck. The viewer zooms now,
+          from 1× to 8×, and pans.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Zoom is a view, so the calipers never find out.
+        </h3>
+        <p className="text-muted">
+          Caliper points were already stored in image pixels, and that&apos;s
+          what made this small. Zoom is a scale plus the image point sitting
+          in the middle of the viewport. Drawing goes through it, and so does
+          turning a click back into an image point, but the points themselves
+          don&apos;t change. <code className={code}>distanceMm</code>, the
+          scoring and the live readout are untouched, and the test I cared
+          most about says ten pixels is the same number of millimetres at 4×
+          as at 1×.
+        </p>
+        <pre className={pre}>
+          {`// zooming keeps the anchor under the pointer
+const ratio = view.scale / scale;
+x: anchor.x - (anchor.x - view.x) * ratio,
+y: anchor.y - (anchor.y - view.y) * ratio,`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A click had to move to the end of the press.
+        </h3>
+        <p className="text-muted">
+          Before, a point went down the instant the mouse did. With panning,
+          the same press might be the start of a drag, and there&apos;s no
+          way to tell until it moves. So a point is placed when the press
+          ends, and only if it wandered less than 4 screen pixels. Anything
+          further is a pan. Two fingers make a pinch, which never places
+          anything, even when one of them lifts first.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The keyboard gets all of it.
+        </h3>
+        <p className="text-muted">
+          + and − zoom around the crosshair, 0 resets, and the arrows pan the
+          view along when the crosshair walks off the edge, so a keyboard
+          user never steers a cursor they can&apos;t see. The zoom level sits
+          in a live region beside the buttons. The scroll wheel needed a
+          listener attached by hand, because React adds wheel listeners as
+          passive, and a passive listener can&apos;t stop the page scrolling
+          underneath the image.
+        </p>
+        <p className="mt-3 text-muted">
+          Zoom carries across slices, because scrolling down a neck at 4× is
+          the point, and resets when the case changes. The canvas is drawn at
+          twice the slice&apos;s size so the caliper lines stay sharp when
+          the anatomy under them is enlarged eight times.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -871,6 +941,7 @@ Hook change on every render.`}
           "Slices with the abdomen drawn around the aorta: IVC, liver, spleen, arterial-phase kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy, slightly soft noise.",
           "Axial slices drawn on demand in Hounsfield units, with angio and soft-tissue windows and patient-right-on-image-left orientation.",
           "A two-point caliper that works with a mouse or entirely from the keyboard, with the length in a live region.",
+          "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
@@ -884,14 +955,12 @@ Hook change on every render.`}
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
           "The phantom is still tidy. The organs are there now, but every neck is a parallel tube and every organ an ellipse. Real necks are conical, calcified, angled and sometimes lined with thrombus.",
-          "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
           "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Zoom and pan on the viewer.",
         ]}
       />
     </ThoughtLayout>

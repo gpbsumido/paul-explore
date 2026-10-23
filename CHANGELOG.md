@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-23 - version 7.25.0
+
+- The EVAR slice viewer zooms from 1× to 8× and pans. Scroll or pinch zooms at the pointer, a drag pans, and corner buttons step the zoom with the level in a live region. From the keyboard, + and − zoom around the crosshair, 0 resets, and the view follows the crosshair when it walks off screen. At full size a 2 mm tolerance was about two pixels, which on a phone was mostly luck.
+- Caliper points stay in image pixels, so measurements, scoring and the readout don't change with zoom. The view maths is pure, in `src/lib/evar/zoom.ts`. A click now places its point when the press ends, and only if it moved less than 4 px; anything further is a pan. Zoom carries across slices and resets on a new case. The canvas draws at twice the slice size so caliper lines stay sharp, and the wheel listener is attached by hand because React's is passive and can't stop the page scrolling.
+
 ## 2026-10-23 - version 7.24.1
 
 - The EVAR Sizing write-up opens with an update timeline, the same jump list the operator dashboard and the other long write-ups use. It had ten dated updates and nothing at the top to find them by. A test checks the timeline links every update section on the page, newest first, so the next update can't be added without its entry.

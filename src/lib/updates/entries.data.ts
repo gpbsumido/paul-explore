@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-25-0",
+    date: "2026-10-23",
+    version: "7.25.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "Zoom in on the EVAR scans",
+    summary:
+      "The EVAR sizing scans zoom and pan now, so a two-millimetre tolerance is a fair test on a phone.",
+    body: [
+      "Scroll, pinch or use the buttons in the corner to zoom up to eight times, and drag to move around. Your calipers measure the same distance at any zoom, and the zoom stays put as you scroll through the slices. It all works from the keyboard too: plus and minus zoom, and zero resets.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-24-0",
     date: "2026-10-23",
     version: "7.24.0",
