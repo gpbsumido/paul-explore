@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-23 - version 7.29.0
+
+- EVAR practice has its first real CTA case: AVT case R6, the one infrarenal aneurysm in the Aortic Vessel Tree collection (CC BY 4.0, figshare doi:10.6084/m9.figshare.14806362, building on TCIA's RIDER collection, doi:10.7937/K9/TCIA.2015.U1X8A5NR). It's the last case on Medium.
+- `scripts/prepare-evar-scan.mjs` turns the 296 MB source into `public/evar/scans/avt-r6.u8.gz` (7.05 MB): cropped to 256 px round the aorta and iliacs at 0.7246 mm, averaged into 2 mm slices, the +1024 offset removed, and stored one byte a voxel over -160 to 452 HU, finer than either window's grey steps. `public/evar/scans/ATTRIBUTION.md` cites the sources and lists the changes.
+- `src/lib/evar/scans.ts` adds `ScanCase`, `decodeScan`, `scanSlice` and `loadScan`, which fetches when the case is opened and gunzips with `DecompressionStream`. `SliceViewer` now takes `size` and `sliceAt`, so phantoms and scans share it, and shows "Loading the scan" until the volume arrives.
+- A scan is scored only against an admin's hand-set answers (`referenceForCase`). Until then the page says it isn't scored, the end shows your numbers in `UnscoredDialog`, and nothing goes to the study, history or bests. Lengths on a scan run straight down the slices. The admin references page lists the scan with blank answers and "Clear the answers" in place of a phantom reset, and admin results know its title.
+
 ## 2026-10-23 - version 7.28.0
 
 - EVAR device selection offers three sizing sheets: Medtronic Endurant II/IIs, Gore Excluder Conformable (from the FDA-hosted IFU for P200030/S014, Tables 29 to 31) and Cook Zenith Alpha (from Cook's IFU T_ZALPHA_REV5, Tables 9.5.1 and 9.5.2, section 10.1.6). The picker gains a manufacturer choice that clears the picks, and its groups, empty choices and disclaimer come from the sheet.

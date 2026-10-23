@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-29-0",
+    date: "2026-10-23",
+    version: "7.29.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "A real CT scan in EVAR practice",
+    summary:
+      "EVAR sizing practice has its first real patient scan: a deidentified CT of an abdominal aortic aneurysm, from an openly licensed research collection.",
+    body: [
+      "It's the last case on Medium, and you measure it with the same tools as the practice cases. Real anatomy is messier than the practice scans, which is the point.",
+      "Until its answers have been measured by hand it isn't scored: you'll see your own numbers, and nothing from it is saved. The scan's source and licence are shown with it.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-28-0",
     date: "2026-10-23",
     version: "7.28.0",
