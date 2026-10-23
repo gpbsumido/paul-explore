@@ -23,7 +23,7 @@ import { toAttemptPayload } from "@/lib/evar/research";
 import { SHEETS, gradeDevices, gradeLengths } from "@/lib/evar/sheets";
 import type { DevicePick } from "@/lib/evar/devices";
 import { anatomyFor, centerlineMm, sliceHU, type Landmarks, type MarkedAnatomy } from "@/lib/evar/phantom";
-import { loadScan, scanSlice } from "@/lib/evar/scans";
+import { loadScan, scanSlice, type ScanCase } from "@/lib/evar/scans";
 import { useScanCases } from "@/lib/evar/useScanCases";
 import { outcomeFor } from "@/lib/evar/game";
 import { readBest, recordBest, usePersonalBest } from "@/lib/evar/personalBest";
@@ -198,9 +198,13 @@ function TaskRow({ label, value, children }: { label: string; value: string; chi
  * over it, because the scan is the thing to look at. Finishing a case opens a
  * scored popup with stars, points and a personal best to beat.
  */
-export default function EvarContent() {
+export default function EvarContent({ initialScans = [] }: { initialScans?: readonly ScanCase[] }) {
   const [levelId, setLevelId] = useState<LevelId>("medium");
-  const [caseIndex, setCaseIndex] = useState(0);
+  // A first visit opens on Medium's first real scan, when the server handed the scans in.
+  const [caseIndex, setCaseIndex] = useState(() => {
+    const medium = LEVELS.find((l) => l.id === "medium") ?? LEVELS[0];
+    return Math.max(0, casesFor(medium, initialScans).findIndex((c) => c.kind === "scan"));
+  });
   const [windowId, setWindowId] = useState<WindowId>("angio");
   const [slice, setSlice] = useState(START_SLICE);
   const [points, setPoints] = useState<readonly Point[]>([]);
@@ -212,7 +216,8 @@ export default function EvarContent() {
   const [showResults, setShowResults] = useState(false);
   const [bestAtStart, setBestAtStart] = useState(() => {
     const medium = LEVELS.find((l) => l.id === "medium") ?? LEVELS[0];
-    return bestFor(medium, casesFor(medium)[0]);
+    const opening = casesFor(medium, initialScans);
+    return bestFor(medium, opening.find((c) => c.kind === "scan") ?? opening[0]);
   });
   const [clientAttemptId, setClientAttemptId] = useState(() => crypto.randomUUID());
   const [tab, setTab] = useState<TaskTab>("measure");
@@ -248,7 +253,7 @@ export default function EvarContent() {
   const studySettled = knowsStudy && !askStudy;
 
   const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
-  const { scans: scanCases } = useScanCases();
+  const { scans: scanCases } = useScanCases(initialScans);
   // Phantoms first, so their indices don't move when the manifest arrives.
   const cases = casesFor(level, scanCases);
   const evarCase = cases[caseIndex] ?? cases[0];

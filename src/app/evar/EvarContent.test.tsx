@@ -701,3 +701,22 @@ describe("EvarContent admin link", () => {
     await waitFor(() => expect(screen.queryByRole("link", { name: /^admin$/i })).toBeNull());
   });
 });
+
+describe("EvarContent first visit", () => {
+  const scans = parseManifest(manifest, "/evar/scans");
+
+  it("opens on Medium's first real scan when the page has the scans to hand", async () => {
+    server.use(http.get(scans[0].file, () => new HttpResponse(gzipSync(new Uint8Array(scans[0].size * scans[0].size * scans[0].slices)))));
+    window.localStorage.setItem("evar-tour-seen", "true");
+    window.localStorage.setItem("evar-study-asked", "true");
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <EvarContent initialScans={scans} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByRole("radio", { name: /medium/i })).toBeChecked();
+    expect(screen.getByRole("combobox", { name: /real scan/i })).toHaveDisplayValue(scans[0].title);
+    expect(screen.getByRole("radio", { name: firstCase.title })).not.toBeChecked();
+    expect(screen.getByText(scans[0].blurb)).toBeInTheDocument();
+  });
+});

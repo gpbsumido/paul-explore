@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import EvarContent from "./EvarContent";
+import { loadInitialScans } from "@/lib/evar/initialScans";
 
 const TITLE = "EVAR Sizing";
 const DESCRIPTION =
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 // Phantoms are drawn and real scans fetched in the browser, so the page itself never changes.
 export const revalidate = 86400;
 
-export default function EvarPage() {
-  return <EvarContent />;
+/** Reads the real scans on the server, so the first render can open on one. */
+export default async function EvarPage() {
+  return <EvarContent initialScans={await loadInitialScans()} />;
 }
