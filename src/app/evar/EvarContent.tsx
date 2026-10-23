@@ -15,7 +15,8 @@ import { participantResponseSchema } from "@/lib/evar/research";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import UnscoredDialog from "./UnscoredDialog";
-import { clock, mm } from "./format";
+import Countdown from "./Countdown";
+import { mm } from "./format";
 import { APP_VERSION } from "@/lib/appVersion";
 import { toAttemptPayload } from "@/lib/evar/research";
 import { SHEETS, gradeDevices, gradeLengths } from "@/lib/evar/sheets";
@@ -54,7 +55,6 @@ const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string 
 
 const START_SLICE = 20;
 const NO_DEVICES: DevicePick = { sheet: "endurant", ipsilateral: "right", mainBody: null, contraLimb: null, ipsiExtension: null };
-const TICK_MS = 250;
 
 type TaskTab = "measure" | "devices";
 
@@ -134,13 +134,6 @@ const dock = "rounded-2xl border border-border bg-surface/95 p-4 shadow-lg backd
 const bestFor = (level: Level, practiceCase: { id: string } | undefined) =>
   practiceCase === undefined ? null : readBest(level.id, practiceCase.id);
 
-/** What the timed level announces as it runs down: nothing, then a minute, then thirty seconds. */
-const clockWarning = (remainingMs: number) => {
-  if (remainingMs <= 0) return "Time's up. Your answers have been handed in.";
-  if (remainingMs <= 30_000) return "30 seconds left.";
-  if (remainingMs <= 60_000) return "1 minute left.";
-  return "";
-};
 
 /** A labelled group of pill-styled native radios. */
 function PillGroup({
@@ -214,7 +207,6 @@ export default function EvarContent() {
   const [marks, setMarks] = useState<Marks>({});
   const [devices, setDevices] = useState<DevicePick>(NO_DEVICES);
   const [startedAt, setStartedAt] = useState(() => Date.now());
-  const [now, setNow] = useState(() => Date.now());
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [bestAtStart, setBestAtStart] = useState(() => {
@@ -259,7 +251,8 @@ export default function EvarContent() {
   const phantom = evarCase.kind === "phantom" ? evarCase : null;
   const scan = evarCase.kind === "scan" ? evarCase : null;
   const limit = level.timeLimitMs;
-  const remaining = limit === null ? null : limit - ((finishedAt ?? now) - startedAt);
+  // Time left when the attempt finished, for the time bonus and "timed out". The running clock is Countdown's.
+  const remaining = limit === null || finishedAt === null ? null : limit - (finishedAt - startedAt);
   const best = usePersonalBest(level.id, evarCase.id);
 
   const overrides = useQuery({
@@ -293,19 +286,6 @@ export default function EvarContent() {
     return scan && volumeData ? scanSlice(volumeData, scan, z) : null;
   };
   const override = overrides.data?.find((row) => row.caseId === evarCase.id) ?? null;
-
-  useEffect(() => {
-    if (limit === null || finishedAt !== null) return;
-    const id = setInterval(() => {
-      const t = Date.now();
-      setNow(t);
-      if (t - startedAt >= limit) {
-        setFinishedAt(startedAt + limit);
-        setShowResults(true);
-      }
-    }, TICK_MS);
-    return () => clearInterval(id);
-  }, [limit, finishedAt, startedAt]);
 
   const caliper = points.length === 2 ? distanceMm(points[0], points[1], evarCase.pixelMm) : null;
   // A phantom measures along its centerline. A real scan has no centerline yet,
@@ -402,7 +382,6 @@ export default function EvarContent() {
     setMarks({});
     setDevices(NO_DEVICES);
     setStartedAt(t);
-    setNow(t);
     setFinishedAt(null);
     setShowResults(false);
     setBestAtStart(bestFor(nextLevel, casesFor(nextLevel, scanCases)[index]));
@@ -511,18 +490,17 @@ export default function EvarContent() {
                   </div>
                 ) : null}
               </div>
-              {remaining === null ? null : (
-                <div>
-                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Time left</p>
-                  <span role="timer" aria-label="Time left" className="font-mono text-2xl font-bold text-foreground">
-                    {clock(remaining)}
-                  </span>
-                </div>
-              )}
-              {remaining === null ? null : (
-                <p aria-live="polite" className="basis-full text-[14px] font-semibold text-foreground empty:hidden">
-                  {clockWarning(remaining)}
-                </p>
+              {limit === null ? null : (
+                <Countdown
+                  key={clientAttemptId}
+                  startedAt={startedAt}
+                  limitMs={limit}
+                  finishedAt={finishedAt}
+                  onExpire={(at) => {
+                    setFinishedAt((f) => f ?? at);
+                    setShowResults(true);
+                  }}
+                />
               )}
             </header>
 
