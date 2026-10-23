@@ -231,6 +231,11 @@ describe("EvarContent", () => {
     const { container } = renderPage();
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("follows the site theme instead of forcing its own", () => {
+    const { container } = renderPage();
+    expect(container.querySelector("[data-theme]")).toBeNull();
+  });
 });
 
 /** Marks both ends of the neck on the right slices, which scores the length within tolerance. */
