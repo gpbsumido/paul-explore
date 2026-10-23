@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-30-0",
+    date: "2026-10-23",
+    version: "7.30.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "A tour of EVAR sizing practice",
+    summary:
+      "EVAR sizing practice offers a short guided tour the first time you open it, so you know where the scan, the measurements and the devices are.",
+    body: [
+      "It asks before it starts, takes a few clicks, and points at each part of the page in turn, from choosing a level to checking your answers. You can open it again any time from the button under the title.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-29-0",
     date: "2026-10-23",
     version: "7.29.0",
