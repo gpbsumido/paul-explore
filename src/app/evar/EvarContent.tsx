@@ -337,8 +337,9 @@ export default function EvarContent() {
                 </h2>
                 <p className="mb-2 text-[13px] text-muted">{evarCase.blurb}</p>
                 <p className="mb-3 text-[13px] text-muted">
-                  Diameters are outer wall to outer wall, thrombus included. The neck runs from the
-                  lowest renal artery to where the aorta first widens by more than 10%.
+                  Diameters are outer wall to outer wall, thrombus included. On an oval neck, measure
+                  across the short axis. The neck runs from the lowest renal artery to where the aorta
+                  first widens by more than 10%.
                 </p>
 
                 {level.hints ? (

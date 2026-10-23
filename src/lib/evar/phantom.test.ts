@@ -256,7 +256,7 @@ describe("EVAR phantom", () => {
     });
 
     it("ends a flaring neck where it passes 110% of its diameter at the renals, before the sac bulges", () => {
-      const c = byId("wide-sac");
+      const c = byId("ectatic-left");
       const { sacStartSlice } = referenceFor(c);
       expect(sacStartSlice).toBeLessThan(c.neckEndSlice);
       expect(outerRadiusMm(c, sacStartSlice)).toBeGreaterThan(c.neckRadiusMm * 1.1);
@@ -300,8 +300,9 @@ describe("EVAR phantom", () => {
       expect(Math.abs(edgePx(slice, c.size, centre, toward) - edgePx(slice, c.size, centre, away))).toBeLessThanOrEqual(1.5);
     });
 
+    // A round neck, so the arc's degrees on the image are the same as in the vessel.
     it("puts calcified plaque in the wall where a case lists it, and not on the far side", () => {
-      const c = byId("hostile-neck");
+      const c = byId("small-sac");
       const arc = c.calcium[0];
       const z = Math.round((arc.fromSlice + arc.toSlice) / 2);
       const slice = sliceHU(c, z);

@@ -30,11 +30,28 @@ type CaseParams = {
   bifurcationSlice: number;
   /** Side-to-side wander of the aorta, in pixels, so it isn't a ruler-straight tube. */
   driftPx: number;
+  /**
+   * How far the outer radius grows (positive, a flaring neck) or shrinks
+   * (negative, a conical one) between the lowest renal and the end of the neck.
+   */
+  neckTaperMm: number;
+  /**
+   * Tilt of the neck away from the sac's axis, and which way the top of it
+   * leans on the image: 0° is the patient's left, 90° anterior, 180° the
+   * patient's right. Never posterior, where the spine is.
+   */
+  neckAngle: { deg: number; towardDeg: number };
+  /** A crescent of thrombus lining one side of the neck, thickest at `atDeg`. */
+  neckThrombus: { atDeg: number; thicknessMm: number } | null;
+  /** Arcs of calcified plaque in the wall, centred on `atDeg`, over a run of slices. */
+  calcium: readonly { atDeg: number; spanDeg: number; fromSlice: number; toSlice: number }[];
   seed: number;
 };
 
 export type EvarCase = CaseParams & {
   size: number;
+  /** Image direction the neck leans toward, and how stretched an axial cut through it is, at a slice. */
+  sectionAt: (z: number) => { toward: Point; stretch: number };
   pixelMm: number;
   sliceMm: number;
   slices: number;
@@ -48,6 +65,14 @@ const SLICE_MM = 2;
 const SLICES = 100;
 const WALL_MM = 1.5;
 const RENAL_RADIUS_MM = 3;
+/** Fat between the back of the aorta and the vertebral body, in pixels. */
+const SPINE_GAP_PX = 4;
+/** Calcified plaque bulges this far in from the wall. */
+const PLAQUE_MM = 1;
+/** The angled stretch of aorta starts this many slices above the lowest renal. */
+const TILT_ABOVE = 8;
+/** Slices over which each bend in an angled neck is rounded off. */
+const KNEE = 3;
 
 const BODY = { x: 192, y: 190, rx: 165, ry: 135 };
 /** A lumbar vertebral body, wider than it is deep. */
@@ -121,30 +146,76 @@ function mulberry32(seed: number) {
 }
 
 /**
- * Outer-wall radius of the aorta at a slice, in mm: a straight neck, a smooth
- * flare into the sac, then a taper down to the bifurcation. Below the
- * bifurcation there is no aorta, so it's zero.
+ * Outer-wall radius of the aorta at a slice, in mm: the neck, tapering or
+ * flaring from the lowest renal to its end, a smooth flare into the sac, then
+ * a taper down to the bifurcation. Below the bifurcation there is no aorta,
+ * so it's zero.
  */
 export function outerRadiusMm(c: CaseParams, z: number): number {
   if (z >= c.bifurcationSlice) return 0;
-  if (z <= c.neckEndSlice) return c.neckRadiusMm;
+  const neckEnd = c.neckRadiusMm + c.neckTaperMm;
+  if (z <= c.lowestRenalSlice) return c.neckRadiusMm;
+  if (z <= c.neckEndSlice) {
+    const t = (z - c.lowestRenalSlice) / Math.max(1, c.neckEndSlice - c.lowestRenalSlice);
+    return c.neckRadiusMm + c.neckTaperMm * t;
+  }
   if (z <= c.sacPeakSlice) {
     const t = (z - c.neckEndSlice) / (c.sacPeakSlice - c.neckEndSlice);
-    return c.neckRadiusMm + (c.sacRadiusMm - c.neckRadiusMm) * smoothstep(t);
+    return neckEnd + (c.sacRadiusMm - neckEnd) * smoothstep(t);
   }
   const t = (z - c.sacPeakSlice) / (c.bifurcationSlice - c.sacPeakSlice);
   const end = c.neckRadiusMm * 0.9;
   return c.sacRadiusMm - (c.sacRadiusMm - end) * smoothstep(t);
 }
 
+/**
+ * How steeply the aorta leans at a slice, as sideways mm per mm down: tan θ
+ * through the angled stretch, which runs from a little above the renals to
+ * the end of the neck, eased in and out over a few slices at each bend.
+ */
+function tiltAt(c: CaseParams, z: number): number {
+  if (c.neckAngle.deg === 0) return 0;
+  const top = c.lowestRenalSlice - TILT_ABOVE;
+  const upper = smoothstep((z - top) / (2 * KNEE));
+  const lower = smoothstep((c.neckEndSlice + 2 * KNEE - z) / (2 * KNEE));
+  return Math.tan((c.neckAngle.deg * Math.PI) / 180) * upper * lower;
+}
+
+/** Unit vector on the image for an angle, 0° to the patient's left and 90° anterior. */
+const unitAt = (deg: number): Point => ({ x: Math.cos((deg * Math.PI) / 180), y: -Math.sin((deg * Math.PI) / 180) });
+
+/**
+ * How far an angled neck has moved the aorta's centre at a slice, in mm
+ * toward `neckAngle.towardDeg`: the lean added up from the bend at the end of
+ * the neck to this slice. Zero below the bend, and constant above the angled
+ * stretch.
+ */
+export function neckOffsetMm(c: CaseParams, z: number): number {
+  const last = c.neckEndSlice + 2 * KNEE;
+  let total = 0;
+  for (let k = Math.max(0, Math.ceil(z)); k < last; k += 1) total += tiltAt(c, k) * SLICE_MM;
+  return total;
+}
+
 function makeCase(params: CaseParams): EvarCase {
   const driftAt = (z: number) => params.driftPx * Math.sin(z / 18);
 
+  const toward = unitAt(params.neckAngle.towardDeg);
+  const sectionAt = (z: number) => ({ toward, stretch: Math.hypot(1, tiltAt(params, z)) });
+
   // The posterior wall rests on the vertebral body, so a bigger sac pushes the
-  // centre forward rather than through the spine.
+  // centre forward rather than through the spine. An oval neck reaches further
+  // back than a round one when it leans forward, so its depth counts too.
   const centreAt = (z: number): Point => {
-    const radiusPx = outerRadiusMm(params, Math.min(z, params.bifurcationSlice - 1)) / PIXEL_MM;
-    return { x: SPINE.x + 20 + driftAt(z), y: SPINE.y - SPINE.ry - radiusPx - 2 };
+    const at = Math.min(z, params.bifurcationSlice - 1);
+    const radiusPx = outerRadiusMm(params, at) / PIXEL_MM;
+    const { stretch } = sectionAt(at);
+    const depthPx = radiusPx * Math.sqrt(1 + (stretch ** 2 - 1) * toward.y ** 2);
+    const offsetPx = neckOffsetMm(params, z) / PIXEL_MM;
+    return {
+      x: SPINE.x + 20 + driftAt(z) + toward.x * offsetPx,
+      y: SPINE.y - SPINE.ry - depthPx - SPINE_GAP_PX + toward.y * offsetPx,
+    };
   };
 
   const iliacCentresAt = (z: number) => {
@@ -165,6 +236,7 @@ function makeCase(params: CaseParams): EvarCase {
     pixelMm: PIXEL_MM,
     sliceMm: SLICE_MM,
     slices: SLICES,
+    sectionAt,
     centreAt,
     iliacCentresAt,
   };
@@ -176,7 +248,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Long straight neck",
     blurb: "A textbook infrarenal aneurysm with a long, parallel neck and modest iliacs.",
     debrief:
-      "Comfortably inside the usual instructions for use: a neck well over 15 mm long and under 32 mm wide, and iliacs that will take a standard limb.",
+      "Comfortably inside the usual instructions for use: a neck well over 15 mm long and under 32 mm wide, and iliacs that will take a standard limb. A fleck of calcified plaque sits at the front of the neck, bright on the angio window but inside the wall, so the outer edge is still the one to measure to.",
     neckRadiusMm: 11.5,
     sacRadiusMm: 29,
     ciaRadiusMm: { right: 7, left: 6.5 },
@@ -186,6 +258,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 58,
     bifurcationSlice: 78,
     driftPx: 3,
+    neckTaperMm: 0,
+    neckAngle: { deg: 10, towardDeg: 90 },
+    neckThrombus: null,
+    calcium: [{ atDeg: 150, spanDeg: 40, fromSlice: 31, toSlice: 35 }],
     seed: 11,
   }),
   makeCase({
@@ -193,7 +269,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Short neck, wide right iliac",
     blurb: "A bigger sac that flares almost straight off the renals, with an ectatic right common iliac.",
     debrief:
-      "The neck is shorter than the 15 mm most devices ask for, and the right common iliac is wide enough to need a flared limb or an iliac branch. This is the case where measuring carefully changes the plan.",
+      "The neck is shorter than the 15 mm most devices ask for, and the right common iliac is wide enough to need a flared limb or an iliac branch. This is the case where measuring carefully changes the plan. It also leans 30° to the patient's left, so on an axial slice the neck is an oval about 30 mm across one way and 26 mm the other. The short axis is the real diameter; the long one would push you up a main body size.",
     neckRadiusMm: 13,
     sacRadiusMm: 34,
     ciaRadiusMm: { right: 10, left: 7.5 },
@@ -203,6 +279,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 52,
     bifurcationSlice: 74,
     driftPx: 8,
+    neckTaperMm: 0,
+    neckAngle: { deg: 30, towardDeg: 0 },
+    neckThrombus: null,
+    calcium: [],
     seed: 23,
   }),
   makeCase({
@@ -210,7 +290,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Hostile neck",
     blurb: "A wide neck that only runs a centimetre before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
     debrief:
-      "A 30 mm neck sits at the top of the range a standard main body covers, and 10 mm is about the shortest landing zone current devices accept at all. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely.",
+      "A 30 mm neck sits at the top of the range a standard main body covers, and 10 mm is about the shortest landing zone current devices accept at all. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely. The neck leans 50° to the patient's left, which turns the axial cut into an oval nearly 47 mm long when only the 30 mm short axis is real. A 4 mm crescent of thrombus lines the back of it and calcified plaque sits on its right wall: angled, short, lined and calcified is what makes a neck hostile.",
     neckRadiusMm: 15,
     sacRadiusMm: 35,
     ciaRadiusMm: { right: 12, left: 6 },
@@ -220,6 +300,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 52,
     bifurcationSlice: 72,
     driftPx: 10,
+    neckTaperMm: 0,
+    neckAngle: { deg: 50, towardDeg: 0 },
+    neckThrombus: { atDeg: 270, thicknessMm: 4 },
+    calcium: [{ atDeg: 180, spanDeg: 60, fromSlice: 33, toSlice: 37 }],
     seed: 37,
   }),
   makeCase({
@@ -227,7 +311,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Small sac, long neck",
     blurb: "A modest aneurysm under a long, narrow neck, with iliacs a millimetre apart.",
     debrief:
-      "At 52 mm the sac sits between the usual thresholds for repair, 55 mm in men and 50 mm in women, so whether to fix it at all is the real question. If you do, a 20 mm neck takes the smallest main body on the sheet, and the 12 and 11 mm iliacs fall either side of a limb boundary.",
+      "At 52 mm the sac sits between the usual thresholds for repair, 55 mm in men and 50 mm in women, so whether to fix it at all is the real question. If you do, a 20 mm neck takes the smallest main body on the sheet, and the 12 and 11 mm iliacs fall either side of a limb boundary. The neck is conical, narrowing from 20 mm at the renals to 16 mm where it meets the sac, with calcified plaque on its left front wall. Size it at the top, where the graft seals first.",
     neckRadiusMm: 10,
     sacRadiusMm: 26,
     ciaRadiusMm: { right: 6, left: 5.5 },
@@ -237,6 +321,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 60,
     bifurcationSlice: 80,
     driftPx: 2,
+    neckTaperMm: -2,
+    neckAngle: { deg: 0, towardDeg: 0 },
+    neckThrombus: null,
+    calcium: [{ atDeg: 30, spanDeg: 50, fromSlice: 34, toSlice: 40 }],
     seed: 41,
   }),
   makeCase({
@@ -244,7 +332,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Wide sac, generous neck",
     blurb: "A big but simple aneurysm under a long, parallel neck.",
     debrief:
-      "A 25 mm neck runs well past the 15 mm devices ask for and takes a 28 mm main body. Both iliacs land in the same limb band, so the size of the sac is the only thing that looks frightening here, and it doesn't change the device.",
+      "A 25 mm neck runs well past the 15 mm devices ask for and takes a 28 mm main body. Both iliacs land in the same limb band, so the size of the sac is the only thing that looks frightening here, and it doesn't change the device. A long arc of calcified plaque runs down the left side of the neck. It's bright on the angio window, but it's wall, so measure past it to the outer edge.",
     neckRadiusMm: 12.5,
     sacRadiusMm: 32,
     ciaRadiusMm: { right: 8, left: 7.5 },
@@ -254,6 +342,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 60,
     bifurcationSlice: 80,
     driftPx: 4,
+    neckTaperMm: 0,
+    neckAngle: { deg: 0, towardDeg: 0 },
+    neckThrombus: null,
+    calcium: [{ atDeg: 0, spanDeg: 90, fromSlice: 33, toSlice: 41 }],
     seed: 53,
   }),
   makeCase({
@@ -261,7 +353,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Narrow iliacs",
     blurb: "An easy neck above small common iliacs on both sides.",
     debrief:
-      "The neck is the easy part. At 9 and 10 mm the iliacs need the two narrowest limbs on the sheet, and iliacs this small usually mean small external iliacs too, so getting an 18 Fr main body up them becomes the question. A millimetre either way changes the limb.",
+      "The neck is the easy part. At 9 and 10 mm the iliacs need the two narrowest limbs on the sheet, and iliacs this small usually mean small external iliacs too, so getting an 18 Fr main body up them becomes the question. A millimetre either way changes the limb. The neck leans 20° to the patient's right, enough that its long axis reads 23 mm and would wrongly take a 28 mm main body; the 22 mm short axis takes a 25. Calcified plaque lines its left wall.",
     neckRadiusMm: 11,
     sacRadiusMm: 29,
     ciaRadiusMm: { right: 4.5, left: 5 },
@@ -271,6 +363,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 62,
     bifurcationSlice: 80,
     driftPx: 5,
+    neckTaperMm: 0,
+    neckAngle: { deg: 20, towardDeg: 180 },
+    neckThrombus: null,
+    calcium: [{ atDeg: 0, spanDeg: 70, fromSlice: 31, toSlice: 38 }],
     seed: 67,
   }),
   makeCase({
@@ -278,7 +374,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Wide left iliac",
     blurb: "A straightforward neck and sac, with the wide common iliac on the left this time.",
     debrief:
-      "The short neck case's iliac problem on the other side. The 19 mm left common iliac takes a 24 mm limb and the 13 mm right a 16. Which side the main body goes up decides which leg the wide limb belongs on, so check the device picker agrees with the side you chose.",
+      "The short neck case's iliac problem on the other side. The 19 mm left common iliac takes a 24 mm limb and the 13 mm right a 16. Which side the main body goes up decides which leg the wide limb belongs on, so check the device picker agrees with the side you chose. The neck flares too, from 24 mm at the renals, and passes 110% of that only 8 mm down, so by the usual definition the landing zone is 8 mm long even though the sac doesn't visibly start for another few slices. A 3 mm crescent of thrombus lines its left side; measure to the outer wall, not the edge of the contrast.",
     neckRadiusMm: 12,
     sacRadiusMm: 30,
     ciaRadiusMm: { right: 6.5, left: 9.5 },
@@ -288,6 +384,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 56,
     bifurcationSlice: 76,
     driftPx: 6,
+    neckTaperMm: 3,
+    neckAngle: { deg: 0, towardDeg: 0 },
+    neckThrombus: { atDeg: 0, thicknessMm: 3 },
+    calcium: [],
     seed: 79,
   }),
   makeCase({
@@ -295,7 +395,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Short, wide neck",
     blurb: "A 28 mm neck that only just falls short of the usual landing length, over a big sac.",
     debrief:
-      "Fourteen millimetres of neck is just under the 15 most devices want, and at 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough. The 22 mm left iliac needs a 24 mm limb.",
+      "Fourteen millimetres of neck is just under the 15 most devices want, and at 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough. The 22 mm left iliac needs a 24 mm limb. The neck leans 25° forward and to the left, so its long axis on an axial slice reads about 31 mm, which would wrongly take a 36. Calcified plaque sits on its right wall.",
     neckRadiusMm: 14,
     sacRadiusMm: 37,
     ciaRadiusMm: { right: 8, left: 11 },
@@ -305,6 +405,10 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 54,
     bifurcationSlice: 74,
     driftPx: 9,
+    neckTaperMm: 0,
+    neckAngle: { deg: 25, towardDeg: 60 },
+    neckThrombus: null,
+    calcium: [{ atDeg: 200, spanDeg: 80, fromSlice: 34, toSlice: 38 }],
     seed: 83,
   }),
   makeCase({
@@ -312,7 +416,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Giant sac, wide iliacs",
     blurb: "An 8 cm aneurysm that pushes everything aside, over two wide common iliacs.",
     debrief:
-      "An 80 mm sac shoves the IVC and the bowel out of its way. The neck is only just long enough at 16 mm, and both common iliacs need the 28 mm limb, the widest on the sheet. Any wider and they'd need an iliac branch device, or the internal iliac coiled and the limb taken down into the external.",
+      "An 80 mm sac shoves the IVC and the bowel out of its way. The neck is only just long enough at 16 mm, and both common iliacs need the 28 mm limb, the widest on the sheet. Any wider and they'd need an iliac branch device, or the internal iliac coiled and the limb taken down into the external. The neck leans 40°, so its long axis on an axial slice is about 35 mm, off the end of the sheet, while the short axis is 27. Thrombus lines the front of it.",
     neckRadiusMm: 13.5,
     sacRadiusMm: 40,
     ciaRadiusMm: { right: 11.5, left: 12.5 },
@@ -322,27 +426,92 @@ export const EVAR_CASES: readonly EvarCase[] = [
     sacPeakSlice: 54,
     bifurcationSlice: 70,
     driftPx: 10,
+    neckTaperMm: 0,
+    neckAngle: { deg: 40, towardDeg: 30 },
+    neckThrombus: { atDeg: 120, thicknessMm: 3 },
+    calcium: [],
     seed: 97,
   }),
 ];
 
+/** One vessel's cross-section on a slice, in pixels on the image. */
+type Section = {
+  outerPx: number;
+  lumenPx: number;
+  /** Where the lumen's centre sits relative to the vessel's, pushed away from thrombus. */
+  lumenShift: Point;
+  /** An angled vessel cuts as an oval, `stretch` times longer toward `toward`. */
+  toward: Point;
+  stretch: number;
+  /** Arcs of calcified plaque on this slice, in degrees. */
+  plaque: readonly { atDeg: number; spanDeg: number }[];
+};
+
+const round = (outerPx: number, lumenPx: number): Section => ({
+  outerPx,
+  lumenPx,
+  lumenShift: { x: 0, y: 0 },
+  toward: { x: 1, y: 0 },
+  stretch: 1,
+  plaque: [],
+});
+
+const inArc = (deg: number, arc: { atDeg: number; spanDeg: number }) => {
+  const off = (((deg - arc.atDeg) % 360) + 540) % 360 - 180;
+  return Math.abs(off) <= arc.spanDeg / 2;
+};
+
 /**
- * Draws one vessel cross-section: outer wall, thrombus, and an eccentric
- * contrast lumen pushed toward the front, the way thrombus usually lines the
- * back of a sac.
+ * Draws one vessel cross-section: outer wall, thrombus, a contrast lumen, and
+ * any calcified plaque. An oval cut is squashed back to round first, so the
+ * wall, the lumen and the plaque all follow the oval.
  */
-function vesselHU(dx: number, dy: number, outerPx: number, neckPx: number, z: number): number | null {
-  const d = Math.hypot(dx, dy);
-  if (d > outerPx) return null;
+function vesselHU(dx: number, dy: number, v: Section, z: number): number | null {
+  const along = (dx * v.toward.x + dy * v.toward.y) / v.stretch;
+  const across = -dx * v.toward.y + dy * v.toward.x;
+  const x = along * v.toward.x - across * v.toward.y;
+  const y = along * v.toward.y + across * v.toward.x;
+  const d = Math.hypot(x, y);
+  if (d > v.outerPx) return null;
   const wallPx = WALL_MM / PIXEL_MM;
-  const lumenPx = Math.min(outerPx - wallPx, neckPx - wallPx);
-  const shift = (outerPx - wallPx - lumenPx) * 0.6;
-  if (Math.hypot(dx, dy + shift) <= lumenPx) return HU.lumen;
-  if (d > outerPx - wallPx) {
-    const angle = Math.atan2(dy, dx);
-    return Math.sin(angle * 7 + z * 0.3) > 0.97 ? HU.calcium : HU.wall;
+  const deg = (Math.atan2(-y, x) * 180) / Math.PI;
+  const plaque = v.plaque.some((arc) => inArc(deg, arc));
+  if (plaque && d > v.outerPx - wallPx - PLAQUE_MM / PIXEL_MM) return HU.calcium;
+  if (Math.hypot(x - v.lumenShift.x, y - v.lumenShift.y) <= v.lumenPx) return HU.lumen;
+  if (d > v.outerPx - wallPx) {
+    return Math.sin(Math.atan2(y, x) * 7 + z * 0.3) > 0.97 ? HU.calcium : HU.wall;
   }
   return HU.thrombus;
+}
+
+/**
+ * The aorta's cross-section on a slice. In the neck the lumen fills the wall
+ * unless a thrombus crescent lines it; in the sac it stays the width of the
+ * end of the neck and sits forward, the way thrombus usually lines the back.
+ */
+function aortaSection(c: EvarCase, z: number): Section {
+  const outerPx = outerRadiusMm(c, z) / PIXEL_MM;
+  const wallPx = WALL_MM / PIXEL_MM;
+  const { toward, stretch } = c.sectionAt(z);
+  const plaque = c.calcium.filter((arc) => z >= arc.fromSlice && z <= arc.toSlice);
+  const inNeck = z > c.lowestRenalSlice - 1 && z <= c.neckEndSlice;
+  if (z <= c.neckEndSlice) {
+    const thrombus = inNeck ? c.neckThrombus : null;
+    const halfPx = thrombus ? thrombus.thicknessMm / 2 / PIXEL_MM : 0;
+    const away = thrombus ? unitAt(thrombus.atDeg + 180) : { x: 0, y: 0 };
+    return {
+      outerPx,
+      lumenPx: outerPx - wallPx - halfPx,
+      lumenShift: { x: away.x * halfPx, y: away.y * halfPx },
+      toward,
+      stretch,
+      plaque,
+    };
+  }
+  const neckEndPx = (c.neckRadiusMm + c.neckTaperMm) / PIXEL_MM;
+  const lumenPx = Math.min(outerPx - wallPx, neckEndPx - wallPx);
+  const shift = (outerPx - wallPx - lumenPx) * 0.6;
+  return { outerPx, lumenPx, lumenShift: { x: 0, y: -shift }, toward, stretch, plaque };
 }
 
 /**
@@ -532,8 +701,9 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
   const tissue = new Float32Array(SIZE * SIZE);
   const random = mulberry32(c.seed * 7919 + z);
   const scene = sceneAt(c, z);
-  const neckPx = c.neckRadiusMm / PIXEL_MM;
   const aortaPx = outerRadiusMm(c, z) / PIXEL_MM;
+  const aorta = aortaPx > 0 ? aortaSection(c, z) : null;
+  const wallPx = WALL_MM / PIXEL_MM;
   const centre = c.centreAt(z);
   const iliacs = c.iliacCentresAt(z);
   const iliacPx = { right: c.ciaRadiusMm.right / PIXEL_MM, left: c.ciaRadiusMm.left / PIXEL_MM };
@@ -542,12 +712,12 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
   for (let y = 0; y < SIZE; y += 1) {
     for (let x = 0; x < SIZE; x += 1) {
       let hu: number | null = null;
-      if (aortaPx > 0) {
-        hu = vesselHU(x - centre.x, y - centre.y, aortaPx, neckPx, z);
+      if (aorta) {
+        hu = vesselHU(x - centre.x, y - centre.y, aorta, z);
       } else {
         hu =
-          vesselHU(x - iliacs.right.x, y - iliacs.right.y, iliacPx.right, iliacPx.right, z) ??
-          vesselHU(x - iliacs.left.x, y - iliacs.left.y, iliacPx.left, iliacPx.left, z);
+          vesselHU(x - iliacs.right.x, y - iliacs.right.y, round(iliacPx.right, iliacPx.right - wallPx), z) ??
+          vesselHU(x - iliacs.left.x, y - iliacs.left.y, round(iliacPx.left, iliacPx.left - wallPx), z);
       }
       hu ??= renalHU(c, x, y, z) ?? (ivc && insideEllipse(x, y, ivc) ? HU.ivc : backgroundHU(scene, x, y));
       tissue[y * SIZE + x] = hu;
