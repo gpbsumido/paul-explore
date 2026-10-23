@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import { API_URL } from "@/lib/apiUrl";
+import { fetchUpstream } from "@/lib/upstream";
 
 export const catalogSetSchema = z.object({
   id: z.string(),
@@ -46,15 +47,19 @@ export type Catalog = z.infer<typeof catalogSchema>;
  */
 export async function fetchCatalog(): Promise<Catalog | null> {
   try {
-    const res = await fetch(`${API_URL}/api/tcg/catalog`, {
+    // With a deadline, because a stalled API used to hang the page instead of
+    // reaching its unavailable state. That's what the 5.28.0 outage looked
+    // like: /tcg/pocket never finished loading, and the a11y e2e timed out on
+    // PRs that had nothing to do with it.
+    const upstream = await fetchUpstream(`${API_URL}/api/tcg/catalog`, {
       // Deliberate: this keeps the pages that read it out of `next build`
       // entirely. Freshness is handled upstream by the catalog endpoint's own
       // s-maxage, so opting out here costs a CDN hit rather than a round trip
       // to Postgres.
       cache: "no-store",
     });
-    if (!res.ok) return null;
-    return catalogSchema.parse(await res.json());
+    if (!upstream.ok || !upstream.response.ok) return null;
+    return catalogSchema.parse(await upstream.response.json());
   } catch {
     return null;
   }
