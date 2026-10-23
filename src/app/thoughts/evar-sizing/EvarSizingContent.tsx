@@ -349,6 +349,63 @@ RETURNING *`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-22-references"
+        date="October 22, 2026"
+        title="Correcting an answer without a deploy"
+      >
+        <p>
+          The phantom computes every reference exactly, but exact only means
+          exactly what I defined. If a vascular surgeon looks at a case and
+          says the neck is 26, not 24, I want to change that number on a
+          page, not in a geometry file. So there&apos;s now an admin page at{" "}
+          <code className={code}>/evar/admin</code> that sets a case&apos;s
+          five answers by hand.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An override replaces five numbers and nothing else.
+        </h3>
+        <p className="text-muted">
+          Hints, the slice the sac starts on and the Hard-level clock all
+          still come from the geometry. Only the scored values change, and if
+          the API is unreachable the page quietly scores against the phantom,
+          because practice shouldn&apos;t break when an admin feature does.
+        </p>
+        <pre className={pre}>
+          {`const row = overrides.find((o) => o.caseId === c.id);
+if (!row) return phantom;
+return { ...phantom, neckDiameter: row.neckDiameter, neckLength: row.neckLength,
+  maxSac: row.maxSac, rightCia: row.rightCia, leftCia: row.leftCia };`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Changing the answer key mid-study is only safe because attempts keep theirs.
+        </h3>
+        <p className="text-muted">
+          A correction changes scores for everyone from the next load. For
+          practice that&apos;s the point. For the study it would be a quiet
+          disaster if old attempts were re-scored against the new key, but
+          each recorded score already carries the reference it was judged
+          against, so an analysis can see exactly which key was live.
+        </p>
+        <pre className={pre}>
+          {`scores: [{ id: "neckDiameter", yours: 24.2, reference: 26, verdict: "outside" }, ...]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I keyed each form on its save time. That ate the Saved message.
+        </h3>
+        <p className="text-muted">
+          My first idea for Reset to phantom was to key each case&apos;s form
+          on when it was last saved, so a reset would remount it with the
+          phantom&apos;s numbers. It would have, and it would also have
+          remounted after every save, wiping the confirmation the moment the
+          refetch landed. Reset now puts the phantom values back itself, and
+          the form stays mounted.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -358,17 +415,18 @@ RETURNING *`}
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Endurant II/IIs device selection from the public sizing sheet, with each diameter graded against the real anatomy and against your own numbers.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
+          "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
         ]}
         couldImprove={[
           "Only one manufacturer's sheet, and only diameters are graded. Lengths need a centerline before they can be scored.",
           "Everything is axial. Neck angulation and lengths along a curved centerline need a 3D reconstruction or curved planar reformat, which is the step real planning software takes.",
           "The phantom is tidy. Real necks are conical, calcified and angled, and the cases don't yet include the ugly ones that make sizing hard.",
           "There is no zoom, so a 2 mm tolerance is about two pixels at full size. That makes it harder than it should be on a small screen.",
+          "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
         ]}
         upcoming={[
           "Real deidentified CTA cases from an openly licensed aortic dataset, each with a reference set measured by hand, loaded through the same per-slice function.",
-          "Letting an admin correct a case's reference answers without a deploy.",
           "A download on this site for the study export, which the API already serves to admins by participant id only.",
           "Zoom and pan on the viewer.",
         ]}
