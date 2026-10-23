@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
-import type { DeviceGrade, LengthGrade, Reach } from "@/lib/evar/endurant";
+import type { DeviceGrade, LengthGrade } from "@/lib/evar/sheets";
+import type { Reach, Sheet } from "@/lib/evar/devices";
 import type { Outcome } from "@/lib/evar/game";
 import type { EvarCase } from "@/lib/evar/phantom";
 import type { ReferenceRow } from "@/lib/evar/references";
@@ -48,7 +49,8 @@ const DEVICE_VERDICT_TEXT = {
   unpicked: "Not picked",
 } as const;
 
-const graft = (value: number | null) => (value === null ? "No standard device" : `${value} mm`);
+/** "16 mm", or "14.5 or 16 mm" where a shared band edge allows both. */
+const graft = (values: readonly number[]) => (values.length === 0 ? "No standard device" : `${values.join(" or ")} mm`);
 
 /** A reach or a landing window, rounded to the millimetre: "152 mm", "123–143 mm", or "up to 96 mm" for the gate. */
 const span = (r: Reach) => {
@@ -71,6 +73,8 @@ type Props = {
   rows: readonly TaskScore[];
   grades: readonly DeviceGrade[];
   lengths: readonly LengthGrade[];
+  /** Whose sizing sheet the devices were graded against. */
+  sheet: Sheet;
   evarCase: EvarCase;
   override: ReferenceRow | null;
   elapsedMs: number;
@@ -93,6 +97,7 @@ export default function ResultsDialog({
   rows,
   grades,
   lengths,
+  sheet,
   evarCase,
   override,
   elapsedMs,
@@ -188,7 +193,7 @@ export default function ResultsDialog({
 
         <div className="mt-6 overflow-x-auto">
           <table className="w-full text-left text-[13px]">
-            <caption className="mb-2 text-left text-[15px] font-bold text-foreground">Devices</caption>
+            <caption className="mb-2 text-left text-[15px] font-bold text-foreground">Devices, {sheet.name}</caption>
             <thead className="text-muted">
               <tr>
                 <th scope="col" className="py-1.5 pr-3 font-medium">Seals</th>
@@ -247,6 +252,9 @@ export default function ResultsDialog({
         </div>
 
         <p className="mt-4 text-[14px] leading-relaxed text-muted">{evarCase.debrief}</p>
+        {sheet.id === "endurant" ? null : (
+          <p className="mt-2 text-[13px] text-muted">The debrief quotes Endurant sizes; the tables above are {sheet.name}&apos;s.</p>
+        )}
       </Modal.Body>
       <Modal.Footer>
         <div className="flex flex-wrap justify-end gap-2">

@@ -460,6 +460,6 @@ describe("EvarContent manufacturers", () => {
     expect(within(mainBody()).queryByRole("option", { name: /ETBF2816C145EE/ })).toBeNull();
 
     fireEvent.click(screen.getByRole("radio", { name: /zenith alpha/i }));
-    expect(within(mainBody()).getByRole("option", { name: /ZIMB/ })).toBeInTheDocument();
+    expect(within(mainBody()).getAllByRole("option", { name: /ZIMB/ }).length).toBeGreaterThan(0);
   });
 });
