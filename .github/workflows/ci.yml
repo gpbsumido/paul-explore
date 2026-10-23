@@ -123,10 +123,11 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers (Chromium only)
-        # --with-deps runs apt even on a cache hit, and on some runners apt
-        # stalls on a mirror until the step is killed. It once sat here for 22
+        # apt stalls on a slow mirror on some runners. It once sat here for 22
         # minutes, and four jobs hit the old 10-minute cap on October 23, 2026,
-        # each passing on a rerun. A healthy install is about ten seconds, so
+        # each passing on a rerun. The install now skips apt whenever Chromium
+        # already starts (scripts/install-playwright.sh). A healthy install is
+        # about ten seconds, so
         # each attempt gets four minutes before it is killed (with everything
         # it started) and tried again. Every retry leaves a warning annotation
         # on the run. A retry first clears what the killed attempt left of apt
@@ -228,10 +229,11 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers (Chromium only)
-        # --with-deps runs apt even on a cache hit, and on some runners apt
-        # stalls on a mirror until the step is killed. It once sat here for 22
+        # apt stalls on a slow mirror on some runners. It once sat here for 22
         # minutes, and four jobs hit the old 10-minute cap on October 23, 2026,
-        # each passing on a rerun. A healthy install is about ten seconds, so
+        # each passing on a rerun. The install now skips apt whenever Chromium
+        # already starts (scripts/install-playwright.sh). A healthy install is
+        # about ten seconds, so
         # each attempt gets four minutes before it is killed (with everything
         # it started) and tried again. Every retry leaves a warning annotation
         # on the run. A retry first clears what the killed attempt left of apt
@@ -432,10 +434,11 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers (Chromium only)
-        # --with-deps runs apt even on a cache hit, and on some runners apt
-        # stalls on a mirror until the step is killed. It once sat here for 22
+        # apt stalls on a slow mirror on some runners. It once sat here for 22
         # minutes, and four jobs hit the old 10-minute cap on October 23, 2026,
-        # each passing on a rerun. A healthy install is about ten seconds, so
+        # each passing on a rerun. The install now skips apt whenever Chromium
+        # already starts (scripts/install-playwright.sh). A healthy install is
+        # about ten seconds, so
         # each attempt gets four minutes before it is killed (with everything
         # it started) and tried again. Every retry leaves a warning annotation
         # on the run. A retry first clears what the killed attempt left of apt
