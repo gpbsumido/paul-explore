@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-23 - version 7.26.0
+
+- Every EVAR phantom neck now has at least one thing a real neck has. `CaseParams` gains `neckTaperMm` (a conical or flaring neck), `neckAngle` (the neck leans away from the sac's axis, so its axial cut is an oval `1/cos θ` long along the tilt with the true diameter across it), `neckThrombus` (a crescent that moves the lumen off-centre and leaves the outer wall alone) and `calcium` (arcs of plaque in the wall that bulge a millimetre in). The drawing and `referenceFor` read the same numbers, so the answers still match the image.
+- The nine cases are reworked, not added to. Only `ectatic-left`'s neck length moved (22 to 8 mm, because its neck flares past 110% early); every other reference is unchanged, and each debrief now says what its neck does and what measuring the long axis of an oval would cost. The measuring note says to take the short axis.
+- Device history and personal bests move to v2 localStorage keys and the v1 keys are removed on read, so nothing from the old anatomy is left to compare against.
+
 ## 2026-10-23 - version 7.25.0
 
 - The EVAR slice viewer zooms from 1× to 8× and pans. Scroll or pinch zooms at the pointer, a drag pans, and corner buttons step the zoom with the level in a live region. From the keyboard, + and − zoom around the crosshair, 0 resets, and the view follows the crosshair when it walks off screen. At full size a 2 mm tolerance was about two pixels, which on a phone was mostly luck.
