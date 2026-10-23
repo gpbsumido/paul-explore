@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import Link from "next/link";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import dynamic from "next/dynamic";
 import PageHeader from "@/components/PageHeader";
 import { LEVELS } from "@/lib/evar/levels";
 import { EVAR_CASES } from "@/lib/evar/phantom";
@@ -14,6 +14,12 @@ const link =
 const levelLabel = (id: string) => LEVELS.find((l) => l.id === id)?.label ?? id;
 const caseTitle = (id: string) => EVAR_CASES.find((c) => c.id === id)?.title ?? id;
 const when = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+
+// recharts is over 100KB gzipped and the chart sits below the cards, so it loads after them.
+const AccuracyPlot = dynamic(() => import("./AccuracyPlot"), {
+  ssr: false,
+  loading: () => <div className="h-full animate-pulse rounded-lg bg-background" />,
+});
 
 /** One level's numbers. A region, so each card can be found by its level. */
 function LevelCard({ summary }: { summary: LevelSummary }) {
@@ -55,32 +61,7 @@ function AccuracyChart({ history }: { history: readonly HistoryEntry[] }) {
       </figcaption>
       <p className="mt-1 text-[13px] text-muted">Out of five, one point per finished case, oldest on the left.</p>
       <div className="mt-4 h-56" aria-hidden>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
-            <CartesianGrid stroke="var(--color-border)" vertical={false} />
-            <XAxis dataKey="attempt" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
-            <YAxis
-              domain={[0, 5]}
-              ticks={[0, 1, 2, 3, 4, 5]}
-              tick={{ fontSize: 11, fill: "var(--color-muted)" }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", fontSize: 12 }}
-              labelFormatter={(attempt) => `Attempt ${attempt}`}
-              formatter={(value, _name, item) => [`${value} of 5 (${item.payload.level})`, "Within tolerance"]}
-            />
-            <Line
-              type="monotone"
-              dataKey="within"
-              stroke="var(--color-foreground)"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <AccuracyPlot data={data} />
       </div>
     </figure>
   );

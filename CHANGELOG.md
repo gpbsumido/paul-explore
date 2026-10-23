@@ -4,6 +4,7 @@
 
 - New `/evar/results` page: every EVAR case finished on this device, with a card per level (attempts, average measurements within tolerance, best points), a chart of measurements within tolerance attempt by attempt, and a table of every attempt, newest first. The chart is hidden from screen readers because the table carries the same numbers. The results popup links to it.
 - The history lives in localStorage (`src/lib/evar/history.ts`) next to the personal bests, because practice is anonymous outside the study. Each attempt is kept once under its attempt id, the newest 500 are kept, and storage is checked against a schema so anything malformed reads as an empty history.
+- The chart loads after the rest of the page. With recharts in the first load, `/evar/results` came to 418KB gzipped against the 360KB ceiling for routes without a named budget; split out, it's 307KB.
 
 ## 2026-10-23 - version 7.22.0
 
