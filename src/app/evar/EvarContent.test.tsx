@@ -18,13 +18,19 @@ afterEach(() => {
   window.localStorage.clear();
 });
 
-/** The page reads sign-in state through react-query, so it needs a client. */
-const renderPage = () =>
-  render(
+/**
+ * The page reads sign-in state through react-query, so it needs a client. The
+ * guided tour opens itself on a first visit, so it's marked seen here; its own
+ * tests are in EvarTour.test.tsx.
+ */
+const renderPage = () => {
+  window.localStorage.setItem("evar-tour-seen", "true");
+  return render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <EvarContent />
     </QueryClientProvider>,
   );
+};
 
 const sliceSlider = () => screen.getByRole("slider", { name: /slice/i });
 const viewer = () => screen.getByRole("application", { name: /axial ct slice/i });
