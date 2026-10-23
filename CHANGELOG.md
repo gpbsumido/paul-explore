@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-23 - version 7.21.1
+
+- `/evar` follows the site theme again. The 7.21.0 stage forced `data-theme="dark"` on its wrapper, so light mode was a light header over a near-black page. Only the scan stays black, as it should.
+- The floating dock is a near-opaque surface instead of glass. It slides over the panels while scrolling, and at glass opacity the task rows and viewer help read straight through the slider and buttons.
+
 ## 2026-10-23 - version 7.21.0
 
 - `/evar` is now a full-height dark stage instead of a page of stacked sections. A floating top bar holds the level, case, clock and personal best. The measurements and the device picker float either side of a viewer sized to the screen, and the window, slice, caliper and Check answers controls sit in a dock that stays on screen while scrolling. Below `lg` it all stacks. The intro and the research panel moved under the stage.
