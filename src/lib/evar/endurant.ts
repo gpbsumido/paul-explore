@@ -26,9 +26,6 @@ const DISTAL: readonly Band[] = [
   { from: 23, to: 25, graft: 28 },
 ];
 
-/** The sheet's bands are whole millimetres, so the measurement is rounded first. */
-export const mainBodyDiameterFor = (neckMm: number) => lookup(PROXIMAL, neckMm)[0] ?? null;
-export const limbDiameterFor = (iliacMm: number) => lookup(DISTAL, iliacMm)[0] ?? null;
 
 const device = (family: string, proximal: number, distal: number, lengthMm: number, fr: number): Device => ({
   code: `${family}${proximal}${distal}C${lengthMm}EE`,
@@ -48,7 +45,7 @@ const BIFURCATIONS: readonly { proximal: number; distals: number[]; lengths: num
 
 const bodyFr = (proximal: number) => (proximal >= 32 ? 20 : 18);
 
-export const MAIN_BODIES: readonly Device[] = [
+const MAIN_BODIES: readonly Device[] = [
   ...BIFURCATIONS.flatMap(({ proximal, distals, lengths }) =>
     distals.flatMap((distal) => lengths.map((length) => device("ETBF", proximal, distal, length, bodyFr(proximal)))),
   ),
@@ -57,11 +54,11 @@ export const MAIN_BODIES: readonly Device[] = [
 
 const LIMB_LENGTHS = [82, 93, 124, 156, 199];
 
-export const LIMBS: readonly Device[] = [10, 13, 16, 20, 24, 28].flatMap((distal) =>
+const LIMBS: readonly Device[] = [10, 13, 16, 20, 24, 28].flatMap((distal) =>
   LIMB_LENGTHS.map((length) => device("ETLW", 16, distal, length, distal <= 16 && length <= 124 ? 14 : 16)),
 );
 
-export const EXTENSIONS: readonly Device[] = [
+const EXTENSIONS: readonly Device[] = [
   device("ETEW", 10, 10, 82, 14),
   device("ETEW", 13, 13, 82, 14),
   device("ETEW", 20, 20, 82, 16),
@@ -90,7 +87,7 @@ const CONTRA_ADD = { standard: 50, short: 40 };
 /** On an Endurant IIs the ipsilateral limb adds 50 to 70 mm, depending on how many stents overlap. */
 const IIS_IPSI_ADD = { min: 50, max: 70 };
 /** Distal fixation the IFU asks for in the common iliac. */
-export const DISTAL_SEAL_MM = 15;
+const DISTAL_SEAL_MM = 15;
 
 const shortBody = (main: Device) => main.code.startsWith("ETBF") && main.lengthMm === 124;
 
@@ -99,7 +96,7 @@ const shortBody = (main: Device) => main.code.startsWith("ETBF") && main.lengthM
  * the range overlap allows, and how far down the contralateral gate ends.
  * Taken from the Endurant II/IIs sizing sheet's covered-length footnotes.
  */
-export function reachFor(pick: DevicePick): SheetReach {
+function reachFor(pick: DevicePick): SheetReach {
   const main = byCode(pick.mainBody);
   if (!main) return { gateMm: null, contra: null, ipsi: null };
   const add = shortBody(main) ? CONTRA_ADD.short : CONTRA_ADD.standard;
@@ -125,6 +122,7 @@ export const ENDURANT: Sheet = {
   maker: "Medtronic",
   source: "Medtronic's public Endurant II/IIs sizing sheet (US, 12/2020) and the FDA-hosted IFU",
   codesNote: "Codes are Medtronic's own.",
+  // The sheet's bands are whole millimetres, so the measurement is rounded first.
   mainBodyDiametersFor: (neckMm) => lookup(PROXIMAL, neckMm),
   limbDiametersFor: (iliacMm) => lookup(DISTAL, iliacMm),
   catalogue: CATALOGUE,

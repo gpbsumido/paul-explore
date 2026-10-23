@@ -6,7 +6,7 @@ import { parseManifest } from "./scans";
 const scans = parseManifest(manifest, "/evar/scans");
 import { EVAR_CASES, referenceFor } from "./phantom";
 import { TOLERANCE_MM } from "./measure";
-import { limbDiameterFor, mainBodyDiameterFor } from "./endurant";
+import { ENDURANT } from "./endurant";
 
 const level = (id: string) => LEVELS.find((l) => l.id === id)!;
 
@@ -54,9 +54,9 @@ describe("cases per level", () => {
     [level("easy"), level("medium")].forEach((l) => {
       casesFor(l, scans).flatMap((c) => (c.kind === "phantom" ? [c] : [])).forEach((c) => {
         const ref = referenceFor(c);
-        expect(mainBodyDiameterFor(ref.neckDiameter), c.id).not.toBeNull();
-        expect(limbDiameterFor(ref.rightCia), c.id).not.toBeNull();
-        expect(limbDiameterFor(ref.leftCia), c.id).not.toBeNull();
+        expect(ENDURANT.mainBodyDiametersFor(ref.neckDiameter), c.id).not.toEqual([]);
+        expect(ENDURANT.limbDiametersFor(ref.rightCia), c.id).not.toEqual([]);
+        expect(ENDURANT.limbDiametersFor(ref.leftCia), c.id).not.toEqual([]);
       });
     });
   });
