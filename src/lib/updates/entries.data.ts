@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-32-0",
+    date: "2026-10-23",
+    version: "7.32.0",
+    category: "improvement",
+    tags: ["evar", "practice"],
+    title: "EVAR sizing, faster and ready for more real scans",
+    summary:
+      "EVAR sizing practice opens on its real CT scan, fits on one screen, scrolls through slices with the mouse wheel, and is ready for many more real scans.",
+    body: [
+      "The practice scans draw about twice as fast and stop redrawing when nothing has changed. The mouse wheel now moves through the slices the way it does in hospital imaging software, and holding Ctrl or Command while you scroll zooms. On a computer the whole practice fits on one screen, with the measurement list scrolling on its own.",
+      "Real scans are now listed in one place alongside their files, so many more can be added without changing the site, and you can pick from them in a list. If a scan can't load, the page says so and lets you try again.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-31-0",
     date: "2026-10-23",
     version: "7.31.0",
