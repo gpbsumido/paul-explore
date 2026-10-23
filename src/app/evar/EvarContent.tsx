@@ -46,6 +46,12 @@ const pill =
 /** A floating panel on the stage. */
 const panel = "glass-card rounded-2xl p-4";
 
+/**
+ * The dock floats over the panels while scrolling, so it can't be glass: at
+ * 72% the task rows behind it read straight through the slider and buttons.
+ */
+const dock = "rounded-2xl border border-border bg-surface/95 p-4 shadow-lg backdrop-blur";
+
 /** The best for a level's case, read once when an attempt starts. */
 const bestFor = (level: Level, index: number) => readBest(level.id, (casesFor(level)[index] ?? casesFor(level)[0]).id);
 
@@ -245,8 +251,8 @@ export default function EvarContent() {
       <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "EVAR Sizing" }]} maxWidth="max-w-7xl" />
 
       <main>
-        {/* The stage is dark in either site theme, the way a reading room is. */}
-        <div data-theme="dark" className="bg-background text-foreground">
+        {/* The stage follows the site theme. Only the scan itself stays black, the way CT is read. */}
+        <div className="text-foreground">
           <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-7xl flex-col gap-3 px-3 py-3 sm:px-4">
             <header className={`${panel} flex flex-wrap items-end gap-x-6 gap-y-3`}>
               <div className="mr-auto">
@@ -353,7 +359,7 @@ export default function EvarContent() {
               </div>
             </div>
 
-            <div className={`${panel} sticky bottom-3 z-20 flex flex-wrap items-center gap-x-5 gap-y-3 shadow-lg`}>
+            <div className={`${dock} sticky bottom-3 z-20 flex flex-wrap items-center gap-x-5 gap-y-3`}>
               <PillGroup
                 legend="Window"
                 name="evar-window"
