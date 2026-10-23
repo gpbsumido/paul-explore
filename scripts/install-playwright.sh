@@ -14,4 +14,16 @@ if [ "${WITH_RETRIES_ATTEMPT:-1}" -gt 1 ]; then
   sudo dpkg --configure -a
 fi
 
-pnpm exec playwright install chromium --with-deps
+# The browser comes from Playwright's own download, or the cache, never apt.
+pnpm exec playwright install chromium
+
+# apt only runs when Chromium can't start without it. ubuntu-latest (26.04)
+# already has every library Chromium needs; what --with-deps added there was
+# about 25 MB of CJK, Thai and Unicode fonts, and on a slow mirror that download
+# is what stalled the October 23, 2026 runs. No test compares screenshots, so
+# the fonts change nothing they assert.
+if node scripts/chromium-launches.mjs; then
+  echo "Chromium starts without extra system packages, so apt is skipped."
+  exit 0
+fi
+pnpm exec playwright install-deps chromium
