@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-16-0",
+    date: "2026-10-22",
+    version: "7.16.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR sizing has Easy, Medium and Hard",
+    summary:
+      "Pick a level: Easy tells you where to look, Medium is the standard exercise, and Hard gives you the worst anatomy and five minutes.",
+    body: [
+      "Easy comes with hints on which slices to look at and a bit more room for error. Medium is two cases at standard tolerances. Hard has a new case with a wide, very short neck and a right iliac that needs the biggest limb, and a countdown that hands your answers in when it reaches zero.",
+      "Results now open with your score and how long it took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-15-0",
     date: "2026-10-22",
     version: "7.15.0",

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-22 - version 7.16.0
+
+- EVAR Sizing has Easy, Medium and Hard levels. Each one changes something real: Easy plays the long-neck case with slice-range hints for the lowest renal, the aneurysm start, the widest sac and a clean stretch of iliac, and passes diameters within 3 mm and lengths within 8. Medium is the old page, two cases and standard tolerances. Hard plays the short neck and a new hostile neck with no hints and a five-minute clock that hands the answers in at 0:00.
+- Added a third phantom case, the hostile neck: 30 mm wide and 10 mm long before the sac starts, a 70 mm sac, and a 24 mm right common iliac. The 10 mm comes from the scoring's own definition (first slice more than 10% wider than the neck), not the slice the flare begins at, and the test pins that.
+- The hint ranges sit off-centre so their midpoint isn't the answer. The countdown is a `role="timer"` that stays quiet, with a polite live region that only speaks at one minute, thirty seconds and time's up.
+- `score()` takes the level's tolerances, defaulting to the standard ones, and the results open with how many measurements landed and how long it took.
+
 ## 2026-10-22 - version 7.15.0
 
 - Added EVAR Sizing at `/evar`, a practice page for the measurements that decide an endovascular aneurysm repair: proximal neck diameter, neck length, maximum sac diameter, and both common iliac diameters. Scroll the axial slices, place a two-point caliper, record each measurement, then check them against the case's reference with a per-task verdict and a debrief on what the anatomy means.
