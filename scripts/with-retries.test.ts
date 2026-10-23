@@ -24,6 +24,7 @@ const [dir, ...plan] = process.argv.slice(1);
 const countFile = dir + "/count";
 const run = fs.existsSync(countFile) ? Number(fs.readFileSync(countFile, "utf8")) + 1 : 1;
 fs.writeFileSync(countFile, String(run));
+fs.writeFileSync(dir + "/attempt-" + run, String(process.env.WITH_RETRIES_ATTEMPT));
 const step = plan[Math.min(run, plan.length) - 1];
 if (step === "ok") process.exit(0);
 if (step === "fail") process.exit(7);
@@ -84,6 +85,14 @@ describe("with-retries", () => {
     expect(runs(dir)).toBe(3);
     expect(warnings(result.stdout)).toHaveLength(2);
     expect(warnings(result.stdout)[0]).toMatch(/attempt 1 of 3 exited with 7/);
+  });
+
+  it("tells each attempt which one it is, so a retry can clean up after the last", () => {
+    const dir = scratch();
+    runWithRetries(dir, { attempts: 3, timeout: 10, plan: ["fail", "ok"] });
+
+    expect(readFileSync(join(dir, "attempt-1"), "utf8")).toBe("1");
+    expect(readFileSync(join(dir, "attempt-2"), "utf8")).toBe("2");
   });
 
   it("gives up after the last attempt with the command's own exit code", () => {
