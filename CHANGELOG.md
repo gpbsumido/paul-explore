@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-23 - version 7.27.0
+
+- EVAR lengths are measured along a centerline. `centerlineMm` in `src/lib/evar/phantom.ts` adds up the 3D steps between slices, through an angled neck and on down one iliac, and `anatomyFor` gives renal to bifurcation and renal to each internal iliac, from the case's landmarks or from marked slices. Neck length now runs along the vessel for the reference and for your marks: the hostile neck is 10 mm on the slices and 16 along the vessel. The giant sac's neck is shortened to stay about 16 mm, and the hostile and short-wide debriefs say what the centerline changed.
+- Each common iliac gives off an internal iliac, back and out toward the pelvis, from `internalIliacSlice`. Where the lumens meet, lumen wins over wall.
+- Three new slices to mark on the page, the aortic bifurcation and each internal iliac origin, show renal-to-landmark lengths. They aren't scored tasks, so the API and admin references don't change.
+- Endurant length grading from the US sizing sheet's covered-length footnotes and the FDA-hosted IFU: `reachFor` gives the contralateral reach (limb + 30 to 50 mm, 10 less on the 124 mm body), the ipsilateral reach (the body, or body + extension at 30 to 50 mm overlap, or limb + 50 to 70 on an IIs) and where the gate ends (80 mm, 70 on the 124). `gradeLengths` passes the gate above the bifurcation and each side that can end 15 mm into its common iliac and short of the internal iliac. The results add a Lengths table, length checks count as device points, and Easy hints point at the new landmarks. Every case has stacks that land.
+- The study payload keeps its three diameter grades; length verdicts can be recomputed from the device codes it already records.
+
 ## 2026-10-23 - version 7.26.0
 
 - Every EVAR phantom neck now has at least one thing a real neck has. `CaseParams` gains `neckTaperMm` (a conical or flaring neck), `neckAngle` (the neck leans away from the sac's axis, so its axial cut is an oval `1/cos θ` long along the tilt with the true diameter across it), `neckThrombus` (a crescent that moves the lumen off-centre and leaves the outer wall alone) and `calcium` (arcs of plaque in the wall that bulge a millimetre in). The drawing and `referenceFor` read the same numbers, so the answers still match the image.

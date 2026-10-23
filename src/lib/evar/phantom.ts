@@ -45,7 +45,33 @@ type CaseParams = {
   neckThrombus: { atDeg: number; thicknessMm: number } | null;
   /** Arcs of calcified plaque in the wall, centred on `atDeg`, over a run of slices. */
   calcium: readonly { atDeg: number; spanDeg: number; fromSlice: number; toSlice: number }[];
+  /** Slice where each internal iliac comes off its common iliac, which is as far as a limb can go. */
+  internalIliacSlice: Record<IliacSide, number>;
   seed: number;
+};
+
+export type IliacSide = "right" | "left";
+
+/**
+ * Distances along the centerline from the lowest renal, in mm: to the aortic
+ * bifurcation, and on down each iliac to where its internal iliac comes off.
+ */
+export type Anatomy = {
+  renalToBifurcation: number;
+  renalToInternalIliac: Record<IliacSide, number>;
+};
+
+/** The same distances from slices someone marked, missing wherever a mark is. */
+export type MarkedAnatomy = {
+  renalToBifurcation?: number;
+  renalToInternalIliac?: Partial<Record<IliacSide, number>>;
+};
+
+export type Landmarks = {
+  renal: number;
+  bifurcation: number;
+  rightInternalIliac: number;
+  leftInternalIliac: number;
 };
 
 export type EvarCase = CaseParams & {
@@ -57,6 +83,8 @@ export type EvarCase = CaseParams & {
   slices: number;
   centreAt: (z: number) => Point;
   iliacCentresAt: (z: number) => { right: Point; left: Point };
+  /** Centre of an internal iliac on a slice, or null above where it comes off. */
+  internalIliacCentreAt: (z: number, side: IliacSide) => Point | null;
 };
 
 const SIZE = 384;
@@ -73,6 +101,9 @@ const PLAQUE_MM = 1;
 const TILT_ABOVE = 8;
 /** Slices over which each bend in an angled neck is rounded off. */
 const KNEE = 3;
+const INTERNAL_ILIAC_RADIUS_MM = 3.5;
+/** How fast an internal iliac heads back and outward into the pelvis once it leaves the common iliac, in px per mm down. */
+const INTERNAL_ILIAC_DRIFT = { back: 1.0, outward: 1.4 };
 
 const BODY = { x: 192, y: 190, rx: 165, ry: 135 };
 /** A lumbar vertebral body, wider than it is deep. */
@@ -230,6 +261,16 @@ function makeCase(params: CaseParams): EvarCase {
     };
   };
 
+  const internalIliacCentreAt = (z: number, side: IliacSide): Point | null => {
+    const from = params.internalIliacSlice[side];
+    if (z < from) return null;
+    const down = (z - from) * SLICE_MM;
+    const common = iliacCentresAt(z)[side];
+    // Radiological convention again: the patient's right is the image's left.
+    const outward = side === "right" ? -1 : 1;
+    return { x: common.x + outward * INTERNAL_ILIAC_DRIFT.outward * down, y: common.y + INTERNAL_ILIAC_DRIFT.back * down };
+  };
+
   return {
     ...params,
     size: SIZE,
@@ -239,6 +280,7 @@ function makeCase(params: CaseParams): EvarCase {
     sectionAt,
     centreAt,
     iliacCentresAt,
+    internalIliacCentreAt,
   };
 }
 
@@ -262,6 +304,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 10, towardDeg: 90 },
     neckThrombus: null,
     calcium: [{ atDeg: 150, spanDeg: 40, fromSlice: 31, toSlice: 35 }],
+    internalIliacSlice: { right: 95, left: 96 },
     seed: 11,
   }),
   makeCase({
@@ -283,14 +326,15 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 30, towardDeg: 0 },
     neckThrombus: null,
     calcium: [],
+    internalIliacSlice: { right: 93, left: 92 },
     seed: 23,
   }),
   makeCase({
     id: "hostile-neck",
     title: "Hostile neck",
-    blurb: "A wide neck that only runs a centimetre before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
+    blurb: "A wide, angled neck that only runs a centimetre down the slices before the sac, a big aneurysm, and a right common iliac that's nearly aneurysmal itself.",
     debrief:
-      "A 30 mm neck sits at the top of the range a standard main body covers, and 10 mm is about the shortest landing zone current devices accept at all. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely. The neck leans 50° to the patient's left, which turns the axial cut into an oval nearly 47 mm long when only the 30 mm short axis is real. A 4 mm crescent of thrombus lines the back of it and calcified plaque sits on its right wall: angled, short, lined and calcified is what makes a neck hostile.",
+      "A 30 mm neck sits at the top of the range a standard main body covers. On the slices the neck runs only 10 mm, about the shortest landing zone any current device accepts, but it leans, so along the vessel it's 16. The 24 mm right iliac needs the widest limb on the sizing sheet. Small measuring errors here move you from one device to another, or off the sheet entirely. The neck leans 50° to the patient's left, which turns the axial cut into an oval nearly 47 mm long when only the 30 mm short axis is real. A 4 mm crescent of thrombus lines the back of it and calcified plaque sits on its right wall: angled, short, lined and calcified is what makes a neck hostile.",
     neckRadiusMm: 15,
     sacRadiusMm: 35,
     ciaRadiusMm: { right: 12, left: 6 },
@@ -304,6 +348,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 50, towardDeg: 0 },
     neckThrombus: { atDeg: 270, thicknessMm: 4 },
     calcium: [{ atDeg: 180, spanDeg: 60, fromSlice: 33, toSlice: 37 }],
+    internalIliacSlice: { right: 91, left: 93 },
     seed: 37,
   }),
   makeCase({
@@ -325,6 +370,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 0, towardDeg: 0 },
     neckThrombus: null,
     calcium: [{ atDeg: 30, spanDeg: 50, fromSlice: 34, toSlice: 40 }],
+    internalIliacSlice: { right: 96, left: 95 },
     seed: 41,
   }),
   makeCase({
@@ -346,6 +392,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 0, towardDeg: 0 },
     neckThrombus: null,
     calcium: [{ atDeg: 0, spanDeg: 90, fromSlice: 33, toSlice: 41 }],
+    internalIliacSlice: { right: 95, left: 96 },
     seed: 53,
   }),
   makeCase({
@@ -367,6 +414,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 20, towardDeg: 180 },
     neckThrombus: null,
     calcium: [{ atDeg: 0, spanDeg: 70, fromSlice: 31, toSlice: 38 }],
+    internalIliacSlice: { right: 96, left: 95 },
     seed: 67,
   }),
   makeCase({
@@ -388,6 +436,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 0, towardDeg: 0 },
     neckThrombus: { atDeg: 0, thicknessMm: 3 },
     calcium: [],
+    internalIliacSlice: { right: 94, left: 95 },
     seed: 79,
   }),
   makeCase({
@@ -395,7 +444,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     title: "Short, wide neck",
     blurb: "A 28 mm neck that only just falls short of the usual landing length, over a big sac.",
     debrief:
-      "Fourteen millimetres of neck is just under the 15 most devices want, and at 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough. The 22 mm left iliac needs a 24 mm limb. The neck leans 25° forward and to the left, so its long axis on an axial slice reads about 31 mm, which would wrongly take a 36. Calcified plaque sits on its right wall.",
+      "On the slices the neck is 14 mm, just under the 15 most devices want, but it leans, so along the vessel it's 15.5: just over. At 28 mm wide it takes a 32 mm main body. It's the kind of neck that tempts you to call it close enough, and here the centerline is what settles it. The 22 mm left iliac needs a 24 mm limb. The neck leans 25° forward and to the left, so its long axis on an axial slice reads about 31 mm, which would wrongly take a 36. Calcified plaque sits on its right wall.",
     neckRadiusMm: 14,
     sacRadiusMm: 37,
     ciaRadiusMm: { right: 8, left: 11 },
@@ -409,6 +458,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 25, towardDeg: 60 },
     neckThrombus: null,
     calcium: [{ atDeg: 200, spanDeg: 80, fromSlice: 34, toSlice: 38 }],
+    internalIliacSlice: { right: 92, left: 94 },
     seed: 83,
   }),
   makeCase({
@@ -422,7 +472,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     ciaRadiusMm: { right: 11.5, left: 12.5 },
     lowestRenalSlice: 32,
     otherRenalAbove: 3,
-    neckEndSlice: 37,
+    neckEndSlice: 35,
     sacPeakSlice: 54,
     bifurcationSlice: 70,
     driftPx: 10,
@@ -430,6 +480,7 @@ export const EVAR_CASES: readonly EvarCase[] = [
     neckAngle: { deg: 40, towardDeg: 30 },
     neckThrombus: { atDeg: 120, thicknessMm: 3 },
     calcium: [],
+    internalIliacSlice: { right: 90, left: 91 },
     seed: 97,
   }),
 ];
@@ -708,6 +759,9 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
   const iliacs = c.iliacCentresAt(z);
   const iliacPx = { right: c.ciaRadiusMm.right / PIXEL_MM, left: c.ciaRadiusMm.left / PIXEL_MM };
   const ivc = ivcAt(c, z, centre, aortaPx);
+  const internals = (["right", "left"] as const).flatMap((side) => c.internalIliacCentreAt(z, side) ?? []);
+  const internalPx = INTERNAL_ILIAC_RADIUS_MM / PIXEL_MM;
+  const internalSection = round(internalPx, internalPx - wallPx);
 
   for (let y = 0; y < SIZE; y += 1) {
     for (let x = 0; x < SIZE; x += 1) {
@@ -715,9 +769,13 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
       if (aorta) {
         hu = vesselHU(x - centre.x, y - centre.y, aorta, z);
       } else {
-        hu =
-          vesselHU(x - iliacs.right.x, y - iliacs.right.y, round(iliacPx.right, iliacPx.right - wallPx), z) ??
-          vesselHU(x - iliacs.left.x, y - iliacs.left.y, round(iliacPx.left, iliacPx.left - wallPx), z);
+        // Where an internal iliac leaves its common iliac the two lumens run together, so lumen wins over wall.
+        const hits = [
+          vesselHU(x - iliacs.right.x, y - iliacs.right.y, round(iliacPx.right, iliacPx.right - wallPx), z),
+          vesselHU(x - iliacs.left.x, y - iliacs.left.y, round(iliacPx.left, iliacPx.left - wallPx), z),
+          ...internals.map((at) => vesselHU(x - at.x, y - at.y, internalSection, z)),
+        ];
+        hu = hits.includes(HU.lumen) ? HU.lumen : (hits.find((h) => h !== null) ?? null);
       }
       hu ??= renalHU(c, x, y, z) ?? (ivc && insideEllipse(x, y, ivc) ? HU.ivc : backgroundHU(scene, x, y));
       tissue[y * SIZE + x] = hu;
@@ -728,6 +786,48 @@ export function sliceHU(c: EvarCase, z: number): Int16Array {
   const noise = grainyNoise(random);
   // Air outside the patient stays flat, so the noise doesn't paint a halo round the body.
   return Int16Array.from(smooth, (hu, i) => Math.round(tissue[i] === HU.air ? hu : hu + noise[i]));
+}
+
+/** Centre of the vessel being followed on a slice: the aorta, then one iliac below the bifurcation. */
+const pathAt = (c: EvarCase, z: number, side: IliacSide): Point =>
+  z < c.bifurcationSlice ? c.centreAt(z) : c.iliacCentresAt(z)[side];
+
+/**
+ * Length along the vessel between two slices, in mm: each slice-to-slice step
+ * in 3D, so an angled neck or an iliac heading outward counts for more than
+ * the slice spacing. Below the bifurcation it follows `side`'s iliac.
+ */
+export function centerlineMm(c: EvarCase, from: number, to: number, side: IliacSide = "right"): number {
+  const [a, b] = from <= to ? [from, to] : [to, from];
+  let total = 0;
+  for (let z = a; z < b; z += 1) {
+    const p = pathAt(c, z, side);
+    const q = pathAt(c, z + 1, side);
+    total += Math.hypot((q.x - p.x) * c.pixelMm, (q.y - p.y) * c.pixelMm, c.sliceMm);
+  }
+  return total;
+}
+
+/** The distances device lengths are judged by, from the case's own landmarks. */
+export function anatomyFor(c: EvarCase): Anatomy;
+/** The same distances from marked slices, leaving out any that need a mark that isn't there. */
+export function anatomyFor(c: EvarCase, marks: Partial<Landmarks>): MarkedAnatomy;
+export function anatomyFor(c: EvarCase, marks?: Partial<Landmarks>): Anatomy | MarkedAnatomy {
+  const at: Partial<Landmarks> = marks ?? {
+    renal: c.lowestRenalSlice,
+    bifurcation: c.bifurcationSlice,
+    rightInternalIliac: c.internalIliacSlice.right,
+    leftInternalIliac: c.internalIliacSlice.left,
+  };
+  const { renal } = at;
+  const along = (to: number | undefined, side: IliacSide) =>
+    renal === undefined || to === undefined ? undefined : centerlineMm(c, renal, to, side);
+  const right = along(at.rightInternalIliac, "right");
+  const left = along(at.leftInternalIliac, "left");
+  return {
+    renalToBifurcation: along(at.bifurcation, "right"),
+    renalToInternalIliac: { ...(right === undefined ? {} : { right }), ...(left === undefined ? {} : { left }) },
+  };
 }
 
 /**
@@ -742,7 +842,7 @@ export function referenceFor(c: EvarCase): Reference & { sacStartSlice: number }
   const maxRadius = Math.max(...zs.map((z) => outerRadiusMm(c, z)));
   return {
     neckDiameter: c.neckRadiusMm * 2,
-    neckLength: (sacStartSlice - c.lowestRenalSlice) * c.sliceMm,
+    neckLength: centerlineMm(c, c.lowestRenalSlice, sacStartSlice),
     maxSac: maxRadius * 2,
     rightCia: c.ciaRadiusMm.right * 2,
     leftCia: c.ciaRadiusMm.left * 2,

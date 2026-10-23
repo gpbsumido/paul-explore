@@ -11,7 +11,8 @@ import ResultsDialog from "./ResultsDialog";
 import { clock, mm } from "./format";
 import { APP_VERSION } from "@/lib/appVersion";
 import { toAttemptPayload } from "@/lib/evar/research";
-import { gradeDevices, type DevicePick } from "@/lib/evar/endurant";
+import { gradeDevices, gradeLengths, type DevicePick } from "@/lib/evar/endurant";
+import { anatomyFor, centerlineMm, type Landmarks } from "@/lib/evar/phantom";
 import { outcomeFor } from "@/lib/evar/game";
 import { readBest, recordBest, usePersonalBest } from "@/lib/evar/personalBest";
 import { recordAttempt, type HistoryEntry } from "@/lib/evar/history";
@@ -30,7 +31,14 @@ import {
 } from "@/lib/evar/measure";
 
 type DiameterTask = Exclude<TaskId, "neckLength">;
-type Marks = { renal?: number; sacStart?: number };
+type Marks = Partial<Landmarks> & { sacStart?: number };
+
+/** Landmarks marked only for lengths: they feed device grading, not the five scored tasks. */
+const LENGTH_MARKS: readonly { key: "bifurcation" | "rightInternalIliac" | "leftInternalIliac"; label: string }[] = [
+  { key: "bifurcation", label: "Aortic bifurcation" },
+  { key: "rightInternalIliac", label: "Right internal iliac origin" },
+  { key: "leftInternalIliac", label: "Left internal iliac origin" },
+];
 
 const DIAMETER_TASKS = TASKS.filter((t): t is { id: DiameterTask; label: string } => t.id !== "neckLength");
 
@@ -174,13 +182,16 @@ export default function EvarContent() {
   const caliper = points.length === 2 ? distanceMm(points[0], points[1], evarCase.pixelMm) : null;
   const neckLength =
     marks.renal !== undefined && marks.sacStart !== undefined
-      ? Math.abs(marks.sacStart - marks.renal) * evarCase.sliceMm
+      ? centerlineMm(evarCase, marks.renal, marks.sacStart)
       : undefined;
   const attempt: Attempt = { ...recorded, ...(neckLength === undefined ? {} : { neckLength }) };
 
   const rows = score(attempt, reference, level.tolerance);
   const grades = gradeDevices(devices, reference, attempt);
-  const outcome = finishedAt === null ? null : outcomeFor({ scores: rows, grades, level, remainingMs: remaining });
+  const yourAnatomy = anatomyFor(evarCase, marks);
+  const lengths = gradeLengths(devices, anatomyFor(evarCase), yourAnatomy);
+  const outcome =
+    finishedAt === null ? null : outcomeFor({ scores: rows, grades: [...grades, ...lengths], level, remainingMs: remaining });
   const total = outcome?.total ?? null;
 
   // Writes to localStorage, not to state, so the popup keeps comparing against
@@ -369,6 +380,24 @@ export default function EvarContent() {
                   <TaskRow label="Neck length" value={neckLength === undefined ? "Mark both slices" : mm(neckLength)}>
                     <span />
                   </TaskRow>
+                  {LENGTH_MARKS.map(({ key, label }) => (
+                    <TaskRow key={key} label={label} value={marks[key] === undefined ? "Not marked" : `Slice ${(marks[key] ?? 0) + 1}`}>
+                      <button type="button" className={button} onClick={() => setMarks((m) => ({ ...m, [key]: slice }))}>
+                        Mark this slice{" "}<span className="sr-only">as {label.toLowerCase()}</span>
+                      </button>
+                    </TaskRow>
+                  ))}
+                  <TaskRow label="Renal to bifurcation" value={yourAnatomy.renalToBifurcation === undefined ? "Mark both slices" : mm(yourAnatomy.renalToBifurcation)}>
+                    <span />
+                  </TaskRow>
+                  {(["right", "left"] as const).map((side) => {
+                    const length = yourAnatomy.renalToInternalIliac?.[side];
+                    return (
+                      <TaskRow key={side} label={`Renal to ${side} internal iliac`} value={length === undefined ? "Mark both slices" : mm(length)}>
+                        <span />
+                      </TaskRow>
+                    );
+                  })}
                   {DIAMETER_TASKS.slice(1).map((task) => (
                     <TaskRow key={task.id} label={task.label} value={recorded[task.id] === undefined ? "Not recorded" : mm(recorded[task.id] ?? 0)}>
                       <RecordButton label={task.label} disabled={caliper === null} onClick={() => caliper !== null && setRecorded((r) => ({ ...r, [task.id]: caliper }))} />
@@ -460,6 +489,7 @@ export default function EvarContent() {
             outcome={outcome}
             rows={rows}
             grades={grades}
+            lengths={lengths}
             evarCase={evarCase}
             override={override}
             elapsedMs={finishedAt - startedAt}

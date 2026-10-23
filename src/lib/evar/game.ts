@@ -47,7 +47,8 @@ export function outcomeFor({
   remainingMs,
 }: {
   scores: readonly TaskScore[];
-  grades: readonly DeviceGrade[];
+  /** Every device check, diameters and lengths alike; each match is worth the same. */
+  grades: readonly Pick<DeviceGrade, "verdict">[];
   level: Level;
   remainingMs: number | null;
 }): Outcome {

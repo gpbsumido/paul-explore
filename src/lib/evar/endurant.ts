@@ -6,6 +6,7 @@
  */
 
 import type { Attempt, Reference } from "./measure";
+import type { Anatomy, MarkedAnatomy } from "./phantom";
 
 type Band = { from: number; to: number; graft: number };
 
@@ -118,8 +119,8 @@ const other = (side: Side): Side => (side === "right" ? "left" : "right");
 
 /**
  * Grades three diameters: the main body's proximal end against the neck, and
- * whatever seals in each common iliac against that iliac. Lengths come from a
- * centerline the axial phantom doesn't model, so they're shown but not graded.
+ * whatever seals in each common iliac against that iliac. Lengths are graded
+ * separately by `gradeLengths`.
  */
 export function gradeDevices(pick: DevicePick, reference: Reference, yours: Attempt): DeviceGrade[] {
   const main = byCode(pick.mainBody);
@@ -153,5 +154,105 @@ export function gradeDevices(pick: DevicePick, reference: Reference, yours: Atte
     grade("mainBody", "Main body", main, main?.proximal ?? null, mainBodyDiameterFor(reference.neckDiameter), yours.neckDiameter, mainBodyDiameterFor),
     grade("contralateral", "Contralateral limb", contra, contra?.distal ?? null, limbDiameterFor(reference[contraSide]), yours[contraSide], limbDiameterFor),
     grade("ipsilateral", "Ipsilateral seal", ipsiSeal, ipsiSeal?.distal ?? null, limbDiameterFor(reference[ipsiSide]), yours[ipsiSide], limbDiameterFor),
+  ];
+}
+
+/** A span of millimetres down the centerline from the lowest renal. */
+export type Reach = { min: number; max: number };
+
+/** Every overlap the IFU allows when one component sits inside another: 3 to 5 stents. */
+const OVERLAP = { min: 30, max: 50 };
+/** The sheet's contralateral totals assume the minimum overlap and add 50 mm; the 124 mm body adds 40. */
+const CONTRA_ADD = { standard: 50, short: 40 };
+/** On an Endurant IIs the ipsilateral limb adds 50 to 70 mm, depending on how many stents overlap. */
+const IIS_IPSI_ADD = { min: 50, max: 70 };
+/** Distal fixation the IFU asks for in the common iliac. */
+export const DISTAL_SEAL_MM = 15;
+
+const shortBody = (main: Device) => main.code.startsWith("ETBF") && main.lengthMm === 124;
+const exactly = (mm: number): Reach => ({ min: mm, max: mm });
+
+/**
+ * How far each side of a pick reaches down from the top of the main body, as
+ * the range overlap allows, and how far down the contralateral gate ends.
+ * Taken from the Endurant II/IIs sizing sheet's covered-length footnotes.
+ */
+export function reachFor(pick: DevicePick): { gateMm: number | null; contra: Reach | null; ipsi: Reach | null } {
+  const main = byCode(pick.mainBody);
+  if (!main) return { gateMm: null, contra: null, ipsi: null };
+  const add = shortBody(main) ? CONTRA_ADD.short : CONTRA_ADD.standard;
+  const contraLimb = byCode(pick.contraLimb);
+  const contra = contraLimb
+    ? { min: contraLimb.lengthMm + add - (OVERLAP.max - OVERLAP.min), max: contraLimb.lengthMm + add }
+    : null;
+  const extension = byCode(pick.ipsiExtension);
+  const ipsi = main.code.startsWith("ESBF")
+    ? extension
+      ? { min: extension.lengthMm + IIS_IPSI_ADD.min, max: extension.lengthMm + IIS_IPSI_ADD.max }
+      : exactly(main.lengthMm)
+    : extension
+      ? { min: main.lengthMm + extension.lengthMm - OVERLAP.max, max: main.lengthMm + extension.lengthMm - OVERLAP.min }
+      : exactly(main.lengthMm);
+  // The minimum overlap above the gate's end is what the sheet's +50 leaves room for.
+  return { gateMm: add + OVERLAP.min, contra, ipsi };
+}
+
+export type LengthGrade = {
+  id: "gate" | "contraReach" | "ipsiReach";
+  label: string;
+  picked: Reach | null;
+  /** Where the end has to land for the real anatomy. */
+  window: Reach;
+  /** Where it would have to land by your own marks; undefined when you didn't mark them. */
+  fromYours: Reach | undefined;
+  verdict: "match" | "mismatch" | "unpicked";
+};
+
+const overlaps = (a: Reach, b: Reach) => a.min <= b.max && b.min <= a.max;
+
+/** The landing window on one side: past 15 mm of common iliac, short of the internal iliac. */
+function sealWindow(toBifurcation: number | undefined, toInternal: number | undefined): Reach | undefined {
+  if (toBifurcation === undefined || toInternal === undefined) return undefined;
+  return { min: toBifurcation + DISTAL_SEAL_MM, max: toInternal };
+}
+
+/**
+ * Grades the lengths: the contralateral gate has to end above the aortic
+ * bifurcation, and each side has to be able to end in its common iliac, at
+ * least 15 mm in and short of the internal iliac.
+ */
+export function gradeLengths(pick: DevicePick, anatomy: Anatomy, yours: MarkedAnatomy): LengthGrade[] {
+  const reach = reachFor(pick);
+  const contraSide = other(pick.ipsilateral);
+  const grade = (id: LengthGrade["id"], label: string, picked: Reach | null, window: Reach, fromYours: Reach | undefined): LengthGrade => ({
+    id,
+    label,
+    picked,
+    window,
+    fromYours,
+    verdict: picked === null ? "unpicked" : overlaps(picked, window) ? "match" : "mismatch",
+  });
+  return [
+    grade(
+      "gate",
+      "Gate above the bifurcation",
+      reach.gateMm === null ? null : exactly(reach.gateMm),
+      { min: 0, max: anatomy.renalToBifurcation },
+      yours.renalToBifurcation === undefined ? undefined : { min: 0, max: yours.renalToBifurcation },
+    ),
+    grade(
+      "contraReach",
+      "Contralateral reach",
+      reach.contra,
+      sealWindow(anatomy.renalToBifurcation, anatomy.renalToInternalIliac[contraSide])!,
+      sealWindow(yours.renalToBifurcation, yours.renalToInternalIliac?.[contraSide]),
+    ),
+    grade(
+      "ipsiReach",
+      "Ipsilateral reach",
+      reach.ipsi,
+      sealWindow(anatomy.renalToBifurcation, anatomy.renalToInternalIliac[pick.ipsilateral])!,
+      sealWindow(yours.renalToBifurcation, yours.renalToInternalIliac?.[pick.ipsilateral]),
+    ),
   ];
 }

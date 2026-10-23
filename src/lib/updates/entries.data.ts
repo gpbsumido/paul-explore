@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-27-0",
+    date: "2026-10-23",
+    version: "7.27.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "EVAR graft lengths, graded",
+    summary:
+      "EVAR sizing practice now grades the graft lengths you pick, not just the diameters, measured along the vessel instead of straight down the scan.",
+    body: [
+      "Mark where the aorta splits and where each internal iliac branches off, and the page works out the distances along the vessel. When you check your answers, each leg of the graft has to end safely inside its common iliac without covering the internal iliac, and the results show where it had to land next to where you said.",
+      "Neck length is measured along the vessel too. On a neck that leans, that can be quite a bit longer than the slices suggest.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-26-0",
     date: "2026-10-23",
     version: "7.26.0",

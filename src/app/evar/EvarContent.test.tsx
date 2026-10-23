@@ -5,7 +5,7 @@ import { server } from "@/test/server";
 import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EvarContent from "./EvarContent";
-import { EVAR_CASES, referenceFor } from "@/lib/evar/phantom";
+import { EVAR_CASES, referenceFor, anatomyFor } from "@/lib/evar/phantom";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
@@ -414,5 +414,35 @@ describe("EvarContent zoom", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: new RegExp(EVAR_CASES[1].title) }));
     expect(zoomLevel()).toHaveTextContent("1×");
+  });
+});
+
+describe("EvarContent lengths", () => {
+  const markAt = (slice: number, name: RegExp) => {
+    fireEvent.change(sliceSlider(), { target: { value: String(slice) } });
+    fireEvent.click(screen.getByRole("button", { name }));
+  };
+
+  it("measures from the lowest renal to the bifurcation and each internal iliac along the centerline", () => {
+    renderPage();
+    markAt(firstCase.lowestRenalSlice, /mark this slice as lowest renal artery/i);
+    markAt(firstCase.bifurcationSlice, /mark this slice as aortic bifurcation/i);
+    markAt(firstCase.internalIliacSlice.right, /mark this slice as right internal iliac origin/i);
+    const expected = anatomyFor(firstCase);
+    expect(screen.getByText(/renal to bifurcation/i).closest("li")).toHaveTextContent(`${expected.renalToBifurcation.toFixed(1)} mm`);
+    expect(screen.getByText(/renal to right internal iliac/i).closest("li")).toHaveTextContent(
+      `${expected.renalToInternalIliac.right.toFixed(1)} mm`,
+    );
+  });
+
+  it("grades the picked lengths in the results", () => {
+    renderPage();
+    fireEvent.change(screen.getByRole("combobox", { name: /main body/i }), { target: { value: "ETBF2816C145EE" } });
+    fireEvent.change(screen.getByRole("combobox", { name: /contralateral limb/i }), { target: { value: "ETLW1616C93EE" } });
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+    const lengths = within(screen.getByRole("dialog")).getByRole("table", { name: /lengths/i });
+    expect(within(lengths).getByRole("row", { name: /gate above the bifurcation/i })).toBeInTheDocument();
+    expect(within(lengths).getByRole("row", { name: /contralateral reach/i })).toHaveTextContent(/123.143 mm/);
+    expect(within(lengths).getByRole("row", { name: /ipsilateral reach/i })).toBeInTheDocument();
   });
 });

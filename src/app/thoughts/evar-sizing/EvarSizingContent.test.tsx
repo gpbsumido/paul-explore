@@ -113,6 +113,18 @@ describe("EvarSizingContent", () => {
     expect(screen.queryByText(/every neck is a parallel tube/i)).toBeNull();
   });
 
+  it("has a dated update on grading lengths along the centerline", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /the slices said 10 mm/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("no longer says lengths can't be graded", () => {
+    render(<EvarSizingContent />);
+    expect(screen.queryByText(/lengths need a centerline before they can be scored/i)).toBeNull();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });
