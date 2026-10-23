@@ -13,6 +13,8 @@ type Props = {
   onPlace: (point: Point) => void;
   onClear: () => void;
   onSliceStep: (delta: number) => void;
+  /** Sizes the viewer; defaults to its natural 576px cap. */
+  className?: string;
 };
 
 const ARROWS: Record<string, Point> = {
@@ -53,7 +55,7 @@ function cross(ctx: CanvasRenderingContext2D, p: Point, arm: number) {
  * crosshair with the arrows (Shift moves five pixels) and press Enter at each
  * end, so the whole exercise works without a pointer.
  */
-export default function SliceViewer({ evarCase, slice, window, points, onPlace, onClear, onSliceStep }: Props) {
+export default function SliceViewer({ evarCase, slice, window, points, onPlace, onClear, onSliceStep, className = "max-w-[576px]" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const centre = evarCase.size / 2;
   const [cursor, setCursor] = useState<Point>({ x: centre, y: centre });
@@ -118,7 +120,7 @@ export default function SliceViewer({ evarCase, slice, window, points, onPlace, 
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-[576px]">
+    <div className={`relative mx-auto w-full ${className}`}>
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the image is a caliper surface: arrows steer, Enter places a point, so it needs focus and its own keys, which is what role="application" announces */}
       <div
         role="application"
