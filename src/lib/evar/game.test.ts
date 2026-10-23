@@ -3,7 +3,7 @@ import { outcomeFor } from "./game";
 import { LEVELS, type LevelId } from "./levels";
 import { EVAR_CASES, referenceFor } from "./phantom";
 import { TASKS, score, type Attempt } from "./measure";
-import type { DeviceGrade } from "./endurant";
+import type { DeviceGrade } from "./sheets";
 
 const reference = referenceFor(EVAR_CASES[0]);
 
@@ -25,7 +25,7 @@ const grade = (verdict: DeviceGrade["verdict"]): DeviceGrade => ({
   label: "Main body",
   code: null,
   picked: null,
-  expected: 28,
+  expected: [28],
   fromYours: undefined,
   verdict,
 });

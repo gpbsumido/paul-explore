@@ -4,7 +4,7 @@
  * turns them into a number worth chasing.
  */
 
-import type { DeviceGrade } from "./endurant";
+import type { DeviceGrade } from "./sheets";
 import type { Level, LevelId } from "./levels";
 import type { TaskScore } from "./measure";
 
