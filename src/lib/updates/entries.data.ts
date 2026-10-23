@@ -11,6 +11,20 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-7-22-0",
+    date: "2026-10-23",
+    version: "7.22.0",
+    category: "feature",
+    tags: ["evar", "practice"],
+    title: "More EVAR cases, realer scans",
+    summary:
+      "EVAR sizing practice has nine cases now, two more on every level, and the scans look like an abdomen instead of a diagram.",
+    body: [
+      "Easy gets two more straightforward aneurysms, Medium gets narrow iliacs and a wide one on the left, and Hard gets a neck just short of the usual landing length and an 8 cm sac. Every slice now shows the organs around the aorta too: the IVC, liver, spleen, kidneys, psoas, a full vertebra, bowel gas and the scanner table, with grainy noise like a real scanner.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-21-0",
     date: "2026-10-23",
     version: "7.21.0",

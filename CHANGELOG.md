@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-23 - version 7.22.0
+
+- `/evar` has six more phantom cases, two per level, so Easy plays three cases and Medium and Hard four each. Easy adds a small sac under a narrow neck and a big sac under a generous one, both inside the sizing sheet. Medium adds narrow 9 and 10 mm iliacs, and the wide iliac on the left for once. Hard adds a 28 mm neck that's 14 mm long, a millimetre under the usual landing length, and an 8 cm sac with both iliacs on the 28 mm limb. Existing cases keep their ids and their order, so personal bests and study rows still line up. Case titles dropped their numbers, which stopped making sense once a level could play cases 1, 4 and 5.
+- The phantom draws the abdomen around the aorta: the IVC on the patient's right (pushed over by a big sac), liver and spleen on the upper slices, arterial-phase kidneys with cortex, medulla and a fat sinus, psoas growing toward the pelvis, a vertebra with laminae, a spinous process and the erector muscles behind it, a skin, fat and muscle body wall, bowel loops with gas over a fluid level, and the scanner table. The aorta, iliacs and every reference answer are unchanged.
+- Slices get a light [1, 2, 1] blur for partial volume and grainy noise interpolated from a coarse grid, instead of independent per-pixel speckle. Drawing a slice went from 11.5 to about 21 ms, after taking ellipse allocation and `Math.hypot` out of the pixel loop.
+- Real deidentified scans are still a follow-up. I couldn't fetch an open aortic CTA set from where I built this, most of them are normal aortas, and each case would need its answers measured by hand.
+
 ## 2026-10-23 - version 7.21.1
 
 - `/evar` follows the site theme again. The 7.21.0 stage forced `data-theme="dark"` on its wrapper, so light mode was a light header over a near-black page. Only the scan stays black, as it should.
