@@ -6,6 +6,9 @@ import PageShell from "@/components/PageShell";
 import PageIntro from "@/components/PageIntro";
 import SliceViewer from "./SliceViewer";
 import DevicePicker from "./DevicePicker";
+import ResearchPanel from "./ResearchPanel";
+import { APP_VERSION } from "@/lib/appVersion";
+import { toAttemptPayload } from "@/lib/evar/research";
 import { gradeDevices, type DeviceGrade, type DevicePick } from "@/lib/evar/endurant";
 import { referenceFor, type EvarCase } from "@/lib/evar/phantom";
 import { LEVELS, casesFor, hintsFor, type Level, type LevelId } from "@/lib/evar/levels";
@@ -118,6 +121,7 @@ export default function EvarContent() {
   const [startedAt, setStartedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
+  const [clientAttemptId, setClientAttemptId] = useState(() => crypto.randomUUID());
 
   const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
   const cases = casesFor(level);
@@ -142,6 +146,23 @@ export default function EvarContent() {
       : undefined;
   const attempt: Attempt = { ...recorded, ...(neckLength === undefined ? {} : { neckLength }) };
 
+  const submission =
+    finishedAt === null
+      ? null
+      : toAttemptPayload({
+          clientAttemptId,
+          caseId: evarCase.id,
+          level: level.id,
+          appVersion: APP_VERSION,
+          startedAt,
+          finishedAt,
+          timeLimitMs: limit,
+          attempt,
+          scores: score(attempt, referenceFor(evarCase), level.tolerance),
+          devices,
+          grades: gradeDevices(devices, referenceFor(evarCase), attempt),
+        });
+
   const goToSlice = (next: number) => {
     setSlice(Math.min(evarCase.slices - 1, Math.max(0, next)));
     setPoints([]);
@@ -160,6 +181,7 @@ export default function EvarContent() {
     setStartedAt(t);
     setNow(t);
     setFinishedAt(null);
+    setClientAttemptId(crypto.randomUUID());
   };
 
   const pickLevel = (id: LevelId) => {
@@ -343,6 +365,8 @@ export default function EvarContent() {
             )}
           </section>
         </div>
+
+        <ResearchPanel submission={submission} />
       </main>
     </PageShell>
   );

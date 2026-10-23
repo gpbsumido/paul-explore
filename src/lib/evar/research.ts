@@ -27,8 +27,6 @@ export const TRAINING_LEVELS = [
   { value: "other", label: "Other" },
 ] as const;
 
-export type TrainingLevel = (typeof TRAINING_LEVELS)[number]["value"];
-
 export const participantResponseSchema = z.object({
   participant: z
     .object({
@@ -55,8 +53,6 @@ const attemptSummarySchema = z.object({
 });
 
 export const attemptsResponseSchema = z.object({ attempts: z.array(attemptSummarySchema) });
-
-export type AttemptSummary = z.infer<typeof attemptSummarySchema>;
 
 export type AttemptPayload = {
   clientAttemptId: string;
