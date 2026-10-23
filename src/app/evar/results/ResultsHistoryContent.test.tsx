@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render as rtlRender, screen, within } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import ResultsHistoryContent from "./ResultsHistoryContent";
 import { recordAttempt, type HistoryEntry } from "@/lib/evar/history";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
+
+/** The page names real scans from the manifest, which it fetches through react-query. */
+const render = (ui: ReactElement) =>
+  rtlRender(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{ui}</QueryClientProvider>);
 
 afterEach(() => {
   window.localStorage.clear();
@@ -50,6 +56,13 @@ describe("ResultsHistoryContent", () => {
     expect(rows[0]).toHaveTextContent(/hostile neck/i);
     expect(rows[0]).toHaveTextContent(/timed out/i);
     expect(rows[2]).toHaveTextContent(/long straight neck/i);
+  });
+
+  it("names a real scan by its title, not its id", async () => {
+    recordAttempt(entry({ id: "r6", caseId: "avt-r6" }));
+    render(<ResultsHistoryContent />);
+    expect(await screen.findByText(/real ct: aneurysm with thrombus/i)).toBeInTheDocument();
+    expect(screen.queryByText("avt-r6")).toBeNull();
   });
 
   it("describes the chart, and leaves the numbers to the table", () => {

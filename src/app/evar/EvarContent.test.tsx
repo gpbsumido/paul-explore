@@ -6,7 +6,8 @@ import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EvarContent from "./EvarContent";
 import { EVAR_CASES, referenceFor, anatomyFor } from "@/lib/evar/phantom";
-import { SCAN_CASES } from "@/lib/evar/scans";
+import { parseManifest } from "@/lib/evar/scans";
+import manifest from "../../../public/evar/scans/manifest.json";
 import { gzipSync } from "node:zlib";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -485,7 +486,7 @@ describe("EvarContent manufacturers", () => {
 });
 
 describe("EvarContent real CTA", () => {
-  const scan = SCAN_CASES[0];
+  const [scan] = parseManifest(manifest, "/evar/scans");
 
   /** A uniform volume, so the page has something to draw without shipping the real file to the test. */
   function serveScan() {
@@ -494,9 +495,15 @@ describe("EvarContent real CTA", () => {
     );
   }
 
+  /** Real scans are picked from a select, since there will be hundreds of them. */
+  const pickScan = async () => {
+    const select = await screen.findByRole("combobox", { name: /real scan/i });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: scan.title }).getAttribute("value") } });
+  };
+
   const openScan = async () => {
     renderPage();
-    fireEvent.click(screen.getByRole("radio", { name: new RegExp(scan.title) }));
+    await pickScan();
     await waitFor(() => expect(screen.queryByText(/loading the scan/i)).toBeNull());
   };
 
@@ -589,5 +596,37 @@ describe("EvarContent, one job at a time", () => {
     expect(screen.getByText(/not affiliated with/i)).not.toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: /about these sizing tables/i }));
     expect(screen.getByText(/not affiliated with medtronic/i)).toBeVisible();
+  });
+});
+
+describe("EvarContent real CTA, when things go wrong", () => {
+  const [scan] = parseManifest(manifest, "/evar/scans");
+
+  it("says when a scan won't load, and tries again on request", async () => {
+    let fail = true;
+    server.use(
+      http.get(scan.file, () =>
+        fail ? new HttpResponse(null, { status: 503 }) : new HttpResponse(gzipSync(new Uint8Array(scan.size * scan.size * scan.slices).fill(100))),
+      ),
+    );
+    renderPage();
+    const select = await screen.findByRole("combobox", { name: /real scan/i });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: scan.title }).getAttribute("value") } });
+    expect(await screen.findByText(/couldn.t load this scan/i)).toBeInTheDocument();
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    await waitFor(() => expect(screen.queryByText(/couldn.t load this scan/i)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(/loading the scan/i)).toBeNull());
+  });
+
+  it("keeps phantoms as pills and real scans in a select, with no phantom pill checked while a scan is open", async () => {
+    server.use(http.get(scan.file, () => new HttpResponse(gzipSync(new Uint8Array(scan.size * scan.size * scan.slices)))));
+    renderPage();
+    expect(screen.getByRole("radio", { name: firstCase.title })).toBeChecked();
+    expect(screen.queryByRole("radio", { name: new RegExp(scan.title) })).toBeNull();
+    const select = await screen.findByRole("combobox", { name: /real scan/i });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: scan.title }).getAttribute("value") } });
+    expect(screen.getByRole("radio", { name: firstCase.title })).not.toBeChecked();
+    expect(select).toHaveDisplayValue(scan.title);
   });
 });
