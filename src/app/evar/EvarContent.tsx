@@ -174,7 +174,7 @@ export default function EvarContent() {
   const caliper = points.length === 2 ? distanceMm(points[0], points[1], evarCase.pixelMm) : null;
   const neckLength =
     marks.renal !== undefined && marks.sacStart !== undefined
-      ? Math.abs(marks.sacStart - marks.renal) * evarCase.sliceMm
+      ? centerlineMm(evarCase, marks.renal, marks.sacStart)
       : undefined;
   const attempt: Attempt = { ...recorded, ...(neckLength === undefined ? {} : { neckLength }) };
 

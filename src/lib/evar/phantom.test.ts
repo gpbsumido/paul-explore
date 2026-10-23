@@ -368,18 +368,17 @@ describe("EVAR phantom", () => {
       const c = byId("long-neck");
       (["right", "left"] as const).forEach((side) => {
         const at = c.internalIliacSlice[side];
-        const lumens = (z: number) => {
-          const slice = sliceHU(c, z);
-          const centre = c.iliacCentresAt(z)[side];
-          const box = { x0: centre.x - 30, x1: centre.x + 30, y0: centre.y - 30, y1: centre.y + 40 };
-          return countIn(slice, c.size, box, 250, 2000);
-        };
-        const internal = c.internalIliacCentreAt(at + 3, side);
-        expect(internal, side).not.toBeNull();
-        const slice = sliceHU(c, at + 3);
-        expect(huAt(slice, c.size, internal!.x, internal!.y), side).toBeGreaterThan(250);
         expect(c.internalIliacCentreAt(at - 1, side), side).toBeNull();
-        expect(lumens(at + 3), side).toBeGreaterThan(lumens(at - 2));
+        const internal = c.internalIliacCentreAt(at + 3, side)!;
+        // Just behind the common iliac's outer wall, where only the internal iliac can put contrast.
+        const common = c.iliacCentresAt(at + 3)[side];
+        const commonPx = c.ciaRadiusMm[side] / c.pixelMm;
+        const away = Math.hypot(internal.x - common.x, internal.y - common.y);
+        const reach = commonPx + 1.5;
+        const probe = { x: common.x + ((internal.x - common.x) / away) * reach, y: common.y + ((internal.y - common.y) / away) * reach };
+        expect(Math.hypot(probe.x - internal.x, probe.y - internal.y), side).toBeLessThan(3.5 / c.pixelMm - 1);
+        expect(huAt(sliceHU(c, at + 3), c.size, probe.x, probe.y), side).toBeGreaterThan(250);
+        expect(huAt(sliceHU(c, at - 2), c.size, probe.x, probe.y), side).toBeLessThan(150);
       });
     });
   });
