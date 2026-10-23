@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { EVAR_CASES, sliceHU, referenceFor, outerRadiusMm, neckOffsetMm, centerlineMm, anatomyFor } from "./phantom";
 
 const huAt = (slice: Int16Array, size: number, x: number, y: number) =>
@@ -380,6 +380,23 @@ describe("EVAR phantom", () => {
         expect(huAt(sliceHU(c, at + 3), c.size, probe.x, probe.y), side).toBeGreaterThan(250);
         expect(huAt(sliceHU(c, at - 2), c.size, probe.x, probe.y), side).toBeLessThan(150);
       });
+    });
+  });
+
+  describe("drawing cost", () => {
+    // A slice used to take about 40 ms, mostly because the renal arteries
+    // worked out the aorta's centre again for every one of 147,456 pixels.
+    it("works out the aorta's centre a handful of times per slice, not once per pixel", () => {
+      const c = EVAR_CASES.find((x) => x.id === "hostile-neck")!;
+      const spy = vi.spyOn(c, "centreAt");
+      sliceHU(c, c.lowestRenalSlice - 1);
+      expect(spy.mock.calls.length).toBeLessThan(10);
+      spy.mockRestore();
+    });
+
+    it("hands back the same slice without drawing it again", () => {
+      const c = EVAR_CASES[2];
+      expect(sliceHU(c, 61)).toBe(sliceHU(c, 61));
     });
   });
 });
