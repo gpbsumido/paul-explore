@@ -49,6 +49,29 @@ describe("flags-client", () => {
     await expect(fetchFlagsFromApi()).rejects.toThrow();
   });
 
+  it("gives up on a stalled API so the gate can fall back to the seed", { timeout: 1000 }, async () => {
+    // /tcg/pocket reads its gate from here before anything else, so a hang
+    // here hung the page even after the catalog request had a deadline.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            const fail = () => reject(Object.assign(new Error("timed out"), { name: "TimeoutError" }));
+            if (init?.signal?.aborted) fail();
+            init?.signal?.addEventListener("abort", fail);
+          }),
+      ),
+    );
+    const deadline = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockImplementation(() => AbortSignal.abort(new DOMException("timed out", "TimeoutError")));
+
+    await expect(fetchFlagsFromApi()).rejects.toThrow(/timed out/);
+    expect(deadline).toHaveBeenCalledWith(8_000);
+    deadline.mockRestore();
+  });
+
   it("throws when the payload does not match the flag contract", async () => {
     mockFetch(200, { flags: [{ key: "broken" }], environments: [] });
     await expect(fetchFlagsFromApi()).rejects.toThrow();
