@@ -116,6 +116,27 @@ describe("EvarContent", () => {
     expect(sacRow).toHaveTextContent(/not measured/i);
   });
 
+  it("shows a measurement that rounds to the answer as 0.0 off, with no sign", () => {
+    renderPage();
+    // 27 px across and 1 down is 22.97 mm, a hair under the 23 mm neck, which used to read -0.0.
+    const canvas = viewer();
+    canvas.focus();
+    fireEvent.keyDown(canvas, { key: "Enter" });
+    for (let i = 0; i < 27; i += 1) {
+      fireEvent.keyDown(canvas, { key: "ArrowRight" });
+    }
+    fireEvent.keyDown(canvas, { key: "ArrowDown" });
+    fireEvent.keyDown(canvas, { key: "Enter" });
+    fireEvent.click(
+      screen.getByRole("button", { name: /record caliper as proximal neck diameter/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /check answers/i }));
+
+    const results = screen.getByRole("table", { name: /results/i });
+    const offBy = within(within(results).getByRole("row", { name: /proximal neck diameter/i })).getAllByRole("cell")[2];
+    expect(offBy).toHaveTextContent(/^0\.0$/);
+  });
+
   it("starts fresh when another case is picked", () => {
     renderPage();
     keyboardCaliper(4);
