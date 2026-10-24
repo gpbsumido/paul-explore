@@ -8,7 +8,7 @@ import type { Outcome } from "@/lib/evar/game";
 import type { PracticeCase } from "@/lib/evar/scans";
 import type { ReferenceRow } from "@/lib/evar/references";
 import type { TaskScore } from "@/lib/evar/measure";
-import { clock, mm } from "./format";
+import { clock, mm, offBy } from "./format";
 
 const button =
   "paul-touch-min rounded-lg border border-border bg-surface px-4 py-2 text-[14px] text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -184,7 +184,7 @@ export default function ResultsDialog({
                   <td className="py-2 pr-3 font-mono">{row.yours === null ? "–" : mm(row.yours)}</td>
                   <td className="py-2 pr-3 font-mono">{mm(row.reference)}</td>
                   <td className="py-2 pr-3 font-mono">
-                    {row.delta === null ? "–" : `${row.delta > 0 ? "+" : ""}${row.delta.toFixed(1)}`}
+                    {row.delta === null ? "–" : offBy(row.delta)}
                   </td>
                   <td className={`py-2 ${row.verdict === "within" ? "font-semibold text-foreground" : "text-muted"}`}>
                     {VERDICT_TEXT[row.verdict]}
