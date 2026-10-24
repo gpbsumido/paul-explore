@@ -40,7 +40,7 @@ export function ResidentTimeSwitch() {
           }`}
         >
           <span
-            className={`absolute top-0.5 size-[18px] rounded-full transition-transform motion-reduce:transition-none ${
+            className={`absolute left-0 top-0.5 size-[18px] rounded-full transition-transform motion-reduce:transition-none ${
               on ? "translate-x-[22px] bg-background" : "translate-x-0.5 bg-muted"
             }`}
           />
