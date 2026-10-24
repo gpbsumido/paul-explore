@@ -11,6 +11,36 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-evar-guide",
+    date: "2026-10-24",
+    version: "8.4.0",
+    category: "feature",
+    tags: ["evar"],
+    title: "A guide to measuring for an EVAR, and a how-to video",
+    summary:
+      "EVAR sizing practice has a step-by-step guide to measuring for a repair, with a picture of each step, and a 54-second video on where the calipers go. A first visit now starts on the welcome page.",
+    body: [
+      "The guide goes through the measurements in the order they're taken, sizes a real case from a maker's table, and ends with what planning a real repair adds, alongside the guidelines and device instructions it was checked against. Anything the results don't count links straight to its step.",
+      "The welcome page has a second video showing what to look for on each slice and where the calipers go. A first visit to the practice now lands on the welcome page instead of opening with a popup, and the study question is asked there.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-evar-plan-fees",
+    date: "2026-10-24",
+    version: "8.3.0",
+    category: "improvement",
+    tags: ["evar"],
+    title: "Clearer costs in the EVAR sizing plan",
+    summary:
+      "The EVAR sizing plan now shows what running the site costs on its own, with a switch to add a resident's time, the fees for looking after it, and who owns the code and the study data.",
+    body: [
+      "A resident's time to set each scan's answers was most of every total, and it may well be given for free, so it's now a switch you can turn on. Every total also includes a one-off base fee and a 10% upkeep fee for looking after the site, and the page lists what that covers.",
+      "The domain line now says plainly that it depends on the name chosen, and a short section says who owns what: the code stays with its developer, and the study data belongs to the research team.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-evar-welcome",
     date: "2026-10-24",
     version: "8.2.0",

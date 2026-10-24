@@ -1,19 +1,16 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { usePersistentState } from "@/hooks/usePersistentState";
 import { queryKeys } from "@/lib/queryKeys";
 import { participantResponseSchema, type Participant } from "./research";
 
 /**
- * Where someone stands with the study: signed in or not, joined or not, and
- * whether they've already answered the question. The practice and the
- * welcome page both ask it, and the answer lives in one key, so answering in
- * one place counts in the other. The queries are the study panel's too, so
- * react-query shares the answers.
+ * Where someone stands with the study: signed in or not, and joined or not.
+ * The welcome page asks the question and the practice shows the Admin link
+ * from it. The queries are the study panel's too, so react-query shares the
+ * answers.
  */
 export function useStudyStatus() {
-  const [asked, setAsked] = usePersistentState("evar-study-asked", false);
   const queryClient = useQueryClient();
   const me = useQuery({
     queryKey: queryKeys.me(),
@@ -41,12 +38,6 @@ export function useStudyStatus() {
     /** Whether the answers are in, so nothing asks before it knows. */
     known: !me.isPending && (!signedIn || !participant.isPending),
     unreachable: participant.isError,
-    asked,
-    /** Answered without joining. */
-    decline: () => setAsked(true),
-    joinedAs: (joined: Participant) => {
-      queryClient.setQueryData(queryKeys.evar.participant(), joined);
-      setAsked(true);
-    },
+    joinedAs: (joined: Participant) => queryClient.setQueryData(queryKeys.evar.participant(), joined),
   };
 }

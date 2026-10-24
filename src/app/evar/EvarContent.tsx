@@ -10,7 +10,6 @@ import DevicePicker from "./DevicePicker";
 import ResearchPanel from "./ResearchPanel";
 import ResultsDialog from "./ResultsDialog";
 import Disclosure from "./Disclosure";
-import StudyWelcome from "./StudyWelcome";
 import { useStudyStatus } from "@/lib/evar/useStudyStatus";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
@@ -220,14 +219,8 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
   });
   const [clientAttemptId, setClientAttemptId] = useState(() => crypto.randomUUID());
   const [tab, setTab] = useState<TaskTab>("measure");
-  // The study is asked about before anything else, so it needs to know
-  // whether you're signed in, whether you've joined, and whether you've answered.
-  const study = useStudyStatus();
-  const { signedIn, isAdmin, joined } = study;
-  const knowsStudy = study.known;
-  const askStudy = knowsStudy && !study.asked && !joined;
-  // The tour waits until the study question has been answered, or didn't need asking.
-  const studySettled = knowsStudy && !askStudy;
+  // The study question is the welcome page's job now; here it's only whether to show the Admin link.
+  const { isAdmin } = useStudyStatus();
 
   const level = LEVELS.find((l) => l.id === levelId) ?? LEVELS[0];
   const { scans: scanCases } = useScanCases(initialScans);
@@ -435,7 +428,6 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
                     storageKey="evar-tour-seen"
                     steps={tourSteps(setTab)}
                     buttonLabel="Tour"
-                    autoOpen={studySettled}
                   />
                   {isAdmin ? (
                     <Link
@@ -610,6 +602,9 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
                       across the short axis. The neck runs from the lowest renal artery to where the aorta
                       first widens by more than 10%.
                     </p>
+                    <Link href="/evar/guide" className="mt-2 inline-block text-[13px] text-foreground underline underline-offset-2">
+                      Read the full guide
+                    </Link>
                   </Disclosure>
 
                   <h3 className="mb-1 text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">Diameters</h3>
@@ -741,12 +736,6 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
           <ResearchPanel submission={submission} />
         </div>
 
-        <StudyWelcome
-          open={askStudy}
-          signedIn={signedIn}
-          onJoined={study.joinedAs}
-          onDecline={study.decline}
-        />
         {finishedAt !== null && reference === null ? (
           <UnscoredDialog
             open={showResults}

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-24 - version 8.4.0
+
+- A first visit to `/evar` goes to `/evar/welcome` instead of opening the study popup, and `StudyWelcome` is gone. `EvarEntry` puts `WELCOME_GATE_SCRIPT` ahead of the page, which reads `evar-welcomed` (or the old `evar-study-asked`) before paint and replaces the URL, and `WelcomeGate` makes the same check for client-side navigation with `useSyncExternalStore`. Both fail open when storage can't be read. `WelcomeSeen` sets the flag on the welcome page, and the tour opens on the first practice visit after it. It's localStorage rather than a cookie, since cookies the site doesn't strictly need wait on consent.
+- `/evar/guide` goes through the measurements in order with a picture of each: the top of the neck, its diameter outer wall to outer wall across the short axis, its length to where the aorta first widens by more than 10%, the widest slice of the sac, both common iliacs, the long straight neck sized on the Endurant sheet, and the tolerances from `LEVELS`. Then common mistakes, what real planning adds (a centreline, neck angles, neck shape, calcium and thrombus, the bifurcation and access arteries, the branches) from the ESVS 2024 guidelines and the Endurant IFU, and the sources. It's public, in the sitemap and in the a11y scan.
+- The welcome page has a second video, 54 seconds on what to look for and where the calipers go, with its transcript from `HOW_TO_SCENES` and a link to the guide. The results popup links each measurement that didn't count to its step, and the How to measure panel, the empty results history and the plan link to the guide too.
+- `scripts/record-evar-how-to.mjs` records that video and saves the guide's seven WebP pictures in the same run, with labels drawn on the scan from the phantom's geometry: H.264, 1280x720, 30 fps, 723 kbps, 4.9 MB, a 121 KB poster and 158 KB of pictures. The browser, captions, cursor and calipers moved into `scripts/evar-video.mjs`. The intro is re-recorded from the welcome page, since its recorder waited on the popup (659 kbps, 3.9 MB, a 95 KB poster), and both videos measure the neck two slices under the lowest renal, clear of the artery's partial volume.
+- The floating command palette pill is hidden on `/evar`, where it sat on top of Start over at the end of the dock. ⌘K still opens it. The results' Off by column shows 0.0 for any difference that rounds to nothing, where a caliper a hair short read -0.0.
+- Visible "centerline" is spelled "centreline".
+
+## 2026-10-24 - version 8.3.0
+
+- `/evar/plan` puts a resident's time behind a switch, off by default: "Count a resident's time to set each scan's answers". `ResidentTimeProvider` holds it around the cost sections. Off, the calculator drops the rate and minutes sliders and the resident's line, and `RangeTable` and `LibraryTable`, moved out of `PlanContent`, show running costs only. `estimate` takes `{ countResident }`.
+- Two fees of mine join every total: a $500 base fee charged once (`BASE_FEE_CAD`), and a 10% upkeep fee (`FEE_SHARE`) on running the site, never on the resident's time or the base fee. "What my fees cover" lists upkeep, moving each new scan into storage and onto the list, adding residents' emails to the admin list so they can set answers, and small fixes. The middle case over a year is $608.83, or $1,858.83 with a resident's time.
+- "Who owns what": the code is mine, and the study data belongs to the research team.
+- The domain section and the breakdown's domain line say the cost depends on the name chosen: the totals use a regular .com at cost, and another ending, a premium name or a renewal increase changes it.
+
 ## 2026-10-24 - version 8.2.0
 
 - `/evar/welcome`, the homepage for when EVAR Sizing moves to its own domain: a headline with Start practising, a 47-second intro video of a case with no sound, the study question, and what the project is for, linking to `/evar/plan`. The video has a poster and controls, plays only when asked, and its captions are written out beside it from `INTRO_SCENES`, the same list the recorder puts in the frames.

@@ -93,9 +93,14 @@ export default function ResultsHistoryContent() {
         {history.length === 0 ? (
           <div className="mt-8 rounded-xl border border-border bg-surface p-6">
             <p className="text-[15px] text-foreground">You haven&apos;t finished a case on this device yet.</p>
-            <Link href="/evar" className={`${link} mt-4`}>
-              Go to the practice
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href="/evar" className={link}>
+                Go to the practice
+              </Link>
+              <Link href="/evar/guide" className={link}>
+                How to measure
+              </Link>
+            </div>
           </div>
         ) : (
           <>
