@@ -95,13 +95,34 @@ describe("estimate", () => {
     expect(line(top, "signIn")).toBe(0);
   });
 
-  it("totals exactly the lines it shows", () => {
-    for (const months of STEPS.months) {
-      for (const size of [SMALLEST, MIDDLE, BIGGEST]) {
-        const { lines, total } = estimate({ ...size, months });
-        expect(cents(total)).toBe(lines.reduce((sum, l) => sum + cents(l.cad), 0));
+  it("totals exactly the lines it shows, with the resident's time or without", () => {
+    for (const countResident of [true, false]) {
+      for (const months of STEPS.months) {
+        for (const size of [SMALLEST, MIDDLE, BIGGEST]) {
+          const { lines, total } = estimate({ ...size, months }, { countResident });
+          expect(cents(total)).toBe(lines.reduce((sum, l) => sum + cents(l.cad), 0));
+        }
       }
     }
+  });
+
+  it("leaves the resident's time out when asked, and totals the rest", () => {
+    const { lines, total } = estimate(MIDDLE, { countResident: false });
+    expect(lines.map((l) => l.id)).not.toContain("resident");
+    expect(total).toBe(98.94);
+    expect(estimate(MIDDLE, { countResident: true }).total).toBe(1348.94);
+  });
+
+  it("gives the range without the resident's time", () => {
+    const totals = STEPS.months.map((months) =>
+      [SMALLEST, MIDDLE, BIGGEST].map((size) => estimate({ ...size, months }, { countResident: false }).total),
+    );
+    expect(totals).toEqual([
+      [35.65, 35.71, 99.35],
+      [56.65, 56.79, 184.06],
+      [98.67, 98.94, 353.48],
+      [197.34, 197.87, 710.52],
+    ]);
   });
 
   it("gives the range the page prints for each length of time", () => {

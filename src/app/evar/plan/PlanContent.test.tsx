@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import PlanContent from "./PlanContent";
 
@@ -23,19 +23,34 @@ describe("PlanContent", () => {
     expect(document.body).toHaveTextContent("October 23, 2026");
   });
 
-  it("prints the range for every length of time asked about", () => {
+  it("prints the range for every length of time asked about, without the resident's time at first", () => {
     render(<PlanContent />);
     const range = screen.getByRole("table", { name: /the range/i });
     const expected = [
-      ["3 months", "$160.65", "$1,285.71", "$12,599.35"],
-      ["6 months", "$181.65", "$1,306.79", "$12,684.06"],
-      ["1 year", "$223.67", "$1,348.94", "$12,853.48"],
-      ["2 years", "$322.34", "$1,447.87", "$13,210.52"],
+      ["3 months", "$35.65", "$35.71", "$99.35"],
+      ["6 months", "$56.65", "$56.79", "$184.06"],
+      ["1 year", "$98.67", "$98.94", "$353.48"],
+      ["2 years", "$197.34", "$197.87", "$710.52"],
     ];
     for (const [period, ...totals] of expected) {
       const row = within(range).getByRole("row", { name: new RegExp(`^${period}`) });
       for (const t of totals) expect(row).toHaveTextContent(t);
     }
+  });
+
+  it("counts a resident's time once the switch is on, everywhere it applies", () => {
+    render(<PlanContent />);
+    const toggle = screen.getByRole("switch", { name: /count a resident's time/i });
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+
+    const range = screen.getByRole("table", { name: /the range/i });
+    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,348.94");
+    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$13,210.52");
+    const library = screen.getByRole("table", { name: /library/i });
+    expect(within(library).getByRole("row", { name: /^1,000/ })).toHaveTextContent("$12,500.00");
+    expect(screen.getByRole("slider", { name: /resident's rate/i })).toBeInTheDocument();
   });
 
   it("prints the library and usage tables at the steps asked about", () => {
@@ -44,7 +59,8 @@ describe("PlanContent", () => {
     for (const scans of ["10", "50", "100", "500", "1,000"]) {
       expect(within(library).getByRole("rowheader", { name: scans })).toBeInTheDocument();
     }
-    expect(within(library).getByRole("row", { name: /^1,000/ })).toHaveTextContent("$12,500.00");
+    expect(within(library).getByRole("row", { name: /^1,000/ })).toHaveTextContent("$2.96");
+    expect(within(library).queryByRole("columnheader", { name: /resident/i })).toBeNull();
 
     const usage = screen.getByRole("table", { name: /people a day/i });
     for (const people of ["10", "50", "100"]) {
@@ -54,6 +70,14 @@ describe("PlanContent", () => {
       expect(within(usage).getByRole("columnheader", { name: `${each} scans each` })).toBeInTheDocument();
     }
     expect(within(usage).getByRole("row", { name: /^100 people a day/ })).toHaveTextContent("$20.99");
+  });
+
+  it("warns that the domain's cost depends on the name chosen", () => {
+    render(<PlanContent />);
+    const domain = screen.getByRole("region", { name: /a domain of its own/i });
+    expect(domain).toHaveTextContent(/depends on the name/i);
+    expect(domain).toHaveTextContent(/premium/i);
+    expect(domain).toHaveTextContent(/renewal/i);
   });
 
   it("captions every table", () => {

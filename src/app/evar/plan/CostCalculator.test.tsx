@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, within, fireEvent } from "@testing-library/react";
 import { axe } from "vitest-axe";
+import type { ReactElement } from "react";
 import CostCalculator from "./CostCalculator";
+import { ResidentTimeProvider } from "./ResidentTime";
 
+/** The calculator with the resident's time counted, the way the page shows it once the switch is on. */
+const counted = (ui: ReactElement) => render(<ResidentTimeProvider initiallyOn>{ui}</ResidentTimeProvider>);
 const slider = (name: RegExp) => screen.getByRole("slider", { name });
 const move = (name: RegExp, value: number) => fireEvent.change(slider(name), { target: { value: String(value) } });
 const toTop = (name: RegExp) => fireEvent.change(slider(name), { target: { value: slider(name).getAttribute("max") } });
@@ -11,8 +15,22 @@ const row = (name: RegExp) =>
   within(screen.getByRole("table", { name: /what the total is made of/i })).getByRole("row", { name });
 
 describe("CostCalculator", () => {
-  it("opens on the middle case for a year", () => {
+  it("leaves the resident's time out until the switch counts it", () => {
     render(<CostCalculator />);
+    expect(screen.getAllByRole("slider")).toHaveLength(4);
+    expect(screen.queryByRole("slider", { name: /resident's rate/i })).toBeNull();
+    expect(total()).toHaveTextContent("$98.94");
+    expect(within(screen.getByRole("table", { name: /what the total is made of/i })).queryByRole("row", { name: /resident/i })).toBeNull();
+  });
+
+  it("says the domain line depends on the name chosen", () => {
+    render(<CostCalculator />);
+    expect(row(/domain/i)).toHaveTextContent(/regular \.com/i);
+    expect(row(/domain/i)).toHaveTextContent(/other names and endings cost more or less/i);
+  });
+
+  it("opens on the middle case for a year", () => {
+    counted(<CostCalculator />);
     expect(total()).toHaveTextContent("$1,348.94");
     expect(total()).toHaveTextContent(/1 year/);
     expect(row(/resident/i)).toHaveTextContent("$1,250.00");
@@ -21,7 +39,7 @@ describe("CostCalculator", () => {
   });
 
   it("shows the biggest case with every usage slider at the top", () => {
-    render(<CostCalculator />);
+    counted(<CostCalculator />);
     toTop(/scans in the library/i);
     toTop(/people a day/i);
     toTop(/scans each a day/i);
@@ -33,7 +51,7 @@ describe("CostCalculator", () => {
   });
 
   it("moves only the resident's line with the rate and the minutes", () => {
-    render(<CostCalculator />);
+    counted(<CostCalculator />);
     move(/resident's rate/i, 100);
     expect(row(/resident/i)).toHaveTextContent("$2,500.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
@@ -43,7 +61,7 @@ describe("CostCalculator", () => {
   });
 
   it("steps the library in tens up to 100, then in bigger steps to 1,000", () => {
-    render(<CostCalculator />);
+    counted(<CostCalculator />);
     const scans = slider(/scans in the library/i);
     const at = (position: number) => {
       fireEvent.change(scans, { target: { value: String(position) } });
@@ -58,7 +76,7 @@ describe("CostCalculator", () => {
   });
 
   it("labels every slider and says its value in words", () => {
-    render(<CostCalculator />);
+    counted(<CostCalculator />);
     expect(screen.getAllByRole("slider")).toHaveLength(6);
     expect(slider(/scans in the library/i)).toHaveAttribute("aria-valuetext", "100 scans");
     expect(slider(/people a day/i)).toHaveAttribute("aria-valuetext", "50 people a day");
@@ -71,12 +89,12 @@ describe("CostCalculator", () => {
   });
 
   it("puts the total in an output, so a change is announced without moving focus", () => {
-    render(<CostCalculator />);
+    counted(<CostCalculator />);
     expect(total().tagName).toBe("OUTPUT");
   });
 
   it("has no detectable accessibility problems", async () => {
-    const { container } = render(<CostCalculator />);
+    const { container } = counted(<CostCalculator />);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
