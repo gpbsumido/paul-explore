@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { MEASURED, MIDDLE, PRICES, SCENARIO_KEYS, SLIDERS, estimate, type DeliveryPlan, type LineId, type Scenario } from "@/lib/evar/costs";
 import { cad, cadRounded, count, duration, size, usd } from "./format";
+import { useCountResident } from "./ResidentTime";
 
 /** What each slider is called, and how its value is said aloud and shown. */
 const SLIDER_COPY: Record<keyof Scenario, { label: string; say: (n: number) => string }> = {
@@ -38,7 +39,10 @@ function lineCopy(id: LineId, s: Scenario, delivery: DeliveryPlan): { label: str
         how: `${size((s.scans * MEASURED.scanMb) / 1000)} at ${usd(PRICES.s3PerGbMonth.value)} a GB a month.`,
       };
     case "domain":
-      return { label: "Domain (.com)", how: "Paid a year at a time." };
+      return {
+        label: "Domain (.com)",
+        how: "A regular .com, paid a year at a time. Other names and endings cost more or less.",
+      };
     case "website":
       return { label: "Website (Vercel Hobby)", how: "Free while the site is non-commercial." };
     case "signIn":
@@ -47,20 +51,24 @@ function lineCopy(id: LineId, s: Scenario, delivery: DeliveryPlan): { label: str
 }
 
 /**
- * The estimate with sliders: how big the library is, how busy it gets, for
- * how long, and what the resident's time is worth. Every number comes from
- * `estimate`, so the sliders and the page's tables can't disagree.
+ * The estimate with sliders: how big the library is, how busy it gets, and
+ * for how long, plus what the resident's time is worth once the switch counts
+ * it. Every number comes from `estimate`, so the sliders and the page's tables
+ * can't disagree.
  */
 export default function CostCalculator() {
   const [scenario, setScenario] = useState<Scenario>(MIDDLE);
+  const countResident = useCountResident();
   const idBase = useId();
   const sliderId = (key: keyof Scenario) => `${idBase}-${key}`;
-  const { lines, total, usage, delivery } = estimate(scenario);
+  // The rate and minutes only mean something while the resident's time is counted.
+  const keys = SCENARIO_KEYS.filter((key) => countResident || (key !== "residentPerHour" && key !== "minutesPerScan"));
+  const { lines, total, usage, delivery } = estimate(scenario, { countResident });
 
   return (
     <div className="mt-4 rounded-2xl border border-border bg-surface p-4 sm:p-6">
       <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
-        {SCENARIO_KEYS.map((key) => {
+        {keys.map((key) => {
           const { min, max, step, stops } = SLIDERS[key];
           const { label, say } = SLIDER_COPY[key];
           const value = scenario[key];
@@ -98,7 +106,7 @@ export default function CostCalculator() {
       </div>
 
       <output
-        htmlFor={SCENARIO_KEYS.map(sliderId).join(" ")}
+        htmlFor={keys.map(sliderId).join(" ")}
         className="mt-6 flex flex-wrap items-baseline gap-x-2 border-t border-border pt-5"
       >
         <span className="text-3xl font-bold tabular-nums text-foreground">{cad(total)}</span>
