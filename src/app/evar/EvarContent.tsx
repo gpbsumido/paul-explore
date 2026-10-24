@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import SliceViewer from "./SliceViewer";
@@ -11,8 +11,7 @@ import ResearchPanel from "./ResearchPanel";
 import ResultsDialog from "./ResultsDialog";
 import Disclosure from "./Disclosure";
 import StudyWelcome from "./StudyWelcome";
-import { usePersistentState } from "@/hooks/usePersistentState";
-import { participantResponseSchema } from "@/lib/evar/research";
+import { useStudyStatus } from "@/lib/evar/useStudyStatus";
 import FeatureTour from "@/components/GuidedTour/FeatureTour";
 import type { TourStep } from "@/components/GuidedTour/types";
 import UnscoredDialog from "./UnscoredDialog";
@@ -221,34 +220,12 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
   });
   const [clientAttemptId, setClientAttemptId] = useState(() => crypto.randomUUID());
   const [tab, setTab] = useState<TaskTab>("measure");
-  const [studyAsked, setStudyAsked] = usePersistentState("evar-study-asked", false);
-
   // The study is asked about before anything else, so it needs to know
-  // whether you're signed in and whether you've already joined. Same queries
-  // as the study panel, so react-query shares the answers.
-  const me = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; email: string | null; isFlagAdmin?: boolean }> =>
-      fetch("/api/me").then((r) => (r.ok ? r.json() : { sub: null, email: null })),
-    staleTime: 5 * 60_000,
-  });
-  const signedIn = Boolean(me.data?.sub);
-  // The same allowlist the admin pages check. A hint for showing the link, not the gate:
-  // the pages and their API routes check again on every request.
-  const isAdmin = me.data?.isFlagAdmin === true;
-  const participantQuery = useQuery({
-    queryKey: queryKeys.evar.participant(),
-    queryFn: async () => {
-      const res = await fetch("/api/evar/participant");
-      if (!res.ok) throw new Error(`GET /api/evar/participant failed with ${res.status}`);
-      return participantResponseSchema.parse(await res.json()).participant;
-    },
-    enabled: signedIn,
-  });
-  const queryClient = useQueryClient();
-  const joined = Boolean(participantQuery.data);
-  const knowsStudy = !me.isPending && (!signedIn || !participantQuery.isPending);
-  const askStudy = knowsStudy && !studyAsked && !joined;
+  // whether you're signed in, whether you've joined, and whether you've answered.
+  const study = useStudyStatus();
+  const { signedIn, isAdmin, joined } = study;
+  const knowsStudy = study.known;
+  const askStudy = knowsStudy && !study.asked && !joined;
   // The tour waits until the study question has been answered, or didn't need asking.
   const studySettled = knowsStudy && !askStudy;
 
@@ -767,11 +744,8 @@ export default function EvarContent({ initialScans = [] }: { initialScans?: read
         <StudyWelcome
           open={askStudy}
           signedIn={signedIn}
-          onJoined={(participant) => {
-            queryClient.setQueryData(queryKeys.evar.participant(), participant);
-            setStudyAsked(true);
-          }}
-          onDecline={() => setStudyAsked(true)}
+          onJoined={study.joinedAs}
+          onDecline={study.decline}
         />
         {finishedAt !== null && reference === null ? (
           <UnscoredDialog

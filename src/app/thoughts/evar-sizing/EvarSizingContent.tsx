@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-24-welcome",
+            date: "Oct 24, 2026",
+            title: "A video of the practice, made by the practice",
+          },
+          {
             id: "update-2026-10-24-plan",
             date: "Oct 24, 2026",
             title: "Most of the cost is fifteen minutes of a resident's time",
@@ -1650,6 +1655,91 @@ src/lib/evar/costs.ts:192:16
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-24-welcome"
+        date="October 24, 2026"
+        title="A video of the practice, made by the practice"
+      >
+        <p>
+          When this moves to its own domain it needs a front door, so{" "}
+          <Link href="/evar/welcome" className="underline underline-offset-2">
+            /evar/welcome
+          </Link>{" "}
+          says what it is, asks the study question on the page instead of in
+          a dialog, and has a 47-second video of a case. I didn&apos;t want
+          stock footage or a presenter reading a script, so the video is the
+          practice recording itself: a script drives the real page, takes a
+          screenshot after every step, and the captions come from the same
+          list the page writes out as the transcript.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The browser writes WebM, Safari wants H.264, and there&apos;s no ffmpeg.
+        </h3>
+        <p className="text-muted">
+          Playwright can record a session, but only as WebM, and an iPhone
+          won&apos;t reliably play that. The usual fix is ffmpeg, which
+          isn&apos;t on this machine, and I didn&apos;t want a binary dependency
+          for one video. macOS already has an H.264 encoder, so a short Swift
+          script hands the screenshots to AVFoundation, holding a still frame
+          for as long as its scene needs, which costs almost nothing once
+          encoded. What came out, read back by AVFoundation:
+        </p>
+        <pre className={pre}>
+          {`duration 47.00 s, 1280x720, 30.0 fps, 651 kbps, codec ["avc1"], audio tracks 0`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The calipers land where the phantom says the wall is.
+        </h3>
+        <p className="text-muted">
+          A demo that measures badly is worse than none, so the recorder
+          imports the phantom and asks it where the aorta&apos;s outer wall
+          is on each slice, then clicks there through the same zoom maths the
+          viewer uses. Node can run the TypeScript directly now, until the
+          sizing sheets import each other the way the bundler likes, without
+          extensions:
+        </p>
+        <pre className={pre}>
+          {`ERR Cannot find module '.../src/lib/evar/devices'
+imported from .../src/lib/evar/sheets.ts`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Ten lines of resolve hook add the <code className={code}>.ts</code>,
+          and every measurement in the video scores within tolerance.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The first cut picked the shortest grafts, and both limbs missed.
+        </h3>
+        <p className="text-muted">
+          For the graft I took the first main body and limb whose diameters
+          matched the table. Diameters were right; the catalogue lists the
+          shortest of each first, though, and the results said so:
+        </p>
+        <pre className={pre}>
+          {`Contralateral reach   102-122 mm   126-178 mm   ✗ Misses
+Ipsilateral reach     124 mm       126-173 mm   ✗ Misses`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The recorder now searches every main body, limb and extension for a
+          pick where the diameters match and{" "}
+          <code className={code}>gradeLengths</code> says every length lands,
+          which the case has.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The captions went over the page, then under it, then above it.
+        </h3>
+        <p className="text-muted">
+          Laid over the page, a caption sat on top of Check answers just as
+          the video clicked it. Moved to a band under the page, it was hidden
+          by the player&apos;s own controls on the poster, since those sit at
+          the bottom of every video. The page now renders at 1280 by 640 with
+          an 80 px band above it, which nothing covers.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1674,6 +1764,7 @@ src/lib/evar/costs.ts:192:16
           "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
           "A costed plan at /evar/plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic, how long and the resident's time.",
+          "A welcome page at /evar/welcome with a 47-second video of a case, recorded from the practice by a script, and the study question asked on the page and remembered by the practice.",
         ]}
         couldImprove={[
           "Three sheets, but each is one device family. There are no aorto-uni-iliac or iliac branch devices, so a case that needs one can only be called off the sheet.",
@@ -1685,7 +1776,7 @@ src/lib/evar/costs.ts:192:16
           "The plan's prices are a snapshot of October 23, 2026, and two of its inputs, Railway's idle use and Vercel's CPU per call, are estimates until I read the real numbers off each dashboard.",
         ]}
         upcoming={[
-          "A welcome page with a short intro video and the study question, which becomes the homepage once this has a domain of its own.",
+          "A domain of its own, with /evar/welcome as its homepage.",
           "Healthy real aortas from the same collection as normal-anatomy cases, one at a time, since each is about 7 MB.",
           "My own reference measurements for the real case, so it scores.",
         ]}
