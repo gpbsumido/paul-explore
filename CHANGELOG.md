@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-24 - version 8.2.0
+
+- `/evar/welcome`, the homepage for when EVAR Sizing moves to its own domain: a headline with Start practising, a 47-second intro video of a case with no sound, the study question, and what the project is for, linking to `/evar/plan`. The video has a poster and controls, plays only when asked, and its captions are written out beside it from `INTRO_SCENES`, the same list the recorder puts in the frames.
+- The study question's state lives in `useStudyStatus` (signed in, joined, and the answer in `evar-study-asked`), which `/evar` and the new `StudyInvite` share, so answering on the welcome page means `/evar` doesn't ask again. `StudyInvite` signs in back to `/evar/welcome`, takes consent on the page, and says so when someone has joined or the study can't be reached.
+- `scripts/record-evar-intro.mjs` records the video from the practice itself: headless Chromium, a screenshot per step, calipers on the phantom's outer wall from its own geometry, and Endurant picks from `gradeDevices` and `gradeLengths`, so all five measurements score within tolerance and every length lands. `scripts/encode-frames.swift` encodes the frames with AVFoundation, since there's no ffmpeg here: H.264, 1280x720, 30 fps, 651 kbps, 3.8 MB, with a 74 KB poster.
+
 ## 2026-10-24 - version 8.1.0
 
 - `/evar/plan` says what EVAR Sizing is for, then what running it on its own domain would cost, in Canadian dollars at the Bank of Canada's October 23 rate (US$1 = C$1.3993). Six sliders (scans in the library, people a day, scans each a day, how long, a resident's rate, minutes a scan) drive a total in an `<output>` and a line-by-line breakdown. Without touching anything there's the range at 3, 6, 12 and 24 months, a library table at 10 to 1,000 scans, a usage grid at 10 to 100 people a day by 10 to 100 scans each, the services, the domain, everything else, the assumptions and every source.
