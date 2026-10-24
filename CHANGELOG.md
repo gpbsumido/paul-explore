@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-23 - version 8.0.0
+
+- **A major release, alongside portfolio_api 6.0.0.** It ships 7.25.0 through 7.32.0, the EVAR sizing rebuild, to production, with nothing new beyond them. The major number marks what doesn't carry over from 7.24.
+- **The EVAR study starts again.** portfolio_api 6.0.0's migration `051` deletes every recorded attempt and hand-set reference, because 7.26.0 changed every phantom's anatomy under the same case ids. Participants stay joined and don't consent again.
+- **Earlier results don't compare.** The same case ids now draw tapered, angled, calcified or thrombus-lined necks (7.26.0), lengths are graded along a centerline (7.27.0), and the results and bests a device kept before 7.26.0 went with v1 storage.
+- **The wheel steps slices** (7.32.0). Over the scan it moves through the stack the way a PACS does, and Ctrl or ⌘ with the wheel, or a pinch, zooms.
+
 ## 2026-10-23 - version 7.32.0
 
 A full review of `/evar`, with hundreds of real scans in mind.

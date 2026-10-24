@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-release-8-0-0",
+    date: "2026-10-23",
+    version: "8.0.0",
+    category: "improvement",
+    tags: ["evar", "practice", "research"],
+    title: "The rebuilt EVAR sizing practice",
+    summary:
+      "Version 8 brings the rebuilt EVAR sizing practice to everyone, with harder and more realistic cases, three makers' sizing tables, a real CT scan, and a research study that starts fresh.",
+    body: [
+      "Over the last few updates the EVAR sizing practice was rebuilt. You can zoom and pan the scan, the practice necks are tapered, angled, calcified or lined with thrombus like real ones, graft lengths are measured along the vessel, and you can size a Medtronic Endurant, a Gore Excluder or a Cook Zenith Alpha. There's a real, deidentified CT scan to practise on, a short tour, and a calmer page that shows one job at a time.",
+      "Every practice case changed, so earlier results can't be compared with new ones, and the research study starts again: attempts recorded on the old cases are cleared. If you joined the study, you're still in it and don't need to sign up again.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-7-32-0",
     date: "2026-10-23",
     version: "7.32.0",
