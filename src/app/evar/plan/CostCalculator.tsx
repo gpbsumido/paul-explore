@@ -47,6 +47,8 @@ function lineCopy(id: LineId, s: Scenario, delivery: DeliveryPlan): { label: str
       return { label: "Website (Vercel Hobby)", how: "Free while the site is non-commercial." };
     case "signIn":
       return { label: "Sign-in (Auth0)", how: `Free up to ${count(PRICES.auth0FreeMonthlyUsers.value)} people a month.` };
+    case "base":
+      return { label: "My base fee", how: `Once, for my services, and not part of the ${Math.round(FEE_SHARE * 100)}%.` };
     case "fee":
       return {
         label: `My fee (${Math.round(FEE_SHARE * 100)}%)`,

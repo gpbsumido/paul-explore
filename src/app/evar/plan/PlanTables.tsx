@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { BIGGEST, FEE_SHARE, MEASURED, MIDDLE, SMALLEST, STEPS, estimate, type Scenario } from "@/lib/evar/costs";
+import { BASE_FEE_CAD, BIGGEST, FEE_SHARE, MEASURED, MIDDLE, SMALLEST, STEPS, estimate, type Scenario } from "@/lib/evar/costs";
 import { useCountResident } from "./ResidentTime";
 import { cad, cadRounded, count, duration, hours, size } from "./format";
 
@@ -60,7 +60,8 @@ export function RangeTable() {
         </tbody>
       </Table>
       <p className={muted}>
-        Every total includes my {Math.round(FEE_SHARE * 100)}% fee on running the site.{" "}
+        Every total includes my {cadRounded(BASE_FEE_CAD)} base fee, charged once, and my{" "}
+        {Math.round(FEE_SHARE * 100)}% fee on running the site.{" "}
         {countResident
           ? `Every case counts the resident at ${cadRounded(MIDDLE.residentPerHour)} an hour and ${MIDDLE.minutesPerScan} minutes a scan. Without that, the biggest case is ${cad(estimate({ ...BIGGEST, months: 24 }, { countResident: false }).total)} for two years.`
           : `Counting a resident's time, at ${cadRounded(MIDDLE.residentPerHour)} an hour and ${MIDDLE.minutesPerScan} minutes a scan, would add ${cadRounded(residentFor(SMALLEST))} to the smallest case and ${cadRounded(residentFor(BIGGEST))} to the biggest.`}

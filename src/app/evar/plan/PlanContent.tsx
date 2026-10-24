@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import {
+  BASE_FEE_CAD,
   BIGGEST,
   ESTIMATED,
   FEE_SHARE,
@@ -150,9 +151,10 @@ export default function PlanContent() {
             {rate(PRICES.cadPerUsd.value)}. The prices are each company&apos;s list price on that day.
           </p>
           <p className={prose}>
-            Running it costs about {cadRounded(running(SMALLEST))} for a year at its quietest and{" "}
-            {cadRounded(running(BIGGEST))} at its busiest: storage, servers, delivery, the domain, and my{" "}
-            {Math.round(FEE_SHARE * 100)}% fee for looking after it. A
+            A year of it costs about {cadRounded(running(SMALLEST))} at its quietest and{" "}
+            {cadRounded(running(BIGGEST))} at its busiest: storage, servers, delivery and the domain, my{" "}
+            {Math.round(FEE_SHARE * 100)}% fee for looking after it, and my {cadRounded(BASE_FEE_CAD)} base fee,
+            which is charged once. A
             resident&apos;s time to set each new scan&apos;s answers is left out unless it&apos;s switched on below.
             Paid at {cadRounded(MIDDLE.residentPerHour)} an hour and {MIDDLE.minutesPerScan} minutes a scan, it
             would be {cad(perScan)} a scan: {cadRounded(lineOf({ ...MIDDLE, scans: 10 }, "resident"))} for 10 scans
@@ -287,10 +289,11 @@ export default function PlanContent() {
             </Table>
           </Subsection>
 
-          <Subsection id="fee" title="What my fee covers">
+          <Subsection id="fee" title="What my fees cover">
             <p className={prose}>
-              My fee is {Math.round(FEE_SHARE * 100)}% of running the site, on every total here, and never on the
-              resident&apos;s time. It covers:
+              My base fee is {cadRounded(BASE_FEE_CAD)}, charged once for my services, and it isn&apos;t part of the{" "}
+              {Math.round(FEE_SHARE * 100)}%. My ongoing fee is {Math.round(FEE_SHARE * 100)}% of running the site, on
+              every total here, and never on the resident&apos;s time. The {Math.round(FEE_SHARE * 100)}% covers:
             </p>
             <ul className="mt-3 grid max-w-prose list-disc grid-cols-1 gap-2 pl-5 text-[15px] leading-relaxed text-foreground">
               <li>
@@ -447,7 +450,7 @@ export default function PlanContent() {
                 </tr>
                 <tr className="border-t border-border">
                   <th scope="row" className={`${td} font-normal text-foreground`}>My time</th>
-                  <td className={`${td} text-right text-muted`}>In my fee</td>
+                  <td className={`${td} text-right text-muted`}>In my fees</td>
                   <td className={`${td} text-muted`}>Upkeep, new scans and admin access, as above.</td>
                 </tr>
               </tbody>
@@ -503,7 +506,8 @@ export default function PlanContent() {
             <li>The domain is a regular .com bought at cost. A different name or ending changes that line.</li>
             <li>
               My fee is {Math.round(FEE_SHARE * 100)}% of running the site, rounded to the cent, and never of the
-              resident&apos;s time.
+              resident&apos;s time or my base fee. My base fee is {cadRounded(BASE_FEE_CAD)}, once, however long it
+              runs.
             </li>
             <li>
               Each bill is converted on its own, so twelve months at {cad(toCad(PRICES.railwayHobby.value))} are
