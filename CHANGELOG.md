@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-24 - version 8.1.0
+
+- `/evar/plan` says what EVAR Sizing is for, then what running it on its own domain would cost, in Canadian dollars at the Bank of Canada's October 23 rate (US$1 = C$1.3993). Six sliders (scans in the library, people a day, scans each a day, how long, a resident's rate, minutes a scan) drive a total in an `<output>` and a line-by-line breakdown. Without touching anything there's the range at 3, 6, 12 and 24 months, a library table at 10 to 1,000 scans, a usage grid at 10 to 100 people a day by 10 to 100 scans each, the services, the domain, everything else, the assumptions and every source.
+- `src/lib/evar/costs.ts` keeps every list price beside its source and works a scenario out bill by bill: the resident's answers, Railway's US$5 minimum and the disk the study's records grow into, CloudFront past its free terabyte or on the flat US$15 plan once that's cheaper, S3 storage in Canada, and the domain a year at a time. Mutation score 100% (159 killed, 1 timeout).
+- The range runs from $160.65 (10 scans, 10 people a day doing 10 each, for 3 months) to $13,210.52 (1,000 scans, 100 people doing 100, for 2 years). Almost all of it is the resident's time, $12.50 a scan at $50 an hour and 15 minutes; servers, storage and the domain are about $99 to $353 a year.
+
 ## 2026-10-23 - version 8.0.0
 
 - **A major release, alongside portfolio_api 6.0.0.** It ships 7.25.0 through 7.32.0, the EVAR sizing rebuild, to production, with nothing new beyond them. The major number marks what doesn't carry over from 7.24.

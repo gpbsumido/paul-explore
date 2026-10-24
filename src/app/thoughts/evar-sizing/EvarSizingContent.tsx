@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-24-plan",
+            date: "Oct 24, 2026",
+            title: "Most of the cost is fifteen minutes of a resident's time",
+          },
+          {
             id: "update-2026-10-23-review",
             date: "Oct 23, 2026",
             title: "A slice asked where the aorta was 145,933 times",
@@ -1556,6 +1561,95 @@ evar-measurements  evar-devices  evar-dock`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-24-plan"
+        date="October 24, 2026"
+        title="Most of the cost is fifteen minutes of a resident's time"
+      >
+        <p>
+          Before moving this to its own domain I wanted to know what it would
+          cost to run, so{" "}
+          <Link href="/evar/plan" className="underline underline-offset-2">
+            /evar/plan
+          </Link>{" "}
+          now says what the practice is for and then prices it: storage,
+          servers, a resident&apos;s time, the domain and everything else, in
+          Canadian dollars, with sliders for the library, the traffic and how
+          long it runs.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The servers turned out to be the cheap part.
+        </h3>
+        <p className="text-muted">
+          Running the site is Railway&apos;s US$5 minimum, a domain, and
+          storage counted in cents: about $99 a year at its quietest and $353
+          at its busiest. What costs money is a resident setting each
+          scan&apos;s five answers. Fifteen minutes at $50 an hour is $12.50 a
+          scan, so a thousand scans is $12,500 and 250 hours of someone&apos;s
+          evenings. The range across everything I asked about:
+        </p>
+        <pre className={pre}>
+          {`How long   Smallest   Middle      Biggest
+3 months   $160.65    $1,285.71   $12,599.35
+1 year     $223.67    $1,348.94   $12,853.48
+2 years    $322.34    $1,447.87   $13,210.52`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A year of Railway came out four cents short of twelve months of it.
+        </h3>
+        <p className="text-muted">
+          My first pass at the model converted each line to Canadian dollars
+          once, over the whole period. A year of Railway came to $83.96 while
+          the same page said $7.00 a month, and anyone multiplying that out
+          would find four cents missing and stop trusting the rest. Each bill
+          is converted on its own now, a month of Railway or a year of the
+          domain, so twelve months at $7.00 are exactly $84.00. Storage is the
+          one exception: a month of a hundred scans is about two cents, and
+          rounding it monthly would have understated the year by a fifth.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Past a terabyte, a flat plan beats paying by the gigabyte.
+        </h3>
+        <p className="text-muted">
+          CloudFront&apos;s first terabyte a month is free, which is about
+          141,800 scan opens, and only the busiest corners of the usage grid
+          go past it. At the very top, 100 people a day doing 100 scans each,
+          paying by the gigabyte would cost more than six times the flat-rate
+          plan, so the model takes whichever is cheaper for the month:
+        </p>
+        <pre className={pre}>
+          {`2,115 GB a month, 1,115 GB past the free terabyte
+by the GB:      1,115 x US$0.085 = US$94.78
+flat-rate Pro:  US$15.00 for up to 50 TB`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The tests passed without checking which plan it picked.
+        </h3>
+        <p className="text-muted">
+          Stryker left eight mutants alive on the first run, a 95% score. The
+          names of the delivery plans could be blanked, and three usage
+          figures could divide instead of multiply, because the tests checked
+          them against a ceiling, or over one month, where multiplying by the
+          months and dividing by them are the same thing:
+        </p>
+        <pre className={pre}>
+          {`[Survived] ArithmeticOperator
+src/lib/evar/costs.ts:192:16
+-       recordsGb: recordsGbPerMonth * months,
++       recordsGb: recordsGbPerMonth / months,`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Pinning the plan for each case and the exact page data, CPU and
+          records over two years killed all of them. The one left is the
+          boundary where both plans cost exactly US$15, which can&apos;t change
+          a number, so it&apos;s marked as equivalent rather than tested.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1579,6 +1673,7 @@ evar-measurements  evar-devices  evar-dock`}
           "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
           "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
+          "A costed plan at /evar/plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic, how long and the resident's time.",
         ]}
         couldImprove={[
           "Three sheets, but each is one device family. There are no aorto-uni-iliac or iliac branch devices, so a case that needs one can only be called off the sheet.",
@@ -1587,8 +1682,10 @@ evar-measurements  evar-devices  evar-dock`}
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
           "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
+          "The plan's prices are a snapshot of October 23, 2026, and two of its inputs, Railway's idle use and Vercel's CPU per call, are estimates until I read the real numbers off each dashboard.",
         ]}
         upcoming={[
+          "A welcome page with a short intro video and the study question, which becomes the homepage once this has a domain of its own.",
           "Healthy real aortas from the same collection as normal-anatomy cases, one at a time, since each is about 7 MB.",
           "My own reference measurements for the real case, so it scores.",
         ]}

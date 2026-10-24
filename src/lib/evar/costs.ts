@@ -207,6 +207,7 @@ export function deliveryFor(scanGbPerMonth: number): { plan: DeliveryPlan; usd: 
   const overGb = Math.max(0, scanGbPerMonth - PRICES.cloudfrontFreeGb.value);
   if (overGb === 0) return { plan: "free", usd: 0 };
   const perGb = overGb * PRICES.cloudfrontPerGb.value;
+  // Stryker disable next-line EqualityOperator: at exactly the flat price both plans cost the same, so which one it names changes no number.
   return perGb <= PRICES.cloudfrontFlatPro.value ? { plan: "perGb", usd: perGb } : { plan: "flat", usd: PRICES.cloudfrontFlatPro.value };
 }
 

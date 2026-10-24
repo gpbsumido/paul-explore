@@ -51,15 +51,18 @@ describe("estimate", () => {
     expect(line(scenario({ peoplePerDay: 50, scansEachPerDay: 30 }), "delivery")).toBe(0);
     // 141,000 opens a month is 994 GB, still inside the free terabyte.
     expect(line(scenario({ peoplePerDay: 100, scansEachPerDay: 47 }), "delivery")).toBe(0);
+    expect(estimate(scenario({ peoplePerDay: 100, scansEachPerDay: 47 })).delivery).toBe("free");
   });
 
   it("pays by the GB just past the free terabyte", () => {
     expect(line(scenario({ peoplePerDay: 50, scansEachPerDay: 100, months: 1 }), "delivery")).toBe(6.84);
+    expect(estimate(scenario({ peoplePerDay: 50, scansEachPerDay: 100 })).delivery).toBe("perGb");
   });
 
   it("moves to CloudFront's flat plan once that's cheaper than paying by the GB", () => {
     expect(line(scenario({ peoplePerDay: 100, scansEachPerDay: 100, months: 1 }), "delivery")).toBe(20.99);
     expect(line(scenario({ peoplePerDay: 100, scansEachPerDay: 100, months: 12 }), "delivery")).toBe(251.88);
+    expect(estimate(scenario({ peoplePerDay: 100, scansEachPerDay: 100 })).delivery).toBe("flat");
   });
 
   it("keeps Railway at its monthly minimum until the study records outgrow it", () => {
@@ -116,10 +119,22 @@ describe("estimate", () => {
 
 describe("usageFor", () => {
   it("counts every scan as a download and every visit as three calls plus two a case", () => {
-    const usage = usageFor({ peoplePerDay: 100, scansEachPerDay: 100, months: 1 });
+    const usage = usageFor({ peoplePerDay: 100, scansEachPerDay: 100, months: 24 });
     expect(usage.opensPerMonth).toBe(300_000);
     expect(usage.scanGbPerMonth).toBeCloseTo(2115, 6);
     expect(usage.callsPerMonth).toBe(609_000);
+    expect(usage.peoplePerMonth).toBe(3000);
+  });
+
+  it("works out the page data, the CPU and the records they add up to", () => {
+    const usage = usageFor({ peoplePerDay: 100, scansEachPerDay: 100, months: 24 });
+    // 3,000 visits at 0.413 MB.
+    expect(usage.pageGbPerMonth).toBeCloseTo(1.239, 6);
+    // 609,000 calls at 10 ms.
+    expect(usage.cpuHoursPerMonth).toBeCloseTo(1.6917, 4);
+    // 300,000 records a month at 2 KB, for 24 months.
+    expect(usage.recordsGbPerMonth).toBeCloseTo(0.6, 6);
+    expect(usage.recordsGb).toBeCloseTo(14.4, 6);
   });
 });
 
