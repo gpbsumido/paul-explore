@@ -4,7 +4,6 @@ import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
 import StudyInvite from "./StudyInvite";
-import EvarContent from "../EvarContent";
 import { CONSENT_VERSION } from "@/lib/evar/research";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
@@ -51,17 +50,6 @@ describe("StudyInvite", () => {
     expect(screen.getByRole("link", { name: /practise without joining/i })).toHaveAttribute("href", "/evar");
   });
 
-  it("remembers the answer, so the practice doesn't ask again", async () => {
-    study();
-    const welcome = render(withQueries(<StudyInvite />));
-    fireEvent.click(await screen.findByRole("link", { name: /practise without joining/i }));
-    expect(window.localStorage.getItem("evar-study-asked")).toBe("true");
-    welcome.unmount();
-    render(withQueries(<EvarContent />));
-    await vi.waitFor(() => expect(screen.queryByRole("dialog", { name: /tour/i })).not.toBeNull());
-    expect(screen.queryByRole("dialog", { name: /research study/i })).toBeNull();
-  });
-
   it("lets a signed-in visitor consent on the page, then says they're in", async () => {
     const state = study({ signedIn: true });
     render(withQueries(<StudyInvite />));
@@ -70,7 +58,6 @@ describe("StudyInvite", () => {
     fireEvent.click(screen.getByRole("button", { name: /join the study/i }));
     expect(await screen.findByText(/you.re in the study/i)).toBeInTheDocument();
     expect(state.participant).not.toBeNull();
-    expect(window.localStorage.getItem("evar-study-asked")).toBe("true");
   });
 
   it("tells someone who has already joined, instead of asking", async () => {

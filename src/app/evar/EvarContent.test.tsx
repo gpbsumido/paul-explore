@@ -269,6 +269,19 @@ const checkAnswers = () => fireEvent.click(screen.getByRole("button", { name: /c
 const resultsDialog = () => screen.getByRole("dialog", { name: /how you did/i });
 
 describe("EvarContent results popup", () => {
+  it("links each measurement it didn't count to the guide's section on it", () => {
+    renderPage();
+    markNeckLength();
+    checkAnswers();
+    const dialog = resultsDialog();
+    expect(within(dialog).getByRole("link", { name: /how to measure.*proximal neck diameter/i })).toHaveAttribute(
+      "href",
+      "/evar/guide#neck-diameter",
+    );
+    expect(within(dialog).getByRole("link", { name: /how to measure.*maximum sac diameter/i })).toHaveAttribute("href", "/evar/guide#sac");
+    expect(within(dialog).getByRole("link", { name: /how to measure.*right common iliac/i })).toHaveAttribute("href", "/evar/guide#iliacs");
+  });
+
   it("pops up stars and points when the answers are checked", () => {
     renderPage();
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -545,6 +558,19 @@ describe("EvarContent real CTA", () => {
 });
 
 describe("EvarContent, one job at a time", () => {
+  it("points from How to measure to the full guide", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: /how to measure/i }));
+    expect(screen.getByRole("link", { name: /read the full guide/i })).toHaveAttribute("href", "/evar/guide");
+  });
+
+  it("says centreline, the Canadian way, where it explains lengths", () => {
+    renderPage();
+    openDevices();
+    expect(screen.getByText(/centreline/i)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/centerline/i);
+  });
+
   it("splits the work into Measure and Size the graft, starting on Measure", () => {
     renderPage();
     const measure = screen.getByRole("tab", { name: /measure/i });

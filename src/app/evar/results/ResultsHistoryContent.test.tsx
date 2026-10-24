@@ -35,6 +35,7 @@ describe("ResultsHistoryContent", () => {
     expect(screen.getByRole("heading", { level: 1, name: /your evar results/i })).toBeInTheDocument();
     expect(screen.getByText(/haven.t finished a case on this device/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /go to the practice/i })).toHaveAttribute("href", "/evar");
+    expect(screen.getByRole("link", { name: /how to measure/i })).toHaveAttribute("href", "/evar/guide");
     expect(screen.queryByRole("table")).toBeNull();
   });
 
