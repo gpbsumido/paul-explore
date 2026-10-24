@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-24-guide",
+            date: "Oct 24, 2026",
+            title: "Writing the guide meant saying what the practice leaves out",
+          },
+          {
             id: "update-2026-10-24-fees",
             date: "Oct 24, 2026",
             title: "The resident's time was most of the bill, so it became a switch",
@@ -1802,6 +1807,140 @@ now          My upkeep fee (10%)     $9.89   10% of $98.94, running the site onl
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-24-guide"
+        date="October 24, 2026"
+        title="Writing the guide meant saying what the practice leaves out"
+      >
+        <p>
+          The practice showed where to click but never said how to measure,
+          and a first visit opened on a popup about the study. A first visit
+          now lands on{" "}
+          <Link href="/evar/welcome" className="underline underline-offset-2">
+            /evar/welcome
+          </Link>
+          , which has a second video on what to look for and where the
+          calipers go, and{" "}
+          <Link href="/evar/guide" className="underline underline-offset-2">
+            /evar/guide
+          </Link>{" "}
+          goes through every measurement with a picture of it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          No cookie, because the consent banner would have had to ask about it.
+        </h3>
+        <p className="text-muted">
+          Redirecting on the server means knowing someone has been before,
+          which means a cookie, and this site only sets the ones it doesn&apos;t
+          strictly need after consent. So it&apos;s localStorage, read by a
+          script that runs before the page paints, the same trick the theme
+          uses to avoid a flash. If storage can&apos;t be read it does nothing,
+          so a locked-down browser gets the practice rather than a loop. This
+          is all of it:
+        </p>
+        <pre className={pre}>
+          {`(function(){try{var s=window.localStorage;if(s.getItem("evar-welcomed")!=='true'&&s.getItem("evar-study-asked")!=='true'){window.location.replace("/evar/welcome");}}catch(e){}})();`}
+        </pre>
+        <p className="mt-3 text-muted">
+          That covers a full page load. A click from elsewhere on the site
+          swaps the page in without loading it, so the script never runs, and
+          a small client component makes the same check instead. Anyone who
+          answered the old popup counts as welcomed already.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The practice teaches five numbers. A real plan needs more.
+        </h3>
+        <p className="text-muted">
+          I wanted the guide to match how it&apos;s done in a hospital, not
+          just how my practice grades it, so I read it against the 2024 ESVS
+          guidelines and the Endurant instructions for use. The five
+          measurements hold up: outer wall to outer wall, across the short
+          axis, from the lowest renal to where the aorta first widens by more
+          than 10%. What real planning adds is a centreline through a 3D
+          rebuild of the CT, and a set of limits every case has to fit inside:
+        </p>
+        <pre className={pre}>
+          {`ESVS 2024, Table 13: the range across current devices
+neck diameter        min 16-19 mm, max 28-32 mm
+neck length          min 10-15 mm
+neck angle           above the renals 45-60°, below 45-90°
+calcium, thrombus    at most 50% of the neck's circumference
+aortic bifurcation   min 12-21 mm
+access arteries      min 5-8.5 mm on the main body's side, 3.5-7 mm on the other`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The guide covers all of it in a section on what real planning adds.
+          The practice doesn&apos;t ask for any of it yet. The neck&apos;s shape,
+          how much of it is lined, the bifurcation and the access arteries, and
+          a last check that the case fits the device&apos;s instructions for use
+          are next. Neck angles stay in the guide for now.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My first neck caliper sat on the renal artery.
+        </h3>
+        <p className="text-muted">
+          The neck is measured just below the lowest renal, and the intro had
+          always done that one slice down. Recording the how-to with labels on,
+          the left caliper landed where the renal artery met the wall, because
+          a 3 mm artery on 2 mm slices still shows on the next one:
+        </p>
+        <pre className={pre}>
+          {`const dz = Math.abs(z - renal.slice) * SLICE_MM;
+return dz > RENAL_RADIUS_MM ? [] : [{ side: renal.side, halfPx: Math.sqrt(RENAL_RADIUS_MM ** 2 - dz ** 2) / PIXEL_MM }];
+
+one slice down    dz 2 mm, the artery still 2.6 px either side of its line
+two slices down   dz 4 mm, gone`}
+        </pre>
+        <p className="mt-3 text-muted">
+          That&apos;s partial volume, and a patient&apos;s CT does it too. Both
+          videos measure two slices down now, where the outer wall is a clean
+          edge, and so does the guide&apos;s picture.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Watching the recording found two bugs no test had looked for.
+        </h3>
+        <p className="text-muted">
+          The command palette&apos;s floating pill sits in the bottom right of
+          every page, and on the practice that corner is the end of the dock,
+          so it sat on top of Start over in every frame. It&apos;s hidden on the
+          practice now, the way it already was on the landing page, and ⌘K
+          still opens the palette. The other was in the results:
+        </p>
+        <pre className={pre}>
+          {`Proximal neck diameter   23.0 mm   23.0 mm   -0.0   ✓ Within tolerance`}
+        </pre>
+        <p className="mt-3 text-muted">
+          A caliper a few hundredths of a millimetre short rounds to the answer
+          and kept its minus sign. Anything that rounds to nothing reads 0.0
+          now, with no sign either way.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The intro was waiting for a popup this change took away.
+        </h3>
+        <p className="text-muted">
+          Its recorder opened the practice and waited for the study dialog
+          before doing anything else:
+        </p>
+        <pre className={pre}>
+          {`const studyDialog = page.getByRole("dialog", { name: /research study/i });
+await studyDialog.waitFor();`}
+        </pre>
+        <p className="mt-3 text-muted">
+          With the popup gone that never resolves, and a fresh browser is
+          sent to the welcome page first anyway. It starts on the welcome page
+          now, shows the question there, and follows Practise without joining
+          into the practice. Both recorders share one module for the browser,
+          the captions, the cursor and the calipers, and the how-to saves the
+          guide&apos;s seven pictures in the same run as its video, so the two
+          can&apos;t disagree.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1813,12 +1952,12 @@ now          My upkeep fee (10%)     $9.89   10% of $98.94, running the site onl
           "A real, deidentified CTA of an infrarenal aneurysm on Medium, which the page opens on, under CC BY 4.0 with attribution, unscored until its answers are set by hand.",
           "Real scans listed in a manifest beside their files, servable from object storage, and added with one command that writes the volume and the manifest entry.",
           "An Admin link for anyone on the admin allowlist, and an admin list that finds cases by search and filters to scans still waiting on answers.",
-          "One job at a time: the study is asked about first, measuring and sizing are separate tabs, and anything needed once folds away until asked for.",
+          "One job at a time: the study is asked about on the welcome page, measuring and sizing are separate tabs, and anything needed once folds away until asked for.",
           "A guided tour for first-time visitors, on the same engine as ZeroProof's, that walks the page from levels to checking answers.",
           "Zoom from 1× to 8× and pan, with the scroll wheel, a pinch, a drag or the keyboard, without changing what a caliper measures.",
           "Five scored measurements against exact references, with written tolerances, a score and time taken, and a debrief on what the anatomy means for the repair.",
           "Device selection from three sizing sheets, Endurant II/IIs, Gore Excluder Conformable and Cook Zenith Alpha, with each diameter graded against that sheet's table for the real anatomy and for your own numbers.",
-          "Lengths along a centerline: neck length measured down the vessel, marks for the bifurcation and internal iliacs, and each side's device reach graded against where it has to land.",
+          "Lengths along a centreline: neck length measured down the vessel, marks for the bifurcation and internal iliacs, and each side's device reach graded against where it has to land.",
           "An opt-in study for signed-in users: versioned draft consent, each attempt recorded once with its measurements, scores, devices and time, a personal history, and withdrawal that deletes everything.",
           "An admin page that sets a case's five reference answers by hand, with the phantom as the fallback.",
           "A study download on that admin page: a CSV with one line per attempt and the training profile alongside, or the raw JSON.",
@@ -1826,18 +1965,22 @@ now          My upkeep fee (10%)     $9.89   10% of $98.94, running the site onl
           "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
           "A costed plan at /evar/plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic and how long, a switch for the resident's time, my base and upkeep fees, and who owns the code and the study data.",
-          "A welcome page at /evar/welcome with a 47-second video of a case, recorded from the practice by a script, and the study question asked on the page and remembered by the practice.",
+          "A welcome page at /evar/welcome, where a first visit lands, with a 47-second video of a case and a 54-second one on where the calipers go, both recorded from the practice by a script, and the study question asked on the page.",
+          "A guide at /evar/guide: each measurement in the order it's taken with a picture of it, a case sized on the Endurant sheet, the tolerances, common mistakes, and what hospital planning adds, with its sources. Anything the results don't count links to its step.",
         ]}
         couldImprove={[
           "Three sheets, but each is one device family. There are no aorto-uni-iliac or iliac branch devices, so a case that needs one can only be called off the sheet.",
-          "Everything you see is axial. Lengths are measured along the phantom's centerline, but there's no curved planar reformat to look down it, which is the step real planning software takes.",
+          "Everything you see is axial. Lengths are measured along the phantom's centreline, but there's no curved planar reformat to look down it, which is the step real planning software takes.",
           "The organs are still ellipses, and each angled neck leans in one straight line rather than curving, so there's no tortuous aorta yet.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
           "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
+          "The practice grades five measurements. Real planning also checks the neck's shape, how much of it is lined, the bifurcation and the access arteries, and whether the case fits the device's instructions for use. The guide explains them, but nothing asks for them yet.",
+          "A first visit still opens on Medium's real scan, which isn't scored until its answers are set, while the how-to video says to start on Easy.",
           "The plan's prices are a snapshot of October 23, 2026, and two of its inputs, Railway's idle use and Vercel's CPU per call, are estimates until I read the real numbers off each dashboard.",
         ]}
         upcoming={[
+          "The neck's shape, its calcium and thrombus, the bifurcation and access arteries, and an instructions-for-use check at the end, kept simple.",
           "A domain of its own, with /evar/welcome as its homepage.",
           "Healthy real aortas from the same collection as normal-anatomy cases, one at a time, since each is about 7 MB.",
           "My own reference measurements for the real case, so it scores.",
