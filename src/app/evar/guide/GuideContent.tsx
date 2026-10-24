@@ -19,10 +19,11 @@ const mainBody = ENDURANT.mainBodyDiametersFor(answer.neckDiameter)[0];
 const rightLimb = ENDURANT.limbDiametersFor(answer.rightCia)[0];
 const leftLimb = ENDURANT.limbDiametersFor(answer.leftCia)[0];
 
-/** Pictures from the how-to recording: the scan crops are square, the panels taller than wide. */
+/** Pictures from scripts/record-evar-how-to.mjs, at the sizes it saves them. */
 const SCAN = { width: 920, height: 920 };
-const PANEL = { width: 720, height: 920 };
-const DIALOG = { width: 1280, height: 920 };
+const NECK_LENGTH = { width: 720, height: 510 };
+const GRAFT = { width: 720, height: 575 };
+const RESULTS = { width: 1280, height: 920 };
 
 const SOURCES = [
   {
@@ -44,7 +45,10 @@ const SOURCES = [
   },
 ];
 
-/** One step of the guide: a numbered heading, what to do, and a picture of doing it. */
+/**
+ * One step of the guide: a numbered heading, what to do, and a picture of
+ * doing it beside the text, or under it when the picture is `wide`.
+ */
 function Step({
   id,
   number,
@@ -52,6 +56,7 @@ function Step({
   image,
   alt,
   size,
+  wide = false,
   children,
 }: {
   id: string;
@@ -60,6 +65,7 @@ function Step({
   image: string;
   alt: string;
   size: { width: number; height: number };
+  wide?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -68,7 +74,7 @@ function Step({
         <span className="mr-2 font-mono text-[15px] text-muted">{number}</span>
         {title}
       </h2>
-      <div className="mt-4 grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+      <div className={`mt-4 grid grid-cols-1 items-start gap-6 ${wide ? "" : "md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"}`}>
         <div className="min-w-0">{children}</div>
         <Image
           src={`/evar/guide/${image}.webp`}
@@ -154,7 +160,7 @@ export default function GuideContent() {
           number={2}
           title="Measure the neck"
           image="neck-diameter"
-          alt="The neck just below the lowest renal artery, with calipers from outer wall to outer wall"
+          alt="The neck just below the lowest renal artery, with calipers from outer wall to outer wall and the calcium in its wall labelled"
           size={SCAN}
         >
           <p className={prose}>
@@ -175,7 +181,7 @@ export default function GuideContent() {
           title="Mark the neck length"
           image="neck-length"
           alt="The neck length panel with the lowest renal artery and the start of the aneurysm both marked"
-          size={PANEL}
+          size={NECK_LENGTH}
         >
           <p className={prose}>
             Mark the lowest renal, then the first slice where the aorta widens by more than 10%. That&apos;s where the
@@ -192,7 +198,7 @@ export default function GuideContent() {
           number={4}
           title="Measure the widest part of the sac"
           image="sac"
-          alt="The aneurysm at its widest slice, with calipers from outer wall to outer wall"
+          alt="The aneurysm at its widest slice, with calipers from outer wall to outer wall and the thrombus labelled"
           size={SCAN}
         >
           <p className={prose}>
@@ -222,8 +228,8 @@ export default function GuideContent() {
           number={6}
           title="Size the graft"
           image="graft"
-          alt="The Size the graft tab, with an Endurant main body, contralateral limb and extension picked"
-          size={PANEL}
+          alt="Sizing the graft: the main body up the right iliac, with an Endurant main body, contralateral limb and extension picked"
+          size={GRAFT}
         >
           <p className={prose}>
             Each maker publishes a table that turns a measurement into a device size, and the sizes are deliberately a
@@ -248,7 +254,8 @@ export default function GuideContent() {
           title="Check your answers"
           image="check"
           alt="The results after checking the answers: stars, points, and each measurement against the reference"
-          size={DIALOG}
+          size={RESULTS}
+          wide
         >
           <p className={prose}>Each number is compared with the reference, within a tolerance set by the level.</p>
           <ul className="mt-3 grid max-w-prose list-disc grid-cols-1 gap-1.5 pl-5 text-[15px] leading-relaxed text-foreground">
