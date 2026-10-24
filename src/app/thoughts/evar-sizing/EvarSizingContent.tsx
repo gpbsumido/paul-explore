@@ -48,6 +48,11 @@ export default function EvarSizingContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-10-24-fees",
+            date: "Oct 24, 2026",
+            title: "The resident's time was most of the bill, so it became a switch",
+          },
+          {
             id: "update-2026-10-24-welcome",
             date: "Oct 24, 2026",
             title: "A video of the practice, made by the practice",
@@ -1740,6 +1745,63 @@ Ipsilateral reach     124 mm       126-173 mm   ✗ Misses`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-24-fees"
+        date="October 24, 2026"
+        title="The resident's time was most of the bill, so it became a switch"
+      >
+        <p>
+          The plan priced a resident&apos;s time to set each scan&apos;s answers
+          into every total, and it swamped everything else. A resident on the
+          study may well set them for nothing, so it&apos;s a switch now, off
+          until someone turns it on, and the page also says what I charge for
+          looking after it and who owns what.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Most of every total was one assumption.
+        </h3>
+        <p className="text-muted">
+          At $50 an hour and 15 minutes a scan, the resident was $1,250 of the
+          middle case&apos;s $1,348.94 for a year, 93% of it, so the page was
+          mostly a price for someone&apos;s evenings. With the switch off, the
+          calculator drops the rate and minutes sliders and the resident&apos;s
+          line, and the range and library tables follow it, because one
+          provider around the cost sections holds the answer for all of them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          My first upkeep fee took 10% of the resident too.
+        </h3>
+        <p className="text-muted">
+          Two fees of mine joined the totals: a $500 base fee, once, and a 10%
+          upkeep fee for looking after the site. The first version of the
+          upkeep fee was 10% of the whole total, resident included, which isn&apos;t
+          what it&apos;s for:
+        </p>
+        <pre className={pre}>
+          {`first pass   My fee (10%)          $134.89   10% of $1,348.94
+now          My upkeep fee (10%)     $9.89   10% of $98.94, running the site only`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The upkeep fee is a tenth of servers, delivery, storage, the domain,
+          the website and sign-in, and never of the resident&apos;s time or the
+          base fee. The middle case for a year is $608.83 with the switch off
+          and $1,858.83 with it on.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The domain line is what an ordinary name costs, not a quote.
+        </h3>
+        <p className="text-muted">
+          The totals use a regular .com at Cloudflare&apos;s at-cost price, and
+          the page now says so where the domain is priced and on its line in
+          the breakdown: another ending costs more or less, a premium or
+          already-owned name can cost hundreds or thousands, and registries can
+          raise renewals.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1763,7 +1825,7 @@ Ipsilateral reach     124 mm       126-173 mm   ✗ Misses`}
           "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
           "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
-          "A costed plan at /evar/plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic, how long and the resident's time.",
+          "A costed plan at /evar/plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic and how long, a switch for the resident's time, my base and upkeep fees, and who owns the code and the study data.",
           "A welcome page at /evar/welcome with a 47-second video of a case, recorded from the practice by a script, and the study question asked on the page and remembered by the practice.",
         ]}
         couldImprove={[
