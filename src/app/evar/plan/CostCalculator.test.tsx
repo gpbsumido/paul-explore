@@ -19,7 +19,7 @@ describe("CostCalculator", () => {
     render(<CostCalculator />);
     expect(screen.getAllByRole("slider")).toHaveLength(4);
     expect(screen.queryByRole("slider", { name: /resident's rate/i })).toBeNull();
-    expect(total()).toHaveTextContent("$108.83");
+    expect(total()).toHaveTextContent("$608.83");
     expect(within(screen.getByRole("table", { name: /what the total is made of/i })).queryByRole("row", { name: /^a resident's time/i })).toBeNull();
   });
 
@@ -31,8 +31,9 @@ describe("CostCalculator", () => {
 
   it("opens on the middle case for a year", () => {
     counted(<CostCalculator />);
-    expect(total()).toHaveTextContent("$1,358.83");
+    expect(total()).toHaveTextContent("$1,858.83");
     expect(total()).toHaveTextContent(/1 year/);
+    expect(row(/my base fee/i)).toHaveTextContent("$500.00");
     expect(row(/my fee/i)).toHaveTextContent("$9.89");
     expect(row(/my fee/i)).toHaveTextContent(/upkeep, new scans and admin access/i);
     expect(row(/^a resident's time/i)).toHaveTextContent("$1,250.00");
@@ -46,7 +47,7 @@ describe("CostCalculator", () => {
     toTop(/people a day/i);
     toTop(/scans each a day/i);
     toTop(/how long/i);
-    expect(total()).toHaveTextContent("$13,281.57");
+    expect(total()).toHaveTextContent("$13,781.57");
     expect(total()).toHaveTextContent(/2 years/);
     expect(row(/cloudfront/i)).toHaveTextContent("$503.76");
     expect(screen.getByText(/300,000 scan opens a month/i)).toBeInTheDocument();
@@ -57,7 +58,7 @@ describe("CostCalculator", () => {
     move(/resident's rate/i, 100);
     expect(row(/^a resident's time/i)).toHaveTextContent("$2,500.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
-    expect(total()).toHaveTextContent("$2,608.83");
+    expect(total()).toHaveTextContent("$3,108.83");
     move(/minutes a scan/i, 30);
     expect(row(/^a resident's time/i)).toHaveTextContent("$5,000.00");
   });

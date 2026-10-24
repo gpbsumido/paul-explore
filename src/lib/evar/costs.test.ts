@@ -109,8 +109,15 @@ describe("estimate", () => {
   it("leaves the resident's time out when asked, and totals the rest", () => {
     const { lines, total } = estimate(MIDDLE, { countResident: false });
     expect(lines.map((l) => l.id)).not.toContain("resident");
-    expect(total).toBe(108.83);
-    expect(estimate(MIDDLE, { countResident: true }).total).toBe(1358.83);
+    expect(total).toBe(608.83);
+    expect(estimate(MIDDLE, { countResident: true }).total).toBe(1858.83);
+  });
+
+  it("adds my $500 base fee once, whatever the length, and outside the 10%", () => {
+    expect(line(MIDDLE, "base")).toBe(500);
+    expect(line({ ...MIDDLE, months: 3 }, "base")).toBe(500);
+    expect(line({ ...MIDDLE, months: 24 }, "base")).toBe(500);
+    expect(line(MIDDLE, "fee")).toBe(9.89);
   });
 
   it("adds my fee, 10% of running the site, as its own line, and never on the resident's time", () => {
@@ -126,10 +133,10 @@ describe("estimate", () => {
       [SMALLEST, MIDDLE, BIGGEST].map((size) => estimate({ ...size, months }, { countResident: false }).total),
     );
     expect(totals).toEqual([
-      [39.22, 39.28, 109.29],
-      [62.32, 62.47, 202.47],
-      [108.54, 108.83, 388.83],
-      [217.07, 217.66, 781.57],
+      [539.22, 539.28, 609.29],
+      [562.32, 562.47, 702.47],
+      [608.54, 608.83, 888.83],
+      [717.07, 717.66, 1281.57],
     ]);
   });
 
@@ -138,10 +145,10 @@ describe("estimate", () => {
       [SMALLEST, MIDDLE, BIGGEST].map((size) => estimate({ ...size, months }).total),
     );
     expect(totals).toEqual([
-      [164.22, 1289.28, 12609.29],
-      [187.32, 1312.47, 12702.47],
-      [233.54, 1358.83, 12888.83],
-      [342.07, 1467.66, 13281.57],
+      [664.22, 1789.28, 13109.29],
+      [687.32, 1812.47, 13202.47],
+      [733.54, 1858.83, 13388.83],
+      [842.07, 1967.66, 13781.57],
     ]);
   });
 });

@@ -27,10 +27,10 @@ describe("PlanContent", () => {
     render(<PlanContent />);
     const range = screen.getByRole("table", { name: /the range/i });
     const expected = [
-      ["3 months", "$39.22", "$39.28", "$109.29"],
-      ["6 months", "$62.32", "$62.47", "$202.47"],
-      ["1 year", "$108.54", "$108.83", "$388.83"],
-      ["2 years", "$217.07", "$217.66", "$781.57"],
+      ["3 months", "$539.22", "$539.28", "$609.29"],
+      ["6 months", "$562.32", "$562.47", "$702.47"],
+      ["1 year", "$608.54", "$608.83", "$888.83"],
+      ["2 years", "$717.07", "$717.66", "$1,281.57"],
     ];
     for (const [period, ...totals] of expected) {
       const row = within(range).getByRole("row", { name: new RegExp(`^${period}`) });
@@ -46,8 +46,8 @@ describe("PlanContent", () => {
     expect(toggle).toHaveAttribute("aria-checked", "true");
 
     const range = screen.getByRole("table", { name: /the range/i });
-    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,358.83");
-    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$13,281.57");
+    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,858.83");
+    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$13,781.57");
     const library = screen.getByRole("table", { name: /library/i });
     expect(within(library).getByRole("row", { name: /^1,000/ })).toHaveTextContent("$12,500.00");
     expect(screen.getByRole("slider", { name: /resident's rate/i })).toBeInTheDocument();
@@ -80,9 +80,11 @@ describe("PlanContent", () => {
     expect(domain).toHaveTextContent(/renewal/i);
   });
 
-  it("says what my fee covers", () => {
+  it("says what my fees cover: a $500 base fee once, and 10% of running the site", () => {
     render(<PlanContent />);
-    const fee = screen.getByRole("region", { name: /what my fee covers/i });
+    const fee = screen.getByRole("region", { name: /what my fees cover/i });
+    expect(fee).toHaveTextContent("$500");
+    expect(fee).toHaveTextContent(/once/i);
     expect(fee).toHaveTextContent(/upkeep/i);
     expect(fee).toHaveTextContent(/new scans/i);
     expect(fee).toHaveTextContent(/admin/i);
