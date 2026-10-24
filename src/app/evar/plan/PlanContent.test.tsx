@@ -80,6 +80,15 @@ describe("PlanContent", () => {
     expect(domain).toHaveTextContent(/renewal/i);
   });
 
+  it("says what my fee covers", () => {
+    render(<PlanContent />);
+    const fee = screen.getByRole("region", { name: /what my fee covers/i });
+    expect(fee).toHaveTextContent(/upkeep/i);
+    expect(fee).toHaveTextContent(/new scans/i);
+    expect(fee).toHaveTextContent(/admin/i);
+    expect(fee).toHaveTextContent(/never on the resident's time/i);
+  });
+
   it("says the code is mine and the study data belongs to the research team", () => {
     render(<PlanContent />);
     const owners = screen.getByRole("region", { name: /who owns what/i });

@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import {
   BIGGEST,
   ESTIMATED,
+  FEE_SHARE,
   MEASURED,
   MIDDLE,
   PRICES,
@@ -150,7 +151,8 @@ export default function PlanContent() {
           </p>
           <p className={prose}>
             Running it costs about {cadRounded(running(SMALLEST))} for a year at its quietest and{" "}
-            {cadRounded(running(BIGGEST))} at its busiest: storage, servers, delivery and the domain. A
+            {cadRounded(running(BIGGEST))} at its busiest: storage, servers, delivery, the domain, and my{" "}
+            {Math.round(FEE_SHARE * 100)}% fee for looking after it. A
             resident&apos;s time to set each new scan&apos;s answers is left out unless it&apos;s switched on below.
             Paid at {cadRounded(MIDDLE.residentPerHour)} an hour and {MIDDLE.minutesPerScan} minutes a scan, it
             would be {cad(perScan)} a scan: {cadRounded(lineOf({ ...MIDDLE, scans: 10 }, "resident"))} for 10 scans
@@ -285,9 +287,34 @@ export default function PlanContent() {
             </Table>
           </Subsection>
 
+          <Subsection id="fee" title="What my fee covers">
+            <p className={prose}>
+              My fee is {Math.round(FEE_SHARE * 100)}% of running the site, on every total here, and never on the
+              resident&apos;s time. It covers:
+            </p>
+            <ul className="mt-3 grid max-w-prose list-disc grid-cols-1 gap-2 pl-5 text-[15px] leading-relaxed text-foreground">
+              <li>
+                <strong>Upkeep.</strong> Updates, security fixes, and keeping the site, the API and the database
+                running, including when a host has an outage.
+              </li>
+              <li>
+                <strong>New scans.</strong> Moving each new scan to where it needs to be: preparing it into the
+                practice&apos;s format, putting it in storage, and adding it to the list, ready for a resident to
+                measure.
+              </li>
+              <li>
+                <strong>Admin access.</strong> Adding a resident&apos;s email to the admin list, so they can sign in
+                and set each scan&apos;s answers.
+              </li>
+              <li>
+                <strong>Small fixes and changes</strong> along the way. Bigger new features are priced on their own.
+              </li>
+            </ul>
+          </Subsection>
+
           <Subsection id="adding" title="Adding more scans">
             <p className={prose}>
-              My part is small: put the prepared scan in the bucket and add a line to the manifest. Each scan then
+              My part, preparing each scan and moving it into storage and onto the list, is in my fee. Each scan then
               needs a resident to measure it on the admin page and enter its five answers, so there&apos;s something
               to grade against. If that&apos;s paid, at {MIDDLE.minutesPerScan} minutes a scan and{" "}
               {cadRounded(MIDDLE.residentPerHour)} an hour it&apos;s {cad(perScan)} a scan, which the switch above adds
@@ -305,14 +332,14 @@ export default function PlanContent() {
               <tbody>
                 <tr className="border-t border-border">
                   <th scope="row" className={`${td} font-normal text-foreground`}>
-                    Find an openly licensed CT and prepare it with the script
+                    Prepare the scan with the script
                   </th>
                   <td className={`${td} text-muted`}>Me</td>
                   <td className={`${td} text-muted`}>A few minutes</td>
-                  <td className={money}>{cad(PRICES.scanLicence.value)}</td>
+                  <td className={money}>In my fee</td>
                 </tr>
                 <tr className="border-t border-border">
-                  <th scope="row" className={`${td} font-normal text-foreground`}>Upload it and add it to the manifest</th>
+                  <th scope="row" className={`${td} font-normal text-foreground`}>Move it into storage and onto the list</th>
                   <td className={`${td} text-muted`}>Me</td>
                   <td className={`${td} text-muted`}>A few minutes</td>
                   <td className={money}>under $0.01</td>
@@ -420,8 +447,8 @@ export default function PlanContent() {
                 </tr>
                 <tr className="border-t border-border">
                   <th scope="row" className={`${td} font-normal text-foreground`}>My time</th>
-                  <td className={`${td} text-right text-muted`}>Not counted</td>
-                  <td className={`${td} text-muted`}>Pointing the site at the scans and uploading them.</td>
+                  <td className={`${td} text-right text-muted`}>In my fee</td>
+                  <td className={`${td} text-muted`}>Upkeep, new scans and admin access, as above.</td>
                 </tr>
               </tbody>
             </Table>
@@ -429,6 +456,19 @@ export default function PlanContent() {
         </Section>
 
         </ResidentTimeProvider>
+
+        <Section id="owners" title="Who owns what">
+          <ul className="mt-3 grid max-w-prose list-disc grid-cols-1 gap-2 pl-5 text-[15px] leading-relaxed text-foreground">
+            <li>
+              <strong>The code is mine.</strong> I wrote EVAR Sizing and keep the rights to it. The research team can
+              use it for the study for as long as it runs.
+            </li>
+            <li>
+              <strong>The study data belongs to the research team.</strong> Everything participants record through
+              the study is theirs. I host it and look after it for them.
+            </li>
+          </ul>
+        </Section>
 
         <Section id="assumptions" title="What I've assumed">
           <ul className="mt-3 grid max-w-prose list-disc grid-cols-1 gap-2 pl-5 text-[14px] leading-relaxed text-foreground">
@@ -461,6 +501,10 @@ export default function PlanContent() {
               {cadRounded(MIDDLE.residentPerHour)} an hour and {MIDDLE.minutesPerScan} minutes a scan.
             </li>
             <li>The domain is a regular .com bought at cost. A different name or ending changes that line.</li>
+            <li>
+              My fee is {Math.round(FEE_SHARE * 100)}% of running the site, rounded to the cent, and never of the
+              resident&apos;s time.
+            </li>
             <li>
               Each bill is converted on its own, so twelve months at {cad(toCad(PRICES.railwayHobby.value))} are
               exactly {cad(toCad(PRICES.railwayHobby.value) * 12)}. Storage is worked out over the whole period,

@@ -20,7 +20,7 @@ describe("CostCalculator", () => {
     expect(screen.getAllByRole("slider")).toHaveLength(4);
     expect(screen.queryByRole("slider", { name: /resident's rate/i })).toBeNull();
     expect(total()).toHaveTextContent("$108.83");
-    expect(within(screen.getByRole("table", { name: /what the total is made of/i })).queryByRole("row", { name: /resident/i })).toBeNull();
+    expect(within(screen.getByRole("table", { name: /what the total is made of/i })).queryByRole("row", { name: /^a resident's time/i })).toBeNull();
   });
 
   it("says the domain line depends on the name chosen", () => {
@@ -34,7 +34,8 @@ describe("CostCalculator", () => {
     expect(total()).toHaveTextContent("$1,358.83");
     expect(total()).toHaveTextContent(/1 year/);
     expect(row(/my fee/i)).toHaveTextContent("$9.89");
-    expect(row(/resident/i)).toHaveTextContent("$1,250.00");
+    expect(row(/my fee/i)).toHaveTextContent(/upkeep, new scans and admin access/i);
+    expect(row(/^a resident's time/i)).toHaveTextContent("$1,250.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
     expect(row(/domain/i)).toHaveTextContent("$14.64");
   });
@@ -54,11 +55,11 @@ describe("CostCalculator", () => {
   it("moves only the resident's line with the rate and the minutes", () => {
     counted(<CostCalculator />);
     move(/resident's rate/i, 100);
-    expect(row(/resident/i)).toHaveTextContent("$2,500.00");
+    expect(row(/^a resident's time/i)).toHaveTextContent("$2,500.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
     expect(total()).toHaveTextContent("$2,608.83");
     move(/minutes a scan/i, 30);
-    expect(row(/resident/i)).toHaveTextContent("$5,000.00");
+    expect(row(/^a resident's time/i)).toHaveTextContent("$5,000.00");
   });
 
   it("steps the library in tens up to 100, then in bigger steps to 1,000", () => {

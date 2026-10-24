@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { MEASURED, MIDDLE, PRICES, SCENARIO_KEYS, SLIDERS, estimate, type DeliveryPlan, type LineId, type Scenario } from "@/lib/evar/costs";
+import { FEE_SHARE, MEASURED, MIDDLE, PRICES, SCENARIO_KEYS, SLIDERS, estimate, type DeliveryPlan, type LineId, type Scenario } from "@/lib/evar/costs";
 import { cad, cadRounded, count, duration, size, usd } from "./format";
 import { useCountResident } from "./ResidentTime";
 
@@ -47,6 +47,11 @@ function lineCopy(id: LineId, s: Scenario, delivery: DeliveryPlan): { label: str
       return { label: "Website (Vercel Hobby)", how: "Free while the site is non-commercial." };
     case "signIn":
       return { label: "Sign-in (Auth0)", how: `Free up to ${count(PRICES.auth0FreeMonthlyUsers.value)} people a month.` };
+    case "fee":
+      return {
+        label: `My fee (${Math.round(FEE_SHARE * 100)}%)`,
+        how: "A tenth of running the site, never of the resident's time: upkeep, new scans and admin access for residents.",
+      };
   }
 }
 
