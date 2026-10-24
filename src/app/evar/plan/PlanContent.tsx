@@ -141,6 +141,12 @@ export default function PlanContent() {
               graded at.
             </li>
           </ol>
+          <p className={muted}>
+            <Link href="/evar/guide" className={linkClass}>
+              The guide
+            </Link>{" "}
+            goes through each measurement with pictures.
+          </p>
         </Section>
 
         <ResidentTimeProvider>

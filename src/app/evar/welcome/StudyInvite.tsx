@@ -10,8 +10,9 @@ const button =
 const primary = `${button} border-foreground font-semibold`;
 
 /**
- * The study question the practice asks first, on the welcome page instead
- * of in a dialog. Answering here is remembered, so /evar doesn't ask again.
+ * The study question, asked on the welcome page rather than in a dialog over
+ * the practice. Joining or withdrawing later is the study panel's job, at the
+ * bottom of the practice.
  */
 export default function StudyInvite() {
   const headingId = useId();
@@ -48,7 +49,7 @@ export default function StudyInvite() {
           <div className="w-full max-w-xl">
             <JoinForm onJoined={study.joinedAs} />
           </div>
-          <Link href="/evar" onClick={study.decline} className={button}>
+          <Link href="/evar" className={button}>
             Not now, just practise
           </Link>
         </div>
@@ -64,7 +65,7 @@ export default function StudyInvite() {
           <a href="/auth/login?returnTo=%2Fevar%2Fwelcome" className={primary}>
             Sign in to join
           </a>
-          <Link href="/evar" onClick={study.decline} className={button}>
+          <Link href="/evar" className={button}>
             Practise without joining
           </Link>
         </div>

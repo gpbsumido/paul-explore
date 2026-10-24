@@ -59,6 +59,15 @@ const span = (r: Reach) => {
   return min === max ? `${min} mm` : `${min}–${max} mm`;
 };
 
+/** Where the guide explains each measurement, for the ones that didn't count. */
+const GUIDE_SECTION: Record<TaskScore["id"], string> = {
+  neckDiameter: "neck-diameter",
+  neckLength: "neck-length",
+  maxSac: "sac",
+  rightCia: "iliacs",
+  leftCia: "iliacs",
+};
+
 const LENGTH_VERDICT_TEXT: Record<LengthGrade["verdict"], string> = {
   match: "✓ Lands",
   mismatch: "✗ Misses",
@@ -179,6 +188,14 @@ export default function ResultsDialog({
                   </td>
                   <td className={`py-2 ${row.verdict === "within" ? "font-semibold text-foreground" : "text-muted"}`}>
                     {VERDICT_TEXT[row.verdict]}
+                    {row.verdict === "within" ? null : (
+                      <Link
+                        href={`/evar/guide#${GUIDE_SECTION[row.id]}`}
+                        className="mt-0.5 block text-[12px] font-normal text-foreground underline underline-offset-2"
+                      >
+                        How to measure it<span className="sr-only">: {row.label.toLowerCase()}</span>
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -247,7 +264,7 @@ export default function ResultsDialog({
             </tbody>
           </table>
           <p className="mt-2 text-[13px] text-muted">
-            Lengths run down the centerline from the lowest renal. Each side has to end at least 15 mm into its
+            Lengths run down the centreline from the lowest renal. Each side has to end at least 15 mm into its
             common iliac and short of the internal iliac, and the contralateral gate has to end above the bifurcation.
           </p>
         </div>

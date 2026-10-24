@@ -74,8 +74,8 @@ export default function DevicePicker({
       <p className="mb-3 text-[13px] text-muted">
         Size a stent graft from your numbers.{" "}
         {gradesLengths
-          ? `Lengths are graded along the centerline: each side has to seal ${sheet.distalSealMm} mm into its common iliac without covering the internal iliac.`
-          : "On a real scan only the diameters are graded, since there's no centerline to measure lengths along."}
+          ? `Lengths are graded along the centreline: each side has to seal ${sheet.distalSealMm} mm into its common iliac without covering the internal iliac.`
+          : "On a real scan only the diameters are graded, since there's no centreline to measure lengths along."}
       </p>
 
       <fieldset className="mb-3">

@@ -31,7 +31,7 @@ describe("GuideContent", () => {
       expect(section, id).not.toBeNull();
       const image = within(section as HTMLElement).getByRole("img");
       expect(image.getAttribute("alt")?.length, id).toBeGreaterThan(20);
-      expect(image.getAttribute("src"), id).toMatch(/^\/evar\/guide\/.+\.png$/);
+      expect(image.getAttribute("src"), id).toMatch(/^\/evar\/guide\/.+\.webp$/);
     }
   });
 

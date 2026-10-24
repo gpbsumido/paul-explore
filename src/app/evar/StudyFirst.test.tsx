@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { server } from "@/test/server";
@@ -40,7 +40,6 @@ const renderPage = () =>
     </QueryClientProvider>,
   );
 
-const studyDialog = () => screen.findByRole("dialog", { name: /research study/i });
 const tour = () => screen.queryByRole("dialog", { name: /tour/i });
 
 describe("the practice leaves the study question to the welcome page", () => {
