@@ -11,6 +11,36 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-evar-welcome",
+    date: "2026-10-24",
+    version: "8.2.0",
+    category: "feature",
+    tags: ["evar", "research"],
+    title: "A welcome page and a short video for EVAR sizing practice",
+    summary:
+      "EVAR sizing practice has a welcome page with a 47-second video of how a case works, and the research study question right on the page.",
+    body: [
+      "The welcome page is where the practice will start once it has a website of its own. It says what the practice is, shows a short video of a case from the first slice to the results, and asks whether you'd like to join the research study.",
+      "Answer the study question there and the practice remembers, so it won't ask again. The video has no sound, and everything it shows is written out underneath it.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-evar-plan",
+    date: "2026-10-24",
+    version: "8.1.0",
+    category: "feature",
+    tags: ["evar", "research"],
+    title: "What EVAR sizing practice is for, and what it costs",
+    summary:
+      "A new page explains what the EVAR sizing practice is trying to do and what it would cost to run on its own website, with sliders for any number of scans, visitors and months.",
+    body: [
+      "The EVAR sizing practice is moving to a website of its own. The new plan page says what it's for, a place to practise the measurements behind an aneurysm repair and a study of how that skill grows over training, and then what running it would cost, in Canadian dollars.",
+      "Move the sliders to try any size: how many scans, how many people a day, how many scans each, and for how long. Most of the cost is a resident's time to measure each new scan. The servers, storage and domain come to between about $99 and $353 a year.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-8-0-0",
     date: "2026-10-23",
     version: "8.0.0",
