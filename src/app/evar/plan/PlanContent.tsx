@@ -89,7 +89,7 @@ export default function PlanContent() {
   return (
     <div className="min-h-dvh bg-background">
       <PageHeader
-        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "EVAR Sizing", href: "/evar" }, { label: "The plan" }]}
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "EVAR Sizing", href: "/evar" }, { label: "Plan" }]}
         maxWidth="max-w-4xl"
       />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">

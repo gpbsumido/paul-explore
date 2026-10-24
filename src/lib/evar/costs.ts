@@ -113,9 +113,20 @@ export const SCENARIO_KEYS: readonly (keyof Scenario)[] = [
   "minutesPerScan",
 ];
 
-/** Each slider's range. The tops are the biggest case asked about, so every position stays inside the free tiers assumed below. */
-export const SLIDERS: Record<keyof Scenario, { min: number; max: number; step: number }> = {
-  scans: { min: 10, max: 1000, step: 10 },
+/**
+ * Each slider's range. The tops are the biggest case asked about, so every
+ * position stays inside the free tiers assumed below. The library runs from
+ * 10 to 1,000, so it moves through stops instead of evenly: tens up to 100,
+ * then fifties, then hundreds, which keeps 10 and 50 from being a few pixels
+ * apart.
+ */
+export const SLIDERS: Record<keyof Scenario, { min: number; max: number; step: number; stops?: readonly number[] }> = {
+  scans: {
+    min: 10,
+    max: 1000,
+    step: 10,
+    stops: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
+  },
   peoplePerDay: { min: 1, max: 100, step: 1 },
   scansEachPerDay: { min: 1, max: 100, step: 1 },
   months: { min: 1, max: 24, step: 1 },

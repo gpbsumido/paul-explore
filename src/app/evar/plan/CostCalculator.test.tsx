@@ -5,6 +5,7 @@ import CostCalculator from "./CostCalculator";
 
 const slider = (name: RegExp) => screen.getByRole("slider", { name });
 const move = (name: RegExp, value: number) => fireEvent.change(slider(name), { target: { value: String(value) } });
+const toTop = (name: RegExp) => fireEvent.change(slider(name), { target: { value: slider(name).getAttribute("max") } });
 const total = () => screen.getByRole("status");
 const row = (name: RegExp) =>
   within(screen.getByRole("table", { name: /what the total is made of/i })).getByRole("row", { name });
@@ -21,10 +22,10 @@ describe("CostCalculator", () => {
 
   it("shows the biggest case with every usage slider at the top", () => {
     render(<CostCalculator />);
-    move(/scans in the library/i, 1000);
-    move(/people a day/i, 100);
-    move(/scans each a day/i, 100);
-    move(/how long/i, 24);
+    toTop(/scans in the library/i);
+    toTop(/people a day/i);
+    toTop(/scans each a day/i);
+    toTop(/how long/i);
     expect(total()).toHaveTextContent("$13,210.52");
     expect(total()).toHaveTextContent(/2 years/);
     expect(row(/cloudfront/i)).toHaveTextContent("$503.76");
@@ -39,6 +40,21 @@ describe("CostCalculator", () => {
     expect(total()).toHaveTextContent("$2,598.94");
     move(/minutes a scan/i, 30);
     expect(row(/resident/i)).toHaveTextContent("$5,000.00");
+  });
+
+  it("steps the library in tens up to 100, then in bigger steps to 1,000", () => {
+    render(<CostCalculator />);
+    const scans = slider(/scans in the library/i);
+    const at = (position: number) => {
+      fireEvent.change(scans, { target: { value: String(position) } });
+      return scans.getAttribute("aria-valuetext");
+    };
+    expect(at(0)).toBe("10 scans");
+    expect(at(4)).toBe("50 scans");
+    expect(at(9)).toBe("100 scans");
+    // Ten stops for the first hundred, so 10 and 50 aren't a few pixels apart.
+    expect(Number(scans.getAttribute("max"))).toBeLessThan(30);
+    expect(at(Number(scans.getAttribute("max")))).toBe("1,000 scans");
   });
 
   it("labels every slider and says its value in words", () => {

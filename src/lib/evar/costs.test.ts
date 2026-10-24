@@ -155,4 +155,12 @@ describe("PRICES and SOURCES", () => {
       expect((MIDDLE[key] - min) % step, key).toBe(0);
     }
   });
+
+  it("gives the library slider stops from its bottom to its top, through every step in the tables", () => {
+    const { stops, min, max } = SLIDERS.scans;
+    expect(stops?.[0]).toBe(min);
+    expect(stops?.at(-1)).toBe(max);
+    for (const scans of [...STEPS.scans, MIDDLE.scans]) expect(stops).toContain(scans);
+    expect(stops).toEqual([...(stops ?? [])].sort((a, b) => a - b));
+  });
 });

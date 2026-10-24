@@ -61,9 +61,14 @@ export default function CostCalculator() {
     <div className="mt-4 rounded-2xl border border-border bg-surface p-4 sm:p-6">
       <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
         {SCENARIO_KEYS.map((key) => {
-          const { min, max, step } = SLIDERS[key];
+          const { min, max, step, stops } = SLIDERS[key];
           const { label, say } = SLIDER_COPY[key];
           const value = scenario[key];
+          // A slider with stops moves through their positions, and its value in words is still the real number.
+          const position = stops
+            ? { min: 0, max: stops.length - 1, step: 1, value: stops.indexOf(value) }
+            : { min, max, step, value };
+          const fromPosition = (n: number) => (stops ? (stops[n] ?? value) : n);
           return (
             <div key={key} className="min-w-0">
               <div className="flex items-baseline justify-between gap-3 text-[14px]">
@@ -77,12 +82,14 @@ export default function CostCalculator() {
               <input
                 id={sliderId(key)}
                 type="range"
-                min={min}
-                max={max}
-                step={step}
-                value={value}
+                min={position.min}
+                max={position.max}
+                step={position.step}
+                value={position.value}
                 aria-valuetext={say(value)}
-                onChange={(event) => setScenario((current) => ({ ...current, [key]: Number(event.target.value) }))}
+                onChange={(event) =>
+                  setScenario((current) => ({ ...current, [key]: fromPosition(Number(event.target.value)) }))
+                }
                 className="paul-touch-min mt-1 w-full cursor-pointer accent-foreground"
               />
             </div>
