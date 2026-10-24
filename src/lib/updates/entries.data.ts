@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-evar-plan",
+    date: "2026-10-24",
+    version: "8.1.0",
+    category: "feature",
+    tags: ["evar", "research"],
+    title: "What EVAR sizing practice is for, and what it costs",
+    summary:
+      "A new page explains what the EVAR sizing practice is trying to do and what it would cost to run on its own website, with sliders for any number of scans, visitors and months.",
+    body: [
+      "The EVAR sizing practice is moving to a website of its own. The new plan page says what it's for, a place to practise the measurements behind an aneurysm repair and a study of how that skill grows over training, and then what running it would cost, in Canadian dollars.",
+      "Move the sliders to try any size: how many scans, how many people a day, how many scans each, and for how long. Most of the cost is a resident's time to measure each new scan. The servers, storage and domain come to between about $99 and $353 a year.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-release-8-0-0",
     date: "2026-10-23",
     version: "8.0.0",
