@@ -225,7 +225,7 @@ export function deliveryFor(scanGbPerMonth: number): { plan: DeliveryPlan; usd: 
   return perGb <= PRICES.cloudfrontFlatPro.value ? { plan: "perGb", usd: perGb } : { plan: "flat", usd: PRICES.cloudfrontFlatPro.value };
 }
 
-/** My fee for looking after the site: a tenth of running it, and never of the resident's time. */
+/** My upkeep fee for looking after the site: a tenth of running it, and never of the resident's time. */
 export const FEE_SHARE = 0.1;
 /** My base fee for my services, in Canadian dollars: charged once, and not part of what the 10% is taken from. */
 export const BASE_FEE_CAD = 500;
@@ -243,7 +243,7 @@ export type EstimateOptions = { countResident: boolean };
  * domain, so twelve months at $7.00 come to exactly $84.00. Storage is
  * worked out over the whole period instead, because a month of it is a
  * fraction of a cent. My base fee comes next, once whatever the length, and
- * my fee last, a tenth of running the site, with the resident's time and the
+ * my upkeep fee last, a tenth of running the site, with the resident's time and the
  * base fee left out of what it's a tenth of. The total is the sum
  * of the lines as shown, so leaving the resident's time out leaves its line
  * out too.

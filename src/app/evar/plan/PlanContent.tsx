@@ -153,7 +153,7 @@ export default function PlanContent() {
           <p className={prose}>
             A year of it costs about {cadRounded(running(SMALLEST))} at its quietest and{" "}
             {cadRounded(running(BIGGEST))} at its busiest: storage, servers, delivery and the domain, my{" "}
-            {Math.round(FEE_SHARE * 100)}% fee for looking after it, and my {cadRounded(BASE_FEE_CAD)} base fee,
+            {Math.round(FEE_SHARE * 100)}% upkeep fee for looking after it, and my {cadRounded(BASE_FEE_CAD)} base fee,
             which is charged once. A
             resident&apos;s time to set each new scan&apos;s answers is left out unless it&apos;s switched on below.
             Paid at {cadRounded(MIDDLE.residentPerHour)} an hour and {MIDDLE.minutesPerScan} minutes a scan, it
@@ -291,9 +291,9 @@ export default function PlanContent() {
 
           <Subsection id="fee" title="What my fees cover">
             <p className={prose}>
-              My base fee is {cadRounded(BASE_FEE_CAD)}, charged once for my services, and it isn&apos;t part of the{" "}
-              {Math.round(FEE_SHARE * 100)}%. My ongoing fee is {Math.round(FEE_SHARE * 100)}% of running the site, on
-              every total here, and never on the resident&apos;s time. The {Math.round(FEE_SHARE * 100)}% covers:
+              My base fee is {cadRounded(BASE_FEE_CAD)}, charged once for my services, and it isn&apos;t part of my{" "}
+              {Math.round(FEE_SHARE * 100)}% upkeep fee. The upkeep fee is {Math.round(FEE_SHARE * 100)}% of running
+              the site, on every total here, and never on the resident&apos;s time. It covers:
             </p>
             <ul className="mt-3 grid max-w-prose list-disc grid-cols-1 gap-2 pl-5 text-[15px] leading-relaxed text-foreground">
               <li>
@@ -505,7 +505,7 @@ export default function PlanContent() {
             </li>
             <li>The domain is a regular .com bought at cost. A different name or ending changes that line.</li>
             <li>
-              My fee is {Math.round(FEE_SHARE * 100)}% of running the site, rounded to the cent, and never of the
+              My upkeep fee is {Math.round(FEE_SHARE * 100)}% of running the site, rounded to the cent, and never of the
               resident&apos;s time or my base fee. My base fee is {cadRounded(BASE_FEE_CAD)}, once, however long it
               runs.
             </li>

@@ -120,7 +120,7 @@ describe("estimate", () => {
     expect(line(MIDDLE, "fee")).toBe(9.89);
   });
 
-  it("adds my fee, 10% of running the site, as its own line, and never on the resident's time", () => {
+  it("adds my upkeep fee, 10% of running the site, as its own line, and never on the resident's time", () => {
     const { lines } = estimate(MIDDLE, { countResident: false });
     expect(lines.at(-1)).toEqual({ id: "fee", cad: 9.89 });
     expect(line(MIDDLE, "fee")).toBe(9.89);

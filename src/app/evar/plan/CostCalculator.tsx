@@ -48,10 +48,10 @@ function lineCopy(id: LineId, s: Scenario, delivery: DeliveryPlan): { label: str
     case "signIn":
       return { label: "Sign-in (Auth0)", how: `Free up to ${count(PRICES.auth0FreeMonthlyUsers.value)} people a month.` };
     case "base":
-      return { label: "My base fee", how: `Once, for my services, and not part of the ${Math.round(FEE_SHARE * 100)}%.` };
+      return { label: "My base fee", how: `Once, for my services, and not part of the ${Math.round(FEE_SHARE * 100)}% upkeep fee.` };
     case "fee":
       return {
-        label: `My fee (${Math.round(FEE_SHARE * 100)}%)`,
+        label: `My upkeep fee (${Math.round(FEE_SHARE * 100)}%)`,
         how: "A tenth of running the site, never of the resident's time: upkeep, new scans and admin access for residents.",
       };
   }

@@ -80,11 +80,12 @@ describe("PlanContent", () => {
     expect(domain).toHaveTextContent(/renewal/i);
   });
 
-  it("says what my fees cover: a $500 base fee once, and 10% of running the site", () => {
+  it("says what my fees cover: a $500 base fee once, and a 10% upkeep fee on running the site", () => {
     render(<PlanContent />);
     const fee = screen.getByRole("region", { name: /what my fees cover/i });
     expect(fee).toHaveTextContent("$500");
     expect(fee).toHaveTextContent(/once/i);
+    expect(fee).toHaveTextContent(/10% upkeep fee/i);
     expect(fee).toHaveTextContent(/upkeep/i);
     expect(fee).toHaveTextContent(/new scans/i);
     expect(fee).toHaveTextContent(/admin/i);

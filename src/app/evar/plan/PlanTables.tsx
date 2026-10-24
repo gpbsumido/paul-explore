@@ -61,7 +61,7 @@ export function RangeTable() {
       </Table>
       <p className={muted}>
         Every total includes my {cadRounded(BASE_FEE_CAD)} base fee, charged once, and my{" "}
-        {Math.round(FEE_SHARE * 100)}% fee on running the site.{" "}
+        {Math.round(FEE_SHARE * 100)}% upkeep fee on running the site.{" "}
         {countResident
           ? `Every case counts the resident at ${cadRounded(MIDDLE.residentPerHour)} an hour and ${MIDDLE.minutesPerScan} minutes a scan. Without that, the biggest case is ${cad(estimate({ ...BIGGEST, months: 24 }, { countResident: false }).total)} for two years.`
           : `Counting a resident's time, at ${cadRounded(MIDDLE.residentPerHour)} an hour and ${MIDDLE.minutesPerScan} minutes a scan, would add ${cadRounded(residentFor(SMALLEST))} to the smallest case and ${cadRounded(residentFor(BIGGEST))} to the biggest.`}

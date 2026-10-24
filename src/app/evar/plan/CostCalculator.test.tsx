@@ -34,8 +34,8 @@ describe("CostCalculator", () => {
     expect(total()).toHaveTextContent("$1,858.83");
     expect(total()).toHaveTextContent(/1 year/);
     expect(row(/my base fee/i)).toHaveTextContent("$500.00");
-    expect(row(/my fee/i)).toHaveTextContent("$9.89");
-    expect(row(/my fee/i)).toHaveTextContent(/upkeep, new scans and admin access/i);
+    expect(row(/my upkeep fee/i)).toHaveTextContent("$9.89");
+    expect(row(/my upkeep fee/i)).toHaveTextContent(/upkeep, new scans and admin access/i);
     expect(row(/^a resident's time/i)).toHaveTextContent("$1,250.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
     expect(row(/domain/i)).toHaveTextContent("$14.64");
