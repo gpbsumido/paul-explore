@@ -27,10 +27,10 @@ describe("PlanContent", () => {
     render(<PlanContent />);
     const range = screen.getByRole("table", { name: /the range/i });
     const expected = [
-      ["3 months", "$35.65", "$35.71", "$99.35"],
-      ["6 months", "$56.65", "$56.79", "$184.06"],
-      ["1 year", "$98.67", "$98.94", "$353.48"],
-      ["2 years", "$197.34", "$197.87", "$710.52"],
+      ["3 months", "$39.22", "$39.28", "$109.29"],
+      ["6 months", "$62.32", "$62.47", "$202.47"],
+      ["1 year", "$108.54", "$108.83", "$388.83"],
+      ["2 years", "$217.07", "$217.66", "$781.57"],
     ];
     for (const [period, ...totals] of expected) {
       const row = within(range).getByRole("row", { name: new RegExp(`^${period}`) });
@@ -46,8 +46,8 @@ describe("PlanContent", () => {
     expect(toggle).toHaveAttribute("aria-checked", "true");
 
     const range = screen.getByRole("table", { name: /the range/i });
-    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,348.94");
-    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$13,210.52");
+    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,483.83");
+    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$14,531.57");
     const library = screen.getByRole("table", { name: /library/i });
     expect(within(library).getByRole("row", { name: /^1,000/ })).toHaveTextContent("$12,500.00");
     expect(screen.getByRole("slider", { name: /resident's rate/i })).toBeInTheDocument();
@@ -78,6 +78,14 @@ describe("PlanContent", () => {
     expect(domain).toHaveTextContent(/depends on the name/i);
     expect(domain).toHaveTextContent(/premium/i);
     expect(domain).toHaveTextContent(/renewal/i);
+  });
+
+  it("says the code is mine and the study data belongs to the research team", () => {
+    render(<PlanContent />);
+    const owners = screen.getByRole("region", { name: /who owns what/i });
+    expect(owners).toHaveTextContent(/the code is mine/i);
+    expect(owners).toHaveTextContent(/study data/i);
+    expect(owners).toHaveTextContent(/research team/i);
   });
 
   it("captions every table", () => {
