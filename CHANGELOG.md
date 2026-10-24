@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-24 - version 8.3.0
+
+- `/evar/plan` puts a resident's time behind a switch, off by default: "Count a resident's time to set each scan's answers". `ResidentTimeProvider` holds it around the cost sections. Off, the calculator drops the rate and minutes sliders and the resident's line, and `RangeTable` and `LibraryTable`, moved out of `PlanContent`, show running costs only. `estimate` takes `{ countResident }`.
+- Two fees of mine join every total: a $500 base fee charged once (`BASE_FEE_CAD`), and a 10% upkeep fee (`FEE_SHARE`) on running the site, never on the resident's time or the base fee. "What my fees cover" lists upkeep, moving each new scan into storage and onto the list, adding residents' emails to the admin list so they can set answers, and small fixes. The middle case over a year is $608.83, or $1,858.83 with a resident's time.
+- "Who owns what": the code is mine, and the study data belongs to the research team.
+- The domain section and the breakdown's domain line say the cost depends on the name chosen: the totals use a regular .com at cost, and another ending, a premium name or a renewal increase changes it.
+
 ## 2026-10-24 - version 8.2.0
 
 - `/evar/welcome`, the homepage for when EVAR Sizing moves to its own domain: a headline with Start practising, a 47-second intro video of a case with no sound, the study question, and what the project is for, linking to `/evar/plan`. The video has a poster and controls, plays only when asked, and its captions are written out beside it from `INTRO_SCENES`, the same list the recorder puts in the frames.

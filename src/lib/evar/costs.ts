@@ -225,9 +225,16 @@ export function deliveryFor(scanGbPerMonth: number): { plan: DeliveryPlan; usd: 
   return perGb <= PRICES.cloudfrontFlatPro.value ? { plan: "perGb", usd: perGb } : { plan: "flat", usd: PRICES.cloudfrontFlatPro.value };
 }
 
-export type LineId = "resident" | "servers" | "delivery" | "storage" | "domain" | "website" | "signIn";
+/** My upkeep fee for looking after the site: a tenth of running it, and never of the resident's time. */
+export const FEE_SHARE = 0.1;
+/** My base fee for my services, in Canadian dollars: charged once, and not part of what the 10% is taken from. */
+export const BASE_FEE_CAD = 500;
+
+export type LineId = "resident" | "servers" | "delivery" | "storage" | "domain" | "website" | "signIn" | "base" | "fee";
 export type Line = { id: LineId; cad: number };
 export type Estimate = { lines: readonly Line[]; total: number; usage: Usage; delivery: DeliveryPlan };
+/** Whether a resident's time to set each scan's answers is part of the cost. */
+export type EstimateOptions = { countResident: boolean };
 
 /**
  * What a scenario costs over its months, line by line, in Canadian dollars.
@@ -235,12 +242,17 @@ export type Estimate = { lines: readonly Line[]; total: number; usage: Usage; de
  * Each bill is converted on its own, a month of Railway or a year of the
  * domain, so twelve months at $7.00 come to exactly $84.00. Storage is
  * worked out over the whole period instead, because a month of it is a
- * fraction of a cent. The total is the sum of the lines as shown.
+ * fraction of a cent. My base fee comes next, once whatever the length, and
+ * my upkeep fee last, a tenth of running the site, with the resident's time and the
+ * base fee left out of what it's a tenth of. The total is the sum
+ * of the lines as shown, so leaving the resident's time out leaves its line
+ * out too.
  *
  * @param s - The scenario.
+ * @param options - Whether to count a resident's time. It's counted unless told otherwise.
  * @returns Each line, the total, the usage behind them, and the delivery plan.
  */
-export function estimate(s: Scenario): Estimate {
+export function estimate(s: Scenario, { countResident }: EstimateOptions = { countResident: true }): Estimate {
   const usage = usageFor(s);
   const delivery = deliveryFor(usage.scanGbPerMonth);
   const months = Array.from({ length: s.months }, (_, i) => i + 1);
@@ -255,7 +267,7 @@ export function estimate(s: Scenario): Estimate {
   const years = Math.ceil(s.months / 12);
   const libraryGb = (s.scans * MEASURED.scanMb) / 1000;
 
-  const lineCents: Record<LineId, number> = {
+  const lineCents: Record<Exclude<LineId, "base" | "fee">, number> = {
     resident: Math.round(s.scans * (s.minutesPerScan / 60) * s.residentPerHour * 100),
     servers: serverCents,
     delivery: cadCents(delivery.usd) * s.months,
@@ -264,8 +276,11 @@ export function estimate(s: Scenario): Estimate {
     website: 0,
     signIn: 0,
   };
-  const ids: readonly LineId[] = ["resident", "servers", "delivery", "storage", "domain", "website", "signIn"];
-  const lines = ids.map((id) => ({ id, cad: lineCents[id] / 100 }));
-  const total = ids.reduce((sum, id) => sum + lineCents[id], 0) / 100;
+  const runningIds = ["servers", "delivery", "storage", "domain", "website", "signIn"] as const;
+  const feeCents = Math.round(runningIds.reduce((sum, id) => sum + lineCents[id], 0) * FEE_SHARE);
+  const shown = [...(countResident ? (["resident"] as const) : []), ...runningIds].map((id) => ({ id, cents: lineCents[id] }));
+  const all = [...shown, { id: "base" as const, cents: BASE_FEE_CAD * 100 }, { id: "fee" as const, cents: feeCents }];
+  const lines = all.map(({ id, cents }) => ({ id, cad: cents / 100 }));
+  const total = all.reduce((sum, { cents }) => sum + cents, 0) / 100;
   return { lines, total, usage, delivery: delivery.plan };
 }

@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-evar-plan-fees",
+    date: "2026-10-24",
+    version: "8.3.0",
+    category: "improvement",
+    tags: ["evar"],
+    title: "Clearer costs in the EVAR sizing plan",
+    summary:
+      "The EVAR sizing plan now shows what running the site costs on its own, with a switch to add a resident's time, the fees for looking after it, and who owns the code and the study data.",
+    body: [
+      "A resident's time to set each scan's answers was most of every total, and it may well be given for free, so it's now a switch you can turn on. Every total also includes a one-off base fee and a 10% upkeep fee for looking after the site, and the page lists what that covers.",
+      "The domain line now says plainly that it depends on the name chosen, and a short section says who owns what: the code stays with its developer, and the study data belongs to the research team.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-evar-welcome",
     date: "2026-10-24",
     version: "8.2.0",
