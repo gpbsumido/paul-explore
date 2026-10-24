@@ -126,7 +126,7 @@ describe("usageFor", () => {
 describe("PRICES and SOURCES", () => {
   it("names a listed source for every price, and lists no source nothing uses", () => {
     const ids = new Set(SOURCES.map((s) => s.id));
-    const used = new Set(Object.values(PRICES).map((p) => p.sourceId));
+    const used = new Set<string>(Object.values(PRICES).map((p) => p.sourceId));
     expect([...used].filter((id) => !ids.has(id))).toEqual([]);
     expect([...ids].filter((id) => !used.has(id))).toEqual([]);
     expect(SOURCES.every((s) => s.href.startsWith("https://"))).toBe(true);
