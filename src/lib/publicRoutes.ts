@@ -50,6 +50,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/evar",
   "/evar/plan",
   "/evar/results",
+  "/evar/welcome",
   "/flags",
   "/gallery-wall",
   "/graphql",
