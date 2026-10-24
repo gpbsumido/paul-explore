@@ -33,11 +33,14 @@ export const SOURCES: readonly Source[] = [
 
 type Price = { value: number; sourceId: string };
 
+/** Checks every entry has a value and a source, and keeps the keys for the page to use. */
+const priceList = <T extends Record<string, Price>>(prices: T): T => prices;
+
 /**
  * List prices and plan limits, as the source states them. Amounts are US
  * dollars unless the key ends in `Cad`.
  */
-export const PRICES = {
+export const PRICES = priceList({
   cadPerUsd: { value: 1.3993, sourceId: "boc" },
   s3PerGbMonth: { value: 0.025, sourceId: "s3" },
   cloudfrontFreeGb: { value: 1000, sourceId: "cloudfront" },
@@ -66,7 +69,7 @@ export const PRICES = {
   planningMinutesFastest: { value: 9.5, sourceId: "knops" },
   planningMinutesSlowest: { value: 11, sourceId: "knops" },
   scanLicence: { value: 0, sourceId: "avt" },
-} as const satisfies Record<string, Price>;
+});
 
 /** Things measured on this site rather than read off a price list. */
 export const MEASURED = {
