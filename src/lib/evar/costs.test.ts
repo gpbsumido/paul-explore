@@ -110,14 +110,15 @@ describe("estimate", () => {
     const { lines, total } = estimate(MIDDLE, { countResident: false });
     expect(lines.map((l) => l.id)).not.toContain("resident");
     expect(total).toBe(108.83);
-    expect(estimate(MIDDLE, { countResident: true }).total).toBe(1483.83);
+    expect(estimate(MIDDLE, { countResident: true }).total).toBe(1358.83);
   });
 
-  it("adds my fee, 10% of everything else, as its own line", () => {
+  it("adds my fee, 10% of running the site, as its own line, and never on the resident's time", () => {
     const { lines } = estimate(MIDDLE, { countResident: false });
     expect(lines.at(-1)).toEqual({ id: "fee", cad: 9.89 });
-    expect(line(MIDDLE, "fee")).toBe(134.89);
-    expect(line({ ...BIGGEST, months: 24 }, "fee")).toBe(1321.05);
+    expect(line(MIDDLE, "fee")).toBe(9.89);
+    expect(line({ ...MIDDLE, residentPerHour: 150 }, "fee")).toBe(9.89);
+    expect(line({ ...BIGGEST, months: 24 }, "fee")).toBe(71.05);
   });
 
   it("gives the range without the resident's time", () => {
@@ -137,10 +138,10 @@ describe("estimate", () => {
       [SMALLEST, MIDDLE, BIGGEST].map((size) => estimate({ ...size, months }).total),
     );
     expect(totals).toEqual([
-      [176.72, 1414.28, 13859.29],
-      [199.82, 1437.47, 13952.47],
-      [246.04, 1483.83, 14138.83],
-      [354.57, 1592.66, 14531.57],
+      [164.22, 1289.28, 12609.29],
+      [187.32, 1312.47, 12702.47],
+      [233.54, 1358.83, 12888.83],
+      [342.07, 1467.66, 13281.57],
     ]);
   });
 });

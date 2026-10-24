@@ -46,8 +46,8 @@ describe("PlanContent", () => {
     expect(toggle).toHaveAttribute("aria-checked", "true");
 
     const range = screen.getByRole("table", { name: /the range/i });
-    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,483.83");
-    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$14,531.57");
+    expect(within(range).getByRole("row", { name: /^1 year/ })).toHaveTextContent("$1,358.83");
+    expect(within(range).getByRole("row", { name: /^2 years/ })).toHaveTextContent("$13,281.57");
     const library = screen.getByRole("table", { name: /library/i });
     expect(within(library).getByRole("row", { name: /^1,000/ })).toHaveTextContent("$12,500.00");
     expect(screen.getByRole("slider", { name: /resident's rate/i })).toBeInTheDocument();

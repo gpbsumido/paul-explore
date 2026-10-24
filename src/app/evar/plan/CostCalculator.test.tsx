@@ -31,9 +31,9 @@ describe("CostCalculator", () => {
 
   it("opens on the middle case for a year", () => {
     counted(<CostCalculator />);
-    expect(total()).toHaveTextContent("$1,483.83");
+    expect(total()).toHaveTextContent("$1,358.83");
     expect(total()).toHaveTextContent(/1 year/);
-    expect(row(/my fee/i)).toHaveTextContent("$134.89");
+    expect(row(/my fee/i)).toHaveTextContent("$9.89");
     expect(row(/resident/i)).toHaveTextContent("$1,250.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
     expect(row(/domain/i)).toHaveTextContent("$14.64");
@@ -45,7 +45,7 @@ describe("CostCalculator", () => {
     toTop(/people a day/i);
     toTop(/scans each a day/i);
     toTop(/how long/i);
-    expect(total()).toHaveTextContent("$14,531.57");
+    expect(total()).toHaveTextContent("$13,281.57");
     expect(total()).toHaveTextContent(/2 years/);
     expect(row(/cloudfront/i)).toHaveTextContent("$503.76");
     expect(screen.getByText(/300,000 scan opens a month/i)).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("CostCalculator", () => {
     move(/resident's rate/i, 100);
     expect(row(/resident/i)).toHaveTextContent("$2,500.00");
     expect(row(/railway/i)).toHaveTextContent("$84.00");
-    expect(total()).toHaveTextContent("$2,858.83");
+    expect(total()).toHaveTextContent("$2,608.83");
     move(/minutes a scan/i, 30);
     expect(row(/resident/i)).toHaveTextContent("$5,000.00");
   });
