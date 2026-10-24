@@ -100,6 +100,12 @@ describe("PlanContent", () => {
     expect(owners).toHaveTextContent(/research team/i);
   });
 
+  it("points to the guide for how each measurement is taken", () => {
+    render(<PlanContent />);
+    const how = screen.getByRole("region", { name: /how a case works/i });
+    expect(within(how).getByRole("link", { name: /the guide/i })).toHaveAttribute("href", "/evar/guide");
+  });
+
   it("captions every table", () => {
     render(<PlanContent />);
     const tables = screen.getAllByRole("table");

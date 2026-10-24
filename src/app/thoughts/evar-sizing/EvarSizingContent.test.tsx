@@ -170,6 +170,13 @@ describe("EvarSizingContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on the guide, the how-to video and the welcome page coming first", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /writing the guide meant saying what the practice leaves out/i }),
+    ).toBeInTheDocument();
+  });
+
   it("opens with a timeline that jumps to every dated update, newest first", () => {
     const { container } = render(<EvarSizingContent />);
     const timeline = screen.getByRole("navigation", { name: /update timeline/i });

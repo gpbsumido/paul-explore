@@ -8,7 +8,7 @@ import type { Outcome } from "@/lib/evar/game";
 import type { PracticeCase } from "@/lib/evar/scans";
 import type { ReferenceRow } from "@/lib/evar/references";
 import type { TaskScore } from "@/lib/evar/measure";
-import { clock, mm } from "./format";
+import { clock, mm, offBy } from "./format";
 
 const button =
   "paul-touch-min rounded-lg border border-border bg-surface px-4 py-2 text-[14px] text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40";
@@ -57,6 +57,15 @@ const span = (r: Reach) => {
   const [min, max] = [Math.round(r.min), Math.round(r.max)];
   if (min === 0) return `up to ${max} mm`;
   return min === max ? `${min} mm` : `${min}–${max} mm`;
+};
+
+/** Where the guide explains each measurement, for the ones that didn't count. */
+const GUIDE_SECTION: Record<TaskScore["id"], string> = {
+  neckDiameter: "neck-diameter",
+  neckLength: "neck-length",
+  maxSac: "sac",
+  rightCia: "iliacs",
+  leftCia: "iliacs",
 };
 
 const LENGTH_VERDICT_TEXT: Record<LengthGrade["verdict"], string> = {
@@ -175,10 +184,18 @@ export default function ResultsDialog({
                   <td className="py-2 pr-3 font-mono">{row.yours === null ? "–" : mm(row.yours)}</td>
                   <td className="py-2 pr-3 font-mono">{mm(row.reference)}</td>
                   <td className="py-2 pr-3 font-mono">
-                    {row.delta === null ? "–" : `${row.delta > 0 ? "+" : ""}${row.delta.toFixed(1)}`}
+                    {row.delta === null ? "–" : offBy(row.delta)}
                   </td>
                   <td className={`py-2 ${row.verdict === "within" ? "font-semibold text-foreground" : "text-muted"}`}>
                     {VERDICT_TEXT[row.verdict]}
+                    {row.verdict === "within" ? null : (
+                      <Link
+                        href={`/evar/guide#${GUIDE_SECTION[row.id]}`}
+                        className="mt-0.5 block text-[12px] font-normal text-foreground underline underline-offset-2"
+                      >
+                        How to measure it<span className="sr-only">: {row.label.toLowerCase()}</span>
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -247,7 +264,7 @@ export default function ResultsDialog({
             </tbody>
           </table>
           <p className="mt-2 text-[13px] text-muted">
-            Lengths run down the centerline from the lowest renal. Each side has to end at least 15 mm into its
+            Lengths run down the centreline from the lowest renal. Each side has to end at least 15 mm into its
             common iliac and short of the internal iliac, and the contralateral gate has to end above the bifurcation.
           </p>
         </div>

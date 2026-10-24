@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import WelcomeContent from "./WelcomeContent";
 import { INTRO_SCENES } from "@/lib/evar/introScenes";
+import { HOW_TO_SCENES } from "@/lib/evar/howToScenes";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
@@ -18,21 +19,39 @@ describe("WelcomeContent", () => {
     expect(screen.getAllByRole("link", { name: /start practising/i })[0]).toHaveAttribute("href", "/evar");
   });
 
-  it("plays the intro video only when asked, with a poster and controls", () => {
+  it("plays both videos only when asked, each with a poster and controls", () => {
     const { container } = render(<WelcomeContent />);
-    const video = container.querySelector("video");
-    expect(video).not.toBeNull();
-    expect(video).toHaveAttribute("controls");
-    expect(video).not.toHaveAttribute("autoplay");
-    expect(video).toHaveAttribute("poster", "/evar/welcome/intro-poster.png");
-    expect(video?.querySelector("source")).toHaveAttribute("src", "/evar/welcome/intro.mp4");
-    expect(video?.querySelector("source")).toHaveAttribute("type", "video/mp4");
+    const videos = [
+      { src: "/evar/welcome/intro.mp4", poster: "/evar/welcome/intro-poster.png" },
+      { src: "/evar/welcome/how-to-measure.mp4", poster: "/evar/welcome/how-to-measure-poster.png" },
+    ];
+    for (const { src, poster } of videos) {
+      const video = container.querySelector(`source[src="${src}"]`)?.parentElement ?? null;
+      expect(video?.tagName, src).toBe("VIDEO");
+      expect(video).toHaveAttribute("controls");
+      expect(video).not.toHaveAttribute("autoplay");
+      expect(video).toHaveAttribute("poster", poster);
+      expect(video?.querySelector("source")).toHaveAttribute("type", "video/mp4");
+    }
   });
 
-  it("puts what the video shows into words beside it", () => {
+  it("puts what each video shows into words beside it", () => {
     render(<WelcomeContent />);
-    const transcript = screen.getByRole("group", { name: /what the video shows/i });
-    for (const scene of INTRO_SCENES) expect(transcript).toHaveTextContent(scene.caption);
+    const intro = screen.getByRole("group", { name: /what the intro shows/i });
+    for (const scene of INTRO_SCENES) expect(intro).toHaveTextContent(scene.caption);
+    const howTo = screen.getByRole("group", { name: /what the how-to shows/i });
+    for (const scene of HOW_TO_SCENES) expect(howTo).toHaveTextContent(scene.caption);
+  });
+
+  it("sends learners to the full guide, from the top and from the how-to video", () => {
+    render(<WelcomeContent />);
+    expect(screen.getByRole("link", { name: /^how to measure$/i })).toHaveAttribute("href", "/evar/guide");
+    expect(screen.getByRole("link", { name: /read the full guide/i })).toHaveAttribute("href", "/evar/guide");
+  });
+
+  it("marks this browser as welcomed, so the practice won't send it back here", () => {
+    render(<WelcomeContent />);
+    expect(window.localStorage.getItem("evar-welcomed")).toBe("true");
   });
 
   it("says what we're doing and links to the plan", () => {
