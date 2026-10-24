@@ -40,11 +40,15 @@ export default function CommandPaletteRoot() {
       window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, handleOpen);
   }, [handleOpen]);
 
-  // The landing page and /discover both have their own search affordance, and
-  // /world carries the whole site menu in its own floating nav — the hotkey
-  // still works on all three.
+  // The landing page and /discover both have their own search affordance,
+  // /world carries the whole site menu in its own floating nav, and the EVAR
+  // practice's dock runs right into that corner, where the pill sat on top of
+  // Start over. The hotkey still works on all four.
   const showFloatingTrigger =
-    pathname !== "/" && pathname !== "/discover" && pathname !== "/world";
+    pathname !== "/" &&
+    pathname !== "/discover" &&
+    pathname !== "/world" &&
+    pathname !== "/evar";
 
   const handleSelect = useCallback(
     (command: Command) => {
