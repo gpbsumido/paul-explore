@@ -69,8 +69,8 @@ export const FEATURES: FeatureItem[] = [
     id: "evar",
     title: "EVAR Sizing",
     description:
-      "Practise sizing an endovascular aneurysm repair on synthetic CT: scroll the axial slices, put calipers on the neck, the sac and both iliacs, and get each number checked against the exact reference.",
-    href: "/evar",
+      "Practise sizing an endovascular aneurysm repair on synthetic and real CT: scroll the axial slices, put calipers on the neck, the sac and both iliacs, and get each number checked against the reference. Built and deployed at its own domain.",
+    href: "https://medical.paulsumido.com",
     color: "#c0584d",
     thoughtsHref: "/thoughts/evar-sizing",
   },

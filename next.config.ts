@@ -2,6 +2,7 @@ import path from "path";
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
 import { securityHeaders } from "./src/lib/securityHeaders";
+import { evarRedirects } from "./src/lib/evarRedirects";
 
 // Pass ANALYZE=true on the CLI to open the treemap reports after the build.
 // The --webpack flag is required because the analyzer does not work with Turbopack.
@@ -31,6 +32,10 @@ const nextConfig: NextConfig = {
       "@react-three/drei",
       "framer-motion",
     ],
+  },
+
+  async redirects() {
+    return evarRedirects();
   },
 
   async headers() {

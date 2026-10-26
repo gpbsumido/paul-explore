@@ -76,16 +76,6 @@ describe("buildCsp", () => {
     expect(connect).toContain("https://api.paulsumido.com");
   });
 
-  // EVAR's real scans can be served from object storage rather than this site.
-  it("lets the browser fetch EVAR scans from wherever they're configured to live", () => {
-    const connect = directive(buildCsp(undefined, { scansUrl: "https://scans.example.com/evar" }), "connect-src");
-    expect(connect).toContain("https://scans.example.com");
-  });
-
-  it("adds nothing for scans served from this site's own folder", () => {
-    expect(buildCsp(undefined, { scansUrl: "/evar/scans" })).toBe(buildCsp(undefined));
-  });
-
   it("does not smuggle in a hardcoded API host", () => {
     const connect = directive(buildCsp(undefined, { apiUrl: "http://localhost:3001" }), "connect-src");
     expect(connect).not.toContain("api.paulsumido.com");

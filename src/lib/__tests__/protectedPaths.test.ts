@@ -22,12 +22,6 @@ describe("isSessionProtectedPath", () => {
     expect(isSessionProtectedPath("/vitals?v=major:1")).toBe(false);
   });
 
-  it("gates the EVAR reference admin but leaves the practice public", () => {
-    expect(isSessionProtectedPath("/evar/admin")).toBe(true);
-    expect(isSessionProtectedPath("/evar/admin/results")).toBe(true);
-    expect(isSessionProtectedPath("/evar")).toBe(false);
-  });
-
   it("does not gate ordinary public routes", () => {
     expect(isSessionProtectedPath("/")).toBe(false);
     expect(isSessionProtectedPath("/thoughts")).toBe(false);

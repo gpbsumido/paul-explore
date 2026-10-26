@@ -53,22 +53,6 @@ describe("CommandPaletteRoot", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("hides the floating trigger on the EVAR practice, whose dock fills that corner", () => {
-    pathname.current = "/evar";
-    render(<CommandPaletteRoot />);
-    expect(
-      screen.queryByRole("button", { name: /command palette/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("keeps the floating trigger on the EVAR pages that are read, not measured on", () => {
-    pathname.current = "/evar/guide";
-    render(<CommandPaletteRoot />);
-    expect(
-      screen.getByRole("button", { name: /command palette/i }),
-    ).toBeInTheDocument();
-  });
-
   it("still opens on the landing when asked via the open event", () => {
     pathname.current = "/";
     render(<CommandPaletteRoot />);

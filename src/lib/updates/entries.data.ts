@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-evar-moved",
+    date: "2026-10-25",
+    version: "9.0.0",
+    category: "improvement",
+    tags: ["evar"],
+    title: "EVAR sizing practice has moved to medical.paulsumido.com",
+    summary:
+      "EVAR sizing practice is its own website now, at medical.paulsumido.com. Old links on this site take you to the same page there.",
+    body: [
+      "The practice, the guide, the plan, your results and the study all moved to medical.paulsumido.com, built as a separate project. The practice itself is at /practice and the welcome page is the homepage. Any link to /evar on this site redirects to the matching page.",
+      "Your personal bests and results history were saved in this browser for paulsumido.com, so they don't come with you to the new address, and the welcome page will show again on your first visit. If you joined the research study, your recorded attempts are kept and you're still in it. The write-up on how it was built stays here.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-evar-guide",
     date: "2026-10-24",
     version: "8.4.0",

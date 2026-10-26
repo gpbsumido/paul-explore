@@ -37,7 +37,7 @@ export function useGuidedTour(storageKey: string, { autoOpen = true }: { autoOpe
   // null until the visitor starts or closes it; after that, their choice wins
   const [choice, setChoice] = useState<boolean | null>(null);
   // `autoOpen` lets a page hold the first-visit open back until something
-  // that has to come first is done, like EVAR asking about its study.
+  // that has to come first is done, like a question the page asks up front.
   const open = choice ?? (hydrated && !seen && autoOpen);
 
   const start = () => setChoice(true);

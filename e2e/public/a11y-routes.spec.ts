@@ -57,12 +57,6 @@ const ROUTES = [
   "/updates",
   "/updates/tickets",
   "/privacy",
-  // The EVAR pages a visitor reads rather than measures on: the costed plan,
-  // with its sliders and tables, the welcome page with its two videos and the
-  // study question, and the guide with a picture for every step.
-  "/evar/plan",
-  "/evar/welcome",
-  "/evar/guide",
   "/operator/finance",
   "/operator/loss",
   "/operator/planner",
