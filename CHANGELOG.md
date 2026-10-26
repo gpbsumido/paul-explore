@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-25 - version 9.0.0
+
+- **EVAR Sizing moved to its own project, evar-study, at medical.paulsumido.com.** paul-explore no longer has any of it: the pages under `/evar`, the `/api/evar/*` proxy routes, `src/lib/evar`, the MSW handlers and factories, the recording and scan-prep scripts (`evar-video.mjs`, `record-evar-intro.mjs`, `record-evar-how-to.mjs`, `prepare-evar-scan.mjs`, `encode-frames.swift`), and the 16 MB in `public/evar`. The entries below stay as the record of how it was built.
+- **Every old link lands on the same page there.** `src/lib/evarRedirects.ts`, applied in `next.config.ts` `redirects()`, sends `/evar` to `/practice`, `/evar/welcome` to `/`, and every other `/evar/*` path to the same path on the new domain, all 308. They run before the proxy, so nothing renders here.
+- **Major because device history doesn't follow.** Personal bests, the results history and the welcome flag are in localStorage on paulsumido.com, and the new origin starts empty. Study attempts are on portfolio_api, which the new site calls unchanged, so participants keep theirs.
+- The hub card links to https://medical.paulsumido.com, the way Ketsup's links to its domain, and it's left out of `llms.txt` for the same reason. `/thoughts/evar-sizing` stays, with an October 25 update on the move.
+- Removed EVAR's threads through shared code: its `PUBLIC_ROUTES` and the `/evar/admin` gate, `queryKeys.evar`, the command palette hiding its pill on `/evar`, the CSP `scansUrl` option and `NEXT_PUBLIC_EVAR_SCANS_URL`, `--color-feature-evar` in both themes, and the EVAR pages in the a11y scan.
+
 ## 2026-10-24 - version 8.4.0
 
 - A first visit to `/evar` goes to `/evar/welcome` instead of opening the study popup, and `StudyWelcome` is gone. `EvarEntry` puts `WELCOME_GATE_SCRIPT` ahead of the page, which reads `evar-welcomed` (or the old `evar-study-asked`) before paint and replaces the URL, and `WelcomeGate` makes the same check for client-side navigation with `useSyncExternalStore`. Both fail open when storage can't be read. `WelcomeSeen` sets the flag on the welcome page, and the tour opens on the first practice visit after it. It's localStorage rather than a cookie, since cookies the site doesn't strictly need wait on consent.
