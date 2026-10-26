@@ -60,9 +60,9 @@ describe("world exhibits", () => {
       // rather than a distinct landmark. Revisit once the plays ticker gives
       // it something a walk-up visitor can actually watch happen live.
       "fantasy-nfl",
-      // A focused practice tool that needs a big image and some patience. A
-      // booth in the city would be a signpost to a CT viewer, which is a
-      // strange thing to walk up to. Revisit if it grows a quick-play mode.
+      // Lives at its own domain now, and before that it was a focused practice
+      // tool that needs a big image and some patience. A booth in the city
+      // would be a signpost off the site to a CT viewer.
       "evar",
     ]);
 
