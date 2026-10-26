@@ -36,4 +36,8 @@ describe("featureData.data", () => {
     expect(FEATURES.every((f) => f.id && f.title && f.href)).toBe(true);
     expect(THOUGHTS.every((t) => t.title && t.href)).toBe(true);
   });
+
+  it("sends EVAR Sizing to its own domain, now that it lives in its own project", () => {
+    expect(FEATURES.find((f) => f.id === "evar")?.href).toBe("https://medical.paulsumido.com");
+  });
 });

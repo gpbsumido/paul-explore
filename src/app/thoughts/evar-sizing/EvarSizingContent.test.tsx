@@ -10,11 +10,20 @@ describe("EvarSizingContent", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
-  it("links to the practice page it writes up", () => {
+  it("links to the practice where it lives now, on its own domain", () => {
     render(<EvarSizingContent />);
     expect(
       screen.getAllByRole("link", { name: /evar sizing/i })[0],
-    ).toHaveAttribute("href", "/evar");
+    ).toHaveAttribute("href", "https://medical.paulsumido.com");
+  });
+
+  it("has a dated update on moving to medical.paulsumido.com, first in the timeline", () => {
+    render(<EvarSizingContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /moved to medical\.paulsumido\.com/i }),
+    ).toBeInTheDocument();
+    const timeline = screen.getByRole("navigation", { name: /update timeline/i });
+    expect(within(timeline).getAllByRole("link")[0]).toHaveAttribute("href", "#update-2026-10-25-moved");
   });
 
   it("has a dated update on the difficulty levels", () => {

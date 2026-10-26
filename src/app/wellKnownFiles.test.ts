@@ -96,8 +96,9 @@ describe("llms.txt", () => {
     const NOT_LISTED_ON_PURPOSE = new Set([
       // Login-gated and personal. The Notes section explains the omission.
       "/calendar",
-      // Lives at its own domain, so it is not this site's to advertise here.
+      // Live at their own domains, so not this site's to advertise here.
       "https://ketsup.paulsumido.com",
+      "https://medical.paulsumido.com",
     ]);
 
     const missing = FEATURES.filter(

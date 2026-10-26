@@ -37,16 +37,22 @@ export default function EvarSizingContent() {
           a stent graft fits and which one. It&apos;s a skill you get better at
           by doing it and being told how far off you were, and the second half
           is the part that&apos;s hard to come by. So I built{" "}
-          <Link href="/evar" className="underline underline-offset-2">
+          <a href="https://medical.paulsumido.com" className="underline underline-offset-2">
             EVAR Sizing
-          </Link>
+          </a>
           : scroll the axial slices, put calipers down, record five
-          measurements, and get each one checked against an exact answer.
+          measurements, and get each one checked against an exact answer. It
+          lives at medical.paulsumido.com now, in a project of its own.
         </>
       }
     >
       <UpdateTimeline
         entries={[
+          {
+            id: "update-2026-10-25-moved",
+            date: "Oct 25, 2026",
+            title: "EVAR moved to medical.paulsumido.com, and the results history stayed behind",
+          },
           {
             id: "update-2026-10-24-guide",
             date: "Oct 24, 2026",
@@ -1941,6 +1947,86 @@ await studyDialog.waitFor();`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-10-25-moved"
+        date="October 25, 2026"
+        title="EVAR moved to medical.paulsumido.com, and the results history stayed behind"
+      >
+        <p>
+          The last thing on the upcoming list was a domain of its own, and it
+          has one: the practice is its own project now, deployed at{" "}
+          <a href="https://medical.paulsumido.com" className="underline underline-offset-2">
+            medical.paulsumido.com
+          </a>
+          . Everything EVAR is gone from this site except this write-up and the
+          history in the changelog, and every old link lands on the same page
+          over there.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The routes lost their prefix, so a redirect can&apos;t just keep the path.
+        </h3>
+        <p className="text-muted">
+          On a site that&apos;s only EVAR, <code className={code}>/evar</code>{" "}
+          is noise. The welcome page is the homepage, which is what the upcoming
+          list asked for, and the practice is{" "}
+          <code className={code}>/practice</code>. So two pages change name and
+          the rest keep theirs, and the order matters because the first match
+          wins:
+        </p>
+        <pre className={pre}>
+          {`{ source: "/evar",         destination: \`\${MEDICAL}/practice\`, permanent: true },
+{ source: "/evar/welcome", destination: \`\${MEDICAL}/\`,         permanent: true },
+{ source: "/evar/:path*",  destination: \`\${MEDICAL}/:path*\`,   permanent: true },`}
+        </pre>
+        <p className="mt-3 text-muted">
+          They sit in <code className={code}>next.config.ts</code>, which Next
+          checks before the proxy runs, so an old link costs one 308 and never
+          renders anything here. The hub card links out the way Ketsup&apos;s
+          does, and this page stays where it is.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A redirect carries the link, not what&apos;s saved in the browser.
+        </h3>
+        <p className="text-muted">
+          Personal bests, the results page and whether you&apos;d seen the
+          welcome page all live in localStorage, and localStorage belongs to
+          an origin. paulsumido.com and medical.paulsumido.com are two, so
+          anyone who practised here starts the new site with an empty history
+          and gets the welcome page again. Study attempts are different:
+          they&apos;re on the API, which the new site calls the same way, so a
+          participant is still a participant there. Losing the history is the
+          reason this went out as 9.0.0 rather than a minor bump.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Most of it came out cleanly. Fourteen shared files had grown a thread to it.
+        </h3>
+        <p className="text-muted">
+          The pages, the API proxy, the lib and the scripts were their own
+          folders and went in one go, along with 16 MB of videos, pictures and
+          the real scan. The work was everywhere else the practice had reached
+          into: the public routes, the admin gate, the query keys, the command
+          palette hiding its pill over the dock, the CSP origin for scans in
+          object storage, a colour token in both themes, the test server&apos;s
+          mock handlers and the accessibility scan&apos;s route list.
+        </p>
+        <pre className={pre}>
+          {`.env.example                                          |  7 -
+e2e/public/a11y-routes.spec.ts                        |  6 -
+src/components/CommandPalette/CommandPaletteRoot.tsx  | 10 +-
+src/lib/csp.ts                                        | 11 +-
+src/lib/protectedPaths.ts                             |  3 -
+src/lib/publicRoutes.ts                               |  5 -
+src/lib/queryKeys.ts                                  | 10 --
+src/proxy.ts                                          |  1 -
+src/styles/tokens.css                                 |  2 -
+src/test/server.ts                                    |  3 +-
+153 files changed, 7 insertions(+), 14004 deletions(-)`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Easy, Medium and Hard levels: Easy has hints and wider tolerances, Hard has the worst anatomy and a five-minute clock that hands your answers in at zero.",
@@ -1964,9 +2050,10 @@ await studyDialog.waitFor();`}
           "A full-height stage with floating controls that follows the site theme, and a results popup with stars, points and a personal best per level and case.",
           "A results page with every case finished on the device: averages and bests by level, measurements within tolerance over time, and every attempt.",
           "An admin results page that filters everyone's attempts by level, case, training level, timed out and date, with within-tolerance rates per measurement and a CSV of just those rows.",
-          "A costed plan at /evar/plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic and how long, a switch for the resident's time, my base and upkeep fees, and who owns the code and the study data.",
-          "A welcome page at /evar/welcome, where a first visit lands, with a 47-second video of a case and a 54-second one on where the calipers go, both recorded from the practice by a script, and the study question asked on the page.",
-          "A guide at /evar/guide: each measurement in the order it's taken with a picture of it, a case sized on the Endurant sheet, the tolerances, common mistakes, and what hospital planning adds, with its sources. Anything the results don't count links to its step.",
+          "Its own project and domain, medical.paulsumido.com, with the welcome page as the homepage, the practice at /practice, and every old /evar link redirected to the same page there.",
+          "A costed plan at /plan: what the practice is for, and what running it on its own domain would cost in Canadian dollars, with sliders for the library, the traffic and how long, a switch for the resident's time, my base and upkeep fees, and who owns the code and the study data.",
+          "A welcome page as the homepage, where a first visit lands, with a 47-second video of a case and a 54-second one on where the calipers go, both recorded from the practice by a script, and the study question asked on the page.",
+          "A guide at /guide: each measurement in the order it's taken with a picture of it, a case sized on the Endurant sheet, the tolerances, common mistakes, and what hospital planning adds, with its sources. Anything the results don't count links to its step.",
         ]}
         couldImprove={[
           "Three sheets, but each is one device family. There are no aorto-uni-iliac or iliac branch devices, so a case that needs one can only be called off the sheet.",
@@ -1974,14 +2061,13 @@ await studyDialog.waitFor();`}
           "The organs are still ellipses, and each angled neck leans in one straight line rather than curving, so there's no tortuous aorta yet.",
           "Each case's debrief is written prose about the phantom's anatomy, so a hand-set answer can disagree with it until I edit the text.",
           "The study has no ethics approval yet, so the consent text is a draft and nothing recorded can go in a paper until it does.",
-          "Personal bests and the results history live on one device. Signed-in study participants already have a record on the API, so theirs could follow them.",
+          "Personal bests and the results history live on one device, which is why they didn't survive the move to the new domain. Signed-in study participants already have a record on the API, so theirs could follow them.",
           "The practice grades five measurements. Real planning also checks the neck's shape, how much of it is lined, the bifurcation and the access arteries, and whether the case fits the device's instructions for use. The guide explains them, but nothing asks for them yet.",
           "A first visit still opens on Medium's real scan, which isn't scored until its answers are set, while the how-to video says to start on Easy.",
           "The plan's prices are a snapshot of October 23, 2026, and two of its inputs, Railway's idle use and Vercel's CPU per call, are estimates until I read the real numbers off each dashboard.",
         ]}
         upcoming={[
           "The neck's shape, its calcium and thrombus, the bifurcation and access arteries, and an instructions-for-use check at the end, kept simple.",
-          "A domain of its own, with /evar/welcome as its homepage.",
           "Healthy real aortas from the same collection as normal-anatomy cases, one at a time, since each is about 7 MB.",
           "My own reference measurements for the real case, so it scores.",
         ]}
