@@ -24,7 +24,7 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
 - [Fleet Operator](https://paulsumido.com/operator) — unattended-retail operator dashboard over a real Postgres-backed API; slot-by-slot auditable restocking with expiry and shrinkage reasons, scheduled promotions that report back against the period before them, per-store sales and tax, an interactive planogram, and every time bucket resolved in the store's own timezone
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
-- [The Mind Reader](https://paulsumido.com/mind-reader) — a two-player party game in Svelte 5: a secret role from a 240-role deck, hints in normal conversation, five minutes to guess it
+- [The Mind Reader](https://paulsumido.com/mind-reader) — a two-player party game in Svelte 5: a secret role from a 240-role deck, hints in normal conversation, five minutes to guess it, on one phone or from two devices in a room
 - [Craft](https://paulsumido.com/craft) — lead front-end traits, each expandable to the real work here that proves it
 - [Pokémon](https://paulsumido.com/pokemon) — one hub for the [TCG browser](https://paulsumido.com/tcg/pokemon), [TCG Pocket](https://paulsumido.com/tcg/pocket) expansions, and the [GraphQL Pokédex](https://paulsumido.com/graphql)
 - Fantasy NBA — [playoffs bracket](https://paulsumido.com/fantasy/nba/playoffs) (public leaderboard), [player stats](https://paulsumido.com/fantasy/nba/player/stats), [league history](https://paulsumido.com/fantasy/nba/league-history), [court vision](https://paulsumido.com/fantasy/nba/court-vision), [matchups](https://paulsumido.com/fantasy/nba/matchups), [Card Lab](https://paulsumido.com/fantasy/nba/cards) (rarity-tiered trading cards minted from real NBA/WNBA/NFL fantasy performances, with packs to rip)
@@ -285,7 +285,7 @@ src/
 │   ├── _shared/         # Feature and thoughts registries shared by the hubs
 │   ├── calendar/        # Calendar page, events list + detail, countdowns
 │   ├── craft/           # Lead front-end traits, each linked to real work here
-│   ├── mind-reader/     # Party game: Svelte 5 component, pure TS rules, 240-role deck
+│   ├── mind-reader/     # Party game: Svelte 5 component, pure TS rules, 240-role deck, Ably rooms
 │   ├── design-system/   # Live gallery of the shared primitives and tokens
 │   ├── dev/             # Skeleton previews, not linked from the site
 │   ├── discover/        # The landing history, every version behind ?version=

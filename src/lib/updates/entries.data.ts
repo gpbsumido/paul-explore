@@ -21,6 +21,7 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
       "A new game at /mind-reader. One of you is dealt a secret role toward the other, like a bodyguard or a spy after a wallet, and has to drop hints in normal conversation while the other has five minutes to work out what it is.",
     body: [
       "There are 240 roles in six categories, and you can pick a category or play them all. A role doesn't come up again until the deck is used up. Player A sees the role, hides it and starts the clock, then Player B guesses; there's a pause button, a running score and a fresh role for the next round.",
+      "You can also play apart. Player A starts a room and sends the link, and Player B plays from their own phone. The role is dealt on Player A's device and doesn't reach Player B's until the round is over.",
       "It's also the first page on the site written in Svelte, and the write-up covers what that took.",
     ],
     resolvedTicketIds: [],
