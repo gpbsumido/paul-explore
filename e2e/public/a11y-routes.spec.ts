@@ -44,6 +44,7 @@ const ROUTES = [
   "/fantasy/nfl",
   "/budget",
   "/craft",
+  "/mind-reader",
   "/design-system",
   "/flags",
   "/gallery-wall",
