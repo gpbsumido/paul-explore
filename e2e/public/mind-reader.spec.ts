@@ -21,7 +21,7 @@ test("a round of The Mind Reader plays through", { tag: "@smoke" }, async ({ pag
 // CI has no Ably key, so the room falls back to a BroadcastChannel. Two pages
 // in one browser context share it, which is enough to prove the two halves of
 // the game talk to each other and that player B's page never gets the role.
-test("two tabs play a round as a room", async ({ context }) => {
+test("two tabs play a round as a room", { tag: "@smoke" }, async ({ context }) => {
   const host = await context.newPage();
   await host.goto("/mind-reader");
   await host.getByRole("button", { name: "Start a room" }).click();
