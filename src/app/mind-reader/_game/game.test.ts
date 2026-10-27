@@ -53,6 +53,7 @@ describe("a round", () => {
     s = reduce(s, { type: "guessed" });
     expect(s.phase).toBe("reveal");
     expect(s.guessed).toBe(1);
+    expect(s.lastOutcome).toBe("guessed");
     s = reduce(s, { type: "next", random });
     expect(s.phase).toBe("secret");
     expect(s.round).toBe(2);
@@ -71,6 +72,7 @@ describe("a round", () => {
     s = reduce(s, { type: "start", now: 0 });
     s = reduce(s, { type: "giveUp" });
     expect(s.stumped).toBe(1);
+    expect(s.lastOutcome).toBe("stumped");
     s = reduce(s, { type: "next", random });
     s = reduce(s, { type: "start", now: 0 });
     s = reduce(s, { type: "timeUp" });
