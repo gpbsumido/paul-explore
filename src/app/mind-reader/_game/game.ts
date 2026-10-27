@@ -155,6 +155,37 @@ export function remainingMs(state: GameState, now: number): number {
   return Math.max(0, state.endsAt - now);
 }
 
+/** Everything player B's device is allowed to know about the round. */
+export type PublicView = {
+  phase: Phase;
+  round: number;
+  guessed: number;
+  stumped: number;
+  lastOutcome: "guessed" | "stumped" | null;
+  remainingMs: number;
+  paused: boolean;
+  /** The role text, and only once the round is over. */
+  role: string | null;
+};
+
+/**
+ * What player A's device sends to the room. The role stays off it until the
+ * reveal, and the clock goes as time left rather than a deadline, because the
+ * two devices' clocks are never quite the same.
+ */
+export function publicView(state: GameState, now: number): PublicView {
+  return {
+    phase: state.phase,
+    round: state.round,
+    guessed: state.guessed,
+    stumped: state.stumped,
+    lastOutcome: state.lastOutcome,
+    remainingMs: remainingMs(state, now),
+    paused: state.pausedRemaining !== null,
+    role: state.phase === "reveal" ? (state.role?.text ?? null) : null,
+  };
+}
+
 /** m:ss, rounding partial seconds up so 0:00 only shows when time is truly up. */
 export function formatClock(ms: number): string {
   const total = Math.ceil(ms / 1000);
