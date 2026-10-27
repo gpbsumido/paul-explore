@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-26 - version 9.1.0
+
+- **New page, `/mind-reader`: a two-player party game, and the first Svelte on the site.** Player A is dealt a secret role toward Player B ("I am your bodyguard", "I am a spy trying to steal your wallet"), chats normally while dropping hints, and B has five minutes to work out what it is. The deck is 240 roles in six categories (protector, threat, secret, history, fantasy, everyday) in `src/app/mind-reader/_game/roles.data.ts`, and a role doesn't repeat until the deck or the chosen category is spent.
+- **The rules are plain TypeScript, the screen is Svelte 5.** `_game/game.ts` is a pure reducer (`setup`, `secret`, `playing`, `reveal`) with the dice and the clock passed in. `MindReader.svelte` uses runes and snippets. The clock is `role="timer"` with `aria-live="off"`, and a separate status region only announces one minute and ten seconds left. Focus moves to the new heading on each screen change, but not on first load.
+- **`.svelte` files go through `scripts/svelte-loader.js`.** It calls `svelte/compiler` and returns the client JavaScript, registered as a `turbopack.rules` entry in `next.config.ts` and as a webpack rule so `pnpm analyze` still works. The React page `MindReaderContent.tsx` imports Svelte inside an effect, so the runtime stays out of every other route. It's `.js` rather than `.cjs` because the lint config applies the a11y rules to every file and only registers the plugin for some extensions.
+- **A fourth Vitest project, `svelte`,** runs `*.svelte.test.ts` with `@sveltejs/vite-plugin-svelte` and the `browser` resolve condition, and `pnpm test` now runs it with `unit`. The React tests are untouched.
+- Hub wiring: a `FEATURES` entry with `--color-feature-mind-reader` in both themes, a `FEATURE_TOKEN` mapping, an `llms.txt` line, `PUBLIC_ROUTES`, and an opt-out in the world exhibits test (a two-person game has nothing to do for a lone visitor). The write-up is `/thoughts/mind-reader`.
+- Not verified in a browser: `next build` can't finish in the sandbox I worked in because `next/font` can't reach Google Fonts, so the route was checked by the compiler warnings the production build printed (none now), `tsc`, lint, `deadcheck` and the component tests.
+
 ## 2026-10-25 - version 9.0.0
 
 - **EVAR Sizing moved to its own project, evar-study, at medical.paulsumido.com.** paul-explore no longer has any of it: the pages under `/evar`, the `/api/evar/*` proxy routes, `src/lib/evar`, the MSW handlers and factories, the recording and scan-prep scripts (`evar-video.mjs`, `record-evar-intro.mjs`, `record-evar-how-to.mjs`, `prepare-evar-scan.mjs`, `encode-frames.swift`), and the 16 MB in `public/evar`. The entries below stay as the record of how it was built.

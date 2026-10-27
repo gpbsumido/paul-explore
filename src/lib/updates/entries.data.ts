@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-mind-reader",
+    date: "2026-10-26",
+    version: "9.1.0",
+    category: "feature",
+    tags: ["game", "svelte"],
+    title: "The Mind Reader: a party game for two",
+    summary:
+      "A new game at /mind-reader. One of you is dealt a secret role toward the other, like a bodyguard or a spy after a wallet, and has to drop hints in normal conversation while the other has five minutes to work out what it is.",
+    body: [
+      "There are 240 roles in six categories, and you can pick a category or play them all. A role doesn't come up again until the deck is used up. Player A sees the role, hides it and starts the clock, then Player B guesses; there's a pause button, a running score and a fresh role for the next round.",
+      "It's also the first page on the site written in Svelte, and the write-up covers what that took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-evar-moved",
     date: "2026-10-25",
     version: "9.0.0",
