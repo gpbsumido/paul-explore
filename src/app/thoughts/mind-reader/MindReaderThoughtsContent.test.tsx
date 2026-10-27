@@ -20,4 +20,15 @@ describe("MindReaderThoughtsContent", () => {
     const links = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
     expect(links).toContain("/mind-reader");
   });
+
+  it("carries the dated update on online rooms", () => {
+    render(<MindReaderThoughtsContent />);
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "The role was never the server's to keep",
+      }),
+    ).toBeInTheDocument();
+    expect(document.getElementById("update-2026-10-26-rooms")).not.toBeNull();
+  });
 });
