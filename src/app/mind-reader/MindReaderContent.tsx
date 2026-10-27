@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import PageIntro from "@/components/PageIntro";
+import { isRoomCode } from "./_room/protocol";
 
 /**
  * React page around the Svelte game. The game is a Svelte 5 component, so it
@@ -20,10 +21,22 @@ export default function MindReaderContent() {
     let cancelled = false;
     let stop: (() => void) | undefined;
 
-    Promise.all([import("svelte"), import("./MindReader.svelte")]).then(
-      ([{ mount, unmount }, { default: MindReader }]) => {
+    // A link with ?room=CODE makes this device player B. Anything that isn't
+    // a well-formed code is ignored and the page opens as a normal game.
+    const room = new URLSearchParams(window.location.search).get("room");
+    const joinCode = isRoomCode(room) ? room : undefined;
+
+    Promise.all([
+      import("svelte"),
+      import("./MindReader.svelte"),
+      import("./_room/transport"),
+    ]).then(
+      ([{ mount, unmount }, { default: MindReader }, { connectRoom }]) => {
         if (cancelled || !target.current) return;
-        const app = mount(MindReader, { target: target.current });
+        const app = mount(MindReader, {
+          target: target.current,
+          props: { connect: connectRoom, joinCode },
+        });
         stop = () => unmount(app);
         setMounted(true);
       },
