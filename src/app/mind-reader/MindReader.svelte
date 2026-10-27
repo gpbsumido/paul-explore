@@ -9,6 +9,7 @@
     type Action,
     type CategoryFilter,
     type GameState,
+    type Phase,
   } from "./_game/game";
 
   // The dice and the clock come in as props so a test can fix both. Real
@@ -19,7 +20,7 @@
   }: { random?: () => number; now?: () => number } = $props();
 
   let game = $state<GameState>(initialState());
-  let clock = $state(now());
+  let clock = $state(0);
   let heading = $state<HTMLElement>();
 
   const remaining = $derived(remainingMs(game, clock));
@@ -58,7 +59,7 @@
 
   // Move focus to the new heading whenever the screen changes, but leave it
   // alone on first load so the page does not steal focus from the header.
-  let lastPhase = game.phase;
+  let lastPhase: Phase = "setup";
   $effect(() => {
     const phase = game.phase;
     if (phase === lastPhase) return;

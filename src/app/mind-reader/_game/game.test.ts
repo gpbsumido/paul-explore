@@ -16,7 +16,7 @@ const seeded = (values: number[]) => {
 
 describe("drawRole", () => {
   it("does not repeat a role until the whole deck has been dealt", () => {
-    let seen: string[] = [];
+    let seen: readonly string[] = [];
     const dealt = new Set<string>();
     for (let i = 0; i < ROLES.length; i++) {
       const draw = drawRole({ category: "all", seen, random: Math.random });
