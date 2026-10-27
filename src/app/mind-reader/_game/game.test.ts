@@ -4,6 +4,7 @@ import {
   drawRole,
   formatClock,
   initialState,
+  publicView,
   reduce,
   remainingMs,
 } from "./game";
@@ -118,5 +119,46 @@ describe("formatClock", () => {
     expect(formatClock(61_000)).toBe("1:01");
     expect(formatClock(59_001)).toBe("1:00");
     expect(formatClock(0)).toBe("0:00");
+  });
+});
+
+describe("publicView, what player B's device is sent", () => {
+  const playThrough = () => {
+    const secret = reduce(initialState(), { type: "deal", random: () => 0 });
+    const playing = reduce(secret, { type: "start", now: 0 });
+    const reveal = reduce(playing, { type: "guessed" });
+    return { secret, playing, reveal };
+  };
+
+  it("never carries the role, or anything that names it, before the reveal", () => {
+    const { secret, playing } = playThrough();
+    for (const state of [initialState(), secret, playing]) {
+      const sent = JSON.stringify(publicView(state, 0));
+      expect(sent).not.toContain(ROLES[0].text);
+      expect(sent).not.toContain(ROLES[0].id);
+    }
+  });
+
+  it("hands over the role text once the round is over", () => {
+    expect(publicView(playThrough().reveal, 0)).toMatchObject({
+      phase: "reveal",
+      role: ROLES[0].text,
+      guessed: 1,
+      lastOutcome: "guessed",
+    });
+  });
+
+  it("sends time left rather than a deadline, so the two clocks can disagree", () => {
+    const { playing } = playThrough();
+    expect(publicView(playing, 60_000)).toMatchObject({
+      phase: "playing",
+      remainingMs: ROUND_MS - 60_000,
+      paused: false,
+    });
+    const paused = reduce(playing, { type: "pause", now: 30_000 });
+    expect(publicView(paused, 999_000)).toMatchObject({
+      remainingMs: ROUND_MS - 30_000,
+      paused: true,
+    });
   });
 });
