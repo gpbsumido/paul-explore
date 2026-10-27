@@ -102,6 +102,8 @@ describe("The Mind Reader (Svelte)", () => {
   });
 
   it("has no axe violations on the rules screen or mid-round", async () => {
+    // axe schedules its own work with timers, so it needs the real ones.
+    vi.useRealTimers();
     const { container } = setup();
     expect(await axe(container)).toHaveNoViolations();
     await click(/deal a role/i);

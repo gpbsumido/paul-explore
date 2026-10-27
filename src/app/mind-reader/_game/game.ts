@@ -23,6 +23,8 @@ export type GameState = {
   round: number;
   guessed: number;
   stumped: number;
+  /** How the last finished round ended, for the reveal screen. */
+  lastOutcome: "guessed" | "stumped" | null;
   /** Wall-clock ms when the round runs out. Null until play starts. */
   endsAt: number | null;
   /** Ms left at the moment of pausing. Null whenever the clock is running. */
@@ -49,6 +51,7 @@ export const initialState = (): GameState => ({
   round: 1,
   guessed: 0,
   stumped: 0,
+  lastOutcome: null,
   endsAt: null,
   pausedRemaining: null,
 });
@@ -89,6 +92,7 @@ const finish = (state: GameState, outcome: "guessed" | "stumped"): GameState =>
         phase: "reveal",
         endsAt: null,
         pausedRemaining: null,
+        lastOutcome: outcome,
         [outcome]: state[outcome] + 1,
       };
 
