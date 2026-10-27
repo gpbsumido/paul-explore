@@ -49,6 +49,7 @@ const roomMessageSchema = z.discriminatedUnion("t", [
 ]);
 
 export type RoomMessage = z.infer<typeof roomMessageSchema>;
+// ts-prune-ignore-next -- imported by .svelte files, which ts-prune can't see
 export type Ask = z.infer<typeof askSchema>;
 
 export function parseRoomMessage(value: unknown): RoomMessage | null {

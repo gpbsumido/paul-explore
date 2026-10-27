@@ -186,6 +186,20 @@ export function publicView(state: GameState, now: number): PublicView {
   };
 }
 
+/**
+ * What the screen reader hears about the clock. Only two moments are worth
+ * interrupting for; announcing every second would drown out the conversation
+ * the game is about.
+ */
+// ts-prune-ignore-next -- imported by .svelte files, which ts-prune can't see
+export function clockAnnouncement(phase: Phase, ms: number): string {
+  if (phase !== "playing") return "";
+  const seconds = Math.ceil(ms / 1000);
+  if (seconds <= 10) return "Ten seconds left";
+  if (seconds <= 60) return "One minute left";
+  return "";
+}
+
 /** m:ss, rounding partial seconds up so 0:00 only shows when time is truly up. */
 export function formatClock(ms: number): string {
   const total = Math.ceil(ms / 1000);
