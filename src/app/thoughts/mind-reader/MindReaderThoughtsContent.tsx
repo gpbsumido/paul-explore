@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -161,19 +161,103 @@ https://svelte.dev/e/state_referenced_locally`}
         </p>
       </section>
 
+      <Update
+        id="update-2026-10-26-rooms"
+        date="October 26, 2026"
+        title="The role was never the server's to keep"
+      >
+        <p>
+          The first version was one shared phone, with Player B told to look
+          away. That was the weakest part of the game, so I added rooms: Player
+          A taps Start a room, sends the link, and Player B plays from their own
+          device. The rule I held it to was that the role is only ever sent to
+          Player A.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The obvious design was a server that deals. I didn&apos;t need one.
+        </h3>
+        <p className="text-muted">
+          My first sketch had an API route draw the role, store the room and
+          send each player their half. That is a database table, an expiry job
+          and a second copy of the rules for a five-minute party game. Instead
+          Player A&apos;s device stays the only place the reducer runs. It
+          deals the role locally and sends the room a 
+          <code className={code}>publicView</code> after every change, which
+          carries the phase, the score and the time left, and the role only
+          once the round is over. Player B&apos;s buttons are asks, and A&apos;s
+          device decides on them. Nothing on the server ever knows the role,
+          so there is nothing to leak.
+        </p>
+        <pre className={pre}>
+          {`{ "t": "view", "view": { "phase": "playing", "round": 1,
+  "guessed": 0, "stumped": 0, "lastOutcome": null,
+  "remainingMs": 270000, "paused": false, "role": null } }`}
+        </pre>
+        <p className="text-muted">
+          The test I care most about plays a round between two rendered
+          devices on an in-memory channel, records every message, and checks
+          the role text isn&apos;t in any of them until the reveal. The clock
+          goes as time left rather than a deadline, because two phones never
+          agree on the time.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Ably was already here, and the token had to stay narrow
+        </h3>
+        <p className="text-muted">
+          World presence already talks over Ably with a token route and falls
+          back to a <code className={code}>BroadcastChannel</code>, so rooms copy
+          that pair. They get their own route, 
+          <code className={code}>/api/mind-reader/token</code>, so world
+          presence&apos;s capability never widens. The room code is checked
+          against its pattern before it goes into the capability, otherwise a
+          code of <code className={code}>*</code> would mint a token for every
+          channel. The page asks the route first and drops straight to the
+          local channel on a 503, instead of waiting out Ably&apos;s connection
+          retries. That fallback only reaches tabs in the same browser, so the
+          room says so rather than looking connected. It&apos;s also what CI
+          plays on, with two pages in one browser context.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The dead-export check can&apos;t read Svelte
+        </h3>
+        <p className="text-muted">
+          Moving the button styles and the clock announcement into shared
+          modules, so both players&apos; screens use the same ones, turned the
+          dead-export check red. It only follows TypeScript imports, and these
+          are imported from <code className={code}>.svelte</code> files.
+        </p>
+        <pre className={pre}>
+          {`Found 2 dead export(s) — nothing imports these:
+
+  src/app/mind-reader/buttonStyles.ts:2 - BUTTON
+  src/app/mind-reader/buttonStyles.ts:5 - PRIMARY_BUTTON`}
+        </pre>
+        <p className="text-muted">
+          Each one now carries an ignore comment that says why. It&apos;s a
+          real cost of adding a second framework: every tool that walks the
+          import graph has to be taught, or told, that 
+          <code className={code}>.svelte</code> files are part of it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A 240-role deck in six categories, dealt without repeats until the deck or chosen category is spent.",
           "A five-minute round with pause and resume, a guessed or stumped result, a running score, and a fresh role for the next round.",
           "Svelte 5 with runes and snippets, compiled by a small loader and mounted from a React shell.",
           "A separate Vitest project for Svelte components, with an axe check.",
+          "Online rooms: Player B plays from their own device, and the role never leaves Player A's until the round is over.",
         ]}
         couldImprove={[
-          "It is one shared device: Player B has to look away while A reads the role.",
+          "Rooms only reach other devices where an Ably key is configured; without one they fall back to tabs in the same browser.",
+          "If Player A closes the page the room ends, and Player B is left waiting.",
           "The deck is fixed in code, so there is no way to add your own roles.",
         ]}
         upcoming={[
-          "Online rooms, so the two players can be in different places and the role is only ever sent to Player A.",
+          "Swapping who holds the role between rounds, so both players get a turn at reading the other.",
           "A harder mode where Player B gets a limited number of questions.",
         ]}
       />
