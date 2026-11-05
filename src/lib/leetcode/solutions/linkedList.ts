@@ -308,7 +308,7 @@ function describeRandomList(head: _Node | null): [number, number | null][] {
     approach: [
       "A JavaScript Map remembers insertion order, so its first key is always the least recently used.",
       "On get, delete the key and set it again to move it to the back.",
-      "On put, do the same; if the size goes over capacity, delete the first key. In an interview that bans this trick, the same idea is a hash map plus a doubly linked list.",
+      "On put, do the same; if the size goes over capacity, delete the first key.",
     ],
     complexity: { time: "O(1)", space: "O(capacity)" },
     code: `class LRUCache {
@@ -337,6 +337,74 @@ function describeRandomList(head: _Node | null): [number, number | null][] {
       },
       { call: "(() => { const c = new LRUCache(1); c.put(2, 1); c.put(2, 2); return c.get(2); })()", expected: 2 },
     ],
+    alternative: {
+      name: "Hash map and doubly linked list",
+      approach: [
+        "Keep a Map from key to node, and a doubly linked list ordered from most to least recently used.",
+        "Sentinel nodes at both ends mean unlinking and inserting never have to check for a missing neighbour.",
+        "get and put move the node to the front. When the Map goes over capacity, drop the node just before the tail sentinel.",
+      ],
+      complexity: { time: "O(1)", space: "O(capacity)" },
+      code: `class DNode {
+  prev: DNode | null = null;
+  next: DNode | null = null;
+  constructor(
+    public key: number,
+    public value: number,
+  ) {}
+}
+
+class LRUCache {
+  private nodes = new Map<number, DNode>();
+  private head = new DNode(0, 0);
+  private tail = new DNode(0, 0);
+  constructor(private capacity: number) {
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+  }
+  private unlink(node: DNode): void {
+    (node.prev as DNode).next = node.next;
+    (node.next as DNode).prev = node.prev;
+  }
+  private pushFront(node: DNode): void {
+    node.prev = this.head;
+    node.next = this.head.next;
+    (this.head.next as DNode).prev = node;
+    this.head.next = node;
+  }
+  get(key: number): number {
+    const node = this.nodes.get(key);
+    if (!node) return -1;
+    this.unlink(node);
+    this.pushFront(node);
+    return node.value;
+  }
+  put(key: number, value: number): void {
+    const existing = this.nodes.get(key);
+    if (existing) {
+      existing.value = value;
+      this.unlink(existing);
+      this.pushFront(existing);
+      return;
+    }
+    const node = new DNode(key, value);
+    this.nodes.set(key, node);
+    this.pushFront(node);
+    if (this.nodes.size > this.capacity) {
+      const oldest = this.tail.prev as DNode;
+      this.unlink(oldest);
+      this.nodes.delete(oldest.key);
+    }
+  }
+}`,
+      cases: [
+        {
+          call: "(() => { const c = new LRUCache(2); c.put(1, 1); c.put(2, 2); const a = c.get(1); c.put(3, 3); const b = c.get(2); c.put(4, 4); return [a, b, c.get(1), c.get(3), c.get(4)]; })()",
+          expected: [1, -1, -1, 3, 4],
+        },
+        { call: "(() => { const c = new LRUCache(1); c.put(2, 1); c.put(2, 2); return c.get(2); })()", expected: 2 },
+      ],
+    },
   },
 
   "find-the-duplicate-number": {
@@ -365,6 +433,32 @@ function describeRandomList(head: _Node | null): [number, number | null][] {
       { call: "findDuplicate([3, 1, 3, 4, 2])", expected: 3 },
       { call: "findDuplicate([3, 3, 3, 3, 3])", expected: 3 },
     ],
+    alternative: {
+      name: "Binary search on the value",
+      approach: [
+        "The values run from 1 to n, so search the values rather than the indexes.",
+        "For a guess mid, count the numbers that are at most mid. If there are more than mid of them, the duplicate is somewhere in 1 to mid.",
+        "Halve the range until one value is left. It's slower than the cycle but still O(1) space, leaves the array alone, and is easier to explain on the spot.",
+      ],
+      complexity: { time: "O(n log n)", space: "O(1)" },
+      code: `function findDuplicate(nums: number[]): number {
+  let low = 1;
+  let high = nums.length - 1;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    let atMostMid = 0;
+    for (const n of nums) if (n <= mid) atMostMid++;
+    if (atMostMid > mid) high = mid;
+    else low = mid + 1;
+  }
+  return low;
+}`,
+      cases: [
+        { call: "findDuplicate([1, 3, 4, 2, 2])", expected: 2 },
+        { call: "findDuplicate([3, 1, 3, 4, 2])", expected: 3 },
+        { call: "findDuplicate([3, 3, 3, 3, 3])", expected: 3 },
+      ],
+    },
   },
 
   "reverse-nodes-in-k-group": {

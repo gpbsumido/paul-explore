@@ -140,6 +140,31 @@ export const arraysHashingSolutions: Record<string, Solution> = {
       { call: "topKFrequent([1, 1, 1, 2, 2, 3], 2).sort((a, b) => a - b)", expected: [1, 2] },
       { call: "topKFrequent([1], 1)", expected: [1] },
     ],
+    alternative: {
+      name: "Size-k min-heap",
+      approach: [
+        "Count every value with a Map.",
+        "Push each (value, count) pair into a min-heap ordered by count, popping whenever it holds more than k.",
+        "The k pairs left are the most frequent. This is the one to reach for when the values arrive as a stream, or k is far smaller than the number of distinct values.",
+      ],
+      complexity: { time: "O(n log k)", space: "O(n)" },
+      code: `function topKFrequent(nums: number[], k: number): number[] {
+  const counts = new Map<number, number>();
+  for (const n of nums) counts.set(n, (counts.get(n) ?? 0) + 1);
+  const heap = new MinHeap<[number, number]>((a, b) => a[1] - b[1]);
+  for (const entry of counts) {
+    heap.push(entry);
+    if (heap.size > k) heap.pop();
+  }
+  const result: number[] = [];
+  while (heap.size > 0) result.push((heap.pop() as [number, number])[0]);
+  return result;
+}`,
+      cases: [
+        { call: "topKFrequent([1, 1, 1, 2, 2, 3], 2).sort((a, b) => a - b)", expected: [1, 2] },
+        { call: "topKFrequent([1], 1)", expected: [1] },
+      ],
+    },
   },
 
   "valid-sudoku": {

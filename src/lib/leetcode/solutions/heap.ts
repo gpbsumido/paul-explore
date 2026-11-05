@@ -56,7 +56,7 @@ export const heapSolutions: Record<string, Solution> = {
     approach: [
       "Keep a min-heap capped at k elements.",
       "Push every number, popping the smallest whenever the heap passes k.",
-      "What's left on top is the k-th largest. Quickselect averages O(n) if they ask for better.",
+      "What's left on top is the k-th largest.",
     ],
     complexity: { time: "O(n log k)", space: "O(k)" },
     code: `function findKthLargest(nums: number[], k: number): number {
@@ -71,6 +71,46 @@ export const heapSolutions: Record<string, Solution> = {
       { call: "findKthLargest([3, 2, 1, 5, 6, 4], 2)", expected: 5 },
       { call: "findKthLargest([3, 2, 3, 1, 2, 4, 5, 5, 6], 4)", expected: 4 },
     ],
+    alternative: {
+      name: "Quickselect",
+      approach: [
+        "Sorted ascending, the k-th largest sits at index n - k. Quickselect finds what belongs there without sorting the rest.",
+        "Pick a random pivot and partition three ways: smaller, equal, larger.",
+        "If index n - k lands in the equal block, that's the answer. Otherwise keep only the side that holds it. Random pivots keep the average linear, and the three-way split stops a run of equal values from making it quadratic.",
+      ],
+      complexity: { time: "O(n) average, O(n²) worst", space: "O(1)" },
+      code: `function findKthLargest(nums: number[], k: number): number {
+  const target = nums.length - k;
+  let low = 0;
+  let high = nums.length - 1;
+  while (true) {
+    const pivot = nums[low + Math.floor(Math.random() * (high - low + 1))];
+    let lt = low;
+    let i = low;
+    let gt = high;
+    while (i <= gt) {
+      if (nums[i] < pivot) {
+        [nums[lt], nums[i]] = [nums[i], nums[lt]];
+        lt++;
+        i++;
+      } else if (nums[i] > pivot) {
+        [nums[i], nums[gt]] = [nums[gt], nums[i]];
+        gt--;
+      } else {
+        i++;
+      }
+    }
+    if (target < lt) high = lt - 1;
+    else if (target > gt) low = gt + 1;
+    else return pivot;
+  }
+}`,
+      cases: [
+        { call: "findKthLargest([3, 2, 1, 5, 6, 4], 2)", expected: 5 },
+        { call: "findKthLargest([3, 2, 3, 1, 2, 4, 5, 5, 6], 4)", expected: 4 },
+        { call: "findKthLargest([2, 2, 2, 2, 2], 3)", expected: 2 },
+      ],
+    },
   },
 
   "k-closest-points-to-origin": {
@@ -197,6 +237,47 @@ export const heapSolutions: Record<string, Solution> = {
       { call: "mergeKLists([])", expected: null },
       { call: "mergeKLists([null])", expected: null },
     ],
+    alternative: {
+      name: "Merge in pairs",
+      approach: [
+        "Merge the lists in pairs the way merge sort does: the first with the second, the third with the fourth, and so on.",
+        "Each round halves the number of lists, so there are log k rounds.",
+        "Every round touches each of the n nodes once. There's no heap, which is the answer if they ask for one without a priority queue.",
+      ],
+      complexity: { time: "O(n log k)", space: "O(k)" },
+      code: `function mergeKLists(lists: (ListNode | null)[]): ListNode | null {
+  const mergeTwo = (a: ListNode | null, b: ListNode | null): ListNode | null => {
+    const dummy = new ListNode();
+    let tail = dummy;
+    while (a && b) {
+      if (a.val <= b.val) {
+        tail.next = a;
+        tail = a;
+        a = a.next;
+      } else {
+        tail.next = b;
+        tail = b;
+        b = b.next;
+      }
+    }
+    tail.next = a ?? b;
+    return dummy.next;
+  };
+  if (lists.length === 0) return null;
+  let round = lists;
+  while (round.length > 1) {
+    const next: (ListNode | null)[] = [];
+    for (let i = 0; i < round.length; i += 2) next.push(mergeTwo(round[i], round[i + 1] ?? null));
+    round = next;
+  }
+  return round[0];
+}`,
+      cases: [
+        { call: "arrayFromList(mergeKLists([listFromArray([1, 4, 5]), listFromArray([1, 3, 4]), listFromArray([2, 6])]))", expected: [1, 1, 2, 3, 4, 4, 5, 6] },
+        { call: "mergeKLists([])", expected: null },
+        { call: "mergeKLists([null])", expected: null },
+      ],
+    },
   },
 
   "find-median-from-data-stream": {

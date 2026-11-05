@@ -50,6 +50,38 @@ export const topologicalSortSolutions: Record<string, Solution> = {
       { call: "canFinish(2, [[1, 0]])", expected: true },
       { call: "canFinish(2, [[1, 0], [0, 1]])", expected: false },
     ],
+    alternative: {
+      name: "DFS with three colours",
+      approach: [
+        "Mark every course as unvisited, on the current path, or done.",
+        "DFS from each course. Reaching a course that's on the current path means a cycle.",
+        "A course is marked done once everything it unlocks is done, so nothing gets explored twice.",
+      ],
+      complexity: { time: "O(V + E)", space: "O(V + E)" },
+      code: `function canFinish(numCourses: number, prerequisites: number[][]): boolean {
+  const unlocks: number[][] = Array.from({ length: numCourses }, () => []);
+  for (const [course, before] of prerequisites) unlocks[before].push(course);
+  const UNVISITED = 0;
+  const ON_PATH = 1;
+  const DONE = 2;
+  const state = new Array<number>(numCourses).fill(UNVISITED);
+  const hasCycle = (course: number): boolean => {
+    if (state[course] === ON_PATH) return true;
+    if (state[course] === DONE) return false;
+    state[course] = ON_PATH;
+    for (const next of unlocks[course]) if (hasCycle(next)) return true;
+    state[course] = DONE;
+    return false;
+  };
+  for (let course = 0; course < numCourses; course++) if (hasCycle(course)) return false;
+  return true;
+}`,
+      cases: [
+        { call: "canFinish(2, [[1, 0]])", expected: true },
+        { call: "canFinish(2, [[1, 0], [0, 1]])", expected: false },
+        { call: "canFinish(3, [[1, 0], [2, 1], [0, 2]])", expected: false },
+      ],
+    },
   },
 
   "course-schedule-ii": {

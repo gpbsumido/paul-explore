@@ -98,6 +98,53 @@ export const graphsSolutions: Record<string, Solution> = {
         expected: 3,
       },
     ],
+    alternative: {
+      name: "Iterative BFS",
+      approach: [
+        "Same scan: each '1' that's still land starts a new island.",
+        "Flood it with a queue instead of recursion, turning cells to water as they're queued so none is queued twice.",
+        "The recursive sink already overflows Node's default call stack on a 100 × 100 grid of land, and the constraints allow 300 × 300. A queue can't overflow.",
+      ],
+      complexity: { time: "O(m · n)", space: "O(m · n)" },
+      code: `function numIslands(grid: string[][]): number {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const moves = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+  let islands = 0;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] !== "1") continue;
+      islands++;
+      grid[r][c] = "0";
+      const queue: number[][] = [[r, c]];
+      for (let head = 0; head < queue.length; head++) {
+        const [row, col] = queue[head];
+        for (const [dr, dc] of moves) {
+          const nr = row + dr;
+          const nc = col + dc;
+          if (nr >= 0 && nc >= 0 && nr < rows && nc < cols && grid[nr][nc] === "1") {
+            grid[nr][nc] = "0";
+            queue.push([nr, nc]);
+          }
+        }
+      }
+    }
+  }
+  return islands;
+}`,
+      cases: [
+        {
+          call: 'numIslands([["1", "1", "0", "0", "0"], ["1", "1", "0", "0", "0"], ["0", "0", "1", "0", "0"], ["0", "0", "0", "1", "1"]])',
+          expected: 3,
+        },
+        { call: 'numIslands(Array.from({ length: 300 }, () => new Array<string>(300).fill("1")))', expected: 1 },
+      ],
+    },
   },
 
   "max-area-of-island": {

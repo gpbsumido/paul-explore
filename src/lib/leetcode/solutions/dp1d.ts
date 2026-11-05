@@ -157,6 +157,29 @@ export const dp1dSolutions: Record<string, Solution> = {
       { call: "lengthOfLIS([0, 1, 0, 3, 2, 3])", expected: 4 },
       { call: "lengthOfLIS([7, 7, 7, 7])", expected: 1 },
     ],
+    alternative: {
+      name: "O(n²) DP",
+      approach: [
+        "dp[i] is the longest increasing subsequence that ends at nums[i]. Every dp[i] starts at 1.",
+        "For each i, look back at every j before it. If nums[j] < nums[i], dp[i] can be dp[j] + 1.",
+        "The answer is the largest dp[i]. This is the version to derive first, and the tails array is how it gets faster.",
+      ],
+      complexity: { time: "O(n²)", space: "O(n)" },
+      code: `function lengthOfLIS(nums: number[]): number {
+  const longestEndingAt = new Array<number>(nums.length).fill(1);
+  for (let i = 1; i < nums.length; i++) {
+    for (let j = 0; j < i; j++) {
+      if (nums[j] < nums[i]) longestEndingAt[i] = Math.max(longestEndingAt[i], longestEndingAt[j] + 1);
+    }
+  }
+  return Math.max(...longestEndingAt);
+}`,
+      cases: [
+        { call: "lengthOfLIS([10, 9, 2, 5, 3, 7, 101, 18])", expected: 4 },
+        { call: "lengthOfLIS([0, 1, 0, 3, 2, 3])", expected: 4 },
+        { call: "lengthOfLIS([7, 7, 7, 7])", expected: 1 },
+      ],
+    },
   },
 
   "word-break": {
