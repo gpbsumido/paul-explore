@@ -12,6 +12,9 @@ export const queryKeys = {
   /** Current logged-in user's name and email from /api/me. */
   me: () => ["me"] as const,
 
+  /** Signed-in interview-prep review progress from /api/practice/reviews, both kinds. */
+  practiceReviews: () => ["practice", "reviews"] as const,
+
   /** Admin to-do list from /api/todos. */
   todos: () => ["todos"] as const,
 

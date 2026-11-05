@@ -1,0 +1,98 @@
+import type { Pattern, Problem } from "./types";
+import type { ReviewState } from "./review";
+
+/** One drill card: a problem, answered by the pattern that owns it. */
+export type DrillCard = {
+  problem: Problem;
+  patternId: string;
+};
+
+/**
+ * Every problem in the playbook as a drill card, dealt round-robin: the first
+ * problem of each pattern, then the second of each, and so on. In roadmap
+ * order the first nine cards were all hash maps, so the answer was the order
+ * rather than the wording. Round-robin still starts each pattern on the
+ * easiest problem in its ladder.
+ */
+export function drillDeck(patterns: readonly Pattern[]): DrillCard[] {
+  const rounds = Math.max(...patterns.map((pattern) => pattern.problems.length));
+  return Array.from({ length: rounds }, (_, round) =>
+    patterns.flatMap((pattern) => {
+      const problem = pattern.problems[round];
+      return problem ? [{ problem, patternId: pattern.id }] : [];
+    }),
+  ).flat();
+}
+
+/**
+ * Picks the next card to show.
+ *
+ * Due cards first, most overdue first, because those are the ones about to be
+ * forgotten. Then unseen cards in deck order. With studyAhead, once both
+ * run out it takes whichever scheduled card is due soonest rather than ending
+ * the session.
+ *
+ * @param deck - The cards in scope: the whole deck, or one pattern's share.
+ * @returns The card to show, or null when nothing in the deck is left.
+ */
+export function nextDrillCard({
+  deck,
+  states,
+  now,
+  studyAhead = false,
+}: {
+  deck: readonly DrillCard[];
+  states: Readonly<Record<string, ReviewState>>;
+  now: number;
+  studyAhead?: boolean;
+}): DrillCard | null {
+  const seen = deck.filter((c) => states[c.problem.slug] !== undefined);
+  const bySoonest = [...seen].sort((a, b) => states[a.problem.slug].due - states[b.problem.slug].due);
+
+  const overdue = bySoonest.find((c) => states[c.problem.slug].due <= now);
+  if (overdue) return overdue;
+  const unseen = deck.find((c) => states[c.problem.slug] === undefined);
+  if (unseen) return unseen;
+  return studyAhead ? (bySoonest[0] ?? null) : null;
+}
+
+const OPTION_COUNT = 4;
+
+/**
+ * The answer plus distractors, shuffled.
+ *
+ * Distractors never include a listed alternative, since offering a second
+ * right answer and then marking it wrong teaches the wrong thing.
+ *
+ * @param random - A source of numbers in [0, 1), injected so tests can pin it.
+ * @returns Four distinct patterns, one of them the card's answer.
+ */
+export function buildDrillOptions({
+  card,
+  patterns,
+  random,
+}: {
+  card: DrillCard;
+  patterns: readonly Pattern[];
+  random: () => number;
+}): Pattern[] {
+  const excluded = new Set([card.patternId, ...(card.problem.alsoAccept ?? [])]);
+  const answer = patterns.filter((p) => p.id === card.patternId);
+  const distractors = shuffle(patterns.filter((p) => !excluded.has(p.id)), random).slice(0, OPTION_COUNT - 1);
+  return shuffle([...answer, ...distractors], random);
+}
+
+/** Whether a chosen pattern counts as right for this card. */
+export function isAcceptedAnswer(card: DrillCard, patternId: string): boolean {
+  return patternId === card.patternId || (card.problem.alsoAccept ?? []).includes(patternId);
+}
+
+/** Fisher–Yates on a copy; the input is left alone. */
+function shuffle<T>(items: readonly T[], random: () => number): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}

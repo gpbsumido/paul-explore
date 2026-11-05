@@ -57,6 +57,11 @@ export default function LearnContent() {
             date: "Aug 10, 2026",
             title: "Writing this down, and what I would keep",
           },
+          {
+            id: "update-2026-11-04-interview-prep",
+            date: "Nov 4, 2026",
+            title: "LeetCode asks which technique, and the demos never did",
+          },
         ]}
       />
 
@@ -149,19 +154,327 @@ export default function LearnContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-04-interview-prep"
+        date="November 4, 2026"
+        title="LeetCode asks which technique, and the demos never did"
+      >
+        <p>
+          Thirteen demos showed me how sliding window or backtracking works once
+          I already knew to use it. None of them helped with the step a LeetCode
+          interview actually tests, which is reading a problem cold and knowing
+          what to reach for. So I built 
+          <code className={code}>/learn/interview-prep</code>: 23 patterns, the
+          wording that gives each one away, a template, the traps, and a ladder
+          of LeetCode problems to practise on, all in TypeScript.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Recognition is in the wording, so the wording is the data
+        </h3>
+        <p className="text-muted">
+          Every pattern carries its signals as phrases (&quot;longest
+          substring&quot;, &quot;k closest&quot;, &quot;minimum number of
+          operations&quot;), with the strongest flagged, plus a short list of
+          when it&apos;s probably something else. That one field drives the
+          pattern page, the drill and a signal finder on the hub: paste a
+          problem statement and it ranks patterns by which phrases matched and
+          highlights them in the text.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`rankPatternsForText("Given a string s, find the length of the longest
+substring without repeating characters.")
+
+[{ patternId: "sliding-window", score: 5,
+   matchedPhrases: ["longest substring", "substring",
+                    "without repeating characters"] }]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It gets Two Sum II wrong, and that&apos;s worth seeing
+        </h3>
+        <p className="text-muted">
+          Phrase matching counts words, not what they mean together. A sorted
+          array plus a target sum is the classic two-pointer problem, but the
+          hash-map phrases outnumber the one that says sorted:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`"Given a sorted array of integers and a target, return the indices
+of the two numbers that add up to target."
+
+arrays-hashing  3  ["indices of the two numbers", "add up to target"]
+two-pointers    2  ["sorted array"]
+binary-search   1  ["sorted"]`}
+        </pre>
+        <p className="mt-3 text-muted">
+          I could weight &quot;sorted&quot; up until this passes, but that tunes
+          the finder to the example I happened to try. Showing the matched
+          phrases next to each guess is the better fix. Two plausible answers
+          and the reason for each is the conversation I want to have with
+          myself in an interview anyway, and a confident single answer would
+          hide it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The template stays hidden until I&apos;ve tried to write it
+        </h3>
+        <p className="text-muted">
+          The research I leaned on for the study plan is the testing effect
+          (Roediger and Karpicke, 2006), spacing (Cepeda and colleagues, 2006)
+          and interleaving (Rohrer and Taylor, 2007). Reading a solution feels
+          like learning and mostly isn&apos;t. So each template sits behind
+          &quot;Show the template&quot;, ratings put problems back on a 1, 3,
+          7, 14, 30, 60 day ladder, and the drill mixes every pattern together
+          by default, because practising one topic in a block never makes me
+          choose.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A name I picked broke the roadmap test
+        </h3>
+        <p className="text-muted">
+          The roadmap test looks up each pattern&apos;s link by a regex
+          anchored on its name. &quot;Binary Search&quot; and &quot;Binary
+          Search Trees&quot; both start the same way:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`TestingLibraryElementError: Found multiple elements with the role
+"link" and name \`/^Binary Search/\``}
+        </pre>
+        <p className="mt-3 text-muted">
+          My first instinct was to loosen the test. But a reader scanning the
+          roadmap has the same problem as the regex, so the tree pattern
+          became &quot;BSTs&quot; instead.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Progress moved to my account, and the first version let a click land
+          in the wrong place
+        </h3>
+        <p className="text-muted">
+          Ratings started in localStorage, which is fine until I practise on my
+          phone and review on my laptop. They now live in portfolio_api per
+          user behind a <code className={code}>/api/practice</code> proxy, and
+          the first sign-in moves whatever a browser kept onto the account and
+          clears the local copy. The signed-in save test failed on the first
+          run:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`× saves a rating to the account and leaves localStorage alone
+AssertionError: expected [] to have a length of 1 but got +0`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The buttons were live before <code className={code}>/api/me</code> 
+          had answered, so the click went to localStorage and no request was
+          ever made. In practice the next load would have imported it, which is
+          why it looked harmless. But &quot;it gets fixed on the next
+          visit&quot; isn&apos;t what I want from a store. Rating now waits
+          until the session is known and, when signed in, until the account has
+          loaded. A failed read or save says so on the page instead of showing
+          an empty schedule.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every test passed and the bundle budget still said no
+        </h3>
+        <p className="text-muted">
+          The E2E job ran all 132 tests green, then failed on the size check
+          that runs after them:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`/learn/interview-prep
+  budget  360.0KB (catch-all ceiling)
+  actual  363.1KB
+  over by 3.1KB`}
+        </pre>
+        <p className="mt-3 text-muted">
+          I assumed the pattern data was the weight, since all 23 patterns ship
+          to the client. Splitting the route&apos;s chunks said otherwise: one
+          of them was nothing but zod, about 62KB gzipped, pulled in to check
+          the shape of what&apos;s in localStorage. My first fix was 
+          <code className={code}>zod/mini</code>, which is meant to tree-shake
+          down to almost nothing. It saved 5KB, and a namespace import saved
+          nothing more, because Turbopack doesn&apos;t shake it here. The check
+          is four fields, so it became a small type guard, with a test written
+          first to pin that unreadable progress still throws. All three routes
+          came down by about 57KB, to roughly 300KB.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The dead-code check couldn&apos;t see through a folder
+        </h3>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Found 2 dead export(s) — nothing imports these:
+
+  src/lib/leetcode/patterns/index.ts:61 - patternById
+  src/lib/leetcode/patterns/index.ts:70 - leetCodeUrl`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Both are imported from half a dozen files. ts-prune doesn&apos;t
+          follow an import of a directory&apos;s 
+          <code className={code}>index.ts</code>, which is why the only other
+          one in the repo is on its ignore list. They got an ignore comment
+          with that reason rather than a rename to dodge the tool.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A solution under every problem, but the logic comes before the code
+        </h3>
+        <p className="text-muted">
+          A ladder of links is only half useful when I get stuck at 11pm. So
+          all 223 problems now have a TypeScript solution, and each row reveals
+          it in three levels: Hide, Basic logic, Full solution. The middle level
+          is the useful one. It gives the approach as three short steps with
+          the time and space and no code, so I can still write the solution
+          myself and only peek at the code to check it. Jumping straight to the
+          code is the reading-isn&apos;t-learning trap the template already
+          guards against.
+        </p>
+        <p className="mt-3 text-muted">
+          Every solution carries its own checks, and the same harness that
+          tests the templates runs them all and type-checks them in strict mode.
+          It caught one that ran fine and still wasn&apos;t good TypeScript:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`graphs / solution / 01-matrix: Type 'number' is not assignable
+to type '0 | -1'.`}
+        </pre>
+        <p className="mt-3 text-muted">
+          A ternary of two literals infers a literal type, so the distance grid
+          couldn&apos;t hold a 2. JavaScript doesn&apos;t care. An interviewer
+          watching me write TypeScript might. The solutions live in their own
+          catalogue, not in the pattern data, because the hub and the drill
+          ship that data to the browser and these would roughly double it. The
+          pattern page&apos;s server component hands its client just that
+          pattern&apos;s ten or so.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The second way only earned a place where it teaches something
+        </h3>
+        <p className="text-muted">
+          One solution per problem hid the alternatives an interviewer asks
+          about next. I didn&apos;t want two of everything, so eight problems
+          got a second way, each because it says something the first
+          doesn&apos;t: Quickselect next to the heap for Kth Largest, the
+          doubly linked list an LRU cache&apos;s Map trick stands in for,
+          merging in pairs for k sorted lists, the O(n&sup2;) DP before the
+          patience-sorting one. It sits under the first at the same level, so
+          Basic logic shows both sets of steps and Full solution shows both
+          programs, each with its own checks.
+        </p>
+        <p className="mt-3 text-muted">
+          Number of Islands was the one where the second way turned out to
+          matter. The recursive flood fill is the version everyone writes, and
+          on a grid that&apos;s all land it recurses once per cell:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`numIslands(300 x 300 grid of "1")   recursive DFS
+RangeError: Maximum call stack size exceeded`}
+        </pre>
+        <p className="mt-3 text-muted">
+          It already overflowed at 100 by 100. The iterative BFS carries a 300
+          by 300 case in its checks, so the reason to know it is now in the
+          test suite rather than in my head.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I measured the finder on my own prompts, which flattered it
+        </h3>
+        <p className="text-muted">
+          The finder&apos;s test checks it against the short prompts I wrote
+          for each problem. Those prompts use my phrasing, which is the
+          phrasing the signals were written from. So I fetched LeetCode&apos;s
+          real statements for all 223 problems and scored it on those too:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`                          top 1      top 3
+my prompts                189/223    212/223
+LeetCode's statements     163/223    196/223
+theirs, after pruning     166/223    195/223`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Then I counted, for each phrase, how often it fired on its own
+          pattern&apos;s problems against everyone else&apos;s. Ten fired
+          mostly elsewhere. &quot;Pair&quot; and &quot;reverse&quot; were
+          two-pointer signals that turn up all over the catalogue, and
+          &quot;permutation&quot; sent Permutations, a backtracking problem, to
+          sliding window because Permutation in String uses the word. That one
+          became &quot;a permutation of&quot;. Dropping the rest bought three
+          first picks and cost one top-three, which is the honest size of it.
+          I didn&apos;t keep tuning against the real statements, since that
+          would only move the overfitting from my prompts to theirs.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I wrote that the drill mixes every pattern. It didn&apos;t.
+        </h3>
+        <p className="text-muted">
+          A review pass over the whole branch read the drill&apos;s deck
+          builder next to the beat above about interleaving. New cards came out
+          pattern by pattern, so a first session was every Arrays and Hashing
+          card before a single Two Pointers one: blocked practice, labelled
+          mixed. The tests checked which cards were due, never their order.
+          The deck now deals one problem from each pattern per round:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const rounds = Math.max(...patterns.map((pattern) => pattern.problems.length));
+return Array.from({ length: rounds }, (_, round) =>
+  patterns.flatMap((pattern) => {
+    const problem = pattern.problems[round];
+    return problem ? [{ problem, patternId: pattern.id }] : [];
+  }),
+).flat();`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The pattern page shipped every pattern to show one
+        </h3>
+        <p className="text-muted">
+          The same pass found the pattern page&apos;s client component
+          importing the whole catalogue to look up its neighbours and
+          prerequisites. The server now works those out and passes names and
+          ids, and a missing pattern, prerequisite or solution throws at build
+          time instead of rendering a gap:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`/learn/interview-prep/[pattern]   first-load JS, gzipped
+before   300.0KB
+after    242.7KB`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The pass took things out as well: drill and finder options nothing
+          passed, two tests that only restated their own data, and copies of
+          the same class strings across seven files. A failed sign-in check
+          used to count as signed out, which would have saved a signed-in
+          rating into the browser. It&apos;s an error on the page now, and
+          rating stays off until the session is known.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "An interview prep playbook at /learn/interview-prep: 23 patterns in study order, each with its signals, a hidden template, traps, JS and TS notes, and a ladder of LeetCode problems with the tell behind a disclosure.",
+          "A signal finder that ranks patterns for a pasted problem statement and shows the phrases behind each guess, a complexity budget from the input size, a recognition drill, an eight-week plan and a toolkit of the JS pieces LeetCode assumes.",
+          "Spaced review on a 1 to 60 day ladder, stored on my account when signed in, with a one-time import from the browser and errors shown rather than swallowed.",
+          "A TypeScript solution for every one of the 223 ladder problems, revealed in levels (hidden, basic logic, full code), each run against its checks and type-checked in strict mode by the test suite.",
+          "A second way for eight problems where it teaches something, from Quickselect to an iterative BFS that survives a 300 by 300 grid.",
+          "A nightly check that every ladder slug still names the same LeetCode problem, at the same difficulty, outside the paywall.",
+          "A drill that deals new cards round-robin across patterns, and pattern pages resolved on the server, 57KB lighter.",
           "A test that no learn demo implements arrow-key stepping itself, so the thirteen cannot quietly disagree about what the arrow keys do. Verified by adding a rogue handler and watching it go red.",
           "One useStepPlayer hook behind all thirteen demos, so play, pause, step and keyboard control behave identically everywhere and get fixed in one place.",
           "Characterisation tests written before the refactor, not after — they caught a step-past-the-end overrun that had been live.",
           "Autoplay stops from the callback rather than the state updater, so the updater stays a pure function of previous state.",
         ]}
         couldImprove={[
+          "The signal finder counts phrases, so a problem whose decisive word is outnumbered (Two Sum II's \"sorted\") ranks the wrong pattern first. On LeetCode's own statements it picks right first time for 166 of 223.",
+          "The drill shows real problem prompts, so after a few rounds I could be recognising the problem rather than the pattern. Fresh, reworded prompts would test the skill instead of my memory.",
           "The demos share a player but not a shape: each still hand-rolls its own layout and controls markup, so a visual change is thirteen edits. A shared DemoLayout would be the same argument one level up.",
           "The keyboard guard checks that no demo hand-rolls arrow stepping. It cannot check that a demo which should be stepped actually is one — a page with previous and next buttons and no hook would pass.",
           "Content is hard-coded per route. Steps as data rather than JSX would make a demo a file of steps instead of a component.",
         ]}
         upcoming={[
+          "A mode that asks me to type the template from memory and diffs it against the real one, instead of only revealing it.",
           "Give the remaining learn routes the loading and error states the rest of the app just got, rather than only the hub.",
           "A shared DemoLayout, if the next demo I add makes me copy the markup a fourteenth time — which is the signal I trust more than a rule about counts.",
         ]}
