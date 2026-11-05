@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-interview-prep",
+    date: "2026-11-04",
+    version: "9.1.0",
+    category: "feature",
+    tags: ["learn"],
+    title: "An interview prep playbook for LeetCode",
+    summary:
+      "Learn has a playbook for coding interviews: 23 problem-solving patterns, the wording that gives each one away, links to LeetCode problems to practise on, and a drill for spotting which pattern a problem wants.",
+    body: [
+      "Each pattern has the question to ask yourself, the phrases in a problem statement that point to it, a TypeScript template to write from memory before you peek, the usual traps, and a ladder of LeetCode problems from easy to hard. Paste a problem statement into the playbook's front page and it suggests patterns and shows which words matched.",
+      "Rate each attempt and it comes back on a spaced schedule, from tomorrow out to two months. The recognition drill trains just the spotting step, mixed across every pattern. Sign in and your progress follows you between devices; anything you'd already done in this browser moves over the first time you do.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-evar-moved",
     date: "2026-10-25",
     version: "9.0.0",
