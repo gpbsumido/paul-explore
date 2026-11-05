@@ -11,6 +11,7 @@ import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
 import SolutionLevels from "./SolutionLevels";
 import type { patternPageProps } from "./patternPageProps";
+import { eyebrowHeading, focusRing, linkClasses } from "../_shared/classes";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -21,11 +22,8 @@ const RATINGS: { rating: ReviewRating; label: string; hint: string }[] = [
   { rating: "easy", label: "Easy", hint: "solved it without thinking" },
 ];
 
-const sectionHeading = "text-[11px] font-bold uppercase tracking-[0.2em] text-muted";
-const linkClasses =
-  "rounded-sm text-foreground underline underline-offset-4 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
 const buttonClasses =
-  "rounded-md border border-border px-2.5 py-1 font-mono text-[12px] text-foreground transition-colors enabled:hover:bg-foreground/[0.06] disabled:cursor-wait disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
+  `rounded-md border border-border px-2.5 py-1 font-mono text-[12px] text-foreground transition-colors enabled:hover:bg-foreground/[0.06] disabled:cursor-wait disabled:opacity-50 ${focusRing}`;
 
 /** Where a problem stands on the review ladder, in words. */
 function describeReview(state: ReviewState | undefined, now: number): string {
@@ -66,7 +64,7 @@ function ProblemRow({
       </div>
       <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{problem.prompt}</p>
       <details className="mt-2 text-[14px]">
-        <summary className="cursor-pointer rounded-sm font-mono text-[12px] text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
+        <summary className={`cursor-pointer rounded-sm font-mono text-[12px] text-muted hover:text-foreground ${focusRing}`}>
           The tell
         </summary>
         <p className="mt-2 leading-relaxed text-foreground">{problem.tell}</p>
@@ -128,7 +126,7 @@ export default function PatternContent({ pattern, previous, next, builtOn, solut
       )}
 
       <div className="mt-8 border-l-2 border-foreground/25 pl-4">
-        <p className={sectionHeading}>The question to ask</p>
+        <p className={eyebrowHeading}>The question to ask</p>
         <p className="mt-2 text-[16px] font-medium leading-relaxed text-foreground">{pattern.question}</p>
       </div>
       <p className="mt-6 text-[15px] leading-relaxed text-muted">{pattern.summary}</p>
@@ -143,7 +141,7 @@ export default function PatternContent({ pattern, previous, next, builtOn, solut
       )}
 
       <section aria-labelledby="signals-heading" className="mt-12">
-        <h2 id="signals-heading" className={sectionHeading}>
+        <h2 id="signals-heading" className={eyebrowHeading}>
           Wording that gives it away
         </h2>
         <ul className="mt-4 space-y-3">
@@ -167,7 +165,7 @@ export default function PatternContent({ pattern, previous, next, builtOn, solut
       </section>
 
       <section aria-labelledby="template-heading" className="mt-12">
-        <h2 id="template-heading" className={sectionHeading}>
+        <h2 id="template-heading" className={eyebrowHeading}>
           Template
         </h2>
         <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -195,7 +193,7 @@ export default function PatternContent({ pattern, previous, next, builtOn, solut
       </section>
 
       <section aria-labelledby="traps-heading" className="mt-12">
-        <h2 id="traps-heading" className={sectionHeading}>
+        <h2 id="traps-heading" className={eyebrowHeading}>
           Traps
         </h2>
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted">
@@ -212,7 +210,7 @@ export default function PatternContent({ pattern, previous, next, builtOn, solut
       </section>
 
       <section aria-labelledby="ladder-heading" className="mt-12">
-        <h2 id="ladder-heading" className={sectionHeading}>
+        <h2 id="ladder-heading" className={eyebrowHeading}>
           Problem ladder
         </h2>
         <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -237,13 +235,13 @@ export default function PatternContent({ pattern, previous, next, builtOn, solut
 
       <nav aria-label="Patterns" className="mt-16 flex items-center gap-4 border-t border-foreground/5 pt-6 font-mono text-[13px]">
         {previous && (
-          <Link href={patternPath(previous.id)} className="rounded-sm text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
+          <Link href={patternPath(previous.id)} className={`rounded-sm text-muted hover:text-foreground ${focusRing}`}>
             <span aria-hidden>← </span>
             {previous.name}
           </Link>
         )}
         {next && (
-          <Link href={patternPath(next.id)} className="ml-auto rounded-sm text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
+          <Link href={patternPath(next.id)} className={`ml-auto rounded-sm text-muted hover:text-foreground ${focusRing}`}>
             {next.name}
             <span aria-hidden> →</span>
           </Link>

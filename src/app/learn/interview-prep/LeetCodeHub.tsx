@@ -15,6 +15,7 @@ import { patternPath } from "@/lib/leetcode/urls";
 import PlaybookPage, { PHASE_TITLES } from "./_shared/PlaybookPage";
 import ReviewSyncError from "./_shared/ReviewSyncError";
 import { useReviewStates } from "./useReviewStates";
+import { eyebrowHeading, focusRing } from "./_shared/classes";
 
 const PHASES: Phase[] = [1, 2, 3, 4];
 
@@ -30,9 +31,8 @@ const EXAMPLE_STATEMENTS = [
 ];
 
 const fieldClasses =
-  "mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
+  `mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground placeholder:text-muted ${focusRing}`;
 
-const sectionHeading = "text-[11px] font-bold uppercase tracking-[0.2em] text-muted";
 
 /** The problem statement with every signal phrase that matched marked up. */
 function HighlightedStatement({ text, phrases }: { text: string; phrases: string[] }) {
@@ -68,7 +68,7 @@ function SignalFinder() {
 
   return (
     <section aria-labelledby="signal-finder" className="mt-14">
-      <h2 id="signal-finder" className={sectionHeading}>
+      <h2 id="signal-finder" className={eyebrowHeading}>
         Signal finder
       </h2>
       <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -92,7 +92,7 @@ function SignalFinder() {
           setStatement(EXAMPLE_STATEMENTS[exampleIndex]);
           setExampleIndex((exampleIndex + 1) % EXAMPLE_STATEMENTS.length);
         }}
-        className="mt-2 rounded-sm font-mono text-[12px] text-muted underline underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+        className={`mt-2 rounded-sm font-mono text-[12px] text-muted underline underline-offset-4 hover:text-foreground ${focusRing}`}
       >
         Try an example
       </button>
@@ -112,7 +112,7 @@ function SignalFinder() {
                 <li key={match.patternId} className="border-l-2 border-foreground/15 pl-4">
                   <Link
                     href={patternPath(pattern.id)}
-                    className="rounded-sm text-[15px] font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                    className={`rounded-sm text-[15px] font-semibold text-foreground underline-offset-4 hover:underline ${focusRing}`}
                   >
                     {pattern.name}
                   </Link>
@@ -139,7 +139,7 @@ function ComplexityBudget() {
 
   return (
     <section aria-labelledby="budget-heading" className="mt-14">
-      <h2 id="budget-heading" className={sectionHeading}>
+      <h2 id="budget-heading" className={eyebrowHeading}>
         Read the constraints first
       </h2>
       <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -219,7 +219,7 @@ function DueToday() {
 
   return (
     <section aria-labelledby="due-heading" className="mt-14">
-      <h2 id="due-heading" className={sectionHeading}>
+      <h2 id="due-heading" className={eyebrowHeading}>
         Due today
       </h2>
       <ReviewSyncError message={syncError} />
@@ -234,7 +234,7 @@ function DueToday() {
             <li key={problem.slug} className="text-[14px]">
               <Link
                 href={`${patternPath(pattern.id)}#${problem.slug}`}
-                className="rounded-sm font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                className={`rounded-sm font-medium text-foreground underline-offset-4 hover:underline ${focusRing}`}
               >
                 {problem.title}
               </Link>
@@ -253,7 +253,7 @@ function Roadmap() {
 
   return (
     <section aria-labelledby="roadmap-heading" className="mt-14">
-      <h2 id="roadmap-heading" className={sectionHeading}>
+      <h2 id="roadmap-heading" className={eyebrowHeading}>
         Roadmap
       </h2>
       <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -272,7 +272,7 @@ function Roadmap() {
                 <li key={pattern.id}>
                   <Link
                     href={patternPath(pattern.id)}
-                    className="rounded-sm text-[14px] font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                    className={`rounded-sm text-[14px] font-medium text-foreground underline-offset-4 hover:underline ${focusRing}`}
                   >
                     {pattern.name}
                   </Link>

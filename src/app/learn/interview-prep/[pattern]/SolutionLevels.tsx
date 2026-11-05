@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Approach, Solution } from "@/lib/leetcode/types";
 import CodeExample from "../_shared/CodeExample";
+import { focusRing } from "../_shared/classes";
 
 type Level = "hidden" | "logic" | "full";
 
@@ -13,7 +14,7 @@ const LEVELS: { level: Level; label: string }[] = [
 ];
 
 const levelButtonClasses =
-  "rounded-md border border-border px-2.5 py-1 font-mono text-[12px] text-foreground transition-colors hover:bg-foreground/[0.06] aria-pressed:border-foreground aria-pressed:bg-foreground/[0.08] aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
+  `rounded-md border border-border px-2.5 py-1 font-mono text-[12px] text-foreground transition-colors hover:bg-foreground/[0.06] aria-pressed:border-foreground aria-pressed:bg-foreground/[0.08] aria-pressed:font-semibold ${focusRing}`;
 
 /**
  * One way of solving it at the chosen level: the steps and their cost, plus

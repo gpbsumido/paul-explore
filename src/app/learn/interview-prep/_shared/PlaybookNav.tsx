@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { focusRing } from "./classes";
 
 const SECTIONS = [
   { id: "roadmap", label: "Roadmap", href: "/learn/interview-prep" },
@@ -24,7 +25,7 @@ export default function PlaybookNav({ current }: { current: PlaybookSection }) {
               <Link
                 href={section.href}
                 aria-current={isCurrent ? "page" : undefined}
-                className={`rounded-sm underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground ${
+                className={`rounded-sm underline-offset-4 transition-colors hover:text-foreground ${focusRing} ${
                   isCurrent ? "text-foreground underline decoration-2" : "text-muted"
                 }`}
               >

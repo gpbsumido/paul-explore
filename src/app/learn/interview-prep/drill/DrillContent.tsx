@@ -9,12 +9,10 @@ import type { Pattern } from "@/lib/leetcode/types";
 import PlaybookPage from "../_shared/PlaybookPage";
 import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
+import { eyebrowHeading, focusRing, linkClasses } from "../_shared/classes";
 
 const DECK = drillDeck(PATTERNS);
 
-const sectionHeading = "text-[11px] font-bold uppercase tracking-[0.2em] text-muted";
-const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
-const linkClasses = `rounded-sm text-foreground underline underline-offset-4 hover:no-underline ${focusRing}`;
 
 /**
  * A repeatable source of numbers in [0, 1) from a string (mulberry32 over an
@@ -130,7 +128,7 @@ export default function DrillContent() {
 
       {card && answerPattern ? (
         <section aria-labelledby="drill-question" className="mt-10 border-l-2 border-foreground/15 pl-5">
-          <p className={sectionHeading}>The problem</p>
+          <p className={eyebrowHeading}>The problem</p>
           <p className="mt-3 text-[16px] leading-relaxed text-foreground">{card.problem.prompt}</p>
 
           <h2 id="drill-question" ref={questionHeading} tabIndex={-1} className="mt-8 text-[15px] font-semibold text-foreground focus:outline-none">

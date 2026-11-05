@@ -2,10 +2,9 @@ import Link from "next/link";
 import { patternById } from "@/lib/leetcode/patterns";
 import { patternPath } from "@/lib/leetcode/urls";
 import PlaybookPage from "../_shared/PlaybookPage";
+import { linkClasses } from "../_shared/classes";
 
 const sectionHeading = "text-[20px] font-semibold tracking-tight text-foreground";
-const linkClasses =
-  "rounded-sm text-foreground underline underline-offset-4 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
 
 const ROUTINE: { step: string; detail: string }[] = [
   {

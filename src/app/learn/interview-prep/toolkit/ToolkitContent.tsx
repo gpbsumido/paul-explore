@@ -1,6 +1,7 @@
 import { TOOLKIT_SECTIONS } from "@/lib/leetcode/toolkit";
 import CodeExample from "../_shared/CodeExample";
 import PlaybookPage from "../_shared/PlaybookPage";
+import { focusRing } from "../_shared/classes";
 
 /**
  * The JavaScript and TypeScript a LeetCode answer leans on that the language
@@ -30,7 +31,7 @@ export default function ToolkitContent() {
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
-                className="rounded-sm text-muted underline underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                className={`rounded-sm text-muted underline underline-offset-4 hover:text-foreground ${focusRing}`}
               >
                 {section.title}
               </a>
