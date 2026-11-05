@@ -38,6 +38,19 @@ export type CodeExample = {
 };
 
 /**
+ * How I'd solve one ladder problem, in the two levels the page reveals:
+ * `approach` is the logic in plain steps, for when I want a nudge without the
+ * code, and `code` is the full TypeScript, checked by `cases` like every other
+ * snippet on the site.
+ */
+export type Solution = {
+  approach: string[];
+  complexity: { time: string; space: string };
+  code: string;
+  cases: SnippetCase[];
+};
+
+/**
  * A LeetCode problem in a pattern's ladder. `slug` is LeetCode's URL slug and
  * also the key progress is stored under, so it never changes once published.
  * `prompt` is my own paraphrase, used as the drill card; `tell` is the wording
