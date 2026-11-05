@@ -8,6 +8,7 @@ import { axe } from "@/test/a11y";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { PATTERNS, patternById } from "@/lib/leetcode/patterns";
 import { drillDeck } from "@/lib/leetcode/drill";
+import { SOLUTIONS, solutionsForPattern } from "@/lib/leetcode/solutionCatalog";
 import LeetCodeHub from "./LeetCodeHub";
 import PatternContent from "./[pattern]/PatternContent";
 import DrillContent from "./drill/DrillContent";
@@ -102,7 +103,7 @@ describe("a pattern page", () => {
   const pattern = patternById("sliding-window")!;
 
   it("names the pattern and the signals that give it away", () => {
-    renderPage(<PatternContent patternId={pattern.id} />);
+    renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     expect(screen.getByRole("heading", { level: 1, name: pattern.name })).toBeInTheDocument();
     for (const signal of pattern.signals) {
       expect(screen.getAllByText(signal.phrase, { exact: false }).length).toBeGreaterThan(0);
@@ -110,7 +111,7 @@ describe("a pattern page", () => {
   });
 
   it("hides the template until asked, so it can be written from memory first", () => {
-    renderPage(<PatternContent patternId={pattern.id} />);
+    renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     const reveal = screen.getByRole("button", { name: /show the template/i });
     expect(reveal).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(reveal);
@@ -119,7 +120,7 @@ describe("a pattern page", () => {
   });
 
   it("links each problem to LeetCode in a new tab, safely", () => {
-    renderPage(<PatternContent patternId={pattern.id} />);
+    renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     const ladder = screen.getByRole("region", { name: /problem ladder/i });
     const links = within(ladder).getAllByRole("link", { name: /opens in a new tab/i });
     expect(links).toHaveLength(pattern.problems.length);
@@ -129,7 +130,7 @@ describe("a pattern page", () => {
   });
 
   it("schedules a re-solve when a problem is marked solved", async () => {
-    renderPage(<PatternContent patternId={pattern.id} />);
+    renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     const first = pattern.problems[0];
     const row = screen.getByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
     await waitFor(() => expect(within(row).getByRole("button", { name: /good/i })).toBeEnabled());
@@ -139,15 +140,44 @@ describe("a pattern page", () => {
     expect(screen.getByText(/re-solve in 1 day/i)).toBeInTheDocument();
   });
 
+  it("keeps each solution hidden, then shows the logic before the code", async () => {
+    const { container } = renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
+    const first = pattern.problems[0];
+    const solution = SOLUTIONS[first.slug]!;
+    const levels = screen.getByRole("group", { name: new RegExp(`solution for ${first.title}`, "i") });
+    const row = levels.closest("li")!;
+    const firstStep = solution.approach[0];
+    const firstCodeLine = solution.code.split("\n")[0];
+
+    expect(within(levels).getByRole("button", { name: "Hide" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(row).queryByText(firstStep)).not.toBeInTheDocument();
+    expect(within(row).queryByText(firstCodeLine, { exact: false })).not.toBeInTheDocument();
+
+    fireEvent.click(within(levels).getByRole("button", { name: "Basic logic" }));
+    expect(within(levels).getByRole("button", { name: "Basic logic" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(row).getByText(firstStep)).toBeInTheDocument();
+    expect(within(row).getByText(solution.complexity.time, { exact: false })).toBeInTheDocument();
+    expect(within(row).queryByText(firstCodeLine, { exact: false })).not.toBeInTheDocument();
+
+    fireEvent.click(within(levels).getByRole("button", { name: "Full solution" }));
+    expect(within(row).getByText(firstStep)).toBeInTheDocument();
+    expect(within(row).getByText(firstCodeLine, { exact: false })).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
+
+    fireEvent.click(within(levels).getByRole("button", { name: "Hide" }));
+    expect(within(row).queryByText(firstStep)).not.toBeInTheDocument();
+    expect(within(row).queryByText(firstCodeLine, { exact: false })).not.toBeInTheDocument();
+  });
+
   it("refuses progress it didn't write rather than quietly starting over", () => {
     localStorage.setItem(REVIEW_KEY, JSON.stringify({ "two-sum": { step: -1, due: "soon" } }));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => renderPage(<PatternContent patternId={pattern.id} />)).toThrow(/not in the expected shape/);
+    expect(() => renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />)).toThrow(/not in the expected shape/);
     vi.mocked(console.error).mockRestore();
   });
 
   it("has no axe violations", async () => {
-    const { container } = renderPage(<PatternContent patternId={pattern.id} />);
+    const { container } = renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
@@ -235,7 +265,7 @@ describe("signed in, progress lives on the account", () => {
       }),
     );
 
-    renderPage(<PatternContent patternId={pattern.id} />);
+    renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     const row = await screen.findByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
     await waitFor(() => expect(within(row).getByRole("button", { name: /good/i })).toBeEnabled());
     fireEvent.click(within(row).getByRole("button", { name: /good/i }));
@@ -279,7 +309,7 @@ describe("signed in, progress lives on the account", () => {
       ),
     );
 
-    renderPage(<PatternContent patternId={pattern.id} />);
+    renderPage(<PatternContent patternId={pattern.id} solutions={solutionsForPattern(pattern)} />);
     const row = await screen.findByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
     await waitFor(() => expect(within(row).getByRole("button", { name: /good/i })).toBeEnabled());
     fireEvent.click(within(row).getByRole("button", { name: /good/i }));

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import ts from "typescript";
 import { PATTERNS } from "./patterns";
 import { TOOLKIT_SECTIONS, HARNESS_PRELUDE } from "./toolkit";
+import { SOLUTIONS } from "./solutionCatalog";
 import type { CodeExample } from "./types";
 
 /**
@@ -30,6 +31,19 @@ const examples: LabelledExample[] = [
   ...TOOLKIT_SECTIONS.flatMap((s) =>
     s.examples.map((e) => ({ label: `toolkit / ${s.id} / ${e.title}`, example: e })),
   ),
+  ...PATTERNS.flatMap((p) =>
+    p.problems.flatMap((problem) => {
+      const solution = SOLUTIONS[problem.slug];
+      return solution
+        ? [
+            {
+              label: `${p.id} / solution / ${problem.slug}`,
+              example: { title: problem.title, explanation: solution.approach.join(" "), code: solution.code, cases: solution.cases },
+            },
+          ]
+        : [];
+    }),
+  ),
 ];
 
 function run(example: CodeExample): unknown[] {
@@ -46,7 +60,7 @@ return [${example.cases.map((c) => c.call).join(",\n")}];
 
 describe("every snippet on the playbook pages", () => {
   it("found the snippets it claims to check", () => {
-    expect(examples.length).toBeGreaterThan(60);
+    expect(examples.length).toBeGreaterThan(60 + PATTERNS.flatMap((p) => p.problems).length);
   });
 
   it.each(examples)("$label runs and passes its cases", ({ example }) => {
@@ -90,5 +104,5 @@ describe("every snippet on the playbook pages", () => {
       return `${where}: ${ts.flattenDiagnosticMessageText(d.messageText, "\n")}`;
     });
     expect(problems).toEqual([]);
-  }, 60_000);
+  }, 180_000);
 });
