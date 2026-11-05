@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { PUBLIC_ROUTES } from "@/lib/publicRoutes";
 import { PATTERNS } from "@/lib/leetcode/patterns";
+import { patternPath } from "@/lib/leetcode/urls";
 
 /**
  * sitemap.xml.
@@ -20,7 +21,7 @@ import { PATTERNS } from "@/lib/leetcode/patterns";
  * is the same list generateStaticParams builds them from.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const patternRoutes = PATTERNS.map((pattern) => `/learn/interview-prep/${pattern.id}`);
+  const patternRoutes = PATTERNS.map((pattern) => patternPath(pattern.id));
   return [...PUBLIC_ROUTES, ...patternRoutes].map((route) => ({
     url: route === "/" ? SITE_URL : `${SITE_URL}${route}`,
   }));

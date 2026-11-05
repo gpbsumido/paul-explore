@@ -2,7 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { PATTERNS, leetCodeUrl, patternById } from "@/lib/leetcode/patterns";
+import { PATTERNS, patternById } from "@/lib/leetcode/patterns";
+import { leetCodeUrl, patternPath } from "@/lib/leetcode/urls";
 import { buildDrillOptions, drillDeck, isAcceptedAnswer, nextDrillCard, type DrillCard } from "@/lib/leetcode/drill";
 import type { Pattern } from "@/lib/leetcode/types";
 import PlaybookPage from "../_shared/PlaybookPage";
@@ -168,7 +169,7 @@ export default function DrillContent() {
                   <span className="sr-only"> (opens in a new tab)</span>
                 </a>{" "}
                 ·{" "}
-                <Link href={`/learn/interview-prep/${answerPattern.id}`} className={linkClasses}>
+                <Link href={patternPath(answerPattern.id)} className={linkClasses}>
                   Review {answerPattern.name}
                 </Link>
               </p>

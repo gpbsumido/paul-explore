@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PATTERNS, leetCodeUrl, patternById } from "@/lib/leetcode/patterns";
+import { leetCodeUrl, patternPath } from "@/lib/leetcode/urls";
 import type { ReviewRating, ReviewState } from "@/lib/leetcode/review";
 import type { Problem, Solution } from "@/lib/leetcode/types";
 import CodeExample from "../_shared/CodeExample";
@@ -10,6 +10,7 @@ import PlaybookPage, { PHASE_TITLES } from "../_shared/PlaybookPage";
 import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
 import SolutionLevels from "./SolutionLevels";
+import type { patternPageProps } from "./patternPageProps";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -89,35 +90,13 @@ function ProblemRow({
  * One pattern, laid out in the order I want to study it: the question to ask,
  * the wording that gives it away, the template (hidden until I've tried it
  * from memory), the traps, and a ladder of problems to rate as I solve them.
- * The solutions come in as a prop from the server page, so only this
- * pattern's share of them ever reaches the browser.
+ * Everything comes in resolved from the server page (see patternPageProps),
+ * so only this pattern and its share of the solutions reach the browser.
  */
-export default function PatternContent({
-  patternId,
-  solutions,
-}: {
-  patternId: string;
-  solutions: Readonly<Record<string, Solution>>;
-}) {
+export default function PatternContent({ pattern, previous, next, builtOn, solutions }: ReturnType<typeof patternPageProps>) {
   const { states, rate, ready, syncError } = useReviewStates("problem");
   const [now] = useState(() => Date.now());
   const [templateShown, setTemplateShown] = useState(false);
-
-  const pattern = patternById(patternId);
-  if (!pattern) throw new Error(`No pattern with id "${patternId}"`);
-
-  const index = PATTERNS.indexOf(pattern);
-  const previous = PATTERNS[index - 1];
-  const next = PATTERNS[index + 1];
-  const solutionFor = (slug: string): Solution => {
-    const solution = solutions[slug];
-    if (!solution) throw new Error(`No solution for "${slug}"`);
-    return solution;
-  };
-  const builtOn = pattern.prerequisites.flatMap((id) => {
-    const found = patternById(id);
-    return found ? [found] : [];
-  });
 
   return (
     <PlaybookPage
@@ -139,7 +118,7 @@ export default function PatternContent({
           {builtOn.map((p, i) => (
             <span key={p.id}>
               {i > 0 && ", "}
-              <Link href={`/learn/interview-prep/${p.id}`} className={linkClasses}>
+              <Link href={patternPath(p.id)} className={linkClasses}>
                 {p.name}
               </Link>
             </span>
@@ -246,7 +225,7 @@ export default function PatternContent({
             <ProblemRow
               key={problem.slug}
               problem={problem}
-              solution={solutionFor(problem.slug)}
+              solution={solutions[problem.slug]}
               state={states[problem.slug]}
               now={now}
               canRate={ready}
@@ -258,13 +237,13 @@ export default function PatternContent({
 
       <nav aria-label="Patterns" className="mt-16 flex items-center gap-4 border-t border-foreground/5 pt-6 font-mono text-[13px]">
         {previous && (
-          <Link href={`/learn/interview-prep/${previous.id}`} className="rounded-sm text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
+          <Link href={patternPath(previous.id)} className="rounded-sm text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
             <span aria-hidden>← </span>
             {previous.name}
           </Link>
         )}
         {next && (
-          <Link href={`/learn/interview-prep/${next.id}`} className="ml-auto rounded-sm text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
+          <Link href={patternPath(next.id)} className="ml-auto rounded-sm text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground">
             {next.name}
             <span aria-hidden> →</span>
           </Link>

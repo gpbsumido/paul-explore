@@ -11,6 +11,7 @@ import {
 } from "@/lib/leetcode/signals";
 import { dueItems, REVIEW_LADDER_DAYS } from "@/lib/leetcode/review";
 import type { Pattern, Phase, Problem } from "@/lib/leetcode/types";
+import { patternPath } from "@/lib/leetcode/urls";
 import PlaybookPage, { PHASE_TITLES } from "./_shared/PlaybookPage";
 import ReviewSyncError from "./_shared/ReviewSyncError";
 import { useReviewStates } from "./useReviewStates";
@@ -110,7 +111,7 @@ function SignalFinder() {
               return (
                 <li key={match.patternId} className="border-l-2 border-foreground/15 pl-4">
                   <Link
-                    href={`/learn/interview-prep/${pattern.id}`}
+                    href={patternPath(pattern.id)}
                     className="rounded-sm text-[15px] font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
                   >
                     {pattern.name}
@@ -232,7 +233,7 @@ function DueToday() {
           {due.map(({ problem, pattern }) => (
             <li key={problem.slug} className="text-[14px]">
               <Link
-                href={`/learn/interview-prep/${pattern.id}#${problem.slug}`}
+                href={`${patternPath(pattern.id)}#${problem.slug}`}
                 className="rounded-sm font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
               >
                 {problem.title}
@@ -270,7 +271,7 @@ function Roadmap() {
               return (
                 <li key={pattern.id}>
                   <Link
-                    href={`/learn/interview-prep/${pattern.id}`}
+                    href={patternPath(pattern.id)}
                     className="rounded-sm text-[14px] font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
                   >
                     {pattern.name}

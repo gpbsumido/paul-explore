@@ -59,13 +59,15 @@ export const SOLUTIONS: Readonly<Record<string, Solution>> = {
 /**
  * The solutions for one pattern's ladder.
  * @param pattern - the pattern whose problems to look up
- * @returns the solutions keyed by slug, leaving out any problem without one
+ * @returns the solutions keyed by slug
+ * @throws when a problem on the ladder has no solution
  */
 export function solutionsForPattern(pattern: Pattern): Readonly<Record<string, Solution>> {
   return Object.fromEntries(
-    pattern.problems.flatMap((problem) => {
+    pattern.problems.map((problem) => {
       const solution = SOLUTIONS[problem.slug];
-      return solution ? [[problem.slug, solution]] : [];
+      if (!solution) throw new Error(`No solution for "${problem.slug}"`);
+      return [problem.slug, solution];
     }),
   );
 }

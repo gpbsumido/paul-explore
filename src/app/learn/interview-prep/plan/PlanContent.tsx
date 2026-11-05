@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { patternById } from "@/lib/leetcode/patterns";
+import { patternPath } from "@/lib/leetcode/urls";
 import PlaybookPage from "../_shared/PlaybookPage";
 
 const sectionHeading = "text-[20px] font-semibold tracking-tight text-foreground";
@@ -220,12 +221,12 @@ export default function PlanContent() {
                 </th>
                 <td className="py-3 pr-4">
                   <ul className="space-y-1">
-                    {patternIds.flatMap((id) => {
+                    {patternIds.map((id) => {
                       const pattern = patternById(id);
-                      if (!pattern) return [];
+                      if (!pattern) throw new Error(`Week ${week} lists "${id}", which isn't a pattern`);
                       return (
                         <li key={id}>
-                          <Link href={`/learn/interview-prep/${id}`} className={linkClasses}>
+                          <Link href={patternPath(id)} className={linkClasses}>
                             {pattern.name}
                           </Link>
                         </li>

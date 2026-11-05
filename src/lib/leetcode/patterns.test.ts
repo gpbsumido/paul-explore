@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { PATTERNS, patternById, leetCodeUrl } from "./patterns";
+import { PATTERNS, patternById } from "./patterns";
+import { leetCodeUrl, patternPath } from "./urls";
 
 /**
  * The curriculum is data, so it gets checked like data. These are the
@@ -131,5 +132,9 @@ describe("the problem ladders", () => {
 
   it("builds the LeetCode link from the slug", () => {
     expect(leetCodeUrl("two-sum")).toBe("https://leetcode.com/problems/two-sum/");
+  });
+
+  it("builds a pattern's playbook path from its id", () => {
+    expect(patternPath("sliding-window")).toBe("/learn/interview-prep/sliding-window");
   });
 });

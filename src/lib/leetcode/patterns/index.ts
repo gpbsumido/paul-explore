@@ -62,13 +62,3 @@ export const PATTERNS: readonly Pattern[] = [
 export function patternById(id: string): Pattern | undefined {
   return PATTERNS.find((pattern) => pattern.id === id);
 }
-
-/**
- * Builds the LeetCode problem link for a slug.
- * @param slug - the problem slug, like "two-sum"
- * @returns the full problem url with a trailing slash
- */
-// ts-prune-ignore-next -- imported as @/lib/leetcode/patterns, and ts-prune doesn't follow a directory index
-export function leetCodeUrl(slug: string): string {
-  return `https://leetcode.com/problems/${slug}/`;
-}
