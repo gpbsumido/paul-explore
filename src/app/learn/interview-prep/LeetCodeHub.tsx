@@ -9,7 +9,7 @@ import {
   findSignalSpans,
   rankPatternsForText,
 } from "@/lib/leetcode/signals";
-import { dueItems } from "@/lib/leetcode/review";
+import { dueItems, REVIEW_LADDER_DAYS } from "@/lib/leetcode/review";
 import type { Pattern, Phase, Problem } from "@/lib/leetcode/types";
 import PlaybookPage, { PHASE_TITLES } from "./_shared/PlaybookPage";
 import ReviewSyncError from "./_shared/ReviewSyncError";
@@ -224,7 +224,7 @@ function DueToday() {
       <ReviewSyncError message={syncError} />
       {due.length === 0 ? (
         <p className="mt-3 text-[14px] leading-relaxed text-muted">
-          Nothing due. Rate a problem after you solve it and it comes back here on a 1, 3, 7, 14, 30, 60 day ladder,
+          Nothing due. Rate a problem after you solve it and it comes back here on a {REVIEW_LADDER_DAYS.join(", ")} day ladder,
           which is how a solution goes from &quot;I&apos;ve seen this&quot; to &quot;I can write this&quot;.
         </p>
       ) : (

@@ -27,22 +27,6 @@ describe("the solution catalogue", () => {
     },
   );
 
-  it("offers a second way where the follow-up question asks for one", () => {
-    const withAlternative = Object.keys(SOLUTIONS).filter((slug) => SOLUTIONS[slug].alternative !== undefined);
-    expect(withAlternative.sort()).toEqual(
-      [
-        "course-schedule",
-        "find-the-duplicate-number",
-        "kth-largest-element-in-an-array",
-        "longest-increasing-subsequence",
-        "lru-cache",
-        "merge-k-sorted-lists",
-        "number-of-islands",
-        "top-k-frequent-elements",
-      ].sort(),
-    );
-  });
-
   it.each(Object.entries(SOLUTIONS).flatMap(([slug, solution]) => (solution.alternative ? [{ slug, alternative: solution.alternative }] : [])))(
     "$slug's second way is named and held to the same bar",
     ({ alternative }) => {

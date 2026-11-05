@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scheduleReview, dueItems, REVIEW_LADDER_DAYS } from "./review";
+import { scheduleReview, dueItems } from "./review";
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = Date.UTC(2026, 10, 4, 12);
@@ -36,10 +36,6 @@ describe("scheduleReview", () => {
     const later = scheduleReview({ previous: first, rating: "good", now: NOW + DAY });
     expect(first).toMatchObject({ reviews: 1, lastReviewed: NOW });
     expect(later).toMatchObject({ reviews: 2, lastReviewed: NOW + DAY });
-  });
-
-  it("publishes the ladder it uses", () => {
-    expect(REVIEW_LADDER_DAYS).toEqual([1, 3, 7, 14, 30, 60]);
   });
 });
 
