@@ -40,6 +40,17 @@ describe("rankPatternsForText", () => {
     expect(rankPatternsForText("")).toEqual([]);
   });
 
+  it("tells all permutations from a permutation of one string inside another", () => {
+    expect(rankPatternsForText("Given an array of distinct integers, return all the possible permutations.")[0]?.patternId).toBe("backtracking");
+    expect(rankPatternsForText("Return true if s2 contains a permutation of s1.").map((m) => m.patternId)).toContain("sliding-window");
+  });
+
+  // The prompts are my own paraphrases, so this is a floor against breaking
+  // the finder, not a measure of how well it reads LeetCode. Scored once on
+  // LeetCode's real statements (November 2026) it put the right pattern in
+  // the top three for 195 of 223 and first for 166. Those statements aren't
+  // mine to commit, and tuning signals until this number goes up only teaches
+  // the finder my wording.
   it("recognises its own curriculum: each problem's prompt ranks its pattern in the top three for at least 80% of problems", () => {
     const problems = PATTERNS.flatMap((p) =>
       p.problems.map((problem) => ({ owner: p.id, problem })),
