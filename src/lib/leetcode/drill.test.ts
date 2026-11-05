@@ -19,10 +19,21 @@ describe("drillDeck", () => {
     const twoSum = deck.find((c) => c.problem.slug === "two-sum");
     expect(twoSum?.patternId).toBe("arrays-hashing");
   });
+
+  it("mixes the patterns from the first card, so the order never gives the answer away", () => {
+    const firstRound = deck.slice(0, PATTERNS.length).map((c) => c.patternId);
+    expect(new Set(firstRound).size).toBe(PATTERNS.length);
+  });
+
+  it("still starts every pattern on the first problem of its ladder", () => {
+    const firstSeen = new Map<string, string>();
+    deck.forEach((c) => firstSeen.has(c.patternId) || firstSeen.set(c.patternId, c.problem.slug));
+    PATTERNS.forEach((p) => expect(firstSeen.get(p.id)).toBe(p.problems[0].slug));
+  });
 });
 
 describe("nextDrillCard", () => {
-  it("serves an unseen card when nothing is due, in roadmap order", () => {
+  it("serves an unseen card when nothing is due", () => {
     const card = nextDrillCard({ deck, states: {}, now: NOW });
     expect(card?.problem.slug).toBe(deck[0].problem.slug);
   });
