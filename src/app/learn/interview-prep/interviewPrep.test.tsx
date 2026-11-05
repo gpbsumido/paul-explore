@@ -350,6 +350,16 @@ describe("signed in, progress lives on the account", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t load your progress/i);
   });
+
+  it("won't rate into this browser when it can't tell who is signed in", async () => {
+    server.use(http.get("*/api/me", () => HttpResponse.json({ error: "down" }, { status: 500 })));
+
+    renderPage(<PatternContent {...patternPageProps(pattern.id)} />);
+    const row = await screen.findByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check whether you.re signed in/i);
+    expect(within(row).getByRole("button", { name: /good/i })).toBeDisabled();
+  });
 });
 
 describe("the study plan and the toolkit", () => {
