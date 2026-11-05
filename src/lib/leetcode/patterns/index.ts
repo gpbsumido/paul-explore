@@ -58,6 +58,7 @@ export const PATTERNS: readonly Pattern[] = [
  * @param id - the pattern id, like "sliding-window"
  * @returns the pattern, or undefined when nothing has that id
  */
+// ts-prune-ignore-next -- imported as @/lib/leetcode/patterns, and ts-prune doesn't follow a directory index
 export function patternById(id: string): Pattern | undefined {
   return PATTERNS.find((pattern) => pattern.id === id);
 }
@@ -67,6 +68,7 @@ export function patternById(id: string): Pattern | undefined {
  * @param slug - the problem slug, like "two-sum"
  * @returns the full problem url with a trailing slash
  */
+// ts-prune-ignore-next -- imported as @/lib/leetcode/patterns, and ts-prune doesn't follow a directory index
 export function leetCodeUrl(slug: string): string {
   return `https://leetcode.com/problems/${slug}/`;
 }
