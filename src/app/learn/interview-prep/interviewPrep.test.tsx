@@ -13,6 +13,7 @@ import PatternContent from "./[pattern]/PatternContent";
 import DrillContent from "./drill/DrillContent";
 import PlanContent from "./plan/PlanContent";
 import ToolkitContent from "./toolkit/ToolkitContent";
+import LearnHub from "../LearnHub";
 
 const REVIEW_KEY = "learn-leetcode-review-v1";
 const DRILL_KEY = "learn-leetcode-drill-v1";
@@ -32,6 +33,13 @@ function renderPage(page: ReactElement) {
     </QueryClientProvider>,
   );
 }
+
+describe("the learn hub", () => {
+  it("points at the playbook before the topic list", () => {
+    renderPage(<LearnHub />);
+    expect(screen.getByRole("link", { name: /interview prep/i })).toHaveAttribute("href", "/learn/interview-prep");
+  });
+});
 
 describe("the playbook hub", () => {
   it("links every pattern from the roadmap", () => {
