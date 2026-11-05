@@ -57,6 +57,11 @@ export default function LearnContent() {
             date: "Aug 10, 2026",
             title: "Writing this down, and what I would keep",
           },
+          {
+            id: "update-2026-11-04-interview-prep",
+            date: "Nov 4, 2026",
+            title: "LeetCode asks which technique, and the demos never did",
+          },
         ]}
       />
 
@@ -149,19 +154,165 @@ export default function LearnContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-04-interview-prep"
+        date="November 4, 2026"
+        title="LeetCode asks which technique, and the demos never did"
+      >
+        <p>
+          Thirteen demos showed me how sliding window or backtracking works once
+          I already knew to use it. None of them helped with the step a LeetCode
+          interview actually tests, which is reading a problem cold and knowing
+          what to reach for. So I built 
+          <code className={code}>/learn/interview-prep</code>: 23 patterns, the
+          wording that gives each one away, a template, the traps, and a ladder
+          of LeetCode problems to practise on, all in TypeScript.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Recognition is in the wording, so the wording is the data
+        </h3>
+        <p className="text-muted">
+          Every pattern carries its signals as phrases (&quot;longest
+          substring&quot;, &quot;k closest&quot;, &quot;minimum number of
+          operations&quot;), with the strongest flagged, plus a short list of
+          when it&apos;s probably something else. That one field drives the
+          pattern page, the drill and a signal finder on the hub: paste a
+          problem statement and it ranks patterns by which phrases matched and
+          highlights them in the text.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`rankPatternsForText("Given a string s, find the length of the longest
+substring without repeating characters.")
+
+[{ patternId: "sliding-window", score: 5,
+   matchedPhrases: ["longest substring", "substring",
+                    "without repeating characters"] }]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It gets Two Sum II wrong, and that&apos;s worth seeing
+        </h3>
+        <p className="text-muted">
+          Phrase matching counts words, not what they mean together. A sorted
+          array plus a target sum is the classic two-pointer problem, but the
+          hash-map phrases outnumber the one that says sorted:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`"Given a sorted array of integers and a target, return the indices
+of the two numbers that add up to target."
+
+arrays-hashing  3  ["indices of the two numbers", "add up to target"]
+two-pointers    2  ["sorted array"]
+binary-search   1  ["sorted"]`}
+        </pre>
+        <p className="mt-3 text-muted">
+          I could weight &quot;sorted&quot; up until this passes, but that tunes
+          the finder to the example I happened to try. Showing the matched
+          phrases next to each guess is the better fix. Two plausible answers
+          and the reason for each is the conversation I want to have with
+          myself in an interview anyway, and a confident single answer would
+          hide it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The template stays hidden until I&apos;ve tried to write it
+        </h3>
+        <p className="text-muted">
+          The research I leaned on for the study plan is the testing effect
+          (Roediger and Karpicke, 2006), spacing (Cepeda and colleagues, 2006)
+          and interleaving (Rohrer and Taylor, 2007). Reading a solution feels
+          like learning and mostly isn&apos;t. So each template sits behind
+          &quot;Show the template&quot;, ratings put problems back on a 1, 3,
+          7, 14, 30, 60 day ladder, and the drill mixes every pattern together
+          by default, because practising one topic in a block never makes me
+          choose.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A name I picked broke the roadmap test
+        </h3>
+        <p className="text-muted">
+          The roadmap test looks up each pattern&apos;s link by a regex
+          anchored on its name. &quot;Binary Search&quot; and &quot;Binary
+          Search Trees&quot; both start the same way:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`TestingLibraryElementError: Found multiple elements with the role
+"link" and name \`/^Binary Search/\``}
+        </pre>
+        <p className="mt-3 text-muted">
+          My first instinct was to loosen the test. But a reader scanning the
+          roadmap has the same problem as the regex, so the tree pattern
+          became &quot;BSTs&quot; instead.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Progress moved to my account, and the first version let a click land
+          in the wrong place
+        </h3>
+        <p className="text-muted">
+          Ratings started in localStorage, which is fine until I practise on my
+          phone and review on my laptop. They now live in portfolio_api per
+          user behind a <code className={code}>/api/practice</code> proxy, and
+          the first sign-in moves whatever a browser kept onto the account and
+          clears the local copy. The signed-in save test failed on the first
+          run:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`× saves a rating to the account and leaves localStorage alone
+AssertionError: expected [] to have a length of 1 but got +0`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The buttons were live before <code className={code}>/api/me</code> 
+          had answered, so the click went to localStorage and no request was
+          ever made. In practice the next load would have imported it, which is
+          why it looked harmless. But &quot;it gets fixed on the next
+          visit&quot; isn&apos;t what I want from a store. Rating now waits
+          until the session is known and, when signed in, until the account has
+          loaded. A failed read or save says so on the page instead of showing
+          an empty schedule.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The dead-code check couldn&apos;t see through a folder
+        </h3>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`Found 2 dead export(s) — nothing imports these:
+
+  src/lib/leetcode/patterns/index.ts:61 - patternById
+  src/lib/leetcode/patterns/index.ts:70 - leetCodeUrl`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Both are imported from half a dozen files. ts-prune doesn&apos;t
+          follow an import of a directory&apos;s 
+          <code className={code}>index.ts</code>, which is why the only other
+          one in the repo is on its ignore list. They got an ignore comment
+          with that reason rather than a rename to dodge the tool.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
+          "An interview prep playbook at /learn/interview-prep: 23 patterns in study order, each with its signals, a hidden template, traps, JS and TS notes, and a ladder of LeetCode problems with the tell behind a disclosure.",
+          "A signal finder that ranks patterns for a pasted problem statement and shows the phrases behind each guess, a complexity budget from the input size, a recognition drill, an eight-week plan and a toolkit of the JS pieces LeetCode assumes.",
+          "Spaced review on a 1 to 60 day ladder, stored on my account when signed in, with a one-time import from the browser and errors shown rather than swallowed.",
           "A test that no learn demo implements arrow-key stepping itself, so the thirteen cannot quietly disagree about what the arrow keys do. Verified by adding a rogue handler and watching it go red.",
           "One useStepPlayer hook behind all thirteen demos, so play, pause, step and keyboard control behave identically everywhere and get fixed in one place.",
           "Characterisation tests written before the refactor, not after — they caught a step-past-the-end overrun that had been live.",
           "Autoplay stops from the callback rather than the state updater, so the updater stays a pure function of previous state.",
         ]}
         couldImprove={[
+          "The signal finder counts phrases, so a problem whose decisive word is outnumbered (Two Sum II's \"sorted\") ranks the wrong pattern first.",
+          "Nothing checks that the LeetCode slugs still resolve. A renamed problem would be a dead link I find by clicking it.",
+          "The drill shows real problem prompts, so after a few rounds I could be recognising the problem rather than the pattern. Fresh, reworded prompts would test the skill instead of my memory.",
           "The demos share a player but not a shape: each still hand-rolls its own layout and controls markup, so a visual change is thirteen edits. A shared DemoLayout would be the same argument one level up.",
           "The keyboard guard checks that no demo hand-rolls arrow stepping. It cannot check that a demo which should be stepped actually is one — a page with previous and next buttons and no hook would pass.",
           "Content is hard-coded per route. Steps as data rather than JSX would make a demo a file of steps instead of a component.",
         ]}
         upcoming={[
+          "A scheduled check that every LeetCode link in the playbook still returns a problem page.",
+          "A mode that asks me to type the template from memory and diffs it against the real one, instead of only revealing it.",
           "Give the remaining learn routes the loading and error states the rest of the app just got, rather than only the hub.",
           "A shared DemoLayout, if the next demo I add makes me copy the markup a fourteenth time — which is the signal I trust more than a rule about counts.",
         ]}
