@@ -6,6 +6,10 @@ import { prefixSumSolutions } from "./solutions/prefixSum";
 import { stackSolutions } from "./solutions/stack";
 import { binarySearchSolutions } from "./solutions/binarySearch";
 import { linkedListSolutions } from "./solutions/linkedList";
+import { monotonicStackSolutions } from "./solutions/monotonicStack";
+import { treeDfsSolutions } from "./solutions/treeDfs";
+import { treeBfsSolutions } from "./solutions/treeBfs";
+import { bstSolutions } from "./solutions/bst";
 
 /**
  * Every ladder problem's solution, keyed by LeetCode slug. It's kept apart
@@ -22,6 +26,10 @@ export const SOLUTIONS: Readonly<Record<string, Solution>> = {
   ...stackSolutions,
   ...binarySearchSolutions,
   ...linkedListSolutions,
+  ...monotonicStackSolutions,
+  ...treeDfsSolutions,
+  ...treeBfsSolutions,
+  ...bstSolutions,
 };
 
 /**
