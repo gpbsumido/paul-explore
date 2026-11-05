@@ -10,7 +10,7 @@ import { PATTERNS } from "../../src/lib/leetcode/patterns";
  *
  * This asks LeetCode's GraphQL endpoint for each slug, about forty to a
  * request with aliases, and checks the title and difficulty too, since the
- * page prints both. It has no @smoke tag, so it runs in the nightly and
+ * page prints both, and that the problem hasn't gone behind the paywall. It has no @smoke tag, so it runs in the nightly and
  * pre-release suite rather than on every PR: a red build because LeetCode was
  * slow or rate-limited a runner would cost more than a dead link costs.
  */
@@ -18,7 +18,7 @@ import { PATTERNS } from "../../src/lib/leetcode/patterns";
 const LEETCODE_GRAPHQL = "https://leetcode.com/graphql";
 const SLUGS_PER_REQUEST = 40;
 
-type LeetCodeQuestion = { title: string; difficulty: string } | null;
+type LeetCodeQuestion = { title: string; difficulty: string; isPaidOnly: boolean } | null;
 
 test("every ladder problem still names a real LeetCode problem", async ({ request }) => {
   const problems = PATTERNS.flatMap((pattern) => pattern.problems);
@@ -28,7 +28,7 @@ test("every ladder problem still names a real LeetCode problem", async ({ reques
   const mismatches: string[] = [];
 
   for (const batch of batches) {
-    const fields = batch.map((problem, i) => `q${i}: question(titleSlug: ${JSON.stringify(problem.slug)}) { title difficulty }`);
+    const fields = batch.map((problem, i) => `q${i}: question(titleSlug: ${JSON.stringify(problem.slug)}) { title difficulty isPaidOnly }`);
     const response = await request.post(LEETCODE_GRAPHQL, {
       data: { query: `query { ${fields.join(" ")} }` },
       headers: { referer: "https://leetcode.com" },
@@ -41,6 +41,7 @@ test("every ladder problem still names a real LeetCode problem", async ({ reques
       if (!question) mismatches.push(`${problem.slug}: LeetCode has no such problem`);
       else if (question.title !== problem.title) mismatches.push(`${problem.slug}: LeetCode calls it "${question.title}", the page says "${problem.title}"`);
       else if (question.difficulty !== problem.difficulty) mismatches.push(`${problem.slug}: LeetCode says ${question.difficulty}, the page says ${problem.difficulty}`);
+      else if (question.isPaidOnly) mismatches.push(`${problem.slug}: LeetCode now needs Premium for it`);
     });
   }
 
