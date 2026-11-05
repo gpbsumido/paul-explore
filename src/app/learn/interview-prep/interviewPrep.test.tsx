@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { http, HttpResponse } from "msw";
@@ -137,6 +137,13 @@ describe("a pattern page", () => {
     const stored = JSON.parse(localStorage.getItem(REVIEW_KEY) ?? "{}");
     expect(stored[first.slug]).toMatchObject({ step: 0, reviews: 1 });
     expect(screen.getByText(/re-solve in 1 day/i)).toBeInTheDocument();
+  });
+
+  it("refuses progress it didn't write rather than quietly starting over", () => {
+    localStorage.setItem(REVIEW_KEY, JSON.stringify({ "two-sum": { step: -1, due: "soon" } }));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => renderPage(<PatternContent patternId={pattern.id} />)).toThrow(/not in the expected shape/);
+    vi.mocked(console.error).mockRestore();
   });
 
   it("has no axe violations", async () => {
