@@ -8,20 +8,27 @@ export type DrillCard = {
 };
 
 /**
- * Every problem in the playbook as a drill card, in roadmap order, so new
- * cards arrive in the same order the patterns are taught.
+ * Every problem in the playbook as a drill card, dealt round-robin: the first
+ * problem of each pattern, then the second of each, and so on. In roadmap
+ * order the first nine cards were all hash maps, so the answer was the order
+ * rather than the wording. Round-robin still starts each pattern on the
+ * easiest problem in its ladder.
  */
 export function drillDeck(patterns: readonly Pattern[]): DrillCard[] {
-  return patterns.flatMap((pattern) =>
-    pattern.problems.map((problem) => ({ problem, patternId: pattern.id })),
-  );
+  const rounds = Math.max(...patterns.map((pattern) => pattern.problems.length));
+  return Array.from({ length: rounds }, (_, round) =>
+    patterns.flatMap((pattern) => {
+      const problem = pattern.problems[round];
+      return problem ? [{ problem, patternId: pattern.id }] : [];
+    }),
+  ).flat();
 }
 
 /**
  * Picks the next card to show.
  *
  * Due cards first, most overdue first, because those are the ones about to be
- * forgotten. Then unseen cards in roadmap order. With studyAhead, once both
+ * forgotten. Then unseen cards in deck order. With studyAhead, once both
  * run out it takes whichever scheduled card is due soonest rather than ending
  * the session.
  *
