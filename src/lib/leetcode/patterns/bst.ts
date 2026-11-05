@@ -2,7 +2,7 @@ import type { Pattern } from "../types";
 
 export const bst: Pattern = {
   id: "bst",
-  name: "Binary Search Trees",
+  name: "BSTs",
   phase: 2,
   tagline: "Left is smaller, right is bigger: use it to skip half the tree.",
   summary:
