@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { PUBLIC_ROUTES } from "@/lib/publicRoutes";
+import { PATTERNS } from "@/lib/leetcode/patterns";
 
 /**
  * sitemap.xml.
@@ -13,9 +14,14 @@ import { PUBLIC_ROUTES } from "@/lib/publicRoutes";
  * URL claims every page changed whenever anything did, which is worse than
  * saying nothing, because a crawler that learns the dates are noise stops
  * trusting them. Priority is left off for the same reason.
+ *
+ * The interview prep pattern pages sit behind a dynamic segment, so the static
+ * list can't hold them. They come straight from the catalogue instead, which
+ * is the same list generateStaticParams builds them from.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  return PUBLIC_ROUTES.map((route) => ({
+  const patternRoutes = PATTERNS.map((pattern) => `/learn/interview-prep/${pattern.id}`);
+  return [...PUBLIC_ROUTES, ...patternRoutes].map((route) => ({
     url: route === "/" ? SITE_URL : `${SITE_URL}${route}`,
   }));
 }
