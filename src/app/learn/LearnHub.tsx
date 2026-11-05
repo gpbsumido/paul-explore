@@ -746,6 +746,25 @@ export default function LearnHub() {
             before any code appears. Pick one and give it five minutes.
           </p>
 
+          {/* Plain text rather than counts off the catalogue, so the hub doesn't
+              pull the whole pattern data set into its bundle for one line. */}
+          <Link
+            href="/learn/interview-prep"
+            className="reveal-up group mt-10 block max-w-2xl rounded-lg border border-border px-5 py-4 transition-colors hover:border-foreground/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+            style={{ animationDelay: "0.12s" }}
+          >
+            <span className="block text-[15px] font-semibold tracking-tight text-foreground">
+              Interview prep: the LeetCode pattern playbook
+              <span aria-hidden className="ml-1.5 inline-block motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5">
+                →
+              </span>
+            </span>
+            <span className="mt-1 block text-[13px] leading-snug text-muted">
+              Learn to tell which pattern a problem wants from its wording, then drill it: JavaScript templates,
+              problem ladders from easy to hard, and spaced re-solves.
+            </span>
+          </Link>
+
           {CATEGORIES.map((category, catIdx) => {
             const topics = TOPICS.filter((t) => t.category === category);
             return (
