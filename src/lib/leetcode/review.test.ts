@@ -21,7 +21,7 @@ describe("scheduleReview", () => {
   });
 
   it("holds the interval on hard and drops back to the bottom on again", () => {
-    const climbed = { step: 3, due: NOW, lastReviewed: NOW - 7 * DAY, reviews: 4 };
+    const climbed = { step: 2, due: NOW, lastReviewed: NOW - 7 * DAY, reviews: 4 };
     expect(scheduleReview({ previous: climbed, rating: "hard", now: NOW }).due).toBe(NOW + 7 * DAY);
     expect(scheduleReview({ previous: climbed, rating: "again", now: NOW }).due).toBe(NOW + 1 * DAY);
   });
