@@ -177,7 +177,8 @@ describe("a pattern page", () => {
     const { container } = renderPage(<PatternContent patternId={heap.id} solutions={solutionsForPattern(heap)} />);
     const levels = screen.getByRole("group", { name: `Solution for ${problem.title}` });
     const row = levels.closest("li")!;
-    const alternativeCodeLine = alternative.code.split("\n")[0];
+    const alternativeChecks = { name: `Checks for ${alternative.name} in TypeScript` };
+    const alternativeCodeLine = alternative.code.split("\n")[1].trim();
 
     fireEvent.click(within(levels).getByRole("button", { name: "Basic logic" }));
     expect(within(row).getByRole("heading", { name: `Another way: ${alternative.name}` })).toBeInTheDocument();
@@ -187,6 +188,7 @@ describe("a pattern page", () => {
 
     fireEvent.click(within(levels).getByRole("button", { name: "Full solution" }));
     expect(within(row).getByText(alternativeCodeLine, { exact: false })).toBeInTheDocument();
+    expect(within(row).getByRole("list", alternativeChecks)).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 
