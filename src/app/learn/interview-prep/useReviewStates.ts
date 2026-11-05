@@ -108,7 +108,9 @@ function withState(
  * every component on the page (and other tabs) sees the same states and the
  * server render sees none. Signed in, it lives on the account through
  * `/api/practice`, and a failed read or save comes back as `syncError` rather
- * than an empty or silently stale schedule.
+ * than an empty or silently stale schedule. If the session check itself fails,
+ * that is a `syncError` too and nothing can be rated, since there is no way to
+ * know which store a rating belongs in.
  *
  * @param kind - Which schedule to read and write.
  * @returns The states keyed by item id, `rate` to record an attempt, `ready`
@@ -129,7 +131,10 @@ export function useReviewStates(kind: ReviewKind) {
   const me = useQuery({
     queryKey: queryKeys.me(),
     queryFn: (): Promise<{ sub: string | null }> =>
-      fetch("/api/me").then((r) => (r.ok ? r.json() : { sub: null })),
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      }),
     staleTime: 5 * 60_000,
   });
   const signedIn = Boolean(me.data?.sub);
@@ -173,16 +178,18 @@ export function useReviewStates(kind: ReviewKind) {
     [key, kind, signedIn, queryClient, mutate],
   );
 
-  const syncError = account.isError
-    ? `Couldn't load your progress: ${account.error.message}`
-    : save.isError
-      ? `Couldn't save your progress: ${save.error.message}`
-      : null;
+  const syncError = me.isError
+    ? `Couldn't check whether you're signed in: ${me.error.message}`
+    : account.isError
+      ? `Couldn't load your progress: ${account.error.message}`
+      : save.isError
+        ? `Couldn't save your progress: ${save.error.message}`
+        : null;
 
   return {
     states: signedIn ? (account.data?.[kind] ?? EMPTY) : localStates,
     rate,
-    ready: !me.isPending && (!signedIn || account.isSuccess),
+    ready: me.isSuccess && (!signedIn || account.isSuccess),
     syncError,
   };
 }
