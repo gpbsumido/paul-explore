@@ -316,6 +316,38 @@ AssertionError: expected [] to have a length of 1 but got +0`}
           one in the repo is on its ignore list. They got an ignore comment
           with that reason rather than a rename to dodge the tool.
         </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A solution under every problem, but the logic comes before the code
+        </h3>
+        <p className="text-muted">
+          A ladder of links is only half useful when I get stuck at 11pm. So
+          all 223 problems now have a TypeScript solution, and each row reveals
+          it in three levels: Hide, Basic logic, Full solution. The middle level
+          is the useful one. It gives the approach as three short steps with
+          the time and space and no code, so I can still write the solution
+          myself and only peek at the code to check it. Jumping straight to the
+          code is the reading-isn&apos;t-learning trap the template already
+          guards against.
+        </p>
+        <p className="mt-3 text-muted">
+          Every solution carries its own checks, and the same harness that
+          tests the templates runs them all and type-checks them in strict mode.
+          It caught one that ran fine and still wasn&apos;t good TypeScript:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`graphs / solution / 01-matrix: Type 'number' is not assignable
+to type '0 | -1'.`}
+        </pre>
+        <p className="mt-3 text-muted">
+          A ternary of two literals infers a literal type, so the distance grid
+          couldn&apos;t hold a 2. JavaScript doesn&apos;t care. An interviewer
+          watching me write TypeScript might. The solutions live in their own
+          catalogue, not in the pattern data, because the hub and the drill
+          ship that data to the browser and these would roughly double it. The
+          pattern page&apos;s server component hands its client just that
+          pattern&apos;s ten or so.
+        </p>
       </Update>
 
       <WhatsNext
@@ -323,6 +355,7 @@ AssertionError: expected [] to have a length of 1 but got +0`}
           "An interview prep playbook at /learn/interview-prep: 23 patterns in study order, each with its signals, a hidden template, traps, JS and TS notes, and a ladder of LeetCode problems with the tell behind a disclosure.",
           "A signal finder that ranks patterns for a pasted problem statement and shows the phrases behind each guess, a complexity budget from the input size, a recognition drill, an eight-week plan and a toolkit of the JS pieces LeetCode assumes.",
           "Spaced review on a 1 to 60 day ladder, stored on my account when signed in, with a one-time import from the browser and errors shown rather than swallowed.",
+          "A TypeScript solution for every one of the 223 ladder problems, revealed in levels (hidden, basic logic, full code), each run against its checks and type-checked in strict mode by the test suite.",
           "A test that no learn demo implements arrow-key stepping itself, so the thirteen cannot quietly disagree about what the arrow keys do. Verified by adding a rogue handler and watching it go red.",
           "One useStepPlayer hook behind all thirteen demos, so play, pause, step and keyboard control behave identically everywhere and get fixed in one place.",
           "Characterisation tests written before the refactor, not after — they caught a step-past-the-end overrun that had been live.",
@@ -331,6 +364,7 @@ AssertionError: expected [] to have a length of 1 but got +0`}
         couldImprove={[
           "The signal finder counts phrases, so a problem whose decisive word is outnumbered (Two Sum II's \"sorted\") ranks the wrong pattern first.",
           "Nothing checks that the LeetCode slugs still resolve. A renamed problem would be a dead link I find by clicking it.",
+          "Each problem has one solution. Plenty have a second worth knowing (quickselect next to the heap, the doubly linked list behind the LRU cache's Map trick), and the steps only mention those in passing.",
           "The drill shows real problem prompts, so after a few rounds I could be recognising the problem rather than the pattern. Fresh, reworded prompts would test the skill instead of my memory.",
           "The demos share a player but not a shape: each still hand-rolls its own layout and controls markup, so a visual change is thirteen edits. A shared DemoLayout would be the same argument one level up.",
           "The keyboard guard checks that no demo hand-rolls arrow stepping. It cannot check that a demo which should be stepped actually is one — a page with previous and next buttons and no hook would pass.",
