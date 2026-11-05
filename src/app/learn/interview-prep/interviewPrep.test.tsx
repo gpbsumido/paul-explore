@@ -162,11 +162,32 @@ describe("a pattern page", () => {
     fireEvent.click(within(levels).getByRole("button", { name: "Full solution" }));
     expect(within(row).getByText(firstStep)).toBeInTheDocument();
     expect(within(row).getByText(firstCodeLine, { exact: false })).toBeInTheDocument();
+    expect(within(row).queryByRole("heading", { name: /another way/i })).not.toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
 
     fireEvent.click(within(levels).getByRole("button", { name: "Hide" }));
     expect(within(row).queryByText(firstStep)).not.toBeInTheDocument();
     expect(within(row).queryByText(firstCodeLine, { exact: false })).not.toBeInTheDocument();
+  });
+
+  it("shows a second way under the first, at the same level of detail", async () => {
+    const heap = patternById("heap")!;
+    const problem = heap.problems.find((p) => p.slug === "kth-largest-element-in-an-array")!;
+    const alternative = SOLUTIONS[problem.slug]!.alternative!;
+    const { container } = renderPage(<PatternContent patternId={heap.id} solutions={solutionsForPattern(heap)} />);
+    const levels = screen.getByRole("group", { name: `Solution for ${problem.title}` });
+    const row = levels.closest("li")!;
+    const alternativeCodeLine = alternative.code.split("\n")[0];
+
+    fireEvent.click(within(levels).getByRole("button", { name: "Basic logic" }));
+    expect(within(row).getByRole("heading", { name: `Another way: ${alternative.name}` })).toBeInTheDocument();
+    expect(within(row).getByText(alternative.approach[0])).toBeInTheDocument();
+    expect(within(row).getByText(alternative.complexity.time, { exact: false })).toBeInTheDocument();
+    expect(within(row).queryByText(alternativeCodeLine, { exact: false })).not.toBeInTheDocument();
+
+    fireEvent.click(within(levels).getByRole("button", { name: "Full solution" }));
+    expect(within(row).getByText(alternativeCodeLine, { exact: false })).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("refuses progress it didn't write rather than quietly starting over", () => {

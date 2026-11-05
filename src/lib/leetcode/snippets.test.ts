@@ -34,14 +34,22 @@ const examples: LabelledExample[] = [
   ...PATTERNS.flatMap((p) =>
     p.problems.flatMap((problem) => {
       const solution = SOLUTIONS[problem.slug];
-      return solution
-        ? [
-            {
-              label: `${p.id} / solution / ${problem.slug}`,
-              example: { title: problem.title, explanation: solution.approach.join(" "), code: solution.code, cases: solution.cases },
-            },
-          ]
-        : [];
+      if (!solution) return [];
+      const alternative = solution.alternative;
+      return [
+        {
+          label: `${p.id} / solution / ${problem.slug}`,
+          example: { title: problem.title, explanation: solution.approach.join(" "), code: solution.code, cases: solution.cases },
+        },
+        ...(alternative
+          ? [
+              {
+                label: `${p.id} / solution / ${problem.slug} / ${alternative.name}`,
+                example: { title: alternative.name, explanation: alternative.approach.join(" "), code: alternative.code, cases: alternative.cases },
+              },
+            ]
+          : []),
+      ];
     }),
   ),
 ];

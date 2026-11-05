@@ -27,6 +27,33 @@ describe("the solution catalogue", () => {
     },
   );
 
+  it("offers a second way where the follow-up question asks for one", () => {
+    const withAlternative = Object.keys(SOLUTIONS).filter((slug) => SOLUTIONS[slug].alternative !== undefined);
+    expect(withAlternative.sort()).toEqual(
+      [
+        "course-schedule",
+        "find-the-duplicate-number",
+        "kth-largest-element-in-an-array",
+        "longest-increasing-subsequence",
+        "lru-cache",
+        "merge-k-sorted-lists",
+        "number-of-islands",
+        "top-k-frequent-elements",
+      ].sort(),
+    );
+  });
+
+  it.each(Object.entries(SOLUTIONS).flatMap(([slug, solution]) => (solution.alternative ? [{ slug, alternative: solution.alternative }] : [])))(
+    "$slug's second way is named and held to the same bar",
+    ({ alternative }) => {
+      expect(alternative.name.length).toBeGreaterThan(0);
+      expect(alternative.approach.length).toBeGreaterThanOrEqual(2);
+      expect(alternative.complexity.time).toMatch(/^O\(/);
+      expect(alternative.complexity.space).toMatch(/^O\(/);
+      expect(alternative.cases.length).toBeGreaterThanOrEqual(2);
+    },
+  );
+
   it("hands a pattern page only its own problems' solutions", () => {
     const pattern = PATTERNS[0];
     expect(Object.keys(solutionsForPattern(pattern)).sort()).toEqual(pattern.problems.map((p) => p.slug).sort());
