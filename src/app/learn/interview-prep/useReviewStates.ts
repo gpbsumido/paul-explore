@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
 import { queryKeys } from "@/lib/queryKeys";
 import { scheduleReview, type ReviewRating, type ReviewState } from "@/lib/leetcode/review";
 import {
@@ -21,15 +20,32 @@ const REVIEW_STORAGE_KEYS: Record<ReviewKind, string> = {
 
 const CHANGE_EVENT = "learn-leetcode-review-change";
 
-const reviewStatesSchema = z.record(
-  z.string(),
-  z.object({
-    step: z.number().int().min(0),
-    due: z.number(),
-    lastReviewed: z.number(),
-    reviews: z.number().int().min(0),
-  }),
-);
+const isCount = (value: unknown): boolean => Number.isInteger(value) && Number(value) >= 0;
+
+/**
+ * Checks one stored entry by hand rather than with zod, which Turbopack
+ * doesn't tree-shake here and which cost these routes about 50KB gzipped.
+ */
+function isReviewState(value: unknown): value is ReviewState {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "step" in value &&
+    isCount(value.step) &&
+    "due" in value &&
+    Number.isFinite(value.due) &&
+    "lastReviewed" in value &&
+    Number.isFinite(value.lastReviewed) &&
+    "reviews" in value &&
+    isCount(value.reviews)
+  );
+}
+
+function isReviewStates(value: unknown): value is Record<string, ReviewState> {
+  return (
+    typeof value === "object" && value !== null && !Array.isArray(value) && Object.values(value).every(isReviewState)
+  );
+}
 
 const EMPTY: Readonly<Record<string, ReviewState>> = {};
 
@@ -49,9 +65,9 @@ function subscribe(onChange: () => void): () => void {
  */
 function parseStoredStates(key: string, raw: string | null): Readonly<Record<string, ReviewState>> {
   if (raw === null) return EMPTY;
-  const parsed = reviewStatesSchema.safeParse(JSON.parse(raw));
-  if (!parsed.success) throw new Error(`Stored review progress under "${key}" is not in the expected shape`);
-  return parsed.data;
+  const parsed: unknown = JSON.parse(raw);
+  if (!isReviewStates(parsed)) throw new Error(`Stored review progress under "${key}" is not in the expected shape`);
+  return parsed;
 }
 
 function readLocalStates(kind: ReviewKind): Readonly<Record<string, ReviewState>> {
