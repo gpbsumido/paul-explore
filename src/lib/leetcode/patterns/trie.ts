@@ -17,7 +17,6 @@ export const trie: Pattern = {
     { phrase: "suggestions", why: "Return words under the current prefix as each character is typed.", weight: 2 },
     { phrase: "wildcard", why: "A '.' branches the search across every child." },
     { phrase: "any letter", why: "Matching any letter means exploring every child at that depth." },
-    { phrase: "root", why: "Replace Words swaps a word for its shortest stored root (prefix)." },
     { phrase: "list of words", why: "Searching for many words at once shares work through a trie." },
     { phrase: "concatenation", why: "Words built from other words: walk the trie, restart at each word end." },
   ],

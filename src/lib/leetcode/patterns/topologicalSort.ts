@@ -14,7 +14,6 @@ export const topologicalSort: Pattern = {
     { phrase: "dependencies", why: "Dependency order is the textbook topological sort.", weight: 2 },
     { phrase: "depends on", why: "A depends-on relationship is a directed edge." },
     { phrase: "must be taken before", why: "An ordering constraint between two nodes." },
-    { phrase: "order of", why: "Asking for a valid order of tasks under constraints." },
     { phrase: "valid ordering", why: "Any valid order under constraints is Kahn's output.", weight: 2 },
     { phrase: "cycle", why: "No valid order exists exactly when the directed graph has a cycle." },
     { phrase: "directed acyclic", why: "A DAG is what topological order is defined on.", weight: 2 },

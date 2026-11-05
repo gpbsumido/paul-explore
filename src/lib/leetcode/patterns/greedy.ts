@@ -9,7 +9,6 @@ export const greedy: Pattern = {
     "A greedy solution commits to the best-looking choice at each step and never revisits it. It's often a single pass, which makes it tempting and dangerous: many problems that look greedy need DP. The discipline is the exchange argument. If some optimal answer made a different choice, could you swap in yours without making it worse? If yes, greedy is safe. Common shapes: track the farthest reachable point, sort and match smallest with smallest, reset when a running total goes negative.",
   question: "Is there a choice I can make now that provably never makes the final answer worse?",
   signals: [
-    { phrase: "maximum number of", why: "Maximising a count with a simple local rule is often greedy." },
     { phrase: "minimum number of", why: "Minimum jumps, arrows or coins: check whether a greedy choice is provably safe." },
     { phrase: "jump", why: "Jump Game: track the farthest index reachable so far.", weight: 2 },
     { phrase: "reach the last index", why: "Reachability by farthest-reach greedy.", weight: 3 },

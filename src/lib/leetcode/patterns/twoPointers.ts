@@ -13,8 +13,6 @@ export const twoPointers: Pattern = {
     { phrase: "sorted in non-decreasing order", why: "LeetCode's way of saying sorted, which is the precondition for walking inward." },
     { phrase: "palindrome", why: "Compare the outermost pair and walk inward." },
     { phrase: "in-place", why: "In-place filtering is a read pointer and a write pointer." },
-    { phrase: "reverse", why: "Swap the ends and walk inward." },
-    { phrase: "pair", why: "Pairs in sorted data are found from both ends." },
     { phrase: "triplets", why: "Fix one element, then two pointers on the rest: 3Sum and friends.", weight: 2 },
     { phrase: "sum to zero", why: "k-sum questions reduce to two-pointer pair sums on sorted input." },
     { phrase: "container", why: "Container With Most Water: always move the shorter wall.", weight: 2 },

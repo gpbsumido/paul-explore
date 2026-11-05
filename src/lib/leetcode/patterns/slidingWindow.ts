@@ -19,11 +19,9 @@ export const slidingWindow: Pattern = {
     { phrase: "without repeating characters", why: "No-repeats is a window with a last-seen map.", weight: 2 },
     { phrase: "of size k", why: "A fixed-size window: add the new right, drop the old left." },
     { phrase: "consecutive", why: "Consecutive elements form a window." },
-    { phrase: "permutation", why: "A permutation of p inside s is a fixed window of length p with matching counts." },
-    { phrase: "replace", why: "Character Replacement: window length minus its most common letter must stay within k." },
+    { phrase: "a permutation of", why: "A permutation of p inside s is a fixed window of length p with matching counts." },
     { phrase: "sum is greater than or equal to", why: "With positive numbers, a running sum can shrink from the left." },
     { phrase: "maximum average", why: "Fixed-length average is a fixed window sum." },
-    { phrase: "buy", why: "Best time to buy and sell: track the lowest price on the left as the right edge moves." },
   ],
   antiSignals: [
     "Elements can be negative and you need a sum target: shrinking no longer behaves monotonically, so use prefix sums with a hash map.",

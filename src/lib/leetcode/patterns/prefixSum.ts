@@ -22,7 +22,6 @@ export const prefixSum: Pattern = {
     { phrase: "sum of elements", why: "Sum questions over ranges suggest precomputing totals." },
     { phrase: "odd numbers", why: "Count of odds in a range is a prefix count; nice subarrays use the prefix-count map." },
     { phrase: "rectangle", why: "2D prefix sums answer any rectangle sum with inclusion-exclusion." },
-    { phrase: "negative", why: "Negatives break sliding windows, so subarray sums fall back to prefix sums." },
   ],
   antiSignals: [
     "All numbers are positive and you want the shortest or longest window: a sliding window does it in O(1) space.",

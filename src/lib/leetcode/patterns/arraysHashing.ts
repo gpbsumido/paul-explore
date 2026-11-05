@@ -10,9 +10,7 @@ export const arraysHashing: Pattern = {
   question: "Am I scanning the array again to find something I could have remembered on the first pass?",
   signals: [
     { phrase: "contains duplicate", why: "Seen-it-before is a Set membership check.", weight: 2 },
-    { phrase: "duplicate", why: "Duplicates are found by remembering what has already appeared." },
     { phrase: "anagram", why: "Anagrams share a letter count or a sorted key, both hash-map keys.", weight: 2 },
-    { phrase: "frequency", why: "Counting occurrences is a Map from value to count." },
     { phrase: "most frequent", why: "Count with a Map, then pick the top (sort, bucket or heap)." },
     { phrase: "indices of the two numbers", why: "Two Sum on an unsorted array: store each value's index, look up the complement.", weight: 2 },
     { phrase: "add up to target", why: "Complement lookup: target - x is what you need to have seen." },
