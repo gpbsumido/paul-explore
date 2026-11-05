@@ -18,6 +18,10 @@ import { graphsSolutions } from "./solutions/graphs";
 import { topologicalSortSolutions } from "./solutions/topologicalSort";
 import { unionFindSolutions } from "./solutions/unionFind";
 import { shortestPathSolutions } from "./solutions/shortestPath";
+import { greedySolutions } from "./solutions/greedy";
+import { dp1dSolutions } from "./solutions/dp1d";
+import { dp2dSolutions } from "./solutions/dp2d";
+import { bitManipulationSolutions } from "./solutions/bitManipulation";
 
 /**
  * Every ladder problem's solution, keyed by LeetCode slug. It's kept apart
@@ -46,6 +50,10 @@ export const SOLUTIONS: Readonly<Record<string, Solution>> = {
   ...topologicalSortSolutions,
   ...unionFindSolutions,
   ...shortestPathSolutions,
+  ...greedySolutions,
+  ...dp1dSolutions,
+  ...dp2dSolutions,
+  ...bitManipulationSolutions,
 };
 
 /**
