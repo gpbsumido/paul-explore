@@ -40,7 +40,7 @@ describe("the playbook hub", () => {
     for (const pattern of PATTERNS) {
       expect(
         within(roadmap).getByRole("link", { name: new RegExp(`^${pattern.name}`) }),
-      ).toHaveAttribute("href", `/learn/leetcode/${pattern.id}`);
+      ).toHaveAttribute("href", `/learn/interview-prep/${pattern.id}`);
     }
   });
 
@@ -53,7 +53,7 @@ describe("the playbook hub", () => {
     const first = within(results).getAllByRole("listitem")[0];
     expect(within(first).getByRole("link", { name: /sliding window/i })).toHaveAttribute(
       "href",
-      "/learn/leetcode/sliding-window",
+      "/learn/interview-prep/sliding-window",
     );
     expect(first).toHaveTextContent(/longest substring/i);
   });
