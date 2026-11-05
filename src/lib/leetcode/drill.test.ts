@@ -49,7 +49,7 @@ describe("nextDrillCard", () => {
   });
 
   it("keeps to the chosen patterns", () => {
-    const card = nextDrillCard({ deck, states: {}, now: NOW, patternIds: ["heap"] });
+    const card = nextDrillCard({ deck: deck.filter((c) => c.patternId === "heap"), states: {}, now: NOW });
     expect(card?.patternId).toBe("heap");
   });
 
@@ -58,7 +58,7 @@ describe("nextDrillCard", () => {
     const states = Object.fromEntries(
       heapCards.map((c) => [c.problem.slug, { step: 2, due: NOW + DAY, lastReviewed: 0, reviews: 3 }]),
     );
-    expect(nextDrillCard({ deck, states, now: NOW, patternIds: ["heap"] })).toBeNull();
+    expect(nextDrillCard({ deck: heapCards, states, now: NOW })).toBeNull();
   });
 
   it("can study ahead, taking the soonest scheduled card once nothing is due", () => {
@@ -66,7 +66,7 @@ describe("nextDrillCard", () => {
     const states = Object.fromEntries(
       heapCards.map((c, i) => [c.problem.slug, { step: 2, due: NOW + (i + 1) * DAY, lastReviewed: 0, reviews: 3 }]),
     );
-    const card = nextDrillCard({ deck, states, now: NOW, patternIds: ["heap"], studyAhead: true });
+    const card = nextDrillCard({ deck: heapCards, states, now: NOW, studyAhead: true });
     expect(card?.problem.slug).toBe(heapCards[0].problem.slug);
   });
 });
@@ -75,7 +75,7 @@ describe("buildDrillOptions", () => {
   const card = deck.find((c) => c.problem.slug === "two-sum")!;
 
   it("offers four distinct patterns, one of them right", () => {
-    const options = buildDrillOptions({ card, patterns: PATTERNS, random: sequenceRandom([0.1, 0.7, 0.3, 0.9, 0.5]) });
+    const options = buildDrillOptions({ card, patterns: PATTERNS, random: sequenceRandom([0.1, 0.7, 0.3, 0.9, 0.5]) }).map((p) => p.id);
     expect(options).toHaveLength(4);
     expect(new Set(options).size).toBe(4);
     expect(options).toContain("arrays-hashing");
@@ -83,7 +83,7 @@ describe("buildDrillOptions", () => {
 
   it("never offers an alternative that would also be right as a distractor", () => {
     const withAlternate = deck.find((c) => (c.problem.alsoAccept ?? []).length > 0)!;
-    const options = buildDrillOptions({ card: withAlternate, patterns: PATTERNS, random: sequenceRandom([0.2, 0.4, 0.6, 0.8]) });
+    const options = buildDrillOptions({ card: withAlternate, patterns: PATTERNS, random: sequenceRandom([0.2, 0.4, 0.6, 0.8]) }).map((p) => p.id);
     const alternates = withAlternate.problem.alsoAccept ?? [];
     expect(options.filter((o) => alternates.includes(o))).toEqual([]);
   });
@@ -91,7 +91,7 @@ describe("buildDrillOptions", () => {
   it("does not always put the answer in the same place", () => {
     const positions = new Set(
       [0.01, 0.3, 0.6, 0.99].map((r) =>
-        buildDrillOptions({ card, patterns: PATTERNS, random: sequenceRandom([r, 0.5, r, 0.25]) }).indexOf("arrays-hashing"),
+        buildDrillOptions({ card, patterns: PATTERNS, random: sequenceRandom([r, 0.5, r, 0.25]) }).findIndex((p) => p.id === "arrays-hashing"),
       ),
     );
     expect(positions.size).toBeGreaterThan(1);

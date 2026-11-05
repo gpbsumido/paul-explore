@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { PATTERNS, leetCodeUrl, patternById } from "@/lib/leetcode/patterns";
 import { buildDrillOptions, drillDeck, isAcceptedAnswer, nextDrillCard, type DrillCard } from "@/lib/leetcode/drill";
+import type { Pattern } from "@/lib/leetcode/types";
 import PlaybookPage from "../_shared/PlaybookPage";
 import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
@@ -30,7 +31,7 @@ function seededRandom(seed: string): () => number {
   };
 }
 
-type Answered = { card: DrillCard; options: string[]; chosen: string };
+type Answered = { card: DrillCard; options: Pattern[]; chosen: string };
 
 /**
  * The recognition drill: a problem statement, four patterns, pick one. It
@@ -52,12 +53,11 @@ export default function DrillContent() {
     if (answered) nextButton.current?.focus();
   }, [answered]);
 
-  const patternIds = scope === "all" ? undefined : [scope];
-  const inScope = patternIds ? DECK.filter((c) => patternIds.includes(c.patternId)) : DECK;
+  const inScope = scope === "all" ? DECK : DECK.filter((c) => c.patternId === scope);
   const dueCount = inScope.filter((c) => (states[c.problem.slug]?.due ?? Number.POSITIVE_INFINITY) <= now).length;
   const newCount = inScope.filter((c) => states[c.problem.slug] === undefined).length;
 
-  const card = answered?.card ?? nextDrillCard({ deck: DECK, states, now, patternIds, studyAhead });
+  const card = answered?.card ?? nextDrillCard({ deck: inScope, states, now, studyAhead });
   const options =
     answered?.options ??
     (card
@@ -136,17 +136,15 @@ export default function DrillContent() {
             Which pattern does this problem want?
           </h2>
           <div role="group" aria-labelledby="drill-question" className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {options.map((id) => {
-              const option = patternById(id);
-              if (!option) return null;
-              const isAnswer = answered !== null && id === answered.card.patternId;
-              const isChosen = answered?.chosen === id;
+            {options.map((option) => {
+              const isAnswer = answered !== null && option.id === answered.card.patternId;
+              const isChosen = answered?.chosen === option.id;
               return (
                 <button
-                  key={id}
+                  key={option.id}
                   type="button"
                   disabled={answered !== null || !ready}
-                  onClick={() => choose(id)}
+                  onClick={() => choose(option.id)}
                   className={`rounded-md border px-3 py-2.5 text-left text-[14px] text-foreground transition-colors enabled:hover:bg-foreground/[0.06] disabled:cursor-default ${focusRing} ${
                     isAnswer ? "border-foreground font-semibold" : isChosen ? "border-foreground/40 line-through" : "border-border"
                   }`}

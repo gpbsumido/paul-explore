@@ -32,31 +32,31 @@ export function drillDeck(patterns: readonly Pattern[]): DrillCard[] {
  * run out it takes whichever scheduled card is due soonest rather than ending
  * the session.
  *
- * @returns The card to show, or null when nothing in scope is left.
+ * @param deck - The cards in scope: the whole deck, or one pattern's share.
+ * @returns The card to show, or null when nothing in the deck is left.
  */
 export function nextDrillCard({
   deck,
   states,
   now,
-  patternIds,
   studyAhead = false,
 }: {
   deck: readonly DrillCard[];
   states: Readonly<Record<string, ReviewState>>;
   now: number;
-  patternIds?: readonly string[];
   studyAhead?: boolean;
 }): DrillCard | null {
-  const inScope = patternIds ? deck.filter((c) => patternIds.includes(c.patternId)) : deck;
-  const seen = inScope.filter((c) => states[c.problem.slug] !== undefined);
+  const seen = deck.filter((c) => states[c.problem.slug] !== undefined);
   const bySoonest = [...seen].sort((a, b) => states[a.problem.slug].due - states[b.problem.slug].due);
 
   const overdue = bySoonest.find((c) => states[c.problem.slug].due <= now);
   if (overdue) return overdue;
-  const unseen = inScope.find((c) => states[c.problem.slug] === undefined);
+  const unseen = deck.find((c) => states[c.problem.slug] === undefined);
   if (unseen) return unseen;
   return studyAhead ? (bySoonest[0] ?? null) : null;
 }
+
+const OPTION_COUNT = 4;
 
 /**
  * The answer plus distractors, shuffled.
@@ -65,23 +65,21 @@ export function nextDrillCard({
  * right answer and then marking it wrong teaches the wrong thing.
  *
  * @param random - A source of numbers in [0, 1), injected so tests can pin it.
- * @returns `count` distinct pattern ids, one of them the card's answer.
+ * @returns Four distinct patterns, one of them the card's answer.
  */
 export function buildDrillOptions({
   card,
   patterns,
   random,
-  count = 4,
 }: {
   card: DrillCard;
   patterns: readonly Pattern[];
   random: () => number;
-  count?: number;
-}): string[] {
+}): Pattern[] {
   const excluded = new Set([card.patternId, ...(card.problem.alsoAccept ?? [])]);
-  const pool = patterns.map((p) => p.id).filter((id) => !excluded.has(id));
-  const distractors = shuffle(pool, random).slice(0, count - 1);
-  return shuffle([card.patternId, ...distractors], random);
+  const answer = patterns.filter((p) => p.id === card.patternId);
+  const distractors = shuffle(patterns.filter((p) => !excluded.has(p.id)), random).slice(0, OPTION_COUNT - 1);
+  return shuffle([...answer, ...distractors], random);
 }
 
 /** Whether a chosen pattern counts as right for this card. */

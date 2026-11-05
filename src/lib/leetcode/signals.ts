@@ -1,5 +1,4 @@
 import { PATTERNS } from "./patterns";
-import type { Pattern } from "./types";
 
 export type PatternMatch = {
   patternId: string;
@@ -9,6 +8,7 @@ export type PatternMatch = {
 
 export type TextSpan = { start: number; end: number };
 
+/** Escapes regex metacharacters so a phrase matches literally. */
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -31,14 +31,10 @@ function phrasePattern(phrase: string, flags: string): RegExp {
  * and the matched phrases are returned so the page can show which ones did.
  *
  * @param text - A problem statement, pasted or typed.
- * @param patterns - The catalogue to rank, defaulting to the whole playbook.
  * @returns Patterns with at least one hit, best first; ties keep roadmap order.
  */
-export function rankPatternsForText(
-  text: string,
-  patterns: readonly Pattern[] = PATTERNS,
-): PatternMatch[] {
-  return patterns
+export function rankPatternsForText(text: string): PatternMatch[] {
+  return PATTERNS
     .map((pattern, order) => {
       const hits = pattern.signals.filter((s) => phrasePattern(s.phrase, "i").test(text));
       return {
