@@ -10,6 +10,10 @@ import { monotonicStackSolutions } from "./solutions/monotonicStack";
 import { treeDfsSolutions } from "./solutions/treeDfs";
 import { treeBfsSolutions } from "./solutions/treeBfs";
 import { bstSolutions } from "./solutions/bst";
+import { heapSolutions } from "./solutions/heap";
+import { intervalsSolutions } from "./solutions/intervals";
+import { trieSolutions } from "./solutions/trie";
+import { backtrackingSolutions } from "./solutions/backtracking";
 
 /**
  * Every ladder problem's solution, keyed by LeetCode slug. It's kept apart
@@ -30,6 +34,10 @@ export const SOLUTIONS: Readonly<Record<string, Solution>> = {
   ...treeDfsSolutions,
   ...treeBfsSolutions,
   ...bstSolutions,
+  ...heapSolutions,
+  ...intervalsSolutions,
+  ...trieSolutions,
+  ...backtrackingSolutions,
 };
 
 /**
