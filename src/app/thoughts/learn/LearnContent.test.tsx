@@ -19,6 +19,17 @@ describe("LearnContent", () => {
     expect(container.querySelector(href)).not.toBeNull();
   });
 
+  it("dates the interview prep playbook as an update and links it from the timeline", () => {
+    const { container } = render(<LearnContent />);
+    const nav = screen.getByRole("navigation", { name: /update timeline/i });
+    expect(
+      within(nav).getByRole("link", { name: /interview prep|leetcode/i }),
+    ).toHaveAttribute("href", "#update-2026-11-04-interview-prep");
+    expect(
+      container.querySelector("#update-2026-11-04-interview-prep"),
+    ).not.toBeNull();
+  });
+
   it("closes with what shipped and what is next", () => {
     render(<LearnContent />);
     expect(
