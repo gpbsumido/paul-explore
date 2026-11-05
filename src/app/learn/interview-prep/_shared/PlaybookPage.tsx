@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import PageHeader, { type BreadcrumbItem } from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import type { Phase } from "@/lib/leetcode/types";
 import PlaybookNav, { type PlaybookSection } from "./PlaybookNav";
 
 /** Roadmap phase names, shared by the hub and the pattern pages. */
-export const PHASE_TITLES: Record<1 | 2 | 3 | 4, string> = {
+export const PHASE_TITLES: Record<Phase, string> = {
   1: "Arrays and strings",
   2: "Structures",
   3: "Search and graphs",

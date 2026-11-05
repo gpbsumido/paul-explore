@@ -6,7 +6,7 @@
  */
 export const REVIEW_LADDER_DAYS = [1, 3, 7, 14, 30, 60] as const;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 const TOP_STEP = REVIEW_LADDER_DAYS.length - 1;
 
 /**

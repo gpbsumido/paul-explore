@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { leetCodeUrl, patternPath } from "@/lib/leetcode/urls";
-import type { ReviewRating, ReviewState } from "@/lib/leetcode/review";
+import { DAY_MS, type ReviewRating, type ReviewState } from "@/lib/leetcode/review";
 import type { Problem, Solution } from "@/lib/leetcode/types";
 import CodeExample from "../_shared/CodeExample";
 import PlaybookPage, { PHASE_TITLES } from "../_shared/PlaybookPage";
@@ -12,8 +12,6 @@ import { useReviewStates } from "../useReviewStates";
 import SolutionLevels from "./SolutionLevels";
 import type { patternPageProps } from "./patternPageProps";
 import { eyebrowHeading, focusRing, linkClasses } from "../_shared/classes";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 const RATINGS: { rating: ReviewRating; label: string; hint: string }[] = [
   { rating: "again", label: "Again", hint: "couldn't solve it" },
