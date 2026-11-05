@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PATTERNS, leetCodeUrl, patternById } from "@/lib/leetcode/patterns";
 import { buildDrillOptions, drillDeck, isAcceptedAnswer, nextDrillCard, type DrillCard } from "@/lib/leetcode/drill";
 import PlaybookPage from "../_shared/PlaybookPage";
+import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
 
 const DECK = drillDeck(PATTERNS);
@@ -39,7 +40,7 @@ type Answered = { card: DrillCard; options: string[]; chosen: string };
  */
 export default function DrillContent() {
   const scopeId = useId();
-  const { states, rate } = useReviewStates("drill");
+  const { states, rate, ready, syncError } = useReviewStates("drill");
   const [now, setNow] = useState(() => Date.now());
   const [scope, setScope] = useState("all");
   const [studyAhead, setStudyAhead] = useState(false);
@@ -124,6 +125,7 @@ export default function DrillContent() {
           {dueCount} due · {newCount} new · {inScope.length} cards
         </p>
       </div>
+      <ReviewSyncError message={syncError} />
 
       {card && answerPattern ? (
         <section aria-labelledby="drill-question" className="mt-10 border-l-2 border-foreground/15 pl-5">
@@ -143,7 +145,7 @@ export default function DrillContent() {
                 <button
                   key={id}
                   type="button"
-                  disabled={answered !== null}
+                  disabled={answered !== null || !ready}
                   onClick={() => choose(id)}
                   className={`rounded-md border px-3 py-2.5 text-left text-[14px] text-foreground transition-colors enabled:hover:bg-foreground/[0.06] disabled:cursor-default ${focusRing} ${
                     isAnswer ? "border-foreground font-semibold" : isChosen ? "border-foreground/40 line-through" : "border-border"

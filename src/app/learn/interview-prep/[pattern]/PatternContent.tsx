@@ -7,6 +7,7 @@ import type { ReviewRating, ReviewState } from "@/lib/leetcode/review";
 import type { Problem } from "@/lib/leetcode/types";
 import CodeExample from "../_shared/CodeExample";
 import PlaybookPage, { PHASE_TITLES } from "../_shared/PlaybookPage";
+import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -22,7 +23,7 @@ const sectionHeading = "text-[11px] font-bold uppercase tracking-[0.2em] text-mu
 const linkClasses =
   "rounded-sm text-foreground underline underline-offset-4 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
 const buttonClasses =
-  "rounded-md border border-border px-2.5 py-1 font-mono text-[12px] text-foreground transition-colors hover:bg-foreground/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
+  "rounded-md border border-border px-2.5 py-1 font-mono text-[12px] text-foreground transition-colors enabled:hover:bg-foreground/[0.06] disabled:cursor-wait disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
 
 /** Where a problem stands on the review ladder, in words. */
 function describeReview(state: ReviewState | undefined, now: number): string {
@@ -38,11 +39,13 @@ function ProblemRow({
   problem,
   state,
   now,
+  canRate,
   onRate,
 }: {
   problem: Problem;
   state: ReviewState | undefined;
   now: number;
+  canRate: boolean;
   onRate: (rating: ReviewRating) => void;
 }) {
   return (
@@ -66,7 +69,7 @@ function ProblemRow({
       </details>
       <div role="group" aria-label={`Rate ${problem.title}`} className="mt-3 flex flex-wrap items-center gap-2">
         {RATINGS.map(({ rating, label, hint }) => (
-          <button key={rating} type="button" title={hint} onClick={() => onRate(rating)} className={buttonClasses}>
+          <button key={rating} type="button" title={hint} disabled={!canRate} onClick={() => onRate(rating)} className={buttonClasses}>
             {label}
           </button>
         ))}
@@ -84,7 +87,7 @@ function ProblemRow({
  * from memory), the traps, and a ladder of problems to rate as I solve them.
  */
 export default function PatternContent({ patternId }: { patternId: string }) {
-  const { states, rate } = useReviewStates("problem");
+  const { states, rate, ready, syncError } = useReviewStates("problem");
   const [now] = useState(() => Date.now());
   const [templateShown, setTemplateShown] = useState(false);
 
@@ -220,6 +223,7 @@ export default function PatternContent({ patternId }: { patternId: string }) {
           Easy to hard. Read the prompt and name the signal before opening the tell. After each attempt, rate it:
           Again brings it back tomorrow, Hard holds the interval, Good and Easy push it further out.
         </p>
+        <ReviewSyncError message={syncError} />
         <ol className="mt-6 space-y-8">
           {pattern.problems.map((problem) => (
             <ProblemRow
@@ -227,6 +231,7 @@ export default function PatternContent({ patternId }: { patternId: string }) {
               problem={problem}
               state={states[problem.slug]}
               now={now}
+              canRate={ready}
               onRate={(rating) => rate(problem.slug, rating)}
             />
           ))}

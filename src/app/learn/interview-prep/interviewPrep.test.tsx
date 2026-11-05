@@ -128,10 +128,11 @@ describe("a pattern page", () => {
     expect(links[0].getAttribute("rel")).toContain("noopener");
   });
 
-  it("schedules a re-solve when a problem is marked solved", () => {
+  it("schedules a re-solve when a problem is marked solved", async () => {
     renderPage(<PatternContent patternId={pattern.id} />);
     const first = pattern.problems[0];
     const row = screen.getByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
+    await waitFor(() => expect(within(row).getByRole("button", { name: /good/i })).toBeEnabled());
     fireEvent.click(within(row).getByRole("button", { name: /good/i }));
     const stored = JSON.parse(localStorage.getItem(REVIEW_KEY) ?? "{}");
     expect(stored[first.slug]).toMatchObject({ step: 0, reviews: 1 });
@@ -148,10 +149,11 @@ describe("the recognition drill", () => {
   const firstCard = drillDeck(PATTERNS)[0];
   const answerName = patternById(firstCard.patternId)!.name;
 
-  it("asks which pattern a problem wants, and confirms a right answer", () => {
+  it("asks which pattern a problem wants, and confirms a right answer", async () => {
     renderPage(<DrillContent />);
     expect(screen.getByText(firstCard.problem.prompt)).toBeInTheDocument();
     const options = screen.getByRole("group", { name: /which pattern/i });
+    await waitFor(() => expect(within(options).getByRole("button", { name: answerName })).toBeEnabled());
     fireEvent.click(within(options).getByRole("button", { name: answerName }));
     expect(screen.getByRole("status")).toHaveTextContent(/correct/i);
     expect(screen.getByText(firstCard.problem.tell)).toBeInTheDocument();
@@ -159,9 +161,10 @@ describe("the recognition drill", () => {
     expect(stored[firstCard.problem.slug]).toMatchObject({ reviews: 1 });
   });
 
-  it("names the right pattern after a wrong answer and brings the card back tomorrow", () => {
+  it("names the right pattern after a wrong answer and brings the card back tomorrow", async () => {
     renderPage(<DrillContent />);
     const options = screen.getByRole("group", { name: /which pattern/i });
+    await waitFor(() => expect(within(options).getByRole("button", { name: answerName })).toBeEnabled());
     const wrong = within(options)
       .getAllByRole("button")
       .find((b) => b.textContent !== answerName)!;
@@ -172,9 +175,10 @@ describe("the recognition drill", () => {
     expect(stored[firstCard.problem.slug]).toMatchObject({ step: 0 });
   });
 
-  it("moves on to a different card", () => {
+  it("moves on to a different card", async () => {
     renderPage(<DrillContent />);
     const options = screen.getByRole("group", { name: /which pattern/i });
+    await waitFor(() => expect(within(options).getByRole("button", { name: answerName })).toBeEnabled());
     fireEvent.click(within(options).getByRole("button", { name: answerName }));
     fireEvent.click(screen.getByRole("button", { name: /next card/i }));
     expect(screen.queryByText(firstCard.problem.prompt)).not.toBeInTheDocument();
@@ -253,10 +257,10 @@ describe("signed in, progress lives on the account", () => {
 
     renderPage(<LeetCodeHub />);
 
+    await waitFor(() => expect(imported).toEqual([{ reviews: [dueTwoSum] }]));
+    await waitFor(() => expect(localStorage.getItem(REVIEW_KEY)).toBeNull());
     const due = screen.getByRole("region", { name: /due today/i });
     expect(await within(due).findByRole("link", { name: /two sum/i })).toBeInTheDocument();
-    expect(imported).toEqual([{ reviews: [dueTwoSum] }]);
-    expect(localStorage.getItem(REVIEW_KEY)).toBeNull();
   });
 
   it("says so when the account refuses a save, instead of pretending it stuck", async () => {

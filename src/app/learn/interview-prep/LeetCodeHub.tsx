@@ -12,6 +12,7 @@ import {
 import { dueItems } from "@/lib/leetcode/review";
 import type { Pattern, Phase, Problem } from "@/lib/leetcode/types";
 import PlaybookPage, { PHASE_TITLES } from "./_shared/PlaybookPage";
+import ReviewSyncError from "./_shared/ReviewSyncError";
 import { useReviewStates } from "./useReviewStates";
 
 const PHASES: Phase[] = [1, 2, 3, 4];
@@ -208,7 +209,7 @@ function ComplexityBudget() {
 
 /** Problems whose re-solve date has come round. */
 function DueToday() {
-  const { states } = useReviewStates("problem");
+  const { states, syncError } = useReviewStates("problem");
   const [now] = useState(() => Date.now());
   const due = dueItems(states, now).flatMap((slug) => {
     const entry = PROBLEM_INDEX.get(slug);
@@ -220,6 +221,7 @@ function DueToday() {
       <h2 id="due-heading" className={sectionHeading}>
         Due today
       </h2>
+      <ReviewSyncError message={syncError} />
       {due.length === 0 ? (
         <p className="mt-3 text-[14px] leading-relaxed text-muted">
           Nothing due. Rate a problem after you solve it and it comes back here on a 1, 3, 7, 14, 30, 60 day ladder,
