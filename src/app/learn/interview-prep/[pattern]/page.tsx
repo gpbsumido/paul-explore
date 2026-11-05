@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildArticleMetadata } from "@/lib/site";
 import { PATTERNS, patternById } from "@/lib/leetcode/patterns";
+import { solutionsForPattern } from "@/lib/leetcode/solutionCatalog";
 import PatternContent from "./PatternContent";
 
 /** The catalogue is static data, so every pattern page is built ahead of time and anything else is a 404. */
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ pattern: 
 
 export default async function PatternPage({ params }: { params: Promise<{ pattern: string }> }) {
   const { pattern: id } = await params;
-  if (!patternById(id)) notFound();
-  return <PatternContent patternId={id} />;
+  const pattern = patternById(id);
+  if (!pattern) notFound();
+  return <PatternContent patternId={id} solutions={solutionsForPattern(pattern)} />;
 }

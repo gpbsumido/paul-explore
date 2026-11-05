@@ -4,11 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { PATTERNS, leetCodeUrl, patternById } from "@/lib/leetcode/patterns";
 import type { ReviewRating, ReviewState } from "@/lib/leetcode/review";
-import type { Problem } from "@/lib/leetcode/types";
+import type { Problem, Solution } from "@/lib/leetcode/types";
 import CodeExample from "../_shared/CodeExample";
 import PlaybookPage, { PHASE_TITLES } from "../_shared/PlaybookPage";
 import ReviewSyncError from "../_shared/ReviewSyncError";
 import { useReviewStates } from "../useReviewStates";
+import SolutionLevels from "./SolutionLevels";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -34,15 +35,17 @@ function describeReview(state: ReviewState | undefined, now: number): string {
   return `Re-solve in ${days} day${days === 1 ? "" : "s"} · ${attempts}`;
 }
 
-/** One rung of the ladder: the link, the prompt, the tell behind a disclosure, and the rating buttons. */
+/** One rung of the ladder: the link, the prompt, the tell behind a disclosure, the solution levels, and the rating buttons. */
 function ProblemRow({
   problem,
+  solution,
   state,
   now,
   canRate,
   onRate,
 }: {
   problem: Problem;
+  solution: Solution;
   state: ReviewState | undefined;
   now: number;
   canRate: boolean;
@@ -67,6 +70,7 @@ function ProblemRow({
         </summary>
         <p className="mt-2 leading-relaxed text-foreground">{problem.tell}</p>
       </details>
+      <SolutionLevels title={problem.title} solution={solution} />
       <div role="group" aria-label={`Rate ${problem.title}`} className="mt-3 flex flex-wrap items-center gap-2">
         {RATINGS.map(({ rating, label, hint }) => (
           <button key={rating} type="button" title={hint} disabled={!canRate} onClick={() => onRate(rating)} className={buttonClasses}>
@@ -85,8 +89,16 @@ function ProblemRow({
  * One pattern, laid out in the order I want to study it: the question to ask,
  * the wording that gives it away, the template (hidden until I've tried it
  * from memory), the traps, and a ladder of problems to rate as I solve them.
+ * The solutions come in as a prop from the server page, so only this
+ * pattern's share of them ever reaches the browser.
  */
-export default function PatternContent({ patternId }: { patternId: string }) {
+export default function PatternContent({
+  patternId,
+  solutions,
+}: {
+  patternId: string;
+  solutions: Readonly<Record<string, Solution>>;
+}) {
   const { states, rate, ready, syncError } = useReviewStates("problem");
   const [now] = useState(() => Date.now());
   const [templateShown, setTemplateShown] = useState(false);
@@ -97,6 +109,11 @@ export default function PatternContent({ patternId }: { patternId: string }) {
   const index = PATTERNS.indexOf(pattern);
   const previous = PATTERNS[index - 1];
   const next = PATTERNS[index + 1];
+  const solutionFor = (slug: string): Solution => {
+    const solution = solutions[slug];
+    if (!solution) throw new Error(`No solution for "${slug}"`);
+    return solution;
+  };
   const builtOn = pattern.prerequisites.flatMap((id) => {
     const found = patternById(id);
     return found ? [found] : [];
@@ -229,6 +246,7 @@ export default function PatternContent({ patternId }: { patternId: string }) {
             <ProblemRow
               key={problem.slug}
               problem={problem}
+              solution={solutionFor(problem.slug)}
               state={states[problem.slug]}
               now={now}
               canRate={ready}
