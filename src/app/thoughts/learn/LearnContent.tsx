@@ -275,6 +275,32 @@ AssertionError: expected [] to have a length of 1 but got +0`}
         </p>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every test passed and the bundle budget still said no
+        </h3>
+        <p className="text-muted">
+          The E2E job ran all 132 tests green, then failed on the size check
+          that runs after them:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`/learn/interview-prep
+  budget  360.0KB (catch-all ceiling)
+  actual  363.1KB
+  over by 3.1KB`}
+        </pre>
+        <p className="mt-3 text-muted">
+          I assumed the pattern data was the weight, since all 23 patterns ship
+          to the client. Splitting the route&apos;s chunks said otherwise: one
+          of them was nothing but zod, about 62KB gzipped, pulled in to check
+          the shape of what&apos;s in localStorage. My first fix was 
+          <code className={code}>zod/mini</code>, which is meant to tree-shake
+          down to almost nothing. It saved 5KB, and a namespace import saved
+          nothing more, because Turbopack doesn&apos;t shake it here. The check
+          is four fields, so it became a small type guard, with a test written
+          first to pin that unreadable progress still throws. All three routes
+          came down by about 57KB, to roughly 300KB.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
           The dead-code check couldn&apos;t see through a folder
         </h3>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
