@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -183,6 +183,107 @@ describe("the recognition drill", () => {
   it("has no axe violations", async () => {
     const { container } = renderPage(<DrillContent />);
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe("signed in, progress lives on the account", () => {
+  const pattern = patternById("sliding-window")!;
+  const first = pattern.problems[0];
+  const dueTwoSum = {
+    kind: "problem",
+    itemId: "two-sum",
+    step: 0,
+    dueAt: new Date(Date.now() - 60_000).toISOString(),
+    lastReviewedAt: new Date(Date.now() - 86_400_000).toISOString(),
+    reviews: 1,
+  };
+
+  function signIn() {
+    server.use(http.get("*/api/me", () => HttpResponse.json({ sub: "auth0|me", email: "me@example.com" })));
+  }
+
+  it("shows what is due from the server rather than this browser", async () => {
+    signIn();
+    server.use(http.get("*/api/practice/reviews", () => HttpResponse.json({ reviews: [dueTwoSum] })));
+
+    renderPage(<LeetCodeHub />);
+
+    const due = screen.getByRole("region", { name: /due today/i });
+    expect(await within(due).findByRole("link", { name: /two sum/i })).toBeInTheDocument();
+  });
+
+  it("saves a rating to the account and leaves localStorage alone", async () => {
+    signIn();
+    const saved: { url: string; body: unknown }[] = [];
+    server.use(
+      http.get("*/api/practice/reviews", () => HttpResponse.json({ reviews: [] })),
+      http.put("*/api/practice/reviews/:kind/:itemId", async ({ request, params }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        saved.push({ url: request.url, body });
+        return HttpResponse.json({ review: { kind: params.kind, itemId: params.itemId, ...body } });
+      }),
+    );
+
+    renderPage(<PatternContent patternId={pattern.id} />);
+    const row = await screen.findByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
+    await waitFor(() => expect(within(row).getByRole("button", { name: /good/i })).toBeEnabled());
+    fireEvent.click(within(row).getByRole("button", { name: /good/i }));
+
+    await waitFor(() => expect(saved).toHaveLength(1));
+    expect(saved[0].url).toMatch(new RegExp(`/api/practice/reviews/problem/${first.slug}$`));
+    expect(saved[0].body).toMatchObject({ step: 0, reviews: 1 });
+    expect(localStorage.getItem(REVIEW_KEY)).toBeNull();
+    expect(await screen.findByText(/re-solve in 1 day/i)).toBeInTheDocument();
+  });
+
+  it("moves this browser's progress onto the account once, then forgets the local copy", async () => {
+    signIn();
+    localStorage.setItem(
+      REVIEW_KEY,
+      JSON.stringify({ "two-sum": { step: 0, due: Date.parse(dueTwoSum.dueAt), lastReviewed: Date.parse(dueTwoSum.lastReviewedAt), reviews: 1 } }),
+    );
+    const imported: unknown[] = [];
+    server.use(
+      http.get("*/api/practice/reviews", () => HttpResponse.json({ reviews: [] })),
+      http.post("*/api/practice/reviews/import", async ({ request }) => {
+        imported.push(await request.json());
+        return HttpResponse.json({ reviews: [dueTwoSum] });
+      }),
+    );
+
+    renderPage(<LeetCodeHub />);
+
+    const due = screen.getByRole("region", { name: /due today/i });
+    expect(await within(due).findByRole("link", { name: /two sum/i })).toBeInTheDocument();
+    expect(imported).toEqual([{ reviews: [dueTwoSum] }]);
+    expect(localStorage.getItem(REVIEW_KEY)).toBeNull();
+  });
+
+  it("says so when the account refuses a save, instead of pretending it stuck", async () => {
+    signIn();
+    server.use(
+      http.get("*/api/practice/reviews", () => HttpResponse.json({ reviews: [] })),
+      http.put("*/api/practice/reviews/:kind/:itemId", () =>
+        HttpResponse.json({ error: "Database unavailable" }, { status: 503 }),
+      ),
+    );
+
+    renderPage(<PatternContent patternId={pattern.id} />);
+    const row = await screen.findByRole("group", { name: new RegExp(`rate ${first.title}`, "i") });
+    await waitFor(() => expect(within(row).getByRole("button", { name: /good/i })).toBeEnabled());
+    fireEvent.click(within(row).getByRole("button", { name: /good/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t save your progress/i);
+    await waitFor(() => expect(screen.queryByText(/re-solve in 1 day/i)).not.toBeInTheDocument());
+  });
+
+  it("says so when the account can't be read, instead of showing an empty schedule", async () => {
+    signIn();
+    server.use(http.get("*/api/practice/reviews", () => HttpResponse.json({ error: "down" }, { status: 502 })));
+
+    renderPage(<LeetCodeHub />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t load your progress/i);
   });
 });
 
