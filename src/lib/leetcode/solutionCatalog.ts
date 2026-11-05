@@ -14,6 +14,10 @@ import { heapSolutions } from "./solutions/heap";
 import { intervalsSolutions } from "./solutions/intervals";
 import { trieSolutions } from "./solutions/trie";
 import { backtrackingSolutions } from "./solutions/backtracking";
+import { graphsSolutions } from "./solutions/graphs";
+import { topologicalSortSolutions } from "./solutions/topologicalSort";
+import { unionFindSolutions } from "./solutions/unionFind";
+import { shortestPathSolutions } from "./solutions/shortestPath";
 
 /**
  * Every ladder problem's solution, keyed by LeetCode slug. It's kept apart
@@ -38,6 +42,10 @@ export const SOLUTIONS: Readonly<Record<string, Solution>> = {
   ...intervalsSolutions,
   ...trieSolutions,
   ...backtrackingSolutions,
+  ...graphsSolutions,
+  ...topologicalSortSolutions,
+  ...unionFindSolutions,
+  ...shortestPathSolutions,
 };
 
 /**
