@@ -20,7 +20,7 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
     summary:
       "Learn has a playbook for coding interviews: 23 problem-solving patterns, the wording that gives each one away, links to LeetCode problems to practise on, and a drill for spotting which pattern a problem wants.",
     body: [
-      "Each pattern has the question to ask yourself, the phrases in a problem statement that point to it, a TypeScript template to write from memory before you peek, the usual traps, and a ladder of LeetCode problems from easy to hard. Every problem has a solution you can reveal in steps: the basic logic first, then the full TypeScript. Paste a problem statement into the playbook's front page and it suggests patterns and shows which words matched.",
+      "Each pattern has the question to ask yourself, the phrases in a problem statement that point to it, a TypeScript template to write from memory before you peek, the usual traps, and a ladder of LeetCode problems from easy to hard. Every problem has a solution you can reveal in steps: the basic logic first, then the full TypeScript. Where a second approach teaches something, it sits underneath the first. Paste a problem statement into the playbook's front page and it suggests patterns and shows which words matched.",
       "Rate each attempt and it comes back on a spaced schedule, from tomorrow out to two months. The recognition drill trains just the spotting step, mixed across every pattern. Sign in and your progress follows you between devices; anything you'd already done in this browser moves over the first time you do.",
     ],
     resolvedTicketIds: [],
