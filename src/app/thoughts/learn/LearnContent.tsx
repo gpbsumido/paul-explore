@@ -348,6 +348,108 @@ to type '0 | -1'.`}
           pattern page&apos;s server component hands its client just that
           pattern&apos;s ten or so.
         </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The second way only earned a place where it teaches something
+        </h3>
+        <p className="text-muted">
+          One solution per problem hid the alternatives an interviewer asks
+          about next. I didn&apos;t want two of everything, so eight problems
+          got a second way, each because it says something the first
+          doesn&apos;t: Quickselect next to the heap for Kth Largest, the
+          doubly linked list an LRU cache&apos;s Map trick stands in for,
+          merging in pairs for k sorted lists, the O(n&sup2;) DP before the
+          patience-sorting one. It sits under the first at the same level, so
+          Basic logic shows both sets of steps and Full solution shows both
+          programs, each with its own checks.
+        </p>
+        <p className="mt-3 text-muted">
+          Number of Islands was the one where the second way turned out to
+          matter. The recursive flood fill is the version everyone writes, and
+          on a grid that&apos;s all land it recurses once per cell:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`numIslands(300 x 300 grid of "1")   recursive DFS
+RangeError: Maximum call stack size exceeded`}
+        </pre>
+        <p className="mt-3 text-muted">
+          It already overflowed at 100 by 100. The iterative BFS carries a 300
+          by 300 case in its checks, so the reason to know it is now in the
+          test suite rather than in my head.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I measured the finder on my own prompts, which flattered it
+        </h3>
+        <p className="text-muted">
+          The finder&apos;s test checks it against the short prompts I wrote
+          for each problem. Those prompts use my phrasing, which is the
+          phrasing the signals were written from. So I fetched LeetCode&apos;s
+          real statements for all 223 problems and scored it on those too:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`                          top 1      top 3
+my prompts                189/223    212/223
+LeetCode's statements     163/223    196/223
+theirs, after pruning     166/223    195/223`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Then I counted, for each phrase, how often it fired on its own
+          pattern&apos;s problems against everyone else&apos;s. Ten fired
+          mostly elsewhere. &quot;Pair&quot; and &quot;reverse&quot; were
+          two-pointer signals that turn up all over the catalogue, and
+          &quot;permutation&quot; sent Permutations, a backtracking problem, to
+          sliding window because Permutation in String uses the word. That one
+          became &quot;a permutation of&quot;. Dropping the rest bought three
+          first picks and cost one top-three, which is the honest size of it.
+          I didn&apos;t keep tuning against the real statements, since that
+          would only move the overfitting from my prompts to theirs.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I wrote that the drill mixes every pattern. It didn&apos;t.
+        </h3>
+        <p className="text-muted">
+          A review pass over the whole branch read the drill&apos;s deck
+          builder next to the beat above about interleaving. New cards came out
+          pattern by pattern, so a first session was every Arrays and Hashing
+          card before a single Two Pointers one: blocked practice, labelled
+          mixed. The tests checked which cards were due, never their order.
+          The deck now deals one problem from each pattern per round:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const rounds = Math.max(...patterns.map((pattern) => pattern.problems.length));
+return Array.from({ length: rounds }, (_, round) =>
+  patterns.flatMap((pattern) => {
+    const problem = pattern.problems[round];
+    return problem ? [{ problem, patternId: pattern.id }] : [];
+  }),
+).flat();`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The pattern page shipped every pattern to show one
+        </h3>
+        <p className="text-muted">
+          The same pass found the pattern page&apos;s client component
+          importing the whole catalogue to look up its neighbours and
+          prerequisites. The server now works those out and passes names and
+          ids, and a missing pattern, prerequisite or solution throws at build
+          time instead of rendering a gap:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`/learn/interview-prep/[pattern]   first-load JS, gzipped
+before   300.0KB
+after    242.7KB`}
+        </pre>
+        <p className="mt-3 text-muted">
+          The pass took things out as well: drill and finder options nothing
+          passed, two tests that only restated their own data, and copies of
+          the same class strings across seven files. A failed sign-in check
+          used to count as signed out, which would have saved a signed-in
+          rating into the browser. It&apos;s an error on the page now, and
+          rating stays off until the session is known.
+        </p>
       </Update>
 
       <WhatsNext
@@ -356,22 +458,22 @@ to type '0 | -1'.`}
           "A signal finder that ranks patterns for a pasted problem statement and shows the phrases behind each guess, a complexity budget from the input size, a recognition drill, an eight-week plan and a toolkit of the JS pieces LeetCode assumes.",
           "Spaced review on a 1 to 60 day ladder, stored on my account when signed in, with a one-time import from the browser and errors shown rather than swallowed.",
           "A TypeScript solution for every one of the 223 ladder problems, revealed in levels (hidden, basic logic, full code), each run against its checks and type-checked in strict mode by the test suite.",
+          "A second way for eight problems where it teaches something, from Quickselect to an iterative BFS that survives a 300 by 300 grid.",
+          "A nightly check that every ladder slug still names the same LeetCode problem, at the same difficulty, outside the paywall.",
+          "A drill that deals new cards round-robin across patterns, and pattern pages resolved on the server, 57KB lighter.",
           "A test that no learn demo implements arrow-key stepping itself, so the thirteen cannot quietly disagree about what the arrow keys do. Verified by adding a rogue handler and watching it go red.",
           "One useStepPlayer hook behind all thirteen demos, so play, pause, step and keyboard control behave identically everywhere and get fixed in one place.",
           "Characterisation tests written before the refactor, not after — they caught a step-past-the-end overrun that had been live.",
           "Autoplay stops from the callback rather than the state updater, so the updater stays a pure function of previous state.",
         ]}
         couldImprove={[
-          "The signal finder counts phrases, so a problem whose decisive word is outnumbered (Two Sum II's \"sorted\") ranks the wrong pattern first.",
-          "Nothing checks that the LeetCode slugs still resolve. A renamed problem would be a dead link I find by clicking it.",
-          "Each problem has one solution. Plenty have a second worth knowing (quickselect next to the heap, the doubly linked list behind the LRU cache's Map trick), and the steps only mention those in passing.",
+          "The signal finder counts phrases, so a problem whose decisive word is outnumbered (Two Sum II's \"sorted\") ranks the wrong pattern first. On LeetCode's own statements it picks right first time for 166 of 223.",
           "The drill shows real problem prompts, so after a few rounds I could be recognising the problem rather than the pattern. Fresh, reworded prompts would test the skill instead of my memory.",
           "The demos share a player but not a shape: each still hand-rolls its own layout and controls markup, so a visual change is thirteen edits. A shared DemoLayout would be the same argument one level up.",
           "The keyboard guard checks that no demo hand-rolls arrow stepping. It cannot check that a demo which should be stepped actually is one — a page with previous and next buttons and no hook would pass.",
           "Content is hard-coded per route. Steps as data rather than JSX would make a demo a file of steps instead of a component.",
         ]}
         upcoming={[
-          "A scheduled check that every LeetCode link in the playbook still returns a problem page.",
           "A mode that asks me to type the template from memory and diffs it against the real one, instead of only revealing it.",
           "Give the remaining learn routes the loading and error states the rest of the app just got, rather than only the hub.",
           "A shared DemoLayout, if the next demo I add makes me copy the markup a fourteenth time — which is the signal I trust more than a rule about counts.",
