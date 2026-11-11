@@ -12,8 +12,8 @@ import type { UpdateEntry } from "./types";
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
     id: "e-mind-reader",
-    date: "2026-10-26",
-    version: "9.1.0",
+    date: "2026-11-10",
+    version: "9.2.0",
     category: "feature",
     tags: ["game", "svelte"],
     title: "The Mind Reader: a party game for two",
@@ -23,6 +23,21 @@ export const UPDATE_ENTRIES: UpdateEntry[] = [
       "There are 240 roles in six categories, and you can pick a category or play them all. A role doesn't come up again until the deck is used up. Player A sees the role, hides it and starts the clock, then Player B guesses; there's a pause button, a running score and a fresh role for the next round.",
       "You can also play apart. Player A starts a room and sends the link, and Player B plays from their own phone. The role is dealt on Player A's device and doesn't reach Player B's until the round is over.",
       "It's also the first page on the site written in Svelte, and the write-up covers what that took.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-interview-prep",
+    date: "2026-11-04",
+    version: "9.1.0",
+    category: "feature",
+    tags: ["learn"],
+    title: "An interview prep playbook for LeetCode",
+    summary:
+      "Learn has a playbook for coding interviews: 23 problem-solving patterns, the wording that gives each one away, links to LeetCode problems to practise on, and a drill for spotting which pattern a problem wants.",
+    body: [
+      "Each pattern has the question to ask yourself, the phrases in a problem statement that point to it, a TypeScript template to write from memory before you peek, the usual traps, and a ladder of LeetCode problems from easy to hard. Every problem has a solution you can reveal in steps: the basic logic first, then the full TypeScript. Where a second approach teaches something, it sits underneath the first. Paste a problem statement into the playbook's front page and it suggests patterns and shows which words matched.",
+      "Rate each attempt and it comes back on a spaced schedule, from tomorrow out to two months. The recognition drill trains just the spotting step, mixed across every pattern. Sign in and your progress follows you between devices; anything you'd already done in this browser moves over the first time you do.",
     ],
     resolvedTicketIds: [],
   },
