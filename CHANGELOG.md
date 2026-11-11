@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-11-10 - version 9.2.0
+## 2026-11-11 - version 9.2.0
 
 - **New page, `/mind-reader`: a two-player party game, and the first Svelte on the site.** Player A is dealt a secret role toward Player B ("I am your bodyguard", "I am a spy trying to steal your wallet"), chats normally while dropping hints, and B has five minutes to work out what it is. The deck is 240 roles in six categories (protector, threat, secret, history, fantasy, everyday) in `src/app/mind-reader/_game/roles.data.ts`, and a role doesn't repeat until the deck or the chosen category is spent.
 - **The rules are plain TypeScript, the screen is Svelte 5.** `_game/game.ts` is a pure reducer (`setup`, `secret`, `playing`, `reveal`) with the dice and the clock passed in. `MindReader.svelte` uses runes and snippets. The clock is `role="timer"` with `aria-live="off"`, and a separate status region only announces one minute and ten seconds left. Focus moves to the new heading on each screen change, but not on first load.
@@ -11,6 +11,9 @@
 - Button styles and the screen-reader clock announcement moved into `buttonStyles.ts` and `clockAnnouncement` so both screens share them. They carry `ts-prune-ignore-next` comments because `pnpm deadcheck` can't see imports from `.svelte` files.
 - Hub wiring: a `FEATURES` entry with `--color-feature-mind-reader` in both themes, a `FEATURE_TOKEN` mapping, an `llms.txt` line, `PUBLIC_ROUTES`, and an opt-out in the world exhibits test (a two-person game has nothing to do for a lone visitor). The write-up is `/thoughts/mind-reader`.
 - Checked in a browser by CI's Playwright run against a production build: a full round on one device, axe on `/mind-reader`, and a round played as a room between two pages.
+## 2026-11-11 - version 9.1.1
+
+- **`/design-system` no longer fails the accessibility scan on the day its component of the day carries a landmark.** The spotlight and the gallery both render the pick, and `AgentDecisionCard` is a labelled `role="region"`, so on 2026-11-11 UTC the page had two identical regions and axe's `landmark-unique` failed in both themes. The spotlight preview is now `inert`, since it's a copy of the gallery card and has its own jump link. A unit test pins it on a day that picks that card, running `landmark-unique` by name because it's a best-practice rule the WCAG-scoped helper skips.
 
 ## 2026-11-04 - version 9.1.0
 

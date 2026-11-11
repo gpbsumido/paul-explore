@@ -846,7 +846,12 @@ export default function DesignSystemShowcaseContent({
               {daily.name}
             </p>
             <p className="mt-1 max-w-2xl text-sm text-muted">{daily.tagline}</p>
-            <div className="mt-4 flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4">
+            {/* Same component as the gallery card below, so it's inert: a pick
+                with a labelled landmark would otherwise be two of them. */}
+            <div
+              inert
+              className="mt-4 flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4"
+            >
               {PREVIEWS[daily.id]}
             </div>
             <div className="mt-4">

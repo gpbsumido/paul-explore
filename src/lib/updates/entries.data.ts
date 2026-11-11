@@ -12,7 +12,7 @@ import type { UpdateEntry } from "./types";
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
     id: "e-mind-reader",
-    date: "2026-11-10",
+    date: "2026-11-11",
     version: "9.2.0",
     category: "feature",
     tags: ["game", "svelte"],
