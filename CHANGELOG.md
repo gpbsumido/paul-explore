@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-11 - version 9.1.1
+
+- **`/design-system` no longer fails the accessibility scan on the day its component of the day carries a landmark.** The spotlight and the gallery both render the pick, and `AgentDecisionCard` is a labelled `role="region"`, so on 2026-11-11 UTC the page had two identical regions and axe's `landmark-unique` failed in both themes. The spotlight preview is now `inert`, since it's a copy of the gallery card and has its own jump link. A unit test pins it on a day that picks that card, running `landmark-unique` by name because it's a best-practice rule the WCAG-scoped helper skips.
+
 ## 2026-11-04 - version 9.1.0
 
 - **`/learn/interview-prep`, a LeetCode pattern playbook in TypeScript.** 23 patterns in four phases, from hash maps to bit manipulation, each at `/learn/interview-prep/<pattern>`: the question to ask, the wording that gives it away (strong signals flagged), when it's probably not this pattern, the complexity, a template hidden behind "Show the template" so it gets written from memory first, variants with checked examples, traps, JS and TS notes, and a ladder of LeetCode problems from easy to hard, each with its tell behind a disclosure. The data is in `src/lib/leetcode/patterns/`, one file per pattern.
