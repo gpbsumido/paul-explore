@@ -155,6 +155,27 @@ describe("DesignSystemShowcaseContent", () => {
         within(section as HTMLElement).getByRole("link", { name: /jump to/i }),
       ).toHaveAttribute("href", `#${pick.id}`);
     });
+
+    // The pick also lives in the gallery below, so a component that carries a
+    // labelled landmark (AgentDecisionCard is a region) shows up twice. axe's
+    // landmark-unique is a best-practice rule, so the WCAG-scoped helper
+    // doesn't run it; ask for it by name. This failed CI on whichever UTC day
+    // the rotation landed on that card.
+    it("keeps landmarks unique when the pick carries one", async () => {
+      const dayOfLandmarkPick = Array.from(
+        { length: COMPONENTS.length },
+        (_, offset) => new Date(Date.UTC(2026, 0, 1 + offset)),
+      ).find((date) => spotlightFor(date).id === "agent-decision-card");
+      expect(dayOfLandmarkPick).toBeDefined();
+
+      const { container } = render(
+        <DesignSystemShowcaseContent today={dayOfLandmarkPick} />,
+      );
+
+      expect(
+        await axe(container, { runOnly: ["landmark-unique"] }),
+      ).toHaveNoViolations();
+    });
   });
 
   describe("Component explorer", () => {
