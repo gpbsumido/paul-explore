@@ -55,6 +55,9 @@ describe("world exhibits", () => {
       // would walk someone to their own empty ledger, with nothing shared to
       // look at until they start logging.
       "budget",
+      // A game for two people sharing one screen. An exhibit would walk a lone
+      // visitor to a page that needs a second person to do anything on it.
+      "mind-reader",
       // The NBA fantasy exhibit already covers this block of the city; a
       // second fantasy-sport booth right next to it would read as filler
       // rather than a distinct landmark. Revisit once the plays ticker gives

@@ -34,6 +34,25 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // .svelte files are compiled by our own tiny loader (see the file for why).
+  // Turbopack is the default bundler; the webpack rule keeps `pnpm analyze`
+  // working, since that script opts into webpack.
+  turbopack: {
+    rules: {
+      "*.svelte": {
+        loaders: [path.resolve(__dirname, "scripts/svelte-loader.js")],
+        as: "*.js",
+      },
+    },
+  },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svelte$/,
+      use: path.resolve(__dirname, "scripts/svelte-loader.js"),
+    });
+    return config;
+  },
+
   async redirects() {
     return evarRedirects();
   },
