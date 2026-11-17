@@ -767,6 +767,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   "gallery-wall": "--color-feature-gallery-wall",
   updates: "--color-feature-updates",
   zeroproof: "--color-feature-zeroproof",
+  "mind-reader": "--color-feature-mind-reader",
 };
 
 // Mini changelog feed for the hub card: a category dot, a title, and a version

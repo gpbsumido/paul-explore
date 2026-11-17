@@ -218,9 +218,25 @@ export const FEATURES: FeatureItem[] = [
     color: "#2d7d46",
     thoughtsHref: "/thoughts/budget",
   },
+  {
+    id: "mind-reader",
+    title: "The Mind Reader",
+    description:
+      "A two-player party game written in Svelte: one of you is dealt a secret role or relationship (a bodyguard, a spy after your wallet, a time traveller), drops hints in normal conversation, and the other has five minutes to work out what it is. Over 200 roles.",
+    href: "/mind-reader",
+    color: "#7c4fa3",
+    thoughtsHref: "/thoughts/mind-reader",
+  },
 ];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "My first Svelte, inside a Next app",
+    href: "/thoughts/mind-reader",
+    preview:
+      "Learning Svelte 5 by building a party game: game rules kept in plain TypeScript, a ten-line loader to get a .svelte file through Turbopack, and the compiler warnings and test timeouts that taught me the runes",
+    color: "#7c4fa3",
+  },
   {
     title: "Micro-frontends",
     href: "/thoughts/micro-frontends",
