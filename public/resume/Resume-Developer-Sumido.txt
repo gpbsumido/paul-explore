@@ -1,114 +1,91 @@
 GLENN PAUL SUMIDO
-Lead Frontend Developer
+Full-Stack Software Engineer
 
 Toronto, ON | 613-700-7474 | psumido@gmail.com
 LinkedIn: linkedin.com/in/paulsumido | GitHub: github.com/gpbsumido
-Portfolio: paulsumido.com | Write-ups: paulsumido.com/thoughts
+Portfolio: paulsumido.com
 
 ============================================================
 SUMMARY
 ============================================================
-Frontend engineer with 9+ years building data-intensive web applications in
-React and TypeScript. Frontend lead on enterprise SaaS - conversational AI
-interfaces, large visualization dashboards, and a framework-agnostic design
-system spanning React and Angular. Primary author of two public npm packages:
-a client analytics SDK and that design system. Deep focus on performance,
-automated testing, accessibility, and turning ambiguous product goals into
-production-ready experiences.
+Full-stack engineer with over 9 years building data-intensive web apps.
+Frontends delivered in React and TypeScript with Node.js and Python behind it.
+Frontend lead for enterprise SaaS and primary author of two public npm
+packages. Focus on performance, automated testing, and accessibility.
 
 ============================================================
-SKILLS
+TECHNICAL SKILLS
 ============================================================
-Languages:              TypeScript, JavaScript (ES2023), HTML5, CSS3 / Sass, Python, SQL
-Frameworks & UI:        React 19, Next.js, Angular 21, Redux, Zustand, TanStack
-                        Query, MUI, Tailwind, Framer Motion, GSAP
-Design Systems:         Design tokens, CSS custom properties, component library
-                        architecture, Storybook, Figma, WCAG accessibility
-Data & Viz:             Custom SVG charting, ECharts, Recharts, Chart.js, ag-Grid,
-                        Three.js / React Three Fiber, MapLibre / Leaflet
-APIs & Data:            REST, GraphQL, Zod validation, Auth0, BFF auth pattern,
-                        Node.js / Express, PostgreSQL
-Testing:                Vitest, Jest, React Testing Library, MSW, Playwright, Cypress,
-                        mutation testing
-Tooling & Infra:        Docker, AWS (Amplify, S3), Vercel, Railway, CI/CD, real-user
-                        Core Web Vitals monitoring
+Languages:              TypeScript, JavaScript, Python, SQL, HTML5, CSS3 / Sass
+Back End & Data:        Node.js, REST, GraphQL, PostgreSQL, knex migrations,
+                        Zod, Auth0
+Front End:              React 19, Next.js, Angular 21, Redux, Zustand, TanStack
+                        Query, Tailwind, Storybook, WCAG accessibility
+Data Viz:               Custom SVG charting, ECharts, Recharts, Three.js /
+                        React Three Fiber
+Testing & Infra:        Vitest, Jest, React Testing Library, Playwright,
+                        Cypress, mutation testing; Docker, AWS, Vercel, CI/CD
 
 ============================================================
 EXPERIENCE
 ============================================================
 Helika - Senior Software Developer (Frontend Lead)          Jun 2023 - Feb 2026
-Web3 gaming-analytics SaaS | Calgary (Remote)
-- Led frontend development of Helika's enterprise gaming-analytics platform as
-  top contributor, building a reusable 15-component charting library powering
-  game, web, and on-chain dashboards of 20+ visualizations each in React,
-  Next.js, and TypeScript.
-- Designed and shipped Helika AI, a production conversational analytics
-  assistant clients use to query game data in natural language and receive
-  live, interactive artifacts - charts, dashboards, leaderboards, config
-  changes - rendered inline in chat.
-- Architected the chat around a decoupled controller / state machine, letting
-  the UI swap a single chat endpoint for a session-scoped multi-agent backend
-  without a rewrite.
-- Built the portal's drag-and-drop Dashboard and Visual Designer (ECharts,
-  ag-Grid, gridstack) powering game, web, and on-chain dashboards, serving
-  multiple enterprise studios.
-- Drove portal-wide performance work: rewrote the API/query layer in a large
-  refactor with a net code reduction of over 15%, built a data-service
-  cache-busting system, eliminated redundant network calls, and modularized
-  monolithic components.
-- Hardened the product with response streaming, Auth0 authentication, and
-  Sentry monitoring; shipped investor-facing features through multiple
-  fundraising rounds.
+Calgary (Remote)
+- Led frontend of the enterprise gaming-analytics platform: a reusable
+  15-component charting library behind game, web and on-chain dashboards of
+  20+ visualizations each (React, Next.js, TypeScript).
+- Shipped Helika AI, a conversational analytics assistant that returns live
+  charts, dashboards, leaderboards and config changes inline, on a decoupled
+  state machine that swapped in a multi-agent backend without a rewrite.
+- Built the drag-and-drop Dashboard and Visual Designer (ECharts, ag-Grid,
+  gridstack) for multiple enterprise studios.
+- Rewrote the API/query layer (net 15% less code), added cache-busting and
+  removed redundant calls; hardened the product with response streaming, Auth0
+  and Sentry; shipped investor-facing features through multiple fundraising
+  rounds.
 
 Refmint - Frontend Developer                                Feb 2022 - Jun 2023
-Referral and rewards platform | Vancouver (Remote)
-- Built data-heavy React applications with a strong focus on performance,
-  improving page load times ~40% through lazy loading and caching.
-- Built and maintained a reusable UI component library shared across internal
-  and customer-facing applications; streamlined delivery with automated CI/CD
-  build pipelines.
+Vancouver (Remote)
+- Cut page load times 40% on data-heavy React apps with lazy loading and
+  caching; built a shared UI component library with automated CI/CD pipelines.
 
 PeopleInsight - Front-End Developer (Analytics)             Apr 2017 - Jan 2022
-Enterprise HR analytics | Ottawa
-- Built interactive dashboards for enterprise HR analytics in React,
-  partnering with UX designers to turn complex requirements into intuitive
-  interfaces.
-- Developed survey-driven data-collection workflows with validation logic and
-  automated testing, and automated data-processing pipelines that reduced
-  manual effort and improved data quality.
-- Reduced data-analytics QA time by 80% through automated verification
-  queries.
+Ottawa
+- Built interactive React dashboards for enterprise HR analytics, plus
+  survey-driven data collection with validation logic and automated testing.
+- Automated data-processing pipelines and verification queries, cutting
+  analytics QA time by 80%.
 
 ============================================================
-OPEN SOURCE
+PROJECTS
 ============================================================
-- helika-web-sdk - Primary author of Helika's public web SDK (175 of 197
-  commits, 84 merged PRs), published to npm as helika-sdk; also authored the
-  public sdk-demo-react and sdk-demo-nextjs reference integrations.
-  github.com/getlidar/helika-web-sdk
+Paul Design System - Tokens, React, Angular, Storybook
+paulsumido.com/design-system
+- Design tokens compiled to CSS custom properties, feeding 33 React and 33
+  standalone Angular components and 11 SVG chart types with no charting
+  library; zero runtime dependencies, 82 test files.
 
-============================================================
-SELECTED PROJECTS
-============================================================
-- Paul Design System - paulsumido.com/design-system |
-  github.com/gpbsumido/paul-design-system - Framework-agnostic design system
-  published to npm as @paul-portfolio/{tokens,css,react,angular}: design
-  tokens compiled to CSS custom properties, feeding 33 React and 33
-  standalone Angular components, including 11 chart types drawn from a shared
-  SVG geometry layer with no charting library. Zero runtime dependencies, 82
-  test files, Storybook.
-- paulsumido.com (live) - Next.js application with 106 routes and 62 API
-  routes: BFF auth pattern with no tokens exposed to the browser, GraphQL
-  gateway, feature flags with an audit trail, and a real-user Core Web Vitals
-  pipeline reporting P75 by route and release. 238 test files plus Playwright
-  end-to-end coverage.
-- angular-paul - live at angular.paulsumido.com |
-  github.com/gpbsumido/angular-paul - macOS-style desktop-OS portfolio in
-  Angular 21 using standalone components, signals, zoneless change detection,
-  and SSR with incremental hydration.
+paulsumido.com - Next.js, Node/Express, PostgreSQL, GraphQL
+paulsumido.com
+- Next.js app with 110+ API routes on a Node/Express and PostgreSQL backend
+  (knex migrations): BFF auth, a GraphQL gateway, feature flags with an audit
+  trail, a Core Web Vitals pipeline and Playwright end-to-end coverage.
+- Realtime world presence over Ably and an interview-prep playbook with 223
+  tested TypeScript solutions.
+
+helika-web-sdk - TypeScript, npm, Web3 analytics
+github.com/getlidar/helika-web-sdk
+- Primary author of Helika's public TypeScript web SDK.
+- Public SDK that game studios drop into their platform to handle user
+  identification, sessions and event dispatch.
+
+angular-paul - Angular 21, signals, SSR
+angular.paulsumido.com
+- macOS-style desktop-OS portfolio using standalone components, signals,
+  zoneless change detection, and SSR with incremental hydration.
 
 ============================================================
 EDUCATION
 ============================================================
 Bachelor of Engineering - Communications Engineering        2013 - 2018
-Carleton University, Ottawa
+Carleton University, Ottawa, ON

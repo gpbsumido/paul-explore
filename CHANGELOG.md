@@ -2,7 +2,7 @@
 
 ## 2026-11-17 - version 9.2.1
 
-- **`/resume` serves the new résumé.** The PDF and the Word export are replaced with the current version, which is retitled Full-stack Software Engineer and has a reworked summary and skills section. The filenames are unchanged, so the page and its download links needed no edit. `Resume-Developer-Sumido.txt` is not part of this change and still has the old content.
+- **`/resume` serves the new résumé.** The PDF and the Word export are replaced with the current version, which is retitled Full-stack Software Engineer and has a reworked summary and skills section. The plain-text copy is rewritten from the Word file to match, so the three formats agree: the Open Source section is gone and helika-web-sdk is listed under Projects. The filenames are unchanged, so the page and its download links needed no edit.
 
 ## 2026-11-11 - version 9.2.0
 
