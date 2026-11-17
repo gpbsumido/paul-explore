@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 - version 9.2.1
+
+- **`/resume` serves the new résumé.** The PDF and the Word export are replaced with the current version, which is retitled Full-stack Software Engineer and has a reworked summary and skills section. The filenames are unchanged, so the page and its download links needed no edit. `Resume-Developer-Sumido.txt` is not part of this change and still has the old content.
+
 ## 2026-11-11 - version 9.2.0
 
 - **New page, `/mind-reader`: a two-player party game, and the first Svelte on the site.** Player A is dealt a secret role toward Player B ("I am your bodyguard", "I am a spy trying to steal your wallet"), chats normally while dropping hints, and B has five minutes to work out what it is. The deck is 240 roles in six categories (protector, threat, secret, history, fantasy, everyday) in `src/app/mind-reader/_game/roles.data.ts`, and a role doesn't repeat until the deck or the chosen category is spent.
