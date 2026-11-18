@@ -568,6 +568,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#3aaea1",
   },
   {
+    title: "Thirteen Bugs That Looked Fine",
+    href: "/thoughts/codebase-audit",
+    preview:
+      "An audit-only pass turned up thirteen bugs that were each a failure dressed up as a plausible result, and I fixed them as one stack of red-first PRs",
+    color: "#5a7fa8",
+  },
+  {
     title: "Taking the Database Off the Public Internet",
     href: "/thoughts/database-networking",
     preview:
