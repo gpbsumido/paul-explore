@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.5
+
+- **Resuming a restock keeps the session and the slots already counted.** Resume cleared the stored session id on any failure, so a dropped connection or a 502 told the restocker the restock was "no longer open" and the next tap opened a new, empty one. The counts were still on the server, just unreachable from the phone. Now only a 404 or a completed session drops the id; anything else shows an error and leaves the Resume button there to try again. Resume also ignored the lines the server sent back, so every slot looked uncounted after a reload even though it had been saved. Those lines now seed the drafts, so saved slots show as done and are part of the review.
+
 ## 2026-11-18 - version 9.2.4
 
 - **Operator writes only fall back to the demo data when portfolio_api never answered.** Every write (restock, dismiss, planogram, restock sessions, promotions) used to fall back to the in-memory seed on any error except 401 and 403. That covered real answers from the API too: a 409 or a 500 was replayed against the seed and reported as a success nothing persisted, and a 2xx whose body didn't parse could apply the write twice, once upstream and once in the seed. Now a 404 comes back as not found, any other status from the API reaches the browser (4xx as is, 5xx as a 502), and an unreadable 2xx is a 502 that says the change may have been saved. Only a request that never got an answer uses the seed, which is what the fallback is for. The eight copies of the write try/catch are now one `writeWithFallback`, and those fallbacks are logged like the read ones.
