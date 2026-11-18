@@ -942,7 +942,7 @@ export function FeatureCard({
         <div className="mb-1 flex items-center gap-2">
           <div
             className="h-2 w-2 shrink-0 rounded-full"
-            style={{ backgroundColor: feature.color }}
+            style={{ backgroundColor: `var(${token})` }}
           />
           <h3 className="text-[15px] font-semibold leading-snug text-foreground">
             {feature.title}
