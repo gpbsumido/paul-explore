@@ -25,6 +25,7 @@ import InfiniteCalendarScroll, {
   type InfiniteCalendarScrollHandle,
 } from "@/components/calendar/InfiniteCalendarScroll";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import type { EventDraft } from "@/components/calendar/EventModal";
 import { useCountdowns } from "@/hooks/useCountdowns";
 import { useCalendars } from "@/hooks/useCalendars";
 import type {
@@ -296,14 +297,11 @@ export default function CalendarContent({
     setCountdownModal({ open: true, editingCountdown: countdown });
   }, []);
 
-  async function handleSave(eventData: CalendarEvent) {
-    if (modal.open && modal.editingEvent) {
-      const { id, ...fields } = eventData;
-      await calendarEvents.updateEvent(id, fields);
-    } else {
-      const { id: _id, ...fields } = eventData;
-      await calendarEvents.createEvent(fields);
-    }
+  async function handleSave(eventData: EventDraft): Promise<CalendarEvent> {
+    const { id, ...fields } = eventData;
+    return id
+      ? calendarEvents.updateEvent(id, fields)
+      : calendarEvents.createEvent(fields);
   }
 
   async function handleDelete(id: string) {
