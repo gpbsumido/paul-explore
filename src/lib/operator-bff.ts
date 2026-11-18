@@ -329,70 +329,82 @@ export async function loadFinance(): Promise<FinanceResponse> {
 }
 
 /**
- * Falls through to the seed only when the API is genuinely unreachable.
+ * A write that prefers the live API and falls back to the seed only when the
+ * API never answered.
  *
- * A 401 or 403 means the service token is missing here or does not match
- * portfolio_api, which is a misconfiguration rather than an outage. Falling
- * back on it would be the worst outcome available: the write would appear to
- * succeed against in-memory data, persist nothing, and look exactly like it
- * worked. That is the fiction this dashboard exists to not be, so it is
- * rethrown with a diagnosis instead of swallowed.
+ * Once the API has answered, the seed has no business standing in. A 404 means
+ * the target doesn't exist upstream, so it comes back as `undefined` and the
+ * route answers 404. Any other status is the API's verdict on this write, and
+ * a 2xx with an unreadable body means the write may already have applied, so
+ * both go back to the route rather than being replayed against in-memory data
+ * that would report a success nothing persisted.
+ *
+ * A 401 or 403 is called out on its own: it means OPERATOR_SERVICE_TOKEN is
+ * missing here or different from portfolio_api's, a misconfiguration rather
+ * than a rejected write, so it gets a diagnosis instead of a bare status.
  */
-function rethrowIfMisconfigured(err: unknown): void {
-  if (
-    err instanceof api.OperatorApiError &&
-    (err.status === 401 || err.status === 403)
-  ) {
-    console.error(
-      `[operator] the API rejected a write with ${err.status}. OPERATOR_SERVICE_TOKEN is likely unset here or different from the one portfolio_api expects. Not falling back to seed data, because that would make the write look like it succeeded.`,
-    );
-    throw new OperatorServiceTokenError(err.status);
+async function writeWithFallback<T>(
+  label: string,
+  write: () => Promise<T>,
+  fallback: () => T | undefined,
+): Promise<T | undefined> {
+  try {
+    return await write();
+  } catch (err) {
+    if (err instanceof api.OperatorApiError) {
+      if (err.status === 401 || err.status === 403) {
+        console.error(
+          `[operator] the API rejected a write with ${err.status}. OPERATOR_SERVICE_TOKEN is likely unset here or different from the one portfolio_api expects. Not falling back to seed data, because that would make the write look like it succeeded.`,
+        );
+        throw new OperatorServiceTokenError(err.status);
+      }
+      if (err.status === 404) return undefined;
+      throw err;
+    }
+    if (err instanceof api.OperatorContractError) throw err;
+    noteFallback(label, err);
+    return fallback();
   }
 }
 
 // ---------------------------------------------------------------------------
-// Writes — fall back to the seed when the API is down, the same as the reads. The
-// seed returns `undefined` for an id it doesn't know (e.g. a real backend
-// UUID), so an unknown target still surfaces as a 404 at the route; but a
-// seed-id write while the backend is up (or down) still applies, instead of
-// reads working while writes 404.
+// Writes — fall back to the seed only when the API is down. The seed returns
+// `undefined` for an id it doesn't know (e.g. a real backend UUID), so an
+// unknown target still surfaces as a 404 at the route.
 // ---------------------------------------------------------------------------
 
 export async function applyRestock(
   storeId: string,
   itemIds: string[],
 ): Promise<RestockResult | undefined> {
-  try {
-    return await api.postRestock(storeId, itemIds);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.restockItems(storeId, itemIds);
-  }
+  return writeWithFallback(
+    "applyRestock",
+    () => api.postRestock(storeId, itemIds),
+    () => seed.restockItems(storeId, itemIds),
+  );
 }
 
 export async function applyDismiss(
   alertId: string,
 ): Promise<Alert | undefined> {
-  try {
-    return await api.patchDismiss(alertId);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.dismissAlert(alertId);
-  }
+  return writeWithFallback(
+    "applyDismiss",
+    () => api.patchDismiss(alertId),
+    () => seed.dismissAlert(alertId),
+  );
 }
 
 export async function applyPlanogramUpdate(
   storeId: string,
   update: PlanogramUpdate,
 ): Promise<PlanogramSlot[] | undefined> {
-  try {
-    return await api.patchPlanogram(storeId, update);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return "boxes" in update
+  return writeWithFallback(
+    "applyPlanogramUpdate",
+    () => api.patchPlanogram(storeId, update),
+    () => "boxes" in update
       ? seed.setPlanogram(storeId, update.boxes)
-      : seed.resyncPlanogramSlot(storeId, update.resyncItemId);
-  }
+      : seed.resyncPlanogramSlot(storeId, update.resyncItemId),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -460,12 +472,11 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
 export async function openRestockSession(
   storeId: string,
 ): Promise<RestockSession | undefined> {
-  try {
-    return await api.postRestockSession(storeId);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.openRestockSession(storeId);
-  }
+  return writeWithFallback(
+    "openRestockSession",
+    () => api.postRestockSession(storeId),
+    () => seed.openRestockSession(storeId),
+  );
 }
 
 export function loadRestockSessions(
@@ -495,12 +506,11 @@ export async function saveRestockLine(
   itemId: string,
   body: RestockLineBody,
 ): Promise<RestockLine | undefined> {
-  try {
-    return await api.putRestockLine(sessionId, itemId, body);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.upsertRestockLine(sessionId, itemId, body);
-  }
+  return writeWithFallback(
+    "saveRestockLine",
+    () => api.putRestockLine(sessionId, itemId, body),
+    () => seed.upsertRestockLine(sessionId, itemId, body),
+  );
 }
 
 export async function applyRestockSession(
@@ -515,12 +525,11 @@ export async function applyRestockSession(
     }
   | undefined
 > {
-  try {
-    return await api.postCompleteRestock(sessionId, notes);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.completeRestockSession(sessionId, notes);
-  }
+  return writeWithFallback(
+    "applyRestockSession",
+    () => api.postCompleteRestock(sessionId, notes),
+    () => seed.completeRestockSession(sessionId, notes),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -539,23 +548,21 @@ export async function createPromotion(
   storeId: string,
   body: api.PromotionBody,
 ): Promise<Promotion | undefined> {
-  try {
-    return await api.postPromotion(storeId, body);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.insertPromotion(storeId, body);
-  }
+  return writeWithFallback(
+    "createPromotion",
+    () => api.postPromotion(storeId, body),
+    () => seed.insertPromotion(storeId, body),
+  );
 }
 
 export async function stopPromotion(
   promotionId: string,
 ): Promise<Promotion | undefined> {
-  try {
-    return await api.patchEndPromotion(promotionId);
-  } catch (err) {
-    rethrowIfMisconfigured(err);
-    return seed.endPromotion(promotionId);
-  }
+  return writeWithFallback(
+    "stopPromotion",
+    () => api.patchEndPromotion(promotionId),
+    () => seed.endPromotion(promotionId),
+  );
 }
 
 export async function loadPromotionPerformance(promotionId: string) {

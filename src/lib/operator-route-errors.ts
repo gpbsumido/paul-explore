@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { InvalidSegmentError } from "@/lib/safeSegment";
+import { OperatorApiError, OperatorContractError } from "@/lib/operator-client";
 
 /**
  * The operator API rejected us rather than being unavailable.
@@ -60,6 +61,26 @@ export function withOperatorErrors<T extends unknown[]>(
       if (err instanceof OperatorUnavailableError) {
         // 503, not an empty 200. An empty list is a claim about the store.
         return NextResponse.json({ error: err.message }, { status: 503 });
+      }
+      if (err instanceof OperatorApiError) {
+        // The API answered a write and said no. A 4xx is about the request, so
+        // the caller gets it as is; a 5xx is the API failing, which from here
+        // is a bad gateway.
+        const status = err.status >= 500 ? 502 : err.status;
+        return NextResponse.json(
+          { error: `The operator API rejected this write (${err.status}).` },
+          { status },
+        );
+      }
+      if (err instanceof OperatorContractError) {
+        console.error("[operator] unreadable answer to a write:", err);
+        return NextResponse.json(
+          {
+            error:
+              "The operator API answered with something unreadable. The change may have been saved, so reload before trying again.",
+          },
+          { status: 502 },
+        );
       }
       if (err instanceof InvalidSegmentError) {
         // A rejected path segment is a malformed caller id, not the API being

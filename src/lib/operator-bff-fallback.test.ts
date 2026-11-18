@@ -17,6 +17,7 @@ vi.mock("@/lib/operator-client", () => ({
       this.name = "OperatorApiError";
     }
   },
+  OperatorContractError: class OperatorContractError extends Error {},
   fetchStores: vi.fn(),
   fetchStore: vi.fn(),
   fetchInventory: vi.fn(),
