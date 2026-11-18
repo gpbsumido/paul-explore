@@ -346,7 +346,7 @@ export default function CalendarModal({
   const isEdit = !!calendar;
   const isOwner = !calendar || calendar.role === "owner";
   const queryClient = useQueryClient();
-  const { connected } = useGoogleCalendarStatus();
+  const { connected, statusUnavailable } = useGoogleCalendarStatus();
 
   // non-owners go straight to the sharing tab — they can't edit calendar details
   const [tab, setTab] = useState<"details" | "sharing">(
@@ -580,7 +580,9 @@ export default function CalendarModal({
                     className="relative flex-1"
                     title={
                       isDisabled
-                        ? "Connect Google Calendar in Settings first"
+                        ? statusUnavailable
+                          ? "Couldn't check your Google connection. Try again later."
+                          : "Connect Google Calendar in Settings first"
                         : undefined
                     }
                   >
