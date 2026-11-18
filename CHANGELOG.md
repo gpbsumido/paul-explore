@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.7
+
+- **Feature colours agree with their tokens again.** Each feature has a theme-aware token pair in `tokens.css` and one hex in the feature data for places that can't switch on theme, like reel dots and graph nodes. The hex is meant to be derived from the pair, but when the palette was swapped four of them kept their old hue: Vitals was green in the data and purple in its token, and Learn, NBA and Calendar were off by 50 to 120 degrees. The hub card painted its dot from the data and its tint from the token, so those cards showed two colours. The four are re-derived from their tokens, Zeroproof and Mind Reader are lightened to clear 3:1 on the dark surface (they were at 2.89 and 2.95), and the card dot now reads the token. A test checks every feature's hue against its token and its contrast against both themes.
+
 ## 2026-11-18 - version 9.2.6
 
 - **Button, Chip and Input stop dropping the props they're given.** Button with an `href` only forwarded its variant, size and class, so an `aria-label`, `target` or `onClick` on a link button type-checked and then disappeared. It now passes everything through to the design-system Button, which already renders both shapes, and its props are typed as a button or a link depending on `href`. The link form of Chip accepted `onClick`, `onRemove`, `color` and `fullWidth` and ignored them; it now refuses them at compile time, since a handler or a remove button inside a link would be a control inside a control. Input with `hideLabel` rendered a hidden `<label htmlFor>` pointing at an id the input never got, so the input now gets that id.
