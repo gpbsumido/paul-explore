@@ -410,9 +410,12 @@ export default function EventModal({
           {/* Calendar selector — only shown when the user has more than one calendar */}
           {calendars.length > 1 && (
             <div>
-              <p className={LABEL_CLASS}>Calendar</p>
+              <label htmlFor={`${uid}-calendar`} className={LABEL_CLASS}>
+                Calendar
+              </label>
               <div className="relative mt-1">
                 <select
+                  id={`${uid}-calendar`}
                   value={calendarId ?? ""}
                   onChange={(e) => setCalendarId(e.target.value || undefined)}
                   className="w-full appearance-none pl-6 pr-3 py-1.5 text-sm rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
