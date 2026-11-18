@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.15
+
+- New write-up at `/thoughts/codebase-audit` on the audit behind 9.2.2 to 9.2.14: how I ran an audit that wasn't allowed to fix anything, why nearly every bug it found was a failure reported as a plausible result, and the five that cut across the whole site (canonical URLs, `encodeURIComponent` path ids, dropped Button props, drifted feature colours, the reduced-motion remount). The feature-specific fixes are dated updates on the write-ups they belong to: operator (write fallback and restock resume), calendar (card saves, the e2e calendar, the Google status check), playoffs (failed saves), ZeroProof (signed-out bets) and Fantasy TCG (the rip pool). The operator timeline test only knew July and August, so it now knows every month.
+
 ## 2026-11-18 - version 9.2.14
 
 - The calendar used to treat any failure from the Google status check as "not connected". So a 500 told people who had already connected their account to go and connect it. Now only a 401 means not connected. Any other failure says the check couldn't be done, and the two-way option explains that instead of pointing at Settings.
