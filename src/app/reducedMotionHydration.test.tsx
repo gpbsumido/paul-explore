@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { act } from "react";
+import { act, useEffect } from "react";
 import { renderToString } from "react-dom/server";
 import { hydrateRoot } from "react-dom/client";
 
@@ -104,5 +104,63 @@ describe("reduced motion across hydration", () => {
     expect(container.querySelector("[data-testid=probe]")?.textContent).toBe(
       "reduced",
     );
+  });
+});
+
+describe("the page under the template", () => {
+  /**
+   * The flag above can only flip to "reduced" after hydration. template.tsx
+   * used to render a fragment for reduced motion and an m.div otherwise, so
+   * that flip swapped the element above every page and React threw the whole
+   * page away and mounted it again: effects ran twice, fetches fired twice,
+   * and any state set in between was lost.
+   */
+  it("mounts once for a reduced-motion visitor", async () => {
+    const mounts = { count: 0 };
+
+    stubPreference(false);
+    vi.resetModules();
+    vi.doMock("framer-motion", async (importOriginal) => ({
+      ...(await importOriginal<typeof import("framer-motion")>()),
+      useReducedMotion: () => null,
+    }));
+    const server = await import("./template");
+    const serverProviders = await import("./providers");
+    function Page() {
+      useEffect(() => {
+        mounts.count += 1;
+      }, []);
+      return <p>page</p>;
+    }
+    const html = renderToString(
+      <serverProviders.Providers>
+        <server.default>
+          <Page />
+        </server.default>
+      </serverProviders.Providers>,
+    );
+
+    stubPreference(true);
+    vi.resetModules();
+    vi.doUnmock("framer-motion");
+    const client = await import("./template");
+    const clientProviders = await import("./providers");
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    await act(async () => {
+      hydrateRoot(
+        container,
+        <clientProviders.Providers>
+          <client.default>
+            <Page />
+          </client.default>
+        </clientProviders.Providers>,
+        { onRecoverableError: () => {} },
+      );
+    });
+
+    expect(mounts.count).toBe(1);
   });
 });
