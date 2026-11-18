@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.11
+
+- **Pages no longer mount twice for visitors who prefer reduced motion.** The route template wrapped each page in a fading `m.div`, or in a bare fragment when reduced motion was on. The server can't see that preference, so the flag only turns on after hydration, and swapping the element above the page at that moment made React throw the page away and mount it again: every effect ran twice and every client fetch on first load fired twice for those visitors. The wrapper now stays in place and reduced motion just skips the fade.
+
 ## 2026-11-18 - version 9.2.10
 
 - **The calendar e2e test stays out of real calendars, and the event modal's calendar picker has a label.** The authenticated calendar test meant to put its event in a throwaway test calendar by clicking `button[data-calendar-id]`, but nothing renders that, and an `isVisible()` guard skipped the click without failing, so every run wrote to the account's real default calendar. Its header also promised an `afterEach` cleanup that didn't exist, so a failure partway through left the event behind. The test now picks the test calendar from the modal's picker, checks the created event landed there, and records every event it creates so `afterEach` deletes anything left over. The picker it uses had no label, just a `<p>` above an unlabelled `<select>`, so screen readers announced a bare combobox; it's a real `<label>` now.
