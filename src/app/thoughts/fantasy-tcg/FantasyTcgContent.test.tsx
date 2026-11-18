@@ -19,4 +19,12 @@ describe("FantasyTcgContent", () => {
       .map((a) => a.getAttribute("href"));
     expect(links).toContain("/fantasy/nba/cards");
   });
+
+  it("carries the rip-pool update, linked from the timeline", () => {
+    render(<FantasyTcgContent />);
+    expect(document.getElementById("update-rip-pool")).not.toBeNull();
+    expect(
+      screen.getByRole("link", { name: /a pack from a slate you weren.t looking at/i }),
+    ).toHaveAttribute("href", "#update-rip-pool");
+  });
 });

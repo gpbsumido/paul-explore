@@ -695,4 +695,15 @@ describe("operator-dashboard write-up registration", () => {
       group?.items.some((t) => t.href === "/thoughts/operator-dashboard"),
     ).toBe(true);
   });
+
+  it("has a timeline entry linking to the write-fallback and resume update", () => {
+    render(<OperatorDashboardContent />);
+    expect(
+      document.getElementById("update-2026-11-18-writes-and-resume"),
+    ).not.toBeNull();
+    const link = screen.getByRole("link", {
+      name: /the fallback that turned refusals into successes/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-11-18-writes-and-resume");
+  });
 });
