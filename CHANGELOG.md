@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.12
+
+- **Card Lab packs come from the slate on screen.** Ripping a pack rebuilds the pool on the server so the client can't pick its own cards, but it rebuilt the wrong one. The page honours `?season=` while the rip always used 2025, and the NBA season view is built from the fantasy league's season totals while the rip built a nightly slate for it, so a pack in either case came from a pool you weren't looking at. The rip now gets the season from the page, and the NBA season pool and the default season live in one module (`card-lab-pool.ts`) that both the page and the rip use.
+
 ## 2026-11-18 - version 9.2.11
 
 - **Pages no longer mount twice for visitors who prefer reduced motion.** The route template wrapped each page in a fading `m.div`, or in a bare fragment when reduced motion was on. The server can't see that preference, so the flag only turns on after hydration, and swapping the element above the page at that moment made React throw the page away and mount it again: every effect ran twice and every client fetch on first load fired twice for those visitors. The wrapper now stays in place and reduced motion just skips the fade.
