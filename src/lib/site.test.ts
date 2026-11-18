@@ -19,6 +19,11 @@ describe("buildArticleMetadata", () => {
     expect(meta.openGraph?.url).toBe(`${SITE_URL}${base.path}`);
   });
 
+  it("declares the page's own path as its canonical URL", () => {
+    const meta = buildArticleMetadata(base);
+    expect(meta.alternates?.canonical).toBe(base.path);
+  });
+
   it("defaults the open-graph type to article", () => {
     const meta = buildArticleMetadata(base);
     expect(meta.openGraph?.type).toBe("article");
