@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.8
+
+- **Cards attached to a calendar event are saved, or the modal says they weren't.** Every card add, update and remove in the event modal ended in `.catch(() => null)`, and the modal closed as if everything had saved. It was worse for a new event: the modal wrote cards to a random id it made up, while the page threw that id away and let the server assign the real one, so every card on a new event failed and the failure was hidden. Now `onSave` creates when there's no id and updates when there is, and returns the saved event. Cards go to that event's id. If any card change fails, the modal stays open, says how many didn't save, keeps only the failed changes for the retry, and the retry updates the same event instead of creating a second one. Saving also stopped PUTting every attached card; only cards whose quantity or notes changed are sent.
+
 ## 2026-11-18 - version 9.2.7
 
 - **Feature colours agree with their tokens again.** Each feature has a theme-aware token pair in `tokens.css` and one hex in the feature data for places that can't switch on theme, like reel dots and graph nodes. The hex is meant to be derived from the pair, but when the palette was swapped four of them kept their old hue: Vitals was green in the data and purple in its token, and Learn, NBA and Calendar were off by 50 to 120 degrees. The hub card painted its dot from the data and its tint from the token, so those cards showed two colours. The four are re-derived from their tokens, Zeroproof and Mind Reader are lightened to clear 3:1 on the dark surface (they were at 2.89 and 2.95), and the card dot now reads the token. A test checks every feature's hue against its token and its contrast against both themes.
