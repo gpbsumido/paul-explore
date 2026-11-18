@@ -2,7 +2,7 @@
 
 ## 2026-11-18 - version 9.2.14
 
-- - The calendar used to treat any failure from the Google status check as "not connected". So a 500 told people who had already connected their account to go and connect it. Now only a 401 means not connected. Any other failure says the check couldn't be done, and the two-way option explains that instead of pointing at Settings.
+- The calendar used to treat any failure from the Google status check as "not connected". So a 500 told people who had already connected their account to go and connect it. Now only a 401 means not connected. Any other failure says the check couldn't be done, and the two-way option explains that instead of pointing at Settings.
 
 ## 2026-11-18 - version 9.2.13
 
