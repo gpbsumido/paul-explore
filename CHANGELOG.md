@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.10
+
+- **The calendar e2e test stays out of real calendars, and the event modal's calendar picker has a label.** The authenticated calendar test meant to put its event in a throwaway test calendar by clicking `button[data-calendar-id]`, but nothing renders that, and an `isVisible()` guard skipped the click without failing, so every run wrote to the account's real default calendar. Its header also promised an `afterEach` cleanup that didn't exist, so a failure partway through left the event behind. The test now picks the test calendar from the modal's picker, checks the created event landed there, and records every event it creates so `afterEach` deletes anything left over. The picker it uses had no label, just a `<p>` above an unlabelled `<select>`, so screen readers announced a bare combobox; it's a real `<label>` now.
+
 ## 2026-11-18 - version 9.2.9
 
 - **The playoff bracket says when a save or a submit fails.** With auto-save on, a pick set the indicator to "Saving…", and only a successful response ever changed it, so a 500 left it pulsing "Saving…" forever and a network error quietly cleared it. A failed Submit just put the button back to "Submit Bracket" as if it had never been clicked. Both now have a failed state, read out as an alert: "Couldn't save. Your picks are still here." for auto-save, and "Couldn't submit. Try again." next to a button that stays enabled.
