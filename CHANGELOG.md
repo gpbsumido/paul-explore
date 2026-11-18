@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.6
+
+- **Button, Chip and Input stop dropping the props they're given.** Button with an `href` only forwarded its variant, size and class, so an `aria-label`, `target` or `onClick` on a link button type-checked and then disappeared. It now passes everything through to the design-system Button, which already renders both shapes, and its props are typed as a button or a link depending on `href`. The link form of Chip accepted `onClick`, `onRemove`, `color` and `fullWidth` and ignored them; it now refuses them at compile time, since a handler or a remove button inside a link would be a control inside a control. Input with `hideLabel` rendered a hidden `<label htmlFor>` pointing at an id the input never got, so the input now gets that id.
+
 ## 2026-11-18 - version 9.2.5
 
 - **Resuming a restock keeps the session and the slots already counted.** Resume cleared the stored session id on any failure, so a dropped connection or a 502 told the restocker the restock was "no longer open" and the next tap opened a new, empty one. The counts were still on the server, just unreachable from the phone. Now only a 404 or a completed session drops the id; anything else shows an error and leaves the Resume button there to try again. Resume also ignored the lines the server sent back, so every slot looked uncounted after a reload even though it had been saved. Those lines now seed the drafts, so saved slots show as done and are part of the review.
