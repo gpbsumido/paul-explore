@@ -56,9 +56,11 @@ const bricolage = Bricolage_Grotesque({
 // Individual pages override title/description via their own metadata exports.
 export const metadata: Metadata = {
   // Without this, Next resolves every relative metadata URL against localhost
-  // and warns at build. It is also what makes the canonical below absolute.
+  // and warns at build. It is also what makes each page's relative canonical
+  // absolute. No canonical here: metadata merges shallowly, so every page that
+  // didn't set its own would inherit "/" and point search engines at the
+  // homepage.
   metadataBase: new URL(SITE_URL),
-  alternates: { canonical: "/" },
   title: "Paul Sumido",
   description:
     "Personal playground and portfolio — NBA stats, fantasy league history, Pokémon TCG browser, and write-ups on how it was built.",

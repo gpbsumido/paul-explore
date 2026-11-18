@@ -20,7 +20,7 @@ type ArticleMetadata = {
   title: string;
   /** The meta description, mirrored into og and twitter. */
   description: string;
-  /** Absolute-from-root path, e.g. "/thoughts/perf" — becomes the canonical og:url. */
+  /** Absolute-from-root path, e.g. "/thoughts/perf" — becomes the canonical URL and og:url. */
   path: string;
   /** og:type. Write-ups are "article"; learn/reference pages pass "website". */
   ogType?: "article" | "website";
@@ -44,6 +44,7 @@ export function buildArticleMetadata({
   return {
     title,
     description,
+    alternates: { canonical: path },
     openGraph: {
       type: ogType,
       url: `${SITE_URL}${path}`,
