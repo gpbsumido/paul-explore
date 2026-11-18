@@ -1476,3 +1476,30 @@ describe("ZeroProofContent — past fixtures", () => {
     await waitFor(() => expect(pastDaysRequested).toContain("28"));
   });
 })
+
+describe("ZeroProofContent — signed-out visitors", () => {
+  // The board, the record trend and the bet history all share the bets query.
+  // Only the profile's copy waited for a session; the board's fired on load
+  // for everyone, so every signed-out visit made a request that could only 401.
+  it("doesn't ask for bets before there's a session", async () => {
+    const betsRequests = vi.fn(() => HttpResponse.json({ bets: [] }));
+    const meRequests = vi.fn(() => new HttpResponse(null, { status: 401 }));
+    const eventsRequests = vi.fn(() => HttpResponse.json(EVENTS));
+    renderPage(meRequests, betsRequests, eventsRequests);
+
+    // By the time the board has asked for events and the session check has
+    // come back, every query on the page has had its chance to run.
+    await waitFor(() => expect(eventsRequests).toHaveBeenCalled());
+    await waitFor(() => expect(meRequests).toHaveBeenCalled());
+    await screen.findByRole("heading", { name: /the board/i });
+
+    expect(betsRequests).not.toHaveBeenCalled();
+  });
+
+  it("still loads bets once signed in", async () => {
+    const betsRequests = vi.fn(() => HttpResponse.json({ bets: [] }));
+    renderPage(() => HttpResponse.json(PROFILE), betsRequests);
+
+    await waitFor(() => expect(betsRequests).toHaveBeenCalled());
+  });
+});
