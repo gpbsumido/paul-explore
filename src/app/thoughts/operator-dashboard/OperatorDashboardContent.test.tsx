@@ -492,7 +492,10 @@ describe("OperatorDashboardContent", () => {
     const rows = container.querySelectorAll("ol li");
     expect(rows.length).toBeGreaterThan(5);
 
-    const MONTHS: Record<string, string> = { "07": "Jul", "08": "Aug" };
+    const MONTHS: Record<string, string> = {
+      "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
+      "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
+    };
     for (const row of rows) {
       const href = row.querySelector("a")?.getAttribute("href") ?? "";
       const m = href.match(/#update-\d{4}-(\d{2})-(\d{2})/);
