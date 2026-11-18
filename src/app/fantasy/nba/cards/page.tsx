@@ -6,7 +6,7 @@ import {
 } from "@/lib/card-lab-pool";
 import { loadNightlySlate } from "@/lib/espn-nightly";
 import { loadNflWeek, loadNflSeason } from "@/lib/espn-nfl";
-import type { GeneratedCard, Sport } from "@/lib/fantasy-cards";
+import type { Sport } from "@/lib/fantasy-cards";
 import CardLabContent from "./CardLabContent";
 
 const TITLE = "Card Lab";
