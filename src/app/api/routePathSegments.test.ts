@@ -11,20 +11,15 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getAccessToken: vi.fn(), getSession: vi.fn() },
 }));
 
-import { NextRequest, type NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { fetchUpstream } from "@/lib/upstream";
 import { auth0 } from "@/lib/auth0";
 
-type Handler = (request: NextRequest, ctx: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
-
-type Case = {
-  name: string;
-  load: () => Promise<Handler>;
-  params: Record<string, string>;
-  init?: { method: string; body: string };
-};
-
+const request = (init?: { method: string; body: string }) => new NextRequest("http://localhost/api/x", init);
+const params = <P,>(values: P) => ({ params: Promise.resolve(values) });
 const json = (method: string, body: unknown) => ({ method, body: JSON.stringify(body) });
+
+type Case = { name: string; run: () => Promise<Response> };
 
 /**
  * Next decodes `%2e%2e` in a dynamic segment to `..` before the handler runs.
@@ -34,66 +29,82 @@ const json = (method: string, body: unknown) => ({ method, body: JSON.stringify(
  * rejected before the request leaves.
  */
 const CASES: Case[] = [
-  { name: "GET walls/:id", load: async () => (await import("./walls/[id]/route")).GET, params: { id: ".." } },
+  {
+    name: "GET walls/:id",
+    run: async () => (await import("./walls/[id]/route")).GET(request(), params({ id: ".." })),
+  },
   {
     name: "PUT walls/:id",
-    load: async () => (await import("./walls/[id]/route")).PUT,
-    params: { id: ".." },
-    init: json("PUT", { name: "wall" }),
+    run: async () =>
+      (await import("./walls/[id]/route")).PUT(request(json("PUT", { name: "wall" })), params({ id: ".." })),
   },
-  { name: "DELETE walls/:id", load: async () => (await import("./walls/[id]/route")).DELETE, params: { id: ".." } },
+  {
+    name: "DELETE walls/:id",
+    run: async () => (await import("./walls/[id]/route")).DELETE(request(), params({ id: ".." })),
+  },
   {
     name: "GET zeroproof/leagues/:id",
-    load: async () => (await import("./zeroproof/leagues/[id]/route")).GET,
-    params: { id: ".." },
+    run: async () => (await import("./zeroproof/leagues/[id]/route")).GET(request(), params({ id: ".." })),
   },
   {
     name: "POST zeroproof/leagues/:id/join",
-    load: async () => (await import("./zeroproof/leagues/[id]/join/route")).POST,
-    params: { id: ".." },
-    init: json("POST", { code: "ABC" }),
+    run: async () =>
+      (await import("./zeroproof/leagues/[id]/join/route")).POST(
+        request(json("POST", { code: "ABC" })),
+        params({ id: ".." }),
+      ),
   },
   {
     name: "POST zeroproof/leagues/:id/espn-leagues",
-    load: async () => (await import("./zeroproof/leagues/[id]/espn-leagues/route")).POST,
-    params: { id: ".." },
-    init: json("POST", { espnLeagueId: "1" }),
+    run: async () =>
+      (await import("./zeroproof/leagues/[id]/espn-leagues/route")).POST(
+        request(json("POST", { espnLeagueId: "1" })),
+        params({ id: ".." }),
+      ),
   },
   {
     name: "DELETE zeroproof/leagues/:id/espn-leagues/:espnId (league id)",
-    load: async () => (await import("./zeroproof/leagues/[id]/espn-leagues/[espnId]/route")).DELETE,
-    params: { id: "..", espnId: "1" },
+    run: async () =>
+      (await import("./zeroproof/leagues/[id]/espn-leagues/[espnId]/route")).DELETE(
+        request(),
+        params({ id: "..", espnId: "1" }),
+      ),
   },
   {
     name: "DELETE zeroproof/leagues/:id/espn-leagues/:espnId (espn id)",
-    load: async () => (await import("./zeroproof/leagues/[id]/espn-leagues/[espnId]/route")).DELETE,
-    params: { id: "lg-1", espnId: ".." },
+    run: async () =>
+      (await import("./zeroproof/leagues/[id]/espn-leagues/[espnId]/route")).DELETE(
+        request(),
+        params({ id: "lg-1", espnId: ".." }),
+      ),
   },
   {
     name: "DELETE zeroproof/espn-leagues/:id",
-    load: async () => (await import("./zeroproof/espn-leagues/[id]/route")).DELETE,
-    params: { id: ".." },
+    run: async () => (await import("./zeroproof/espn-leagues/[id]/route")).DELETE(request(), params({ id: ".." })),
   },
   {
     name: "GET check-in/sites/:id/arrivals",
-    load: async () => (await import("./check-in/sites/[id]/arrivals/route")).GET,
-    params: { id: ".." },
+    run: async () => (await import("./check-in/sites/[id]/arrivals/route")).GET(request(), params({ id: ".." })),
   },
   {
     name: "GET check-in/sites/:id/code",
-    load: async () => (await import("./check-in/sites/[id]/code/route")).GET,
-    params: { id: ".." },
+    run: async () => (await import("./check-in/sites/[id]/code/route")).GET(request(), params({ id: ".." })),
   },
   {
     name: "PUT calendar/calendars/:id/members/:memberSub",
-    load: async () => (await import("./calendar/calendars/[id]/members/[memberSub]/route")).PUT,
-    params: { id: "cal-1", memberSub: ".." },
-    init: json("PUT", { role: "viewer" }),
+    run: async () =>
+      (await import("./calendar/calendars/[id]/members/[memberSub]/route")).PUT(
+        request(json("PUT", { role: "viewer" })),
+        params({ id: "cal-1", memberSub: ".." }),
+      ),
   },
   {
     name: "DELETE calendar/calendars/:id/members/:memberSub",
-    load: async () => (await import("./calendar/calendars/[id]/members/[memberSub]/route")).DELETE,
-    params: { id: "cal-1", memberSub: ".." },
+    run: async () =>
+      (await import("./calendar/calendars/[id]/members/[memberSub]/route")).DELETE(
+        request(),
+        params({ id: "cal-1", memberSub: ".." }),
+      ),
   },
 ];
 
@@ -115,11 +126,8 @@ afterEach(() => {
 });
 
 describe("route ids that go into an upstream path", () => {
-  it.each(CASES)("$name rejects `..` with a 400 and never calls the backend", async ({ load, params, init }) => {
-    const handler = await load();
-    const request = new NextRequest("http://localhost/api/x", init);
-
-    const res = await handler(request, { params: Promise.resolve(params) });
+  it.each(CASES)("$name rejects `..` with a 400 and never calls the backend", async ({ run }) => {
+    const res = await run();
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "Invalid identifier" });
