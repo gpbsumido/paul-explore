@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.3
+
+- **Nine API routes no longer let an id walk the backend path.** The walls, zeroproof leagues, ESPN league, check-in site and calendar member routes put the id from the URL into the portfolio_api URL with `encodeURIComponent`. Next decodes `%2e%2e` to `..` before the handler runs, `encodeURIComponent("..")` is still `..`, and `fetch` resolves it, so `/api/zeroproof/leagues/%2e%2e/join` went out as `/api/zeroproof/join` with the caller's token attached. They now use `safeSegment` like every other route, and a bad id gets a 400 without reaching the backend. A test fails if any route puts an id into a path with `encodeURIComponent` again.
+
 ## 2026-11-18 - version 9.2.2
 
 - **Every page now declares its own canonical URL instead of the homepage's.** The root layout set `alternates: { canonical: "/" }`, and since Next merges metadata shallowly, every page that didn't set `alternates` itself inherited it. That was every write-up, so each one told search engines it was a duplicate of `/`. The root canonical is gone, `buildArticleMetadata` now emits the page's own path, and the homepage sets `/` itself. Pages with hand-written metadata now have no canonical rather than a wrong one, which search engines read as self-canonical.
