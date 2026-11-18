@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.4
+
+- **Operator writes only fall back to the demo data when portfolio_api never answered.** Every write (restock, dismiss, planogram, restock sessions, promotions) used to fall back to the in-memory seed on any error except 401 and 403. That covered real answers from the API too: a 409 or a 500 was replayed against the seed and reported as a success nothing persisted, and a 2xx whose body didn't parse could apply the write twice, once upstream and once in the seed. Now a 404 comes back as not found, any other status from the API reaches the browser (4xx as is, 5xx as a 502), and an unreadable 2xx is a 502 that says the change may have been saved. Only a request that never got an answer uses the seed, which is what the fallback is for. The eight copies of the write try/catch are now one `writeWithFallback`, and those fallbacks are logged like the read ones.
+
 ## 2026-11-18 - version 9.2.3
 
 - **Nine API routes no longer let an id walk the backend path.** The walls, zeroproof leagues, ESPN league, check-in site and calendar member routes put the id from the URL into the portfolio_api URL with `encodeURIComponent`. Next decodes `%2e%2e` to `..` before the handler runs, `encodeURIComponent("..")` is still `..`, and `fetch` resolves it, so `/api/zeroproof/leagues/%2e%2e/join` went out as `/api/zeroproof/join` with the caller's token attached. They now use `safeSegment` like every other route, and a bad id gets a 400 without reaching the backend. A test fails if any route puts an id into a path with `encodeURIComponent` again.
