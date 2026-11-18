@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.9
+
+- **The playoff bracket says when a save or a submit fails.** With auto-save on, a pick set the indicator to "Saving…", and only a successful response ever changed it, so a 500 left it pulsing "Saving…" forever and a network error quietly cleared it. A failed Submit just put the button back to "Submit Bracket" as if it had never been clicked. Both now have a failed state, read out as an alert: "Couldn't save. Your picks are still here." for auto-save, and "Couldn't submit. Try again." next to a button that stays enabled.
+
 ## 2026-11-18 - version 9.2.8
 
 - **Cards attached to a calendar event are saved, or the modal says they weren't.** Every card add, update and remove in the event modal ended in `.catch(() => null)`, and the modal closed as if everything had saved. It was worse for a new event: the modal wrote cards to a random id it made up, while the page threw that id away and let the server assign the real one, so every card on a new event failed and the failure was hidden. Now `onSave` creates when there's no id and updates when there is, and returns the saved event. Cards go to that event's id. If any card change fails, the modal stays open, says how many didn't save, keeps only the failed changes for the retry, and the retry updates the same event instead of creating a second one. Saving also stopped PUTting every attached card; only cards whose quantity or notes changed are sent.
