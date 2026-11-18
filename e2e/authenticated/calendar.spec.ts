@@ -11,9 +11,10 @@ import { checkA11y } from "../helpers/axe";
  * to have created a dedicated test calendar. Tests self-skip when either
  * is absent so CI without credentials stays green.
  *
- * Event cleanup: each test deletes its own event via the API in afterEach
- * so failures don't accumulate stale test data. The test calendar itself
- * is deleted by globalTeardown after the full suite.
+ * Event cleanup: every event a test creates is recorded, and afterEach
+ * deletes whatever the test didn't get to, so a failure halfway through
+ * doesn't leave stale events behind. The test calendar itself is deleted by
+ * globalTeardown after the full suite.
  */
 
 function hasCredentials() {
@@ -33,9 +34,24 @@ function uniqueTitle() {
 }
 
 test.describe("Calendar", () => {
+  // Ids of events created in the current test that haven't been deleted yet.
+  let createdEventIds: string[] = [];
+
   test.beforeEach(({}, testInfo) => {
+    createdEventIds = [];
     if (!hasCredentials()) {
       testInfo.skip(true, "E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set");
+    }
+  });
+
+  test.afterEach(async ({ page }) => {
+    for (const eventId of createdEventIds) {
+      const status = await page.evaluate(async (id) => {
+        const res = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
+        return res.status;
+      }, eventId);
+      // 404 means the test already deleted it, which is the happy path.
+      expect([200, 204, 404]).toContain(status);
     }
   });
 
@@ -58,16 +74,6 @@ test.describe("Calendar", () => {
     });
 
     await checkA11y(page, "/calendar (month view)");
-
-    // Select the test calendar in the header dropdown so the new event lands
-    // in the isolated test calendar and not the user's real default calendar.
-    // The header shows a calendar name/selector with each calendar as a button.
-    const calendarBtn = page.locator(
-      `button[data-calendar-id="${calendarId}"]`,
-    );
-    if (await calendarBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await calendarBtn.click();
-    }
 
     // Click on today's cell. Today's cell has the verdigris top border
     // (border-t-2 border-t-primary-500) which is applied via Tailwind. We can
@@ -95,6 +101,12 @@ test.describe("Calendar", () => {
 
     await titleInput.fill(title);
 
+    // Put the event in the isolated test calendar. This used to click
+    // `button[data-calendar-id]`, which nothing renders, behind an
+    // isVisible() guard that quietly skipped the click, so every run wrote to
+    // the real default calendar. Picking it here fails loudly if it can't.
+    await page.getByRole("combobox", { name: "Calendar" }).selectOption(calendarId);
+
     // Listen for the POST before clicking so we can confirm server-side
     // creation. The optimistic update renders the chip immediately, but
     // staleTime:0 can cause background refetches to briefly overwrite the
@@ -114,6 +126,11 @@ test.describe("Calendar", () => {
     // Wait for the POST to complete and verify the server accepted it.
     const postRes = await postResponse;
     expect(postRes.ok()).toBeTruthy();
+    const created = (await postRes.json()) as {
+      event: { id: string; calendarId?: string };
+    };
+    createdEventIds.push(created.event.id);
+    expect(created.event.calendarId).toBe(calendarId);
 
     // Reload so the cache holds real server-assigned IDs (not optimistic
     // temp UUIDs). This also proves the event actually persisted on the
@@ -201,6 +218,7 @@ test.describe("Calendar", () => {
       },
       [title, startDate.toISOString(), endDate.toISOString(), calendarId] as const,
     );
+    createdEventIds.push(event.id);
 
     // Verify the event is queryable via GET.
     const found = await page.evaluate(

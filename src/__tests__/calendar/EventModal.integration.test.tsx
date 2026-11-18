@@ -191,3 +191,26 @@ describe("EventModal card saves", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+describe("EventModal calendar picker", () => {
+  it("is labelled, so it can be found by name", async () => {
+    const calendar = (id: string, name: string) => ({
+      id,
+      name,
+      color: "#2563eb",
+      syncMode: "none",
+      role: "owner",
+    });
+    server.use(
+      http.get("/api/calendar/calendars", () =>
+        HttpResponse.json({
+          calendars: [calendar("cal-1", "Personal"), calendar("cal-2", "[E2E] Test Calendar")],
+        }),
+      ),
+    );
+    renderModal();
+
+    const picker = await screen.findByRole("combobox", { name: "Calendar" });
+    expect(picker).toHaveDisplayValue("No calendar");
+  });
+});
