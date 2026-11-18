@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.2
+
+- **Every page now declares its own canonical URL instead of the homepage's.** The root layout set `alternates: { canonical: "/" }`, and since Next merges metadata shallowly, every page that didn't set `alternates` itself inherited it. That was every write-up, so each one told search engines it was a duplicate of `/`. The root canonical is gone, `buildArticleMetadata` now emits the page's own path, and the homepage sets `/` itself. Pages with hand-written metadata now have no canonical rather than a wrong one, which search engines read as self-canonical.
+
 ## 2026-11-17 - version 9.2.1
 
 - **`/resume` serves the new résumé.** The PDF and the Word export are replaced with the current version, which is retitled Full-stack Software Engineer and has a reworked summary and skills section. The plain-text copy is rewritten from the Word file to match, so the three formats agree: the Open Source section is gone and helika-web-sdk is listed under Projects. The filenames are unchanged, so the page and its download links needed no edit.
