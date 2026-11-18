@@ -250,6 +250,11 @@ export default function PlayoffsContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-11-18-failed-save",
+            date: "Nov 18, 2026",
+            title: "A save indicator that could only say yes",
+          },
+          {
             id: "update-2026-08-10-tiers",
             date: "Aug 10, 2026",
             title:
@@ -590,12 +595,65 @@ export default function PlayoffsContent() {
           502 rather than showing every topic as having no papers.
         </p>
       </Update>
+      <Update
+        id="update-2026-11-18-failed-save"
+        date="November 18, 2026"
+        title="A save indicator that could only say yes"
+      >
+        <p>
+          A codebase audit caught the bracket doing the thing the update above
+          says I keep coming back to: a failure rendering as something calmer
+          than a failure.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;Saving&hellip;&rdquo; had no way to end except success
+        </h3>
+        <p className="text-muted">
+          With auto-save on, a pick set the indicator to &ldquo;Saving&hellip;&rdquo;,
+          and this was the only code that moved it on:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`.then((res) => {
+  if (res.ok) {
+    setSaveStatus("saved");
+    idleTimer = setTimeout(() => setSaveStatus("idle"), 2000);
+  }
+})`}
+        </pre>
+        <p className="text-muted">
+          A 500 left it pulsing &ldquo;Saving&hellip;&rdquo; forever. A network
+          error was quietly cleared. Either way, someone filling in a bracket
+          had no reason to think their picks weren&rsquo;t stored.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A failed submit looked like a submit you never pressed
+        </h3>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`if (res.ok) {
+  setSubmitStatus("submitted");
+  setSaveStatus("idle");
+} else {
+  setSubmitStatus("idle");
+}`}
+        </pre>
+        <p className="text-muted">
+          The button just went back to &ldquo;Submit Bracket&rdquo;. Both status
+          types have a <code>failed</code> state now, read out as an alert:
+          &ldquo;Couldn&rsquo;t save. Your picks are still here.&rdquo; for
+          auto-save, and &ldquo;Couldn&rsquo;t submit. Try again.&rdquo; next to
+          a button that stays enabled. The integration tests drive both
+          failures through MSW, and both failed against the old code first.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "Derived state over stored state: the bracket is computed from picks and results rather than kept in sync, so the two cannot disagree.",
           "The tiered testing strategy this page described is actually in place, which it was not when the page first claimed it.",
           "Every upstream call bounded by a deadline, so a slow API cannot render as a confident empty state.",
           "The leaderboard shipped before results existed, which kept the feature useful during the part of the season when nothing had happened yet.",
+          "A failed auto-save or submit says so in an alert, instead of hanging on 'Saving…' or quietly resetting the button.",
         ]}
         couldImprove={[
           "Picks have no history — you can change one, but there is no record of what you thought before, which is most of the fun of a bracket after the fact.",
