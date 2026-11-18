@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-18 - version 9.2.14
+
+- - The calendar used to treat any failure from the Google status check as "not connected". So a 500 told people who had already connected their account to go and connect it. Now only a 401 means not connected. Any other failure says the check couldn't be done, and the two-way option explains that instead of pointing at Settings.
+
 ## 2026-11-18 - version 9.2.13
 
 - **Signed-out visitors to ZeroProof no longer request bets they can't have.** Five components on the page each declared the same bets query, under one cache key, and only some of them waited for a session. The board's copy didn't, so every signed-out visit fired `GET /api/zeroproof/bets` and got a 401, even though a comment said it returned nothing when signed out. All five now use one `useMyBets` hook that only fetches once the profile says there's a session, with the bet history keeping its 30-second poll.
