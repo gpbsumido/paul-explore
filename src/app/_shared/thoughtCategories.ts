@@ -46,6 +46,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "motion-components",
       "apple-design",
       "error-toasts",
+      "error-messages",
       "styling",
       "landing-page",
       "ui-redesign",

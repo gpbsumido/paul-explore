@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
 import { currentNbaSeason } from "@/lib/nbaSeason";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const POSITION_MAP: Record<number, string> = {
   1: "PG",
@@ -220,9 +221,7 @@ export default function LeagueContent() {
         {leagueQuery.isError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>
-              {leagueQuery.error instanceof Error
-                ? leagueQuery.error.message
-                : "Something went wrong"}
+              {userFacingErrorMessage(leagueQuery.error, "Something went wrong")}
             </span>
             <Button
               variant="outline"

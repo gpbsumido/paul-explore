@@ -1,4 +1,5 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { z } from "zod";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { Toaster } from "@paul-portfolio/react";
 import { notifyMutationError } from "./mutationErrorToast";
@@ -33,5 +34,19 @@ describe("notifyMutationError", () => {
     render(<Toaster />);
     act(() => notifyMutationError("weird"));
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+  });
+
+  it("never toasts a schema failure's raw JSON", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const failure = z
+      .object({ role: z.enum(["owner", "editor", "viewer"]) })
+      .safeParse({}).error;
+    if (!failure) throw new Error("the response should have failed its schema");
+
+    render(<Toaster />);
+    act(() => notifyMutationError(failure));
+
+    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+    expect(screen.queryByText(/invalid_value/)).not.toBeInTheDocument();
   });
 });

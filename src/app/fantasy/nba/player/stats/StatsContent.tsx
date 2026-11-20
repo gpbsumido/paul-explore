@@ -11,6 +11,7 @@ import { COLUMNS, getSortValue } from "@/lib/nba";
 import FantasyNav from "../../FantasyNav";
 import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 /**
  * The compare panel pulls in recharts (a heavy dep), but it only renders when the
@@ -124,12 +125,8 @@ export default function StatsContent() {
   /** Whether teams or players failed to load, which blocks the whole page. */
   const topLevelError = teamsQuery.isError || playersQuery.isError;
   const topLevelErrorMessage = teamsQuery.isError
-    ? teamsQuery.error instanceof Error
-      ? teamsQuery.error.message
-      : "Failed to load teams"
-    : playersQuery.error instanceof Error
-      ? playersQuery.error.message
-      : "Failed to load players";
+    ? userFacingErrorMessage(teamsQuery.error, "Failed to load teams")
+    : userFacingErrorMessage(playersQuery.error, "Failed to load players");
 
   function handleTeamChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = Number(e.target.value);

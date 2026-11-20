@@ -6,6 +6,7 @@ import { server } from "@/test/server";
 import { useCalendarEvents } from "../useCalendarEvents";
 import type { CalendarEvent } from "@/types/calendar";
 import type { ReactNode } from "react";
+import { CONNECTION_ERROR_MESSAGE } from "@/lib/userFacingError";
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -77,7 +78,7 @@ describe("useCalendarEvents — read", () => {
     expect(result.current.events[0].title).toBe("SSR Seed");
   });
 
-  it("exposes an error message when the fetch fails", async () => {
+  it("says it couldn't reach the server when the fetch fails", async () => {
     server.use(http.get("/api/calendar/events", () => HttpResponse.error()));
 
     const { result } = renderHook(() => useCalendarEvents(RANGE), {
@@ -85,7 +86,7 @@ describe("useCalendarEvents — read", () => {
     });
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
-    expect(result.current.error).toMatch(/failed to fetch/i);
+    expect(result.current.error).toBe(CONNECTION_ERROR_MESSAGE);
   });
 });
 

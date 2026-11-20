@@ -26,6 +26,7 @@ import SeriesPickCard from "./SeriesPickCard";
 import FinalsCard from "./FinalsCard";
 import PlayoffLeaderboard from "./PlayoffLeaderboard";
 import { useMe } from "@/hooks/useMe";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- TBD resolution ----
 
@@ -837,9 +838,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {bracketQuery.isError && (
           <div className="flex items-center justify-center py-20 text-muted text-[15px]">
-            {bracketQuery.error instanceof Error
-              ? bracketQuery.error.message
-              : "Something went wrong"}
+            {userFacingErrorMessage(bracketQuery.error, "Something went wrong")}
           </div>
         )}
 

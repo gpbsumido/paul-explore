@@ -11,6 +11,7 @@ import {
 } from "@/lib/operator-schemas";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import type { RestockLine, RestockSession } from "@/types/operator";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const STORAGE_PREFIX = "operator-restock-session";
 
@@ -31,7 +32,7 @@ async function describeFailure(res: Response, fallback: string): Promise<Error> 
 }
 
 function messageFor(err: unknown, fallback: string): string {
-  return err instanceof Error && err.message ? err.message : fallback;
+  return userFacingErrorMessage(err, fallback);
 }
 
 /**

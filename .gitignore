@@ -210,3 +210,6 @@ dist
 
 # Portable local design-system preview builds.
 !/vendor/*.tgz
+
+# Local working plans and recaps (never committed)
+plans/
