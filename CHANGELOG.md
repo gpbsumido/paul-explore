@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 - version 9.2.28
+
+- The codebase-audit write-up has a dated update on the API half: calendar sync that had been off since July, database tests CI never ran, a bet check that two requests could both pass, a Google connect anyone could finish for someone else, a cast that hid a missing field, and the card update that knex refused to bind.
+
 ## 2026-11-20 - version 9.2.27
 
 - Adding a check-in site says when it failed. The add never looked at the response, so a refused or failed request cleared the name and showed no new site, and a dropped connection only reached the console. Now the name stays in the field and a line under it says what went wrong.
