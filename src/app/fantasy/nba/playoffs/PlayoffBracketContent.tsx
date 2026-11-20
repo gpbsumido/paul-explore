@@ -25,6 +25,7 @@ import FantasyNav from "../FantasyNav";
 import SeriesPickCard from "./SeriesPickCard";
 import FinalsCard from "./FinalsCard";
 import PlayoffLeaderboard from "./PlayoffLeaderboard";
+import { useMe } from "@/hooks/useMe";
 
 // ---- TBD resolution ----
 
@@ -585,15 +586,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
   const [autoSave, setAutoSave] = useState(false);
   const userHasPickedRef = useRef(false);
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; name: string | null }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const meQuery = useMe();
 
   const currentUserSub = meQuery.data?.sub ?? null;
 

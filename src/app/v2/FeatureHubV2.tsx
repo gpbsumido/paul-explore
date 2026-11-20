@@ -2,8 +2,6 @@
 
 import { useState, useRef } from "react";
 import { m, useInView, useReducedMotion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer } from "@/lib/animations";
 import { reveal } from "@/app/landing/Section";
 import NavBar from "./landing/NavBar";
@@ -15,6 +13,7 @@ import {
 } from "@/app/_shared/featureData";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
+import { useMe } from "@/hooks/useMe";
 
 type MeData = { name: string | null; email: string | null };
 
@@ -37,17 +36,11 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
   const prefersReduced = useReducedMotion() ?? false;
   const [active, setActive] = useState(0);
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<MeData> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    initialData: initialMe,
-    staleTime: 5 * 60_000,
-  });
-  const userName = meQuery.isLoading ? null : (meQuery.data?.name ?? "there");
+  // The server-read name covers the first paint. It stays local rather than
+  // seeding the shared session cache, which every reader trusts for `sub`.
+  const meQuery = useMe();
+  const me = meQuery.data ?? initialMe;
+  const userName = me ? (me.name ?? "there") : null;
   const firstName = userName ? userName.split(" ")[0] : null;
 
   const selected = CATEGORIES[active];

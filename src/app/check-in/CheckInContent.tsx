@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-
-type Me = { email: string | null; sub: string | null };
+import { useMe } from "@/hooks/useMe";
 
 type Outcome =
   | { kind: "recorded" | "already"; siteName: string; at: string }
@@ -35,15 +33,7 @@ export default function CheckInContent() {
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const me = useQuery({
-    queryKey: ["me"],
-    queryFn: async (): Promise<Me> => {
-      const res = await fetch("/api/me");
-      if (!res.ok) throw new Error("Could not load the session");
-      return res.json();
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const me = useMe();
 
   const submit = async () => {
     if (!/^\d{6}$/.test(code.trim())) {

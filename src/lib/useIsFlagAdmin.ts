@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
+import { useMe } from "@/hooks/useMe";
 
 /**
  * Whether the signed-in user is a flag admin, read from `/api/me`. Shares the
@@ -12,14 +11,6 @@ import { queryKeys } from "@/lib/queryKeys";
  * session server-side, so a tampered response only changes what the UI draws.
  */
 export function useIsFlagAdmin(): boolean {
-  const { data } = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ isFlagAdmin?: boolean }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const { data } = useMe();
   return data?.isFlagAdmin === true;
 }

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { useHubReducedMotion } from "@/app/providers";
@@ -13,6 +13,7 @@ import {
   type EffectChoice,
 } from "@/contexts/WeatherContext";
 import { queryKeys } from "@/lib/queryKeys";
+import { useMe } from "@/hooks/useMe";
 
 type ThemePreference = "light" | "dark" | "system";
 
@@ -168,14 +169,7 @@ export default function HeaderMenu({
   // page — not just the hub. Without this, showLogout={true} (the default)
   // shows "Log out" to unauthenticated users, making them think they're
   // logged in. Only fetch when the auth section will be rendered.
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; name: string | null }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
+  const meQuery = useMe({
     refetchOnWindowFocus: "always",
     enabled: showLogout,
   });

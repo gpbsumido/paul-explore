@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import type {
   Environment,
   EvaluationContext,
@@ -9,7 +8,6 @@ import type {
   Flag,
   RolloutWeight,
 } from "@/types/flags";
-import { queryKeys } from "@/lib/queryKeys";
 import { msUntilNextReset, formatResetCountdown } from "@/lib/flags-reset";
 import { evaluateAllFlags } from "@/lib/flags-engine";
 import { useFlags, useFlagAudit } from "@/hooks/useFlags";
@@ -30,6 +28,7 @@ import {
 } from "@/lib/flags-access";
 import TestUserBar from "@/components/flags/TestUserBar";
 import AuditLog from "@/components/flags/AuditLog";
+import { useMe } from "@/hooks/useMe";
 
 /** The user the console tests against on first load. */
 const DEFAULT_CONTEXT: EvaluationContext = {
@@ -54,15 +53,7 @@ export default function FlagsConsole() {
   // Writes go through the authed BFF, so a signed-out visitor can view and
   // evaluate everything but not change flags. Detect the session the same way
   // the header does, so the controls lock with a clear sign-in affordance.
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; isFlagAdmin?: boolean }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const meQuery = useMe();
   const isLoggedIn = meQuery.data?.sub != null;
   // A hint for rendering only. The API re-derives this from the session on
   // every write, so a tampered response changes what the page draws and
