@@ -17,6 +17,13 @@ describe("canonical URLs", () => {
     expect(metadata.alternates?.canonical).toBeUndefined();
   });
 
+  it("the root layout sets no og:url for pages to inherit", async () => {
+    // Same shallow merge: a page with no openGraph of its own kept the root's
+    // url, so a shared link to it previewed as the homepage.
+    const { metadata } = await import("./layout");
+    expect(metadata.openGraph).not.toHaveProperty("url");
+  });
+
   it("the homepage declares itself canonical", async () => {
     const { metadata } = await import("./page");
     expect(metadata.alternates?.canonical).toBe("/");
