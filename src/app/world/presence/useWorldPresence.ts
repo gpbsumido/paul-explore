@@ -84,8 +84,11 @@ export function useWorldPresence({
   }, [outfitId]);
 
   useEffect(() => {
+    // The map is only ever cleared and mutated, never replaced, so holding it
+    // here is the same object the cleanup below empties.
+    const peerMap = peersRef.current;
     if (!enabled) {
-      peersRef.current.clear();
+      peerMap.clear();
       return;
     }
     let cancelled = false;
@@ -171,7 +174,7 @@ export function useWorldPresence({
       clearInterval(publishTimer);
       clearInterval(pruneTimer);
       transport?.close();
-      peersRef.current.clear();
+      peerMap.clear();
     };
   }, [enabled, playerRef]);
 

@@ -10,7 +10,6 @@ import type {
   environmentConfigSchema,
   flagSchema,
   evaluationContextSchema,
-  evaluationReasonSchema,
   evaluationResultSchema,
   auditActionSchema,
   auditEntrySchema,
