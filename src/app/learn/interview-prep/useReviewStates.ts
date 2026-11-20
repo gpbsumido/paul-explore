@@ -12,6 +12,7 @@ import {
   type ReviewKind,
   type ReviewStatesByKind,
 } from "@/lib/leetcode/practiceApi";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const REVIEW_STORAGE_KEYS: Record<ReviewKind, string> = {
   problem: "learn-leetcode-review-v1",
@@ -179,11 +180,11 @@ export function useReviewStates(kind: ReviewKind) {
   );
 
   const syncError = me.isError
-    ? `Couldn't check whether you're signed in: ${me.error.message}`
+    ? `Couldn't check whether you're signed in. ${userFacingErrorMessage(me.error, "Please try again.")}`
     : account.isError
-      ? `Couldn't load your progress: ${account.error.message}`
+      ? `Couldn't load your progress. ${userFacingErrorMessage(account.error, "Please try again.")}`
       : save.isError
-        ? `Couldn't save your progress: ${save.error.message}`
+        ? `Couldn't save your progress. ${userFacingErrorMessage(save.error, "Please try again.")}`
         : null;
 
   return {

@@ -18,6 +18,7 @@ import {
 } from "@/lib/nfl/trade";
 import { ESPN_NFL_POSITION, NFL_PRO_TEAM_ABBREV } from "@/types/espn-nfl";
 import FantasyNflNav from "../FantasyNflNav";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -564,7 +565,7 @@ export default function TradeContent() {
 
         {query.isError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
-            <span>{query.error instanceof Error ? query.error.message : "Something went wrong"}</span>
+            <span>{userFacingErrorMessage(query.error, "Something went wrong")}</span>
             <Button variant="outline" size="sm" onClick={() => query.refetch()}>
               Retry
             </Button>

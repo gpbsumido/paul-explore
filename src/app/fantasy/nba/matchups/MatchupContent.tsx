@@ -15,6 +15,7 @@ import type {
   ESPNMember,
   ESPNTeam,
 } from "@/types/espn";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- Constants ----
 
@@ -463,9 +464,7 @@ export default function MatchupContent() {
         {scoreboardQuery.isError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>
-              {scoreboardQuery.error instanceof Error
-                ? scoreboardQuery.error.message
-                : "Something went wrong"}
+              {userFacingErrorMessage(scoreboardQuery.error, "Something went wrong")}
             </span>
             <Button
               variant="outline"

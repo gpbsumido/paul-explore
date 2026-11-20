@@ -10,6 +10,7 @@ import { useGoogleCalendarStatus } from "@/hooks/useGoogleCalendarStatus";
 import { useCalendars, useCalendarMembers } from "@/hooks/useCalendars";
 import { queryKeys } from "@/lib/queryKeys";
 import ColorSwatchPicker from "./ColorSwatchPicker";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- Types -----------------------------------------------------------------
 
@@ -127,8 +128,7 @@ function SharingTab({
       await inviteMember(calendarId, inviteEmail.trim(), inviteRole);
       setInviteEmail("");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      setInviteError(msg || "Invite failed. Please try again.");
+      setInviteError(userFacingErrorMessage(err, "Invite failed. Please try again."));
     } finally {
       setInviting(false);
     }

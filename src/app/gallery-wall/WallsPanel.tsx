@@ -11,6 +11,7 @@ import {
   type WallSummary,
 } from "./_lib/walls-api";
 import type { GalleryState } from "./_lib/state";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const ACCENT = "var(--color-feature-gallery-wall)";
 
@@ -57,9 +58,7 @@ export default function WallsPanel({
     try {
       setWalls(await listWalls());
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not load your walls.",
-      );
+      setError(userFacingErrorMessage(err, "Could not load your walls."));
     }
   }, []);
 
@@ -78,7 +77,7 @@ export default function WallsPanel({
     try {
       await action();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(userFacingErrorMessage(err, "Something went wrong."));
     } finally {
       setBusy(false);
     }
