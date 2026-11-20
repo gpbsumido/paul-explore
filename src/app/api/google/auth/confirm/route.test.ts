@@ -36,7 +36,7 @@ describe("POST /api/google/auth/confirm", () => {
     vi.mocked(fetchUpstream).mockResolvedValue(upstream(200, { connected: true }));
     const { POST } = await import("./route");
 
-    const res = await POST(confirm({ code: "the-code", state: "the-state" }));
+    const res = await POST(confirm({ code: "the-code", state: "the-state" }), undefined);
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ connected: true });
@@ -50,7 +50,7 @@ describe("POST /api/google/auth/confirm", () => {
   it("refuses a body without a code before calling the API", async () => {
     const { POST } = await import("./route");
 
-    const res = await POST(confirm({ state: "the-state" }));
+    const res = await POST(confirm({ state: "the-state" }), undefined);
 
     expect(res.status).toBe(400);
     expect(fetchUpstream).not.toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe("POST /api/google/auth/confirm", () => {
     );
     const { POST } = await import("./route");
 
-    const res = await POST(confirm({ code: "the-code", state: "someone-elses" }));
+    const res = await POST(confirm({ code: "the-code", state: "someone-elses" }), undefined);
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({

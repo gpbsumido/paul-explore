@@ -28,7 +28,7 @@ const renderSettings = () => {
   );
 };
 
-const confirmReturning = (status: number, body: unknown) => {
+const confirmReturning = (status: number, body: Record<string, unknown>) => {
   const received: unknown[] = [];
   server.use(
     http.get("/api/google/auth/status", () => HttpResponse.json({ connected: false })),
