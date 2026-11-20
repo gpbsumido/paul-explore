@@ -374,6 +374,7 @@ export default function CalendarModal({
   );
   const [nameError, setNameError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState<string | null>(null);
@@ -434,11 +435,12 @@ export default function CalendarModal({
 
   async function handleDelete() {
     if (!onDelete) return;
+    setDeleteError(null);
     try {
       await onDelete();
       onClose();
     } catch {
-      // the mutation surfaces its own error state
+      setDeleteError("Couldn't delete the calendar. Please try again.");
     }
   }
 
@@ -709,6 +711,11 @@ export default function CalendarModal({
               >
                 Cancel
               </Button>
+              {deleteError && (
+                <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+                  {deleteError}
+                </p>
+              )}
             </div>
           ) : (
             <Button
