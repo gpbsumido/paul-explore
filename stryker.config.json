@@ -6,7 +6,7 @@
     "@stryker-mutator/vitest-runner"
   ],
   "vitest": {
-    "configFile": "vitest.config.ts",
+    "configFile": "vitest.mutation.config.ts",
     "related": true
   },
   "coverageAnalysis": "perTest",
