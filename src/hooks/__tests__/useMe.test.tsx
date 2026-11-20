@@ -47,4 +47,28 @@ describe("useMe", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
   });
+
+  it("fills in the optional fields an older /api/me leaves out", async () => {
+    const { result } = meAnswers(() => HttpResponse.json({ sub: "auth0|p" }));
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual({
+        name: null,
+        email: null,
+        sub: "auth0|p",
+        isFlagAdmin: false,
+      }),
+    );
+  });
+
+  it.each([
+    ["a body with no sub", { name: "Paul" }],
+    ["a sub that isn't a string", { sub: 42 }],
+    ["a flag that isn't a boolean", { sub: null, isFlagAdmin: "yes" }],
+    ["something that isn't an object", ["auth0|p"]],
+  ])("rejects %s rather than guessing", async (_label, body) => {
+    const { result } = meAnswers(() => HttpResponse.json(body));
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
 });
