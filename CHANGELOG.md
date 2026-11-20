@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.24
+
+- BFF routes stop logging a signed-out visitor as an error. A missing session is how a guest reaches ZeroProof and Card Lab, and each visit wrote three `AccessTokenError` stack traces to the server log. Token failures for someone who is signed in still log.
+
 ## 2026-11-19 - version 9.2.23
 
 - ZeroProof's leagues section says when a list failed to load. A failed "your leagues" request used to read "You're not in a league yet", and a failed public list read "No public leagues open right now", so an outage looked like an empty account.
