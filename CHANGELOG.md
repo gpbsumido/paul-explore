@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.25
+
+- The tab icon, Apple touch icon and Open Graph image render on the Node runtime instead of the deprecated edge one. They take no input, so Next now builds each once instead of rendering it per request, and the two edge-runtime warnings are gone from every server start.
+
 ## 2026-11-19 - version 9.2.24
 
 - BFF routes stop logging a signed-out visitor as an error. A missing session is how a guest reaches ZeroProof and Card Lab, and each visit wrote three `AccessTokenError` stack traces to the server log. Token failures for someone who is signed in still log.
