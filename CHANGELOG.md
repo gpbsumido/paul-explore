@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.23
+
+- ZeroProof's leagues section says when a list failed to load. A failed "your leagues" request used to read "You're not in a league yet", and a failed public list read "No public leagues open right now", so an outage looked like an empty account.
+- A failed calendar delete now says so and keeps the modal open. The catch had a comment saying the mutation surfaced its own error, but nothing read that error, so the confirm button just stopped spinning.
+
 ## 2026-11-19 - version 9.2.22
 
 - `Textarea` passes `hideLabel` and `required` straight through to the package. It drew its own hidden label pointing at an id the textarea didn't have, and added a second asterisk to required fields. No caller used either prop yet, so nothing visible changes.
