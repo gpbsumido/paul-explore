@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.21
+
+- Shared links to pages without their own Open Graph block stopped previewing as the homepage. The root layout still set `openGraph.url` to the site root, and metadata merges shallowly, so every such page inherited it. Same trap as the canonical fix in 9.2.2.
+- Count-ups take new numbers. `useCountUp` returned early forever after its first animation, so a refetched or re-filtered figure never reached the screen. It counts on from the current value now.
+- Reduced-motion visitors stop getting hydration mismatches from count-ups. `useCountUp` read the preference at module load and started on the target while the server had rendered 0, and the landing's Vitals and NBA stats swapped to a different element. The hook reads the preference the hydration-safe way, and the landing keeps one element and jumps the spring instead of animating it.
+
 ## 2026-11-19 - version 9.2.20
 
 - One rule for which NBA season it is. ESPN and the playoffs API name a season by the year it ends, and the playoffs routes knew that, but the fantasy matchups and league-history pages used the calendar year, so from October to December they opened on last season. All of them read `currentNbaSeason()` now, and the free-agents route stopped defaulting to a hardcoded 2026. The Card Lab default stays pinned to 2025 on purpose, with a comment saying why.
