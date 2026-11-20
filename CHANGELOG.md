@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-11-19 - version 9.2.27
+## 2026-11-20 - version 9.2.27
 
 - Adding a check-in site says when it failed. The add never looked at the response, so a refused or failed request cleared the name and showed no new site, and a dropped connection only reached the console. Now the name stays in the field and a line under it says what went wrong.
 
