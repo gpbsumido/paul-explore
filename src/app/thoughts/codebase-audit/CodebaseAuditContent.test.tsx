@@ -56,4 +56,20 @@ describe("CodebaseAuditContent", () => {
     );
     expect(pasted.some((text) => text.includes("getMonth() >= 9"))).toBe(true);
   });
+
+  it("carries the API half as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-20-api-half"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes("const service = new CalendarService();")),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("Expected 5 bindings, saw 0")),
+    ).toBe(true);
+  });
 });
