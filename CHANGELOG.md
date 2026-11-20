@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.19
+
+- One hook, `useMe`, asks who's signed in. Eleven components each had their own query on the shared `me` key, with different fetchers and different shapes, and the hubs seeded that key with a server-read name and email but no `sub`. Anything gated that opened from `/discover` then read the cache as signed out until it went stale. The hubs keep their server value locally now, and a failed session check throws instead of being cached as signed out.
+- Budget says it couldn't check the session when `/api/me` fails, instead of pitching sign-in to someone who may already be signed in.
+- Signed-out visits stop asking for things that can only come back 401. The walls panel on `/gallery-wall` offers sign-in instead of showing "Not authenticated" as an error, the ZeroProof leagues tab says to sign in instead of claiming I'm not in a league, and the playoffs page skips loading picks.
+
 ## 2026-11-19 - version 9.2.18
 
 - A tcgdex outage no longer tells everyone a real Pokémon set doesn't exist. The set page caught every SDK error and called `notFound()`, and with a day's revalidate that 404 could stick until the next rebuild. The SDK already resolves `null` for an unknown id and only throws when tcgdex fails, so the catch is gone and an outage reaches the error page.
