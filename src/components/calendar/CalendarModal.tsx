@@ -682,6 +682,14 @@ export default function CalendarModal({
         />
       )}
 
+      {/* Its own line above the buttons: inside the confirm row it wrapped
+          between Confirm and the modal's Cancel and Save. */}
+      {tab === "details" && confirmDelete && deleteError && (
+        <p role="alert" className="mt-4 text-xs text-error-600 dark:text-error-400">
+          {deleteError}
+        </p>
+      )}
+
       {/* action row */}
       <div
         className={
@@ -711,11 +719,6 @@ export default function CalendarModal({
               >
                 Cancel
               </Button>
-              {deleteError && (
-                <p role="alert" className="text-xs text-error-600 dark:text-error-400">
-                  {deleteError}
-                </p>
-              )}
             </div>
           ) : (
             <Button
