@@ -1,4 +1,10 @@
-import { chromium, type BrowserContext, type FullConfig, type Page } from "@playwright/test";
+import {
+  chromium,
+  type APIRequestContext,
+  type BrowserContext,
+  type FullConfig,
+  type Page,
+} from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
@@ -49,7 +55,7 @@ function consentState(): string {
  *
  * When credentials are absent an empty storageState is written so the
  * authenticated Playwright project still has a valid file to reference.
- * Calendar tests guard themselves with test.skip and will be skipped.
+ * Calendar tests skip themselves when there are no credentials.
  */
 export default async function globalSetup(_config: FullConfig) {
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
@@ -96,31 +102,35 @@ async function loginAndSetup(page: Page, context: BrowserContext) {
   await context.addCookies([consentCookie()]);
   await context.storageState({ path: AUTH_FILE });
 
-  // Create a dedicated test calendar so E2E events are isolated and cleaned
-  // up by globalTeardown without touching any real user data.
-  const res = await context.request.post(
-    `${BASE_URL}/api/calendar/calendars`,
-    {
-      data: {
-        name: "[E2E] Test Calendar",
-        color: "#3B82F6",
-        syncMode: "none",
-      },
-    },
-  );
+  await createTestCalendar(context.request);
+}
 
-  if (res.ok()) {
-    const body = (await res.json()) as { calendar: { id: string } };
-    fs.writeFileSync(
-      STATE_FILE,
-      JSON.stringify({ calendarId: body.calendar.id }),
-    );
-    console.log(`[E2E] Created test calendar ${body.calendar.id}`);
-  } else {
-    console.warn(
+/**
+ * Creates a dedicated test calendar so E2E events are isolated and cleaned up
+ * by globalTeardown without touching any real user data, and records its id
+ * for the specs.
+ *
+ * Throws when the create is rejected. It used to warn and carry on, and the
+ * calendar specs skipped for want of an id, so a broken run came back green.
+ */
+export async function createTestCalendar(request: APIRequestContext) {
+  const res = await request.post(`${BASE_URL}/api/calendar/calendars`, {
+    data: {
+      name: "[E2E] Test Calendar",
+      color: "#3B82F6",
+      syncMode: "none",
+    },
+  });
+
+  if (!res.ok()) {
+    throw new Error(
       `[E2E] Could not create test calendar: ${res.status()} ${await res.text()}`,
     );
   }
+
+  const body = (await res.json()) as { calendar: { id: string } };
+  fs.writeFileSync(STATE_FILE, JSON.stringify({ calendarId: body.calendar.id }));
+  console.log(`[E2E] Created test calendar ${body.calendar.id}`);
 }
 
 /**
