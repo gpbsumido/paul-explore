@@ -8,8 +8,9 @@ import { checkA11y } from "../helpers/axe";
  * Calendar CRUD end-to-end flows.
  *
  * Requires E2E_TEST_EMAIL + E2E_TEST_PASSWORD to be set and globalSetup
- * to have created a dedicated test calendar. Tests self-skip when either
- * is absent so CI without credentials stays green.
+ * to have created a dedicated test calendar. Tests self-skip without
+ * credentials so CI without them stays green. With credentials, a missing
+ * calendar is a failure: global setup throws if it can't make one.
  *
  * Event cleanup: every event a test creates is recorded, and afterEach
  * deletes whatever the test didn't get to, so a failure halfway through
@@ -21,12 +22,12 @@ function hasCredentials() {
   return !!process.env.E2E_TEST_EMAIL && !!process.env.E2E_TEST_PASSWORD;
 }
 
-function testCalendarId(): string | null {
-  if (!fs.existsSync(STATE_FILE)) return null;
+function testCalendarId(): string {
   const { calendarId } = JSON.parse(fs.readFileSync(STATE_FILE, "utf-8")) as {
-    calendarId: string;
+    calendarId?: string;
   };
-  return calendarId ?? null;
+  if (!calendarId) throw new Error(`No test calendar id in ${STATE_FILE}`);
+  return calendarId;
 }
 
 function uniqueTitle() {
@@ -59,10 +60,6 @@ test.describe("Calendar", () => {
     page,
   }) => {
     const calendarId = testCalendarId();
-    if (!calendarId) {
-      test.skip();
-      return;
-    }
 
     const title = uniqueTitle();
 
@@ -174,10 +171,6 @@ test.describe("Calendar", () => {
 
   test("create and delete event via API", async ({ page }) => {
     const calendarId = testCalendarId();
-    if (!calendarId) {
-      test.skip();
-      return;
-    }
 
     const title = uniqueTitle();
 
