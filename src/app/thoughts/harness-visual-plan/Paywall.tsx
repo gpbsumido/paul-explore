@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
+import { useMe } from "@/hooks/useMe";
 
 /** Only this signed-in account sees the gated tail of the write-up. */
 const OWNER_EMAIL = "psumido@gmail.com";
-
-type Me = { email: string | null };
 
 function HazeSection({
   title,
@@ -129,15 +126,7 @@ const HAZE = (
  * all. The only thing under the blur is HAZE, which is written to be found.
  */
 export default function Paywall({ children }: { children: React.ReactNode }) {
-  const me = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<Me> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const me = useMe();
 
   if (me.data?.email === OWNER_EMAIL) return <>{children}</>;
 

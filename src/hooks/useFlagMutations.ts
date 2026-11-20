@@ -9,6 +9,7 @@ import type {
 } from "@/types/flags";
 import { queryKeys } from "@/lib/queryKeys";
 import { flagSchema } from "@/lib/flags-schemas";
+import type { FlagList } from "./useFlags";
 
 // ---------------------------------------------------------------------------
 // Toggle / rollout mutations
@@ -75,9 +76,10 @@ export function useUpdateFlag(): UseUpdateFlagReturn {
     onMutate: async (input) => {
       const key = queryKeys.flags.list();
       await queryClient.cancelQueries({ queryKey: key });
-      const snapshot = queryClient.getQueryData<Flag[]>(key);
-      queryClient.setQueryData<Flag[]>(key, (prev) =>
-        applyUpdate(prev ?? [], input),
+      const snapshot = queryClient.getQueryData<FlagList>(key);
+      queryClient.setQueryData<FlagList>(
+        key,
+        (prev) => prev && { ...prev, flags: applyUpdate(prev.flags, input) },
       );
       return { snapshot, key };
     },

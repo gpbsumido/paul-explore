@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import { fetchUpstream } from "@/lib/upstream";
 import {
-  cardsFromLeaguePayload,
-  nbaFantasyLeagueUrl,
-} from "@/lib/espn-performances";
+  CARD_LAB_DEFAULT_SEASON,
+  loadNbaSeasonCards,
+} from "@/lib/card-lab-pool";
 import { loadNightlySlate } from "@/lib/espn-nightly";
 import { loadNflWeek, loadNflSeason } from "@/lib/espn-nfl";
-import type { GeneratedCard, Sport } from "@/lib/fantasy-cards";
+import type { Sport } from "@/lib/fantasy-cards";
 import CardLabContent from "./CardLabContent";
 
 const TITLE = "Card Lab";
@@ -35,12 +34,11 @@ export const metadata: Metadata = {
 // League data changes at most daily during a season — cache the shell for an hour
 export const revalidate = 3600;
 
-const DEFAULT_SEASON = "2025";
 const SEASON_RE = /^\d{4}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function resolveSeason(raw: string | undefined): string {
-  return raw && SEASON_RE.test(raw) ? raw : DEFAULT_SEASON;
+  return raw && SEASON_RE.test(raw) ? raw : CARD_LAB_DEFAULT_SEASON;
 }
 
 function resolveSport(raw: string | undefined): Sport {
@@ -50,21 +48,6 @@ function resolveSport(raw: string | undefined): Sport {
 /** WNBA is nightly-only; NBA and NFL also offer a season view. */
 function resolveMode(raw: string | undefined, sport: Sport): "nightly" | "season" {
   return sport !== "wnba" && raw === "season" ? "season" : "nightly";
-}
-
-async function loadCards(
-  season: string,
-): Promise<{ cards: GeneratedCard[]; error: boolean }> {
-  const result = await fetchUpstream(nbaFantasyLeagueUrl(season), {
-    next: { revalidate: 3600 },
-  });
-  if (!result.ok || !result.response.ok) return { cards: [], error: true };
-  try {
-    const payload = await result.response.json();
-    return { cards: cardsFromLeaguePayload(payload, { season }), error: false };
-  } catch {
-    return { cards: [], error: true };
-  }
 }
 
 export default async function CardLabPage({
@@ -113,7 +96,7 @@ export default async function CardLabPage({
   }
 
   if (mode === "season") {
-    const { cards, error } = await loadCards(season);
+    const { cards, error } = await loadNbaSeasonCards(season);
     return (
       <CardLabContent
         cards={cards}
@@ -138,7 +121,7 @@ export default async function CardLabPage({
     slate.cards.length === 0;
 
   if (offSeasonDefault) {
-    const { cards, error } = await loadCards(season);
+    const { cards, error } = await loadNbaSeasonCards(season);
     return (
       <CardLabContent
         cards={cards}

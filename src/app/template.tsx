@@ -24,12 +24,14 @@ export default function Template({ children }: { children: React.ReactNode }) {
     hasMountedOnce = true;
   }, []);
 
-  // Someone who asked for less motion gets no page fade at all.
-  if (reduced) return <>{children}</>;
+  // Someone who asked for less motion gets no page fade at all. The wrapper
+  // stays either way: the reduced flag can only turn on after hydration, and
+  // swapping this element for a fragment at that point would remount the page.
+  const fadeIn = !reduced && !isFirstLoad;
 
   return (
     <m.div
-      initial={isFirstLoad ? false : { opacity: 0 }}
+      initial={fadeIn ? { opacity: 0 } : false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.22, ease: "easeOut" }}
     >

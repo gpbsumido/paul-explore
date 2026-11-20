@@ -12,6 +12,7 @@ import {
   type ReviewKind,
   type ReviewStatesByKind,
 } from "@/lib/leetcode/practiceApi";
+import { useMe } from "@/hooks/useMe";
 
 const REVIEW_STORAGE_KEYS: Record<ReviewKind, string> = {
   problem: "learn-leetcode-review-v1",
@@ -128,15 +129,7 @@ export function useReviewStates(kind: ReviewKind) {
   const localStates = useMemo(() => parseStoredStates(key, raw), [key, raw]);
 
   const queryClient = useQueryClient();
-  const me = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const me = useMe();
   const signedIn = Boolean(me.data?.sub);
 
   const account = useQuery({

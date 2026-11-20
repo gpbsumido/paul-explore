@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PackBar, { type RipSlate } from "./PackBar";
 
-const slate: RipSlate = { sport: "nba", mode: "nightly", date: "2026-04-17", week: null };
+const slate: RipSlate = { sport: "nba", mode: "nightly", season: "2025", date: "2026-04-17", week: null };
 
 /** A minimal fetch Response stand-in that PackBar's handlers understand. */
 const res = (status: number, body: unknown) => ({
@@ -76,6 +76,7 @@ describe("PackBar", () => {
     const openCall = fetchMock.mock.calls.find(([u]) => String(u).endsWith("/packs/open"));
     expect(JSON.parse((openCall?.[1] as RequestInit).body as string)).toMatchObject({
       sport: "nba",
+      season: "2025",
       date: "2026-04-17",
     });
   });

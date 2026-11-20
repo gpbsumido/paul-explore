@@ -11,6 +11,7 @@ import {
   type WallSummary,
 } from "./_lib/walls-api";
 import type { GalleryState } from "./_lib/state";
+import { useMe } from "@/hooks/useMe";
 
 const ACCENT = "var(--color-feature-gallery-wall)";
 
@@ -34,6 +35,9 @@ type WallsPanelProps = {
  *
  * Saving with a wall open updates that wall; saving without one creates a new
  * wall under the typed name.
+ *
+ * The page itself is public, so signed out the panel offers sign-in rather
+ * than asking for walls that could only come back 401.
  */
 export default function WallsPanel({
   state,
@@ -52,6 +56,8 @@ export default function WallsPanel({
   const [renameText, setRenameText] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const me = useMe();
+  const sub = me.data?.sub ?? null;
 
   const refresh = useCallback(async () => {
     try {
@@ -67,9 +73,10 @@ export default function WallsPanel({
   // case the rule carves out; the setState lands in the promise callback, not
   // synchronously in the effect body.
   useEffect(() => {
+    if (!sub) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
-  }, [refresh]);
+  }, [refresh, sub]);
 
   /** Run a save/delete style action with the shared busy and error handling. */
   const run = async (action: () => Promise<void>) => {
@@ -131,6 +138,42 @@ export default function WallsPanel({
       setConfirmingId(null);
       await refresh();
     });
+
+  if (me.isError) {
+    return (
+      <div className="glass-card rounded-2xl p-4">
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
+          Saved walls
+        </h2>
+        <p
+          role="alert"
+          className="text-[12px] font-medium text-error-600 dark:text-error-400"
+        >
+          Couldn&apos;t check whether you&apos;re signed in. Refresh to try
+          again.
+        </p>
+      </div>
+    );
+  }
+
+  if (me.data && !sub) {
+    return (
+      <div className="glass-card rounded-2xl p-4">
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
+          Saved walls
+        </h2>
+        <p className="text-[12px] text-muted">
+          <a
+            href={`/auth/login?returnTo=${encodeURIComponent("/gallery-wall")}`}
+            className="font-medium text-foreground underline underline-offset-2"
+          >
+            Sign in
+          </a>{" "}
+          to save walls and open them again later.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card rounded-2xl p-4">

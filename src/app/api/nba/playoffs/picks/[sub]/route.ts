@@ -2,11 +2,7 @@ import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
-
-function currentSeasonYear(): number {
-  const now = new Date();
-  return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
-}
+import { currentNbaSeason } from "@/lib/nbaSeason";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ sub: string }> },
 ) {
   const { sub: identifier } = await params;
-  const season = currentSeasonYear();
+  const season = currentNbaSeason();
   const param = UUID_RE.test(identifier)
     ? `bracketId=${encodeURIComponent(identifier)}`
     : `username=${encodeURIComponent(identifier)}`;

@@ -10,6 +10,7 @@ import PackOpener from "./PackOpener";
 export type RipSlate = {
   sport: Sport;
   mode: "nightly" | "season";
+  season: string;
   date?: string | null;
   week?: number | null;
 };
@@ -47,6 +48,7 @@ export default function PackBar({ slate }: { slate: RipSlate }) {
         body: JSON.stringify({
           sport: slate.sport,
           mode: slate.mode,
+          season: slate.season,
           date: slate.date ?? undefined,
           week: slate.week ?? undefined,
         }),

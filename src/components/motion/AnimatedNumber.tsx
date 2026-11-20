@@ -51,9 +51,8 @@ export type AnimatedNumberProps = {
  * only takes over after mount, by which point the element is off screen unless
  * it is already in view.
  *
- * Reduced motion comes from the shared context rather than useCountUp's own
- * check: that hook reads the media query once at module import, which is too
- * early to be reliable.
+ * Reduced motion comes from the shared context, so it agrees with every other
+ * motion decision on the hub.
  */
 export default function AnimatedNumber({
   value,

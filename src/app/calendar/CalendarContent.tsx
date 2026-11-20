@@ -25,6 +25,7 @@ import InfiniteCalendarScroll, {
   type InfiniteCalendarScrollHandle,
 } from "@/components/calendar/InfiniteCalendarScroll";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import type { EventDraft } from "@/components/calendar/EventModal";
 import { useCountdowns } from "@/hooks/useCountdowns";
 import { useCalendars } from "@/hooks/useCalendars";
 import type {
@@ -163,7 +164,7 @@ export default function CalendarContent({
     string | null | undefined
   >(undefined);
 
-  const { calendars } = useCalendars();
+  const { calendars, isError: calendarsFailed } = useCalendars();
   const effectiveCalendarId =
     selectedCalendarId === undefined
       ? (calendars[0]?.id ?? null)
@@ -296,14 +297,11 @@ export default function CalendarContent({
     setCountdownModal({ open: true, editingCountdown: countdown });
   }, []);
 
-  async function handleSave(eventData: CalendarEvent) {
-    if (modal.open && modal.editingEvent) {
-      const { id, ...fields } = eventData;
-      await calendarEvents.updateEvent(id, fields);
-    } else {
-      const { id: _id, ...fields } = eventData;
-      await calendarEvents.createEvent(fields);
-    }
+  async function handleSave(eventData: EventDraft): Promise<CalendarEvent> {
+    const { id, ...fields } = eventData;
+    return id
+      ? calendarEvents.updateEvent(id, fields)
+      : calendarEvents.createEvent(fields);
   }
 
   async function handleDelete(id: string) {
@@ -417,6 +415,15 @@ export default function CalendarContent({
         selectedCalendarId={effectiveCalendarId}
         onSelectCalendar={setSelectedCalendarId}
       />
+
+      {calendarsFailed && (
+        <div
+          role="alert"
+          className="mb-4 rounded-md border border-error-200 bg-error-50 px-4 py-2 text-sm text-error-700 dark:border-error-800 dark:bg-error-950/30 dark:text-error-400"
+        >
+          Couldn&apos;t load your calendars. Refresh to try again.
+        </div>
+      )}
 
       {calendarEvents.error && (
         <div className="mb-4 rounded-md border border-error-200 bg-error-50 px-4 py-2 text-sm text-error-700 dark:border-error-800 dark:bg-error-950/30 dark:text-error-400">

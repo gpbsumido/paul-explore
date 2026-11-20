@@ -49,3 +49,21 @@ describe("Chip accessibility", () => {
     });
   });
 });
+
+describe("Chip as a link", () => {
+  it("opens an external link in a new tab", () => {
+    render(<Chip label="paul-explore#689" href="https://github.com/x/y/pull/689" />);
+    const link = screen.getByRole("link", { name: "paul-explore#689" });
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("refuses props a link chip can't honour, at compile time", () => {
+    // These used to type-check and then vanish at runtime. A click handler or a
+    // remove button inside a link would be a control inside a control anyway.
+    // @ts-expect-error a link chip takes no onClick
+    render(<Chip label="a" href="/a" onClick={() => {}} />);
+    // @ts-expect-error a link chip takes no onRemove
+    render(<Chip label="b" href="/b" onRemove={() => {}} />);
+    expect(screen.getAllByRole("link")).toHaveLength(2);
+  });
+});

@@ -73,3 +73,15 @@ describe("Input accessibility", () => {
     });
   });
 });
+
+describe("Input with a hidden label", () => {
+  it("points the hidden label at the input it names", () => {
+    const { container } = render(<Input label="Search" hideLabel />);
+    const label = container.querySelector("label");
+    const input = screen.getByRole("textbox");
+
+    expect(label).not.toBeNull();
+    expect(input.id).not.toBe("");
+    expect(label?.htmlFor).toBe(input.id);
+  });
+});

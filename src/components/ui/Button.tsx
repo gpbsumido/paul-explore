@@ -5,42 +5,39 @@ export type ButtonVariant =
   "primary" | "secondary" | "outline" | "ghost" | "danger";
 export type ButtonSize = "xs" | "sm" | "md" | "lg";
 
-interface ButtonProps extends ComponentPropsWithRef<"button"> {
+type BaseButtonProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
+  disabled?: boolean;
   children: ReactNode;
-  href?: string;
-}
+};
+
+type ButtonAsButton = BaseButtonProps &
+  Omit<ComponentPropsWithRef<"button">, keyof BaseButtonProps> & {
+    href?: undefined;
+  };
+
+type ButtonAsLink = BaseButtonProps &
+  Omit<ComponentPropsWithRef<"a">, keyof BaseButtonProps> & {
+    href: string;
+  };
+
+type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 /**
  * App-level Button backed by @paul-portfolio/react.
  * Preserves the existing API so all call sites keep working.
+ *
+ * With an href it renders a link and takes link props. Everything else passes
+ * straight through to the DS Button, which already handles both shapes, so
+ * there is no branch here that can quietly drop an aria-label or an onClick.
  */
 export default function Button({
   variant = "primary",
   size = "md",
   loading = false,
-  disabled,
-  children,
-  className,
-  href,
-  ref,
   ...rest
 }: ButtonProps) {
-  const shared = { ref, variant, size, loading, disabled, className } as const;
-
-  if (href) {
-    return (
-      <PaulButton {...shared} href={href}>
-        {children}
-      </PaulButton>
-    );
-  }
-
-  return (
-    <PaulButton {...shared} {...rest}>
-      {children}
-    </PaulButton>
-  );
+  return <PaulButton variant={variant} size={size} loading={loading} {...rest} />;
 }

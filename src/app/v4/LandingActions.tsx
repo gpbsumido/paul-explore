@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import AuthButton from "@/components/AuthButton";
 import HeaderMenu from "@/components/HeaderMenu";
-import { queryKeys } from "@/lib/queryKeys";
+import { useMe } from "@/hooks/useMe";
 
 /**
  * Shared pill treatment for the v4 header controls. SearchHint and ResumeLink
@@ -30,14 +29,7 @@ const PILL =
  * session-derived markup for an edge cache to leak.
  */
 export default function LandingActions({ loggedIn }: { loggedIn?: boolean }) {
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
+  const meQuery = useMe({
     refetchOnWindowFocus: "always",
     enabled: loggedIn === undefined,
   });

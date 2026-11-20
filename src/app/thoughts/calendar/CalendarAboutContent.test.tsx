@@ -22,4 +22,14 @@ describe("CalendarAboutContent", () => {
     expect(part1).toBeGreaterThan(-1);
     expect(part2).toBeGreaterThan(part1);
   });
+
+  it("carries the audit update, linked from the timeline", () => {
+    render(<CalendarAboutContent />);
+    expect(
+      document.getElementById("update-2026-11-18-silent-failures"),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("link", { name: /three failures that all looked fine/i }),
+    ).toHaveAttribute("href", "#update-2026-11-18-silent-failures");
+  });
 });

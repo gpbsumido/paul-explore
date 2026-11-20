@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { AccessTokenError, AccessTokenErrorCode } from "@auth0/nextjs-auth0/errors";
 import { auth0 } from "@/lib/auth0";
 import { API_URL } from "@/lib/apiUrl";
 import { InvalidSegmentError } from "@/lib/safeSegment";
@@ -13,6 +14,14 @@ type BackendHandler<Ctx> = (
   request: NextRequest,
   routeCtx: Ctx,
 ) => Promise<NextResponse> | NextResponse;
+
+/** True when the token lookup failed only because nobody is signed in. */
+function isGuest(err: unknown): boolean {
+  return (
+    err instanceof AccessTokenError &&
+    err.code === AccessTokenErrorCode.MISSING_SESSION
+  );
+}
 
 /**
  * Wraps a BFF route handler with the shared plumbing every proxy route repeats:
@@ -32,7 +41,9 @@ export function withBackend<Ctx = unknown>(
     try {
       backend = await getBackendAuth();
     } catch (err) {
-      console.error(`[${label}] auth failed:`, err);
+      // No session is a guest, which is the normal path for every public page
+      // that asks. Anything else means a signed-in token went wrong.
+      if (!isGuest(err)) console.error(`[${label}] auth failed:`, err);
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
     try {

@@ -1,10 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
 import BudgetSignedOut from "./BudgetSignedOut";
 import ServerBudgetContent from "./ServerBudgetContent";
 import BudgetLoading from "./loading";
+import { useMe } from "@/hooks/useMe";
 
 /**
  * Gates the budget on sign-in. A budget lives on your account now, so a
@@ -14,14 +13,19 @@ import BudgetLoading from "./loading";
  * so the page stays static until it runs.
  */
 export default function BudgetView() {
-  const me = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; email: string | null }> =>
-      fetch("/api/me").then((r) => (r.ok ? r.json() : { sub: null, email: null })),
-    staleTime: 5 * 60_000,
-  });
+  const me = useMe();
 
   if (me.isPending) return <BudgetLoading />;
+  if (me.isError) {
+    return (
+      <p
+        role="alert"
+        className="mx-auto max-w-xl px-4 py-12 text-center text-sm text-error-600 dark:text-error-400"
+      >
+        Couldn&apos;t check whether you&apos;re signed in. Refresh to try again.
+      </p>
+    );
+  }
   if (me.data?.sub) return <ServerBudgetContent meEmail={me.data.email ?? undefined} />;
   return <BudgetSignedOut />;
 }

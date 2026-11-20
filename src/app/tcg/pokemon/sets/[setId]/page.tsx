@@ -51,7 +51,10 @@ export default async function SetDetailPage({
   params: Promise<{ setId: string }>;
 }) {
   const { setId } = await params;
-  const set = await tcgdex.set.get(setId).catch(() => null);
+  // The SDK resolves null for an unknown id and throws when tcgdex itself
+  // fails. Only the first is a 404: catching the second turned an outage into
+  // "this set doesn't exist", cached for a day by the revalidate above.
+  const set = await tcgdex.set.get(setId);
   if (!set) notFound();
 
   const releaseYear = set.releaseDate?.split("-")[0];

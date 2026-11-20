@@ -1,5 +1,110 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.25
+
+- The tab icon, Apple touch icon and Open Graph image render on the Node runtime instead of the deprecated edge one. They take no input, so Next now builds each once instead of rendering it per request, and the two edge-runtime warnings are gone from every server start.
+
+## 2026-11-19 - version 9.2.24
+
+- BFF routes stop logging a signed-out visitor as an error. A missing session is how a guest reaches ZeroProof and Card Lab, and each visit wrote three `AccessTokenError` stack traces to the server log. Token failures for someone who is signed in still log.
+
+## 2026-11-19 - version 9.2.23
+
+- ZeroProof's leagues section says when a list failed to load. A failed "your leagues" request used to read "You're not in a league yet", and a failed public list read "No public leagues open right now", so an outage looked like an empty account.
+- A failed calendar delete now says so and keeps the modal open. The catch had a comment saying the mutation surfaced its own error, but nothing read that error, so the confirm button just stopped spinning.
+
+## 2026-11-19 - version 9.2.22
+
+- `Textarea` passes `hideLabel` and `required` straight through to the package. It drew its own hidden label pointing at an id the textarea didn't have, and added a second asterisk to required fields. No caller used either prop yet, so nothing visible changes.
+- The codebase-audit write-up has a dated update on the second pass over the fixes, which found the same bug shapes one level up and fixed them in 9.2.17 to 9.2.22.
+
+## 2026-11-19 - version 9.2.21
+
+- Shared links to pages without their own Open Graph block stopped previewing as the homepage. The root layout still set `openGraph.url` to the site root, and metadata merges shallowly, so every such page inherited it. Same trap as the canonical fix in 9.2.2.
+- Count-ups take new numbers. `useCountUp` returned early forever after its first animation, so a refetched or re-filtered figure never reached the screen. It counts on from the current value now.
+- Reduced-motion visitors stop getting hydration mismatches from count-ups. `useCountUp` read the preference at module load and started on the target while the server had rendered 0, and the landing's Vitals and NBA stats swapped to a different element. The hook reads the preference the hydration-safe way, and the landing keeps one element and jumps the spring instead of animating it.
+
+## 2026-11-19 - version 9.2.20
+
+- One rule for which NBA season it is. ESPN and the playoffs API name a season by the year it ends, and the playoffs routes knew that, but the fantasy matchups and league-history pages used the calendar year, so from October to December they opened on last season. All of them read `currentNbaSeason()` now, and the free-agents route stopped defaulting to a hardcoded 2026. The Card Lab default stays pinned to 2025 on purpose, with a comment saying why.
+
+## 2026-11-19 - version 9.2.19
+
+- One hook, `useMe`, asks who's signed in. Eleven components each had their own query on the shared `me` key, with different fetchers and different shapes, and the hubs seeded that key with a server-read name and email but no `sub`. Anything gated that opened from `/discover` then read the cache as signed out until it went stale. The hubs keep their server value locally now, and a failed session check throws instead of being cached as signed out.
+- Budget says it couldn't check the session when `/api/me` fails, instead of pitching sign-in to someone who may already be signed in.
+- Signed-out visits stop asking for things that can only come back 401. The walls panel on `/gallery-wall` offers sign-in instead of showing "Not authenticated" as an error, the ZeroProof leagues tab says to sign in instead of claiming I'm not in a league, and the playoffs page skips loading picks.
+
+## 2026-11-19 - version 9.2.18
+
+- A tcgdex outage no longer tells everyone a real Pokémon set doesn't exist. The set page caught every SDK error and called `notFound()`, and with a day's revalidate that 404 could stick until the next rebuild. The SDK already resolves `null` for an unknown id and only throws when tcgdex fails, so the catch is gone and an outage reaches the error page.
+- The calendar says when something failed to load instead of looking empty. A failed calendars request showed no calendars, a failed member list showed nobody, and a failed cards request on an event page hid the cards. Each now says it couldn't load. Disconnecting Google and removing a member also say when they fail, where both used to swallow the error.
+- Check-in no longer tells a volunteer their code is wrong when the server failed. A 5xx without a message of its own now says to try again.
+
+## 2026-11-19 - version 9.2.17
+
+- Resuming a restock no longer forgets a session because the API had a bad moment. Reading a session fell back to the seed on any failure, and a real session isn't in the seed, so a 500 or a timeout came back as "not found" and the resume hook cleared the saved session the way it should for a genuine 404. Now only the API saying 404 means gone; any other failure is reported as one, and the seed only answers for sessions it actually holds. Promotion performance reads follow the same rule.
+- The flags console says when it's showing the built-in demo flags. The BFF falls back to the seed whenever the flags API doesn't answer, which is right for the server-side pocket gate that reads through it, but the routes threw away the `source` field, so the console presented demo configs as the live ones. Both routes return `source` now, the console shows a status line on seed data, and the BFF logs why it fell back so a rejected read isn't mistaken for an outage. The info strip under it no longer says "Backed by a live API" on seed data either; it shows a "Demo data" badge instead.
+
+## 2026-11-19 - version 9.2.16
+
+- Connecting Google Calendar now finishes on `/settings` as the signed-in user. The API used to store the tokens in its OAuth callback, under whichever account had started the flow, so a connect link someone else opened would hand their Google calendar to the account that made the link. With portfolio_api 6.3.0 the callback sends the one-time code back to `/settings?gcal=confirm`, and the page hands it to the new `POST /api/google/auth/confirm`, which the API only honours for the account the flow was started from. The code comes straight out of the address bar, is only sent once (StrictMode runs the effect twice), and a code started from another account gets its own explanation instead of the generic error. This has to ship before portfolio_api 6.3.0.
+
+## 2026-11-18 - version 9.2.15
+
+- New write-up at `/thoughts/codebase-audit` on the audit behind 9.2.2 to 9.2.14: how I ran an audit that wasn't allowed to fix anything, why nearly every bug it found was a failure reported as a plausible result, and the five that cut across the whole site (canonical URLs, `encodeURIComponent` path ids, dropped Button props, drifted feature colours, the reduced-motion remount). The feature-specific fixes are dated updates on the write-ups they belong to: operator (write fallback and restock resume), calendar (card saves, the e2e calendar, the Google status check), playoffs (failed saves), ZeroProof (signed-out bets) and Fantasy TCG (the rip pool). The operator timeline test only knew July and August, so it now knows every month.
+
+## 2026-11-18 - version 9.2.14
+
+- The calendar used to treat any failure from the Google status check as "not connected". So a 500 told people who had already connected their account to go and connect it. Now only a 401 means not connected. Any other failure says the check couldn't be done, and the two-way option explains that instead of pointing at Settings.
+
+## 2026-11-18 - version 9.2.13
+
+- **Signed-out visitors to ZeroProof no longer request bets they can't have.** Five components on the page each declared the same bets query, under one cache key, and only some of them waited for a session. The board's copy didn't, so every signed-out visit fired `GET /api/zeroproof/bets` and got a 401, even though a comment said it returned nothing when signed out. All five now use one `useMyBets` hook that only fetches once the profile says there's a session, with the bet history keeping its 30-second poll.
+
+## 2026-11-18 - version 9.2.12
+
+- **Card Lab packs come from the slate on screen.** Ripping a pack rebuilds the pool on the server so the client can't pick its own cards, but it rebuilt the wrong one. The page honours `?season=` while the rip always used 2025, and the NBA season view is built from the fantasy league's season totals while the rip built a nightly slate for it, so a pack in either case came from a pool you weren't looking at. The rip now gets the season from the page, and the NBA season pool and the default season live in one module (`card-lab-pool.ts`) that both the page and the rip use.
+
+## 2026-11-18 - version 9.2.11
+
+- **Pages no longer mount twice for visitors who prefer reduced motion.** The route template wrapped each page in a fading `m.div`, or in a bare fragment when reduced motion was on. The server can't see that preference, so the flag only turns on after hydration, and swapping the element above the page at that moment made React throw the page away and mount it again: every effect ran twice and every client fetch on first load fired twice for those visitors. The wrapper now stays in place and reduced motion just skips the fade.
+
+## 2026-11-18 - version 9.2.10
+
+- **The calendar e2e test stays out of real calendars, and the event modal's calendar picker has a label.** The authenticated calendar test meant to put its event in a throwaway test calendar by clicking `button[data-calendar-id]`, but nothing renders that, and an `isVisible()` guard skipped the click without failing, so every run wrote to the account's real default calendar. Its header also promised an `afterEach` cleanup that didn't exist, so a failure partway through left the event behind. The test now picks the test calendar from the modal's picker, checks the created event landed there, and records every event it creates so `afterEach` deletes anything left over. The picker it uses had no label, just a `<p>` above an unlabelled `<select>`, so screen readers announced a bare combobox; it's a real `<label>` now.
+
+## 2026-11-18 - version 9.2.9
+
+- **The playoff bracket says when a save or a submit fails.** With auto-save on, a pick set the indicator to "Saving…", and only a successful response ever changed it, so a 500 left it pulsing "Saving…" forever and a network error quietly cleared it. A failed Submit just put the button back to "Submit Bracket" as if it had never been clicked. Both now have a failed state, read out as an alert: "Couldn't save. Your picks are still here." for auto-save, and "Couldn't submit. Try again." next to a button that stays enabled.
+
+## 2026-11-18 - version 9.2.8
+
+- **Cards attached to a calendar event are saved, or the modal says they weren't.** Every card add, update and remove in the event modal ended in `.catch(() => null)`, and the modal closed as if everything had saved. It was worse for a new event: the modal wrote cards to a random id it made up, while the page threw that id away and let the server assign the real one, so every card on a new event failed and the failure was hidden. Now `onSave` creates when there's no id and updates when there is, and returns the saved event. Cards go to that event's id. If any card change fails, the modal stays open, says how many didn't save, keeps only the failed changes for the retry, and the retry updates the same event instead of creating a second one. Saving also stopped PUTting every attached card; only cards whose quantity or notes changed are sent.
+
+## 2026-11-18 - version 9.2.7
+
+- **Feature colours agree with their tokens again.** Each feature has a theme-aware token pair in `tokens.css` and one hex in the feature data for places that can't switch on theme, like reel dots and graph nodes. The hex is meant to be derived from the pair, but when the palette was swapped four of them kept their old hue: Vitals was green in the data and purple in its token, and Learn, NBA and Calendar were off by 50 to 120 degrees. The hub card painted its dot from the data and its tint from the token, so those cards showed two colours. The four are re-derived from their tokens, Zeroproof and Mind Reader are lightened to clear 3:1 on the dark surface (they were at 2.89 and 2.95), and the card dot now reads the token. A test checks every feature's hue against its token and its contrast against both themes.
+
+## 2026-11-18 - version 9.2.6
+
+- **Button, Chip and Input stop dropping the props they're given.** Button with an `href` only forwarded its variant, size and class, so an `aria-label`, `target` or `onClick` on a link button type-checked and then disappeared. It now passes everything through to the design-system Button, which already renders both shapes, and its props are typed as a button or a link depending on `href`. The link form of Chip accepted `onClick`, `onRemove`, `color` and `fullWidth` and ignored them; it now refuses them at compile time, since a handler or a remove button inside a link would be a control inside a control. Input with `hideLabel` rendered a hidden `<label htmlFor>` pointing at an id the input never got, so the input now gets that id.
+
+## 2026-11-18 - version 9.2.5
+
+- **Resuming a restock keeps the session and the slots already counted.** Resume cleared the stored session id on any failure, so a dropped connection or a 502 told the restocker the restock was "no longer open" and the next tap opened a new, empty one. The counts were still on the server, just unreachable from the phone. Now only a 404 or a completed session drops the id; anything else shows an error and leaves the Resume button there to try again. Resume also ignored the lines the server sent back, so every slot looked uncounted after a reload even though it had been saved. Those lines now seed the drafts, so saved slots show as done and are part of the review.
+
+## 2026-11-18 - version 9.2.4
+
+- **Operator writes only fall back to the demo data when portfolio_api never answered.** Every write (restock, dismiss, planogram, restock sessions, promotions) used to fall back to the in-memory seed on any error except 401 and 403. That covered real answers from the API too: a 409 or a 500 was replayed against the seed and reported as a success nothing persisted, and a 2xx whose body didn't parse could apply the write twice, once upstream and once in the seed. Now a 404 comes back as not found, any other status from the API reaches the browser (4xx as is, 5xx as a 502), and an unreadable 2xx is a 502 that says the change may have been saved. Only a request that never got an answer uses the seed, which is what the fallback is for. The eight copies of the write try/catch are now one `writeWithFallback`, and those fallbacks are logged like the read ones.
+
+## 2026-11-18 - version 9.2.3
+
+- **Nine API routes no longer let an id walk the backend path.** The walls, zeroproof leagues, ESPN league, check-in site and calendar member routes put the id from the URL into the portfolio_api URL with `encodeURIComponent`. Next decodes `%2e%2e` to `..` before the handler runs, `encodeURIComponent("..")` is still `..`, and `fetch` resolves it, so `/api/zeroproof/leagues/%2e%2e/join` went out as `/api/zeroproof/join` with the caller's token attached. They now use `safeSegment` like every other route, and a bad id gets a 400 without reaching the backend. A test fails if any route puts an id into a path with `encodeURIComponent` again.
+
+## 2026-11-18 - version 9.2.2
+
+- **Every page now declares its own canonical URL instead of the homepage's.** The root layout set `alternates: { canonical: "/" }`, and since Next merges metadata shallowly, every page that didn't set `alternates` itself inherited it. That was every write-up, so each one told search engines it was a duplicate of `/`. The root canonical is gone, `buildArticleMetadata` now emits the page's own path, and the homepage sets `/` itself. Pages with hand-written metadata now have no canonical rather than a wrong one, which search engines read as self-canonical.
+
 ## 2026-11-17 - version 9.2.1
 
 - **`/resume` serves the new résumé.** The PDF and the Word export are replaced with the current version, which is retitled Full-stack Software Engineer and has a reworked summary and skills section. The plain-text copy is rewritten from the Word file to match, so the three formats agree: the Open Source section is gone and helika-web-sdk is listed under Projects. The filenames are unchanged, so the page and its download links needed no edit.

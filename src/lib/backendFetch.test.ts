@@ -5,6 +5,7 @@ vi.mock("@/lib/auth0", () => ({
   auth0: { getAccessToken: vi.fn() },
 }));
 
+import { AccessTokenError, AccessTokenErrorCode } from "@auth0/nextjs-auth0/errors";
 import { auth0 } from "@/lib/auth0";
 import { withBackend } from "./backendFetch";
 
@@ -44,5 +45,33 @@ describe("withBackend", () => {
     const res = await route(req(), undefined);
     expect(res.status).toBe(201);
     expect(seenToken).toBe("abc");
+  });
+
+  it("answers a guest with a 401 without logging an error", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    getAccessToken.mockRejectedValue(
+      new AccessTokenError(AccessTokenErrorCode.MISSING_SESSION, "The user does not have an active session."),
+    );
+    const route = withBackend("x", async () => NextResponse.json({ ok: true }));
+
+    const res = await route(req(), undefined);
+
+    expect(res.status).toBe(401);
+    expect(logged).not.toHaveBeenCalled();
+    logged.mockRestore();
+  });
+
+  it("still logs a token failure for someone who is signed in", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    getAccessToken.mockRejectedValue(
+      new AccessTokenError(AccessTokenErrorCode.FAILED_TO_REFRESH_TOKEN, "refresh failed"),
+    );
+    const route = withBackend("x", async () => NextResponse.json({ ok: true }));
+
+    const res = await route(req(), undefined);
+
+    expect(res.status).toBe(401);
+    expect(logged).toHaveBeenCalledOnce();
+    logged.mockRestore();
   });
 });

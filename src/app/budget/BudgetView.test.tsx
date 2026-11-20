@@ -45,6 +45,15 @@ describe("BudgetView — auth gate", () => {
     expect(screen.queryByRole("link", { name: /^sign in$/i })).toBeNull();
   });
 
+  it("says it couldn't check the session rather than showing the signed-out pitch", async () => {
+    // A failed /api/me used to resolve as signed out, and that answer was
+    // cached under the key the header and the hub read too.
+    renderView(() => HttpResponse.json({ error: "boom" }, { status: 500 }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check/i);
+    expect(screen.queryByText(/one-tap even split/i)).toBeNull();
+  });
+
   it("the signed-out gate has no axe violations", async () => {
     const { container } = renderView(signedOut);
     await screen.findByRole("link", { name: /sign in/i });

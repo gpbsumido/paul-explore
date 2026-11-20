@@ -2,10 +2,8 @@
 
 import { useRef } from "react";
 import { m, useInView } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { reveal } from "@/app/landing/Section";
-import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 import {
@@ -15,6 +13,7 @@ import {
   ThoughtCard,
 } from "@/app/_shared/featureData";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
+import { useMe } from "@/hooks/useMe";
 
 // ---- FeatureHub ----
 
@@ -32,18 +31,12 @@ type MeData = { name: string | null; email: string | null };
 export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
   const prefersReduced = useHubReducedMotion();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<MeData> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    initialData: initialMe,
-    staleTime: 5 * 60_000,
-  });
-  const userName = meQuery.isLoading ? null : (meQuery.data?.name ?? "there");
-  const userEmail = meQuery.data?.email ?? undefined;
+  // The server-read name covers the first paint. It stays local rather than
+  // seeding the shared session cache, which every reader trusts for `sub`.
+  const meQuery = useMe();
+  const me = meQuery.data ?? initialMe;
+  const userName = me ? (me.name ?? "there") : null;
+  const userEmail = me?.email ?? undefined;
 
   const thoughtsRef = useRef(null);
   const thoughtsVisible = useInView(thoughtsRef, {
