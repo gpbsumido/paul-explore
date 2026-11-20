@@ -140,4 +140,28 @@ describe("CalendarModal failures", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t delete/i);
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it("puts the delete failure on its own line, not inside the confirm row", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <CalendarModal
+          calendar={linked}
+          onSave={vi.fn()}
+          onDelete={() => Promise.reject(new Error("boom"))}
+          onClose={vi.fn()}
+        />
+      </QueryClientProvider>,
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    const alert = await screen.findByRole("alert");
+    const confirmRow = screen.getByRole("button", { name: "Confirm" }).closest("div");
+    expect(confirmRow).not.toContainElement(alert);
+    // The confirm row stays, so the delete can be retried.
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
+  });
 });
