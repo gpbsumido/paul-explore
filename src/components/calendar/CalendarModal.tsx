@@ -107,7 +107,8 @@ function SharingTab({
   calendarRole: "owner" | "editor" | "viewer";
   ownerEmail?: string;
 }) {
-  const { members, isLoading } = useCalendarMembers(calendarId);
+  const { members, isLoading, isError: membersFailed } =
+    useCalendarMembers(calendarId);
   const { inviteMember, updateMemberRole, removeMember } = useCalendars();
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -115,6 +116,7 @@ function SharingTab({
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [removeWarning, setRemoveWarning] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   async function handleInvite() {
     if (!inviteEmail.trim()) {
@@ -135,6 +137,7 @@ function SharingTab({
   }
 
   async function handleRemove(memberSub: string) {
+    setRemoveError(null);
     try {
       const result = await removeMember(calendarId, memberSub);
       if (!result.googleAclRemoved) {
@@ -144,7 +147,7 @@ function SharingTab({
         setTimeout(() => setRemoveWarning(null), 8000);
       }
     } catch {
-      // mutation surfaces error in members list
+      setRemoveError("Couldn't remove them. Please try again.");
     }
   }
 
@@ -166,6 +169,11 @@ function SharingTab({
 
       {isLoading ? (
         <SharingTabSkeleton />
+      ) : membersFailed ? (
+        <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+          Couldn&apos;t load who this calendar is shared with. Close and reopen
+          to try again.
+        </p>
       ) : (
         <ul className="space-y-2">
           {members.map((m) => (
@@ -232,6 +240,12 @@ function SharingTab({
             </li>
           ))}
         </ul>
+      )}
+
+      {removeError && (
+        <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+          {removeError}
+        </p>
       )}
 
       {removeWarning && (
@@ -362,6 +376,7 @@ export default function CalendarModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
   const isBusy = isSaving || isDeleting || disconnecting || connecting;
@@ -430,6 +445,7 @@ export default function CalendarModal({
   async function handleDisconnect() {
     if (!calendar) return;
     setDisconnecting(true);
+    setDisconnectError(null);
     try {
       const res = await fetch(`/api/calendar/calendars/${calendar.id}/google`, {
         method: "DELETE",
@@ -440,7 +456,8 @@ export default function CalendarModal({
         queryKey: queryKeys.calendar.calendars(),
       });
     } catch {
-      // badge stays visible, user can try again
+      // The badge stays, so trying again is one click away.
+      setDisconnectError("Couldn't disconnect Google. Please try again.");
     } finally {
       setDisconnecting(false);
     }
@@ -628,6 +645,12 @@ export default function CalendarModal({
                 Disconnect
               </Button>
             </div>
+          )}
+
+          {disconnectError && (
+            <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+              {disconnectError}
+            </p>
           )}
 
           {showCreateNotice && (
