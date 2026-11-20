@@ -398,6 +398,10 @@ export default function LeaguesPanel() {
           </p>
         ) : !signedIn ? (
           <p className="mt-2 text-sm text-muted">Sign in to see your leagues.</p>
+        ) : myLeagues.isError ? (
+          <p role="alert" className="mt-2 text-sm text-error-600 dark:text-error-400">
+            Couldn&apos;t load your leagues. Refresh to try again.
+          </p>
         ) : myLeagues.data && myLeagues.data.length > 0 ? (
           <ul className="mt-3 space-y-2">
             {myLeagues.data.map((league) => (
@@ -419,6 +423,10 @@ export default function LeaguesPanel() {
         </h3>
         {discover.isLoading ? (
           <p className="mt-2 text-sm text-muted">Loading…</p>
+        ) : discover.isError ? (
+          <p role="alert" className="mt-2 text-sm text-error-600 dark:text-error-400">
+            Couldn&apos;t load public leagues. Refresh to try again.
+          </p>
         ) : discover.data && discover.data.length > 0 ? (
           <ul className="mt-3 space-y-2">
             {discover.data.map((league) => (
