@@ -608,7 +608,8 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
       return res.json();
     },
     staleTime: 5 * 60_000,
-    enabled: !isViewMode,
+    // Picks are per account, so there's nothing to ask for without one.
+    enabled: !isViewMode && currentUserSub !== null,
   });
 
   // Public picks for view mode
