@@ -19,6 +19,16 @@ type Outcome =
  * code at the location carries. There is deliberately no picker -- listing
  * every site to anyone who opens the page would hand out the map.
  */
+/**
+ * What to say when the server sent no message of its own. A 5xx is our
+ * failure, not the volunteer's, so it mustn't read as a wrong code.
+ */
+function fallbackMessage(status: number): string {
+  if (status === 429) return "Too many attempts. Wait for the next code.";
+  if (status >= 500) return "Couldn't check you in just now. Please try again.";
+  return "That code is wrong or has expired.";
+}
+
 export default function CheckInContent() {
   const siteId = useSearchParams().get("site");
   const [code, setCode] = useState("");
@@ -60,11 +70,7 @@ export default function CheckInContent() {
 
       setOutcome({
         kind: "error",
-        message:
-          data.message ??
-          (res.status === 429
-            ? "Too many attempts. Wait for the next code."
-            : "That code is wrong or has expired."),
+        message: data.message ?? fallbackMessage(res.status),
       });
     } catch {
       setOutcome({
