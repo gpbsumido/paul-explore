@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.18
+
+- A tcgdex outage no longer tells everyone a real Pokémon set doesn't exist. The set page caught every SDK error and called `notFound()`, and with a day's revalidate that 404 could stick until the next rebuild. The SDK already resolves `null` for an unknown id and only throws when tcgdex fails, so the catch is gone and an outage reaches the error page.
+- The calendar says when something failed to load instead of looking empty. A failed calendars request showed no calendars, a failed member list showed nobody, and a failed cards request on an event page hid the cards. Each now says it couldn't load. Disconnecting Google and removing a member also say when they fail, where both used to swallow the error.
+- Check-in no longer tells a volunteer their code is wrong when the server failed. A 5xx without a message of its own now says to try again.
+
 ## 2026-11-19 - version 9.2.17
 
 - Resuming a restock no longer forgets a session because the API had a bad moment. Reading a session fell back to the seed on any failure, and a real session isn't in the seed, so a 500 or a timeout came back as "not found" and the resume hook cleared the saved session the way it should for a genuine 404. Now only the API saying 404 means gone; any other failure is reported as one, and the seed only answers for sessions it actually holds. Promotion performance reads follow the same rule.
