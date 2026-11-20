@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-20 - version 9.2.2
+
+- Creating or editing a calendar no longer says it failed after it worked. The API answers a create or update with the row it just wrote, which has no role (only the list query joins one in), and the web app's response check required one, so it threw after the write had committed: the modal said "Couldn't save", a toast dumped the validation error, and a retry made a duplicate. Only the owner can make either call, so a missing role now means the caller owns it. Companion to portfolio_api#288, which makes the API send it. Either can deploy first.
+- A person is never shown a developer's error. The global failed-write toast, `queryErrorMessage` and the dozen places that rendered `error.message` themselves now go through one function, `userFacingErrorMessage`. A message somebody wrote still shows as written. A schema failure or a parse error is logged to the console with the original and replaced by the screen's own fallback, and a rejected fetch reads "Couldn't reach the server. Check your connection and try again."
+- New write-up, `/thoughts/error-messages` ("Errors people can read"), and a dated update on the error toasts write-up pointing to it.
+
 ## 2026-11-17 - version 9.2.1
 
 - **`/resume` serves the new résumé.** The PDF and the Word export are replaced with the current version, which is retitled Full-stack Software Engineer and has a reworked summary and skills section. The plain-text copy is rewritten from the Word file to match, so the three formats agree: the Open Source section is gone and helika-web-sdk is listed under Projects. The filenames are unchanged, so the page and its download links needed no edit.
