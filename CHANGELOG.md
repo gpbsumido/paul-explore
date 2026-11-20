@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.20
+
+- One rule for which NBA season it is. ESPN and the playoffs API name a season by the year it ends, and the playoffs routes knew that, but the fantasy matchups and league-history pages used the calendar year, so from October to December they opened on last season. All of them read `currentNbaSeason()` now, and the free-agents route stopped defaulting to a hardcoded 2026. The Card Lab default stays pinned to 2025 on purpose, with a comment saying why.
+
 ## 2026-11-19 - version 9.2.19
 
 - One hook, `useMe`, asks who's signed in. Eleven components each had their own query on the shared `me` key, with different fetchers and different shapes, and the hubs seeded that key with a server-read name and email but no `sub`. Anything gated that opened from `/discover` then read the cache as signed out until it went stale. The hubs keep their server value locally now, and a failed session check throws instead of being cached as signed out.
