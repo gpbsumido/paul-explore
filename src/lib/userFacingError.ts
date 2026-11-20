@@ -1,8 +1,15 @@
-import { ZodError } from "zod";
-
 /** What to say when a request never reached the server (fetch rejected). */
 export const CONNECTION_ERROR_MESSAGE =
   "Couldn't reach the server. Check your connection and try again.";
+
+/**
+ * A failed zod parse, checked by name rather than with `instanceof ZodError`.
+ * The toast and every query error read this file, so importing zod here put it
+ * in the shared chunk on every page and over the bundle budget.
+ */
+function isSchemaFailure(error: unknown): boolean {
+  return error instanceof Error && error.name === "ZodError";
+}
 
 /**
  * Turns a thrown value into a sentence a person can read.
@@ -21,7 +28,7 @@ export function userFacingErrorMessage(error: unknown, fallback: string): string
     console.error("[request failed]", error);
     return CONNECTION_ERROR_MESSAGE;
   }
-  if (error instanceof ZodError || error instanceof SyntaxError) {
+  if (isSchemaFailure(error) || error instanceof SyntaxError) {
     console.error("[unexpected response]", error);
     return fallback;
   }
