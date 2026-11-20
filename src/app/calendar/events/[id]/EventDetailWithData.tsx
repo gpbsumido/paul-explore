@@ -15,6 +15,7 @@ import BackLink from "./BackLink";
 export default async function EventDetailWithData({ id }: { id: string }) {
   let event: CalendarEvent | null = null;
   let cards: EventCard[] = [];
+  let cardsFailed = false;
   let error: string | null = null;
 
   try {
@@ -44,6 +45,8 @@ export default async function EventDetailWithData({ id }: { id: string }) {
       if (cardsRes.ok) {
         const data = await cardsRes.json();
         cards = data.cards ?? [];
+      } else {
+        cardsFailed = true;
       }
     }
   } catch {
@@ -91,6 +94,12 @@ export default async function EventDetailWithData({ id }: { id: string }) {
           </p>
         )}
       </div>
+
+      {cardsFailed && (
+        <p role="alert" className="text-sm text-error-600 dark:text-error-400">
+          Couldn&apos;t load the cards for this event.
+        </p>
+      )}
 
       {/* Cards section -- only shown when there are cards attached */}
       {cards.length > 0 && (
