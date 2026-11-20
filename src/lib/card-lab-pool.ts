@@ -9,6 +9,10 @@ import type { GeneratedCard } from "@/lib/fantasy-cards";
  * The season Card Lab shows when the URL doesn't name one. The page and the
  * pack rip both read it from here, because when each had its own copy the rip
  * kept drawing from 2025 whatever season was on screen.
+ *
+ * Pinned rather than derived from `currentNbaSeason`: I picked it in August
+ * 2026 as the last season with a full year of totals, so it needs moving by
+ * hand once a newer season has enough games to make a pool worth ripping.
  */
 export const CARD_LAB_DEFAULT_SEASON = "2025";
 
