@@ -3,7 +3,7 @@
 ## 2026-11-19 - version 9.2.17
 
 - Resuming a restock no longer forgets a session because the API had a bad moment. Reading a session fell back to the seed on any failure, and a real session isn't in the seed, so a 500 or a timeout came back as "not found" and the resume hook cleared the saved session the way it should for a genuine 404. Now only the API saying 404 means gone; any other failure is reported as one, and the seed only answers for sessions it actually holds. Promotion performance reads follow the same rule.
-- The flags console says when it's showing the built-in demo flags. The BFF falls back to the seed whenever the flags API doesn't answer, which is right for the server-side pocket gate that reads through it, but the routes threw away the `source` field, so the console presented demo configs as the live ones. Both routes return `source` now, the console shows a status line on seed data, and the BFF logs why it fell back so a rejected read isn't mistaken for an outage.
+- The flags console says when it's showing the built-in demo flags. The BFF falls back to the seed whenever the flags API doesn't answer, which is right for the server-side pocket gate that reads through it, but the routes threw away the `source` field, so the console presented demo configs as the live ones. Both routes return `source` now, the console shows a status line on seed data, and the BFF logs why it fell back so a rejected read isn't mistaken for an outage. The info strip under it no longer says "Backed by a live API" on seed data either; it shows a "Demo data" badge instead.
 
 ## 2026-11-19 - version 9.2.16
 
