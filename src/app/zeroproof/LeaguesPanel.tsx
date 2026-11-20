@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
+import { useMe } from "@/hooks/useMe";
 import { formatCents } from "@/lib/zeroproof/format";
 import {
   type ZeroproofLeague,
@@ -347,10 +348,14 @@ function JoinByCode() {
 
 export default function LeaguesPanel() {
   const [creating, setCreating] = useState(false);
+  const me = useMe();
+  const signedIn = Boolean(me.data?.sub);
 
   const myLeagues = useQuery({
     queryKey: queryKeys.zeroproof.myLeagues(),
     queryFn: () => fetchLeagues("/api/zeroproof/leagues/mine"),
+    // Signed out this could only 401, so there's nothing to ask for.
+    enabled: signedIn,
   });
   const discover = useQuery({
     queryKey: queryKeys.zeroproof.leaguesList(),
@@ -385,8 +390,14 @@ export default function LeaguesPanel() {
         <h3 className="text-sm font-semibold tracking-wide text-muted uppercase">
           Your leagues
         </h3>
-        {myLeagues.isLoading ? (
+        {me.isPending || myLeagues.isLoading ? (
           <p className="mt-2 text-sm text-muted">Loading…</p>
+        ) : me.isError ? (
+          <p role="alert" className="mt-2 text-sm text-error-600 dark:text-error-400">
+            Couldn&apos;t check whether you&apos;re signed in.
+          </p>
+        ) : !signedIn ? (
+          <p className="mt-2 text-sm text-muted">Sign in to see your leagues.</p>
         ) : myLeagues.data && myLeagues.data.length > 0 ? (
           <ul className="mt-3 space-y-2">
             {myLeagues.data.map((league) => (

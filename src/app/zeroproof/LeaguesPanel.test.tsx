@@ -5,11 +5,13 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import LeaguesPanel from "./LeaguesPanel";
 
-function renderPanel(sub: string | null) {
+function renderPanel(sub: string | null | "error") {
   const asked = { mine: 0 };
   server.use(
     http.get("/api/me", () =>
-      HttpResponse.json({ name: null, email: null, sub, isFlagAdmin: false }),
+      sub === "error"
+        ? new HttpResponse(null, { status: 500 })
+        : HttpResponse.json({ name: null, email: null, sub, isFlagAdmin: false }),
     ),
     http.get("/api/zeroproof/leagues/mine", () => {
       asked.mine += 1;
@@ -44,5 +46,13 @@ describe("LeaguesPanel", () => {
 
     expect(await screen.findByText(/not in a league yet/i)).toBeInTheDocument();
     expect(asked.mine).toBe(1);
+  });
+
+  it("says it couldn't check, rather than asking me to sign in", async () => {
+    const asked = renderPanel("error");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check/i);
+    expect(screen.queryByText(/sign in to see/i)).toBeNull();
+    expect(asked.mine).toBe(0);
   });
 });

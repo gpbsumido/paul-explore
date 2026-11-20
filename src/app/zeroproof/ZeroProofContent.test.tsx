@@ -1246,6 +1246,12 @@ describe("ZeroProofContent — leagues", () => {
 
   it("joining a discoverable league then shows it under your leagues", async () => {
     let joined = false;
+    // Your leagues only load for a session, which the panel reads from /api/me.
+    server.use(
+      http.get("/api/me", () =>
+        HttpResponse.json({ name: null, email: null, sub: "auth0|me", isFlagAdmin: false }),
+      ),
+    );
     renderPage(
       undefined,
       undefined,
