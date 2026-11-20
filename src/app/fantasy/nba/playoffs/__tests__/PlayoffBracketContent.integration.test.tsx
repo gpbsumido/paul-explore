@@ -212,3 +212,24 @@ describe("PlayoffBracketContent — failed saves", () => {
     ).toBeEnabled();
   });
 });
+
+describe("PlayoffBracketContent — signed out", () => {
+  it("doesn't ask for picks without a session", async () => {
+    setupDefaultHandlers();
+    let pickReads = 0;
+    server.use(
+      http.get("/api/me", () =>
+        HttpResponse.json({ name: null, email: null, sub: null, isFlagAdmin: false }),
+      ),
+      http.get("/api/nba/playoffs/picks", () => {
+        pickReads += 1;
+        return HttpResponse.json({ picks: {} });
+      }),
+    );
+
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+
+    await screen.findByText(/Detroit Pistons|DET/);
+    expect(pickReads).toBe(0);
+  });
+});
