@@ -104,9 +104,54 @@ describe("restock sessions with the API down", () => {
     expect(applied?.activity.type).toBe("restock");
   });
 
-  it("returns undefined for a session the seed has never heard of", async () => {
-    expect(await loadRestockSession("session-nope")).toBeUndefined();
+  it("returns undefined when completing a session the seed has never heard of", async () => {
     expect(await applyRestockSession("session-nope", null)).toBeUndefined();
+  });
+});
+
+/**
+ * A real restock session lives in the API, so the seed can't know about it.
+ * Reading one used to fall back to the seed on any failure, find nothing, and
+ * report the session as gone, and the resume hook then forgot it. Only the API
+ * saying 404 means gone; anything else is "couldn't check".
+ */
+describe("reading a session the seed can't answer for", () => {
+  it("rejects when the API is down rather than calling the session gone", async () => {
+    await expect(loadRestockSession("session-from-api")).rejects.toThrow(
+      /unreachable/,
+    );
+  });
+
+  it("rejects when the API errors", async () => {
+    vi.mocked(api.fetchRestockSession).mockRejectedValue(
+      new api.OperatorApiError(500),
+    );
+
+    await expect(loadRestockSession("session-from-api")).rejects.toMatchObject({
+      status: 500,
+    });
+  });
+
+  it("is undefined when the API says the session doesn't exist", async () => {
+    vi.mocked(api.fetchRestockSession).mockRejectedValue(
+      new api.OperatorApiError(404),
+    );
+
+    expect(await loadRestockSession("session-from-api")).toBeUndefined();
+  });
+
+  it("rejects for a promotion the seed doesn't hold", async () => {
+    await expect(loadPromotionPerformance("promo-from-api")).rejects.toThrow(
+      /unreachable/,
+    );
+  });
+
+  it("is undefined when the API says the promotion doesn't exist", async () => {
+    vi.mocked(api.fetchPromotionPerformance).mockRejectedValue(
+      new api.OperatorApiError(404),
+    );
+
+    expect(await loadPromotionPerformance("promo-from-api")).toBeUndefined();
   });
 });
 
@@ -145,9 +190,8 @@ describe("promotions with the API down", () => {
     expect(performance?.note).toMatch(/not a claim that the promotion caused/i);
   });
 
-  it("returns undefined for an unknown promotion rather than inventing one", async () => {
+  it("returns undefined when ending an unknown promotion rather than inventing one", async () => {
     expect(await stopPromotion("promo-nope")).toBeUndefined();
-    expect(await loadPromotionPerformance("promo-nope")).toBeUndefined();
   });
 });
 
