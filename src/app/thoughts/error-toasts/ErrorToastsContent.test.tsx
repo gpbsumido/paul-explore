@@ -22,4 +22,11 @@ describe("ErrorToastsContent", () => {
       .map((a) => a.getAttribute("href"));
     expect(links).toContain("/design-system");
   });
+
+  it("carries the readable-errors update, pointing at the full write-up", () => {
+    render(<ErrorToastsContent />);
+    const update = document.getElementById("update-2026-11-20-readable-errors");
+    expect(update).not.toBeNull();
+    expect(update?.querySelector('a[href="/thoughts/error-messages"]')).not.toBeNull();
+  });
 });
