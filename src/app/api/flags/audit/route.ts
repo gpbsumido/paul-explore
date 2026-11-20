@@ -11,8 +11,9 @@ import { maskActor } from "@/lib/maskActor";
  * config deliberately keeps out of a public repo.
  */
 export async function GET() {
-  const { audit } = await loadAuditLog();
+  const { audit, source } = await loadAuditLog();
   return NextResponse.json({
     audit: audit.map((entry) => ({ ...entry, actor: maskActor(entry.actor) })),
+    source,
   });
 }
