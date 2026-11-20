@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.16
+
+- Connecting Google Calendar now finishes on `/settings` as the signed-in user. The API used to store the tokens in its OAuth callback, under whichever account had started the flow, so a connect link someone else opened would hand their Google calendar to the account that made the link. With portfolio_api 6.3.0 the callback sends the one-time code back to `/settings?gcal=confirm`, and the page hands it to the new `POST /api/google/auth/confirm`, which the API only honours for the account the flow was started from. The code comes straight out of the address bar, is only sent once (StrictMode runs the effect twice), and a code started from another account gets its own explanation instead of the generic error. This has to ship before portfolio_api 6.3.0.
+
 ## 2026-11-18 - version 9.2.15
 
 - New write-up at `/thoughts/codebase-audit` on the audit behind 9.2.2 to 9.2.14: how I ran an audit that wasn't allowed to fix anything, why nearly every bug it found was a failure reported as a plausible result, and the five that cut across the whole site (canonical URLs, `encodeURIComponent` path ids, dropped Button props, drifted feature colours, the reduced-motion remount). The feature-specific fixes are dated updates on the write-ups they belong to: operator (write fallback and restock resume), calendar (card saves, the e2e calendar, the Google status check), playoffs (failed saves), ZeroProof (signed-out bets) and Fantasy TCG (the rip pool). The operator timeline test only knew July and August, so it now knows every month.
