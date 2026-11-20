@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-20 - version 9.2.28
+
+- The codebase-audit write-up has a dated update on the API half: calendar sync that had been off since July, database tests CI never ran, a bet check that two requests could both pass, a Google connect anyone could finish for someone else, a cast that hid a missing field, and the card update that knex refused to bind.
+
+## 2026-11-20 - version 9.2.27
+
+- Adding a check-in site says when it failed. The add never looked at the response, so a refused or failed request cleared the name and showed no new site, and a dropped connection only reached the console. Now the name stays in the field and a line under it says what went wrong.
+
 ## 2026-11-20 - version 9.2.26
 
 - Creating or editing a calendar no longer says it failed after it worked. The API answers a create or update with the row it just wrote, which has no role (only the list query joins one in), and the web app's response check required one, so it threw after the write had committed: the modal said "Couldn't save", a toast dumped the validation error, and a retry made a duplicate. Only the owner can make either call, so a missing role now means the caller owns it. Companion to portfolio_api#288, which makes the API send it. Either can deploy first.

@@ -391,16 +391,162 @@ const CURRENT_YEAR = new Date().getFullYear();`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-20-api-half"
+        date="November 20, 2026"
+        title="The API had its own list, and the worst of it was quiet"
+      >
+        <p>
+          The audit covered portfolio_api too. Its bugs went out as eight
+          stacked PRs on the API, each starting from a failing test like the
+          ones here. Most of them shared a shape with this side: something
+          failed, and the code was written so that nobody would hear about it.
+        </p>
+
+        <h3 className={beat}>
+          Calendar sync had been off since July, and nothing said so
+        </h3>
+        <pre className={pre}>
+          {`const service = new CalendarService();
+
+if (this.google && calendar.syncMode === 'two_way') {`}
+        </pre>
+        <p>
+          When the calendar module moved to TypeScript, the controller built
+          its service without the Google helpers, so <C>this.google</C> was
+          always null. Connecting a calendar to Google returned a 500, and
+          every event push was skipped by a guard that read like
+          &ldquo;this calendar isn&rsquo;t two-way&rdquo;. The helpers are a
+          required constructor argument now, so the service can&rsquo;t be
+          built without them and the guard only means what it says.
+        </p>
+
+        <h3 className={beat}>
+          Twenty-six database tests had never run in CI
+        </h3>
+        <pre className={pre}>
+          {`describe.skipIf(!DATABASE_URL)('vitals version SQL against a real database', () => {
+
+  test:
+    steps:
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test`}
+        </pre>
+        <p>
+          The SQL smoke tests skip without a database, and the test job never
+          had one, so every CI run reported them as skipped and the check
+          stayed green. They had only ever run on a laptop that happened to
+          have a <C>DATABASE_URL</C>. The job gets its own throwaway Postgres
+          now, and tests that write rows also need a separate flag, because a
+          laptop&rsquo;s <C>DATABASE_URL</C> often points at production.
+        </p>
+
+        <h3 className={beat}>
+          The comment said two bets couldn&rsquo;t spend the same cents.
+          Nothing stopped them.
+        </h3>
+        <pre className={pre}>
+          {` * The available-balance floor is checked here, against the live
+ * derived balance, so two concurrent bets can't both spend the same cents.
+ */
+export async function placeBet(input: PlaceBetInput): Promise<PlaceBetResult> {
+  return db.transaction(async (tx) => {
+    const entries = await tx.select(...).from(zeroproofLedgerEntries)`}
+        </pre>
+        <p>
+          A transaction at read committed doesn&rsquo;t serialise two
+          requests reading the same ledger. Both see the same balance, both
+          pass the check, both insert. The wallet row is locked with{" "}
+          <C>FOR UPDATE</C> first now. Settling and refunding had the
+          matching problem the other way round: neither checked that the bet
+          was still open, so a retried or overlapping settle run paid out
+          twice. Both only update open bets now. What I haven&rsquo;t done
+          yet is look at the production ledger for a payout that already
+          landed twice, and until I do I can&rsquo;t say the bug never cost
+          anyone anything.
+        </p>
+
+        <h3 className={beat}>
+          Anyone could finish someone else&rsquo;s Google sign-in
+        </h3>
+        <pre className={pre}>
+          {`export function buildState(userId: string, origin: string): string {
+  const payload = Buffer.from(JSON.stringify({ userId, origin })).toString('base64url');`}
+        </pre>
+        <p>
+          The OAuth state named the user and never expired, and the callback
+          stored the Google tokens under whoever the state named. So I could
+          start a connect, send someone the link, and their Google calendar
+          would land on my account. The state expires now, and the callback
+          sends the person back to this site to confirm the connection as
+          themselves before anything is saved, which is the confirm step in
+          #704. That one had to deploy before the API side or connecting
+          would have stopped working altogether.
+        </p>
+
+        <h3 className={beat}>A cast hid a field that was never there</h3>
+        <pre className={pre}>
+          {`const userId = (req as any).auth.sub as string;`}
+        </pre>
+        <p>
+          The JWT middleware puts claims on <C>req.auth.payload</C>, so the
+          medical journal&rsquo;s <C>userId</C> had always been undefined,
+          and the <C>any</C> made sure the compiler couldn&rsquo;t say so.
+          Every controller read the caller through the same cast, 73 times.
+          They go through one typed helper now, and a wrong claim path is a
+          type error.
+        </p>
+        <p>
+          The rest were smaller: malformed JSON, a non-uuid id and a duplicate
+          key all answered 500 instead of 4xx; two anonymous write endpoints
+          had no rate limit; clearing the F1 cache only needed an account;
+          and the calendar&rsquo;s own database connection skipped
+          certificate checks that the shared one does.
+        </p>
+
+        <h3 className={beat}>
+          I put a real database in CI and thought that closed the gap. It
+          covered the files that asked for one.
+        </h3>
+        <p>
+          The day the stack merged, creating a calendar on production said it
+          had failed when it hadn&rsquo;t. The write answered without a{" "}
+          <C>role</C>, the browser&rsquo;s schema rejected that, and the toast
+          showed the raw validation error. Fixing that (portfolio_api#288 and
+          #715 here), I found the card update next to it:
+        </p>
+        <pre className={pre}>
+          {`UPDATE event_cards ec SET quantity = $1, notes = $2 ...
+
+Error: Expected 5 bindings, saw 0`}
+        </pre>
+        <p>
+          Knex binds <C>?</C>, not <C>$1</C>, so every edit to a card on a
+          calendar event had been a 500. Neither bug was the kind the
+          database job catches. Nothing checked the API&rsquo;s write
+          responses against the schema the browser validates them with, and
+          the calendar repository tests mock knex, which will take SQL that
+          knex itself refuses. The database job only runs tests that ask for
+          a database, and these didn&rsquo;t.
+          The card fix (portfolio_api#289) compiles the statement with the
+          real knex in its test, which is enough to catch this without a
+          database.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An audit that only listed problems, with the bugs in their own table, so fixing them couldn't quietly turn into the redesign.",
           "All thirteen bugs fixed as stacked pull requests, each starting from a test that failed against the old code.",
           "Guards that keep the cross-cutting ones fixed: a route scan for encodeURIComponent path ids, a hue and contrast check on every feature colour, a mount count under reduced motion, and canonical URLs checked on rendered pages.",
           "A second pass over the fixes, which found seven more of the same shapes one level up: fallbacks that hid which data was showing, failures shown as empty states, eleven session queries, two season rules, a setup step that skipped instead of failing, an inherited og:url and a count-up that froze.",
+          "The API half: calendar sync wired back up, the database tests running in CI, bets that can't overdraw or pay twice, a Google connect bound to the person finishing it, typed reads of the signed-in user, 4xx for caller mistakes, and card updates that bind.",
         ]}
         couldImprove={[
           "The bugs share a cause the fixes don't remove: every client fetch decides on its own what a failure means. useMe settles it for the session, but everything else is still patched where it was found, so the next feature can make the same mistake.",
           "Screenshots of the visible fixes (the card colours, the bracket's failed-save alert) still need capturing.",
+          "The calendar repository tests still mock knex. Only the card update compiles its SQL for real, so the next raw statement there can make the same mistake.",
+          "I haven't checked the production ledger for a bet that was paid twice before settling checked the bet was still open.",
         ]}
         upcoming={[
           "The redesign half of the audit, starting with one way to talk to portfolio_api: a single proxy helper on the server and a single request helper in the browser, so a non-ok response is handled once instead of in every queryFn.",

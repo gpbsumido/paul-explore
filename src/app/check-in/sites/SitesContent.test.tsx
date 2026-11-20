@@ -107,4 +107,32 @@ describe("SitesContent", () => {
     renderPage();
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
+
+  it("says a failed add failed, and keeps the name to try again", async () => {
+    server.use(
+      http.post("/api/check-in/sites", () =>
+        HttpResponse.json({ error: "Backend unavailable" }, { status: 502 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    const field = await screen.findByLabelText(/site name/i);
+    await user.type(field, "Depot");
+    await user.click(screen.getByRole("button", { name: /add site/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t add the site/i);
+    expect(field).toHaveValue("Depot");
+  });
+
+  it("says when the add never reached the server", async () => {
+    server.use(http.post("/api/check-in/sites", () => HttpResponse.error()));
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(await screen.findByLabelText(/site name/i), "Depot");
+    await user.click(screen.getByRole("button", { name: /add site/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t reach the server/i);
+  });
 });
