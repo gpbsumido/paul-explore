@@ -45,4 +45,19 @@ describe("FlagsConsole", () => {
     await screen.findByText(/1 flags in production/);
     expect(screen.queryByText(/demo flags/i)).not.toBeInTheDocument();
   });
+
+  it("doesn't claim a live API while it is showing the seed", async () => {
+    renderConsole("seed");
+
+    await screen.findByText(/1 flags in production/);
+    expect(screen.queryByText(/backed by a live api/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/^demo data$/i)).toBeInTheDocument();
+  });
+
+  it("keeps the live API badge when the flags are live", async () => {
+    renderConsole("api");
+
+    expect(await screen.findByText(/backed by a live api/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^demo data$/i)).not.toBeInTheDocument();
+  });
 });
