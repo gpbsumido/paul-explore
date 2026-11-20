@@ -67,6 +67,9 @@ const PROSE = [
   // Tailwind class and an out-of-band hex -- as evidence in a code sample. The
   // hex is the subject of the sentence, not a style on the page.
   "src/app/thoughts/work-portfolio/WorkPortfolioThoughtsContent.tsx",
+  // The audit write-up pastes the six feature hexes that had drifted from
+  // their tokens, before and after, as the evidence for that bug.
+  "src/app/thoughts/codebase-audit/CodebaseAuditContent.tsx",
 ];
 
 const EXCLUDED = [...ARCHIVE, ...IDENTITY, ...SCENE_ART, ...PROSE];

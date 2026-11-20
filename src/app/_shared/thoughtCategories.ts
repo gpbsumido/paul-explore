@@ -90,6 +90,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "react-doctor",
       "project-review",
       "refactor-pass",
+      "codebase-audit",
       "testing",
       "e2e",
       "ci-e2e",

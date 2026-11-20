@@ -7,6 +7,7 @@ import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
+import { currentNbaSeason } from "@/lib/nbaSeason";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const POSITION_MAP: Record<number, string> = {
@@ -18,7 +19,7 @@ const POSITION_MAP: Record<number, string> = {
 };
 
 const FIRST_YEAR = 2025;
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = currentNbaSeason();
 
 function getSeasons(): number[] {
   const seasons: number[] = [];

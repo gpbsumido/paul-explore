@@ -44,6 +44,7 @@ export default function Input({
         </label>
         <PaulInput
           ref={ref}
+          id={id}
           label={undefined}
           error={error}
           helper={helperText}

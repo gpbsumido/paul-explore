@@ -492,7 +492,10 @@ describe("OperatorDashboardContent", () => {
     const rows = container.querySelectorAll("ol li");
     expect(rows.length).toBeGreaterThan(5);
 
-    const MONTHS: Record<string, string> = { "07": "Jul", "08": "Aug" };
+    const MONTHS: Record<string, string> = {
+      "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
+      "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
+    };
     for (const row of rows) {
       const href = row.querySelector("a")?.getAttribute("href") ?? "";
       const m = href.match(/#update-\d{4}-(\d{2})-(\d{2})/);
@@ -694,5 +697,16 @@ describe("operator-dashboard write-up registration", () => {
     expect(
       group?.items.some((t) => t.href === "/thoughts/operator-dashboard"),
     ).toBe(true);
+  });
+
+  it("has a timeline entry linking to the write-fallback and resume update", () => {
+    render(<OperatorDashboardContent />);
+    expect(
+      document.getElementById("update-2026-11-18-writes-and-resume"),
+    ).not.toBeNull();
+    const link = screen.getByRole("link", {
+      name: /the fallback that turned refusals into successes/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-11-18-writes-and-resume");
   });
 });

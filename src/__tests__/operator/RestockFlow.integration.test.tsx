@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SlotCounter from "@/components/operator/restock/SlotCounter";
 import RestockReview from "@/components/operator/restock/RestockReview";
 import RestockFlow from "@/components/operator/restock/RestockFlow";
+import ToastNotification from "@/components/operator/ToastNotification";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { draftFor } from "@/lib/operator-restock";
 import type { InventoryItem } from "@/types/operator";
@@ -287,6 +288,144 @@ describe("RestockFlow", () => {
     expect(
       await screen.findByRole("button", { name: /resume restock/i }),
     ).toBeInTheDocument();
+  });
+
+  describe("resuming a session left in progress", () => {
+    const openSession = {
+      id: "session-left",
+      storeId: "store-001",
+      startedAt: "2026-08-02T15:00:00.000Z",
+      completedAt: null,
+      actor: null,
+      notes: null,
+    };
+
+    const savedLine = {
+      id: "line-1",
+      sessionId: "session-left",
+      itemId: "item-1",
+      expectedQty: 8,
+      countedQty: 5,
+      added: 4,
+      removed: 0,
+      removalReason: null,
+      resultingStock: null,
+      countStatus: "correction",
+    };
+
+    async function clickResume() {
+      window.localStorage.setItem(
+        "operator-restock-session:store-001",
+        "session-left",
+      );
+      const user = userEvent.setup();
+      renderWithProviders(
+        <>
+          <RestockFlow storeId="store-001" onClose={vi.fn()} />
+          <ToastNotification />
+        </>,
+      );
+      await user.click(
+        await screen.findByRole("button", { name: /resume restock/i }),
+      );
+    }
+
+    const storedId = () =>
+      window.localStorage.getItem("operator-restock-session:store-001");
+
+    it("picks up the slots that were already saved", async () => {
+      server.use(
+        http.get("/api/operator/restock-sessions/:sessionId", () =>
+          HttpResponse.json({ session: openSession, lines: [savedLine] }),
+        ),
+      );
+      await clickResume();
+
+      expect(await screen.findByText(/1 of 2 slots done/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /review 1 change/i }),
+      ).toBeEnabled();
+    });
+
+    it("lets go of a session the server no longer has", async () => {
+      server.use(
+        http.get("/api/operator/restock-sessions/:sessionId", () =>
+          HttpResponse.json(
+            { error: "Restock session not found" },
+            { status: 404 },
+          ),
+        ),
+      );
+      await clickResume();
+
+      // Dropping it starts a fresh session, so the slot holds a new id.
+      await waitFor(() => expect(storedId()).not.toBe("session-left"));
+      expect(
+        screen.queryByRole("button", { name: /resume restock/i }),
+      ).not.toBeInTheDocument();
+      // The toast store is a module singleton, so an earlier test's toast can
+      // still be up. At least one saying so is what matters.
+      expect(
+        (await screen.findAllByText(/no longer open/i)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    it("lets go of a session someone already completed", async () => {
+      server.use(
+        http.get("/api/operator/restock-sessions/:sessionId", () =>
+          HttpResponse.json({
+            session: { ...openSession, completedAt: "2026-08-02T16:00:00.000Z" },
+            lines: [savedLine],
+          }),
+        ),
+      );
+      await clickResume();
+
+      // Dropping it starts a fresh session, so the slot holds a new id.
+      await waitFor(() => expect(storedId()).not.toBe("session-left"));
+      expect(
+        screen.queryByRole("button", { name: /resume restock/i }),
+      ).not.toBeInTheDocument();
+      // The toast store is a module singleton, so an earlier test's toast can
+      // still be up. At least one saying so is what matters.
+      expect(
+        (await screen.findAllByText(/no longer open/i)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    it("keeps the session when the server fails, so it can be retried", async () => {
+      server.use(
+        http.get("/api/operator/restock-sessions/:sessionId", () =>
+          HttpResponse.json({ error: "Backend unavailable" }, { status: 502 }),
+        ),
+      );
+      await clickResume();
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /could not load/i,
+      );
+      expect(
+        screen.getByRole("button", { name: /resume restock/i }),
+      ).toBeInTheDocument();
+      expect(storedId()).toBe("session-left");
+    });
+
+    it("keeps the session when the connection drops, so it can be retried", async () => {
+      server.use(
+        http.get("/api/operator/restock-sessions/:sessionId", () =>
+          HttpResponse.error(),
+        ),
+      );
+      await clickResume();
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /could not load/i,
+      );
+      expect(
+        screen.getByRole("button", { name: /resume restock/i }),
+      ).toBeInTheDocument();
+      expect(storedId()).toBe("session-left");
+    });
   });
 
   it("cannot review until at least one slot was touched", async () => {

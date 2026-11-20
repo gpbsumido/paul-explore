@@ -47,13 +47,14 @@ function AnimatedStat({
   const springVal = useSpring(0, { stiffness: 60, damping: 15 });
   const displayed = useTransform(springVal, (v) => v.toFixed(decimals));
 
+  // One element either way. The server can't see the motion preference, so
+  // swapping to a plain span for reduced motion hydrated a different element
+  // over the server's markup. Reduced motion jumps the value instead.
   useEffect(() => {
-    if (inView) springVal.set(target);
-  }, [inView, target, springVal]);
-
-  if (prefersReduced) {
-    return <span className={className}>{inView ? value : "—"}</span>;
-  }
+    if (!inView) return;
+    if (prefersReduced) springVal.jump(target);
+    else springVal.set(target);
+  }, [inView, target, springVal, prefersReduced]);
 
   return <m.span className={className}>{displayed}</m.span>;
 }

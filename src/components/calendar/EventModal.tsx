@@ -20,10 +20,15 @@ import CardSearch from "./CardSearch";
 import AttachedCardsList from "./AttachedCardsList";
 import ColorSwatchPicker from "./ColorSwatchPicker";
 
+export type EventDraft = Omit<CalendarEvent, "id"> & { id?: string };
+
 interface EventModalProps {
   initialDate: Date;
   event?: CalendarEvent;
-  onSave: (event: CalendarEvent) => Promise<void>;
+  /** Creates the event when there is no id, updates it when there is, and
+   *  resolves with what was saved. Cards are written to the id that comes
+   *  back, since a new event only has one once the server assigns it. */
+  onSave: (event: EventDraft) => Promise<CalendarEvent>;
   onDelete?: (id: string) => Promise<void>;
   onClose: () => void;
   /** True while a create or update mutation is in-flight. Drives button state. */
@@ -93,6 +98,11 @@ export default function EventModal({
   const [cards, setCards] = useState<DraftCard[]>([]);
   // ids of already-persisted cards that the user removed this session
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+  // Set after the first successful save, so a retry after a card failure
+  // updates that event instead of creating a second one.
+  const [persistedEventId, setPersistedEventId] = useState<string | undefined>(
+    event?.id,
+  );
 
   /**
    * Fetches the cards attached to an existing event. Disabled for new events
@@ -189,9 +199,10 @@ export default function EventModal({
     // so Postgres stores the right UTC moment instead of treating it as UTC midnight
     const toISO = (s: string) => formatISO(parseISO(s));
 
+    let eventId: string;
     try {
-      const savedEvent: CalendarEvent = {
-        id: event?.id ?? crypto.randomUUID(),
+      const saved = await onSave({
+        id: persistedEventId,
         title: title.trim(),
         description: description.trim() || undefined,
         startDate: toISO(
@@ -201,23 +212,30 @@ export default function EventModal({
         allDay,
         color,
         calendarId,
-      };
-      await onSave(savedEvent);
+      });
+      eventId = saved.id;
+      setPersistedEventId(eventId);
+    } catch {
+      setSaveError("Couldn't save the event. Please try again.");
+      return;
+    }
 
-      const eventId = savedEvent.id;
+    const original = new Map((cardQuery.data ?? []).map((c) => [c.id, c]));
+    const changed = cards.filter((c) => {
+      if (c.pending) return true;
+      const before = original.get(c.id);
+      return !before || before.quantity !== c.quantity || before.notes !== c.notes;
+    });
 
-      // delete removed cards first so we don't hit any uniqueness issues
-      await Promise.all(
-        [...removedIds].map((id) =>
-          removeCardFromEvent(eventId, id).catch(() => null),
-        ),
-      );
-
-      // add pending cards and update in-place edits in parallel
-      await Promise.all(
-        cards.map(async (c) => {
-          if (c.pending) {
-            return addCardToEvent(eventId, {
+    // Deletes go first so a re-added card doesn't trip a uniqueness check.
+    const removals = [...removedIds];
+    const removalResults = await Promise.allSettled(
+      removals.map((id) => removeCardFromEvent(eventId, id)),
+    );
+    const writeResults = await Promise.allSettled(
+      changed.map((c) =>
+        c.pending
+          ? addCardToEvent(eventId, {
               cardId: c.cardId,
               cardName: c.cardName,
               cardSetId: c.cardSetId,
@@ -225,19 +243,39 @@ export default function EventModal({
               cardImageUrl: c.cardImageUrl,
               quantity: c.quantity,
               notes: c.notes,
-            }).catch(() => null);
-          }
-          return updateEventCard(eventId, c.id, {
-            quantity: c.quantity,
-            notes: c.notes,
-          }).catch(() => null);
-        }),
-      );
+            })
+          : updateEventCard(eventId, c.id, {
+              quantity: c.quantity,
+              notes: c.notes,
+            }),
+      ),
+    );
 
+    const failures =
+      removalResults.filter((r) => r.status === "rejected").length +
+      writeResults.filter((r) => r.status === "rejected").length;
+    if (failures === 0) {
       onClose();
-    } catch {
-      setSaveError("Couldn't save the event. Please try again.");
+      return;
     }
+
+    // Keep only what still needs doing, so the next save retries the failures
+    // and nothing that already landed gets written twice.
+    setRemovedIds(
+      new Set(removals.filter((_, i) => removalResults[i].status === "rejected")),
+    );
+    const added = new Map(
+      changed.flatMap((c, i) => {
+        const result = writeResults[i];
+        return c.pending && result.status === "fulfilled"
+          ? [[c.id, result.value] as const]
+          : [];
+      }),
+    );
+    setCards((prev) => prev.map((c) => added.get(c.id) ?? c));
+    setSaveError(
+      `The event saved, but ${failures} card change${failures === 1 ? "" : "s"} didn't save. Save again to retry.`,
+    );
   }
 
   async function handleDelete() {
@@ -372,9 +410,12 @@ export default function EventModal({
           {/* Calendar selector — only shown when the user has more than one calendar */}
           {calendars.length > 1 && (
             <div>
-              <p className={LABEL_CLASS}>Calendar</p>
+              <label htmlFor={`${uid}-calendar`} className={LABEL_CLASS}>
+                Calendar
+              </label>
               <div className="relative mt-1">
                 <select
+                  id={`${uid}-calendar`}
                   value={calendarId ?? ""}
                   onChange={(e) => setCalendarId(e.target.value || undefined)}
                   className="w-full appearance-none pl-6 pr-3 py-1.5 text-sm rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
@@ -456,7 +497,7 @@ export default function EventModal({
             onClick={handleSave}
             disabled={isSaving || isDeleting}
           >
-            {isSaving ? "Saving…" : isEdit ? "Save" : "Create"}
+            {isSaving ? "Saving…" : persistedEventId ? "Save" : "Create"}
           </Button>
         </div>
       </div>

@@ -15,12 +15,13 @@ import type {
   ESPNMember,
   ESPNTeam,
 } from "@/types/espn";
+import { currentNbaSeason } from "@/lib/nbaSeason";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- Constants ----
 
 const FIRST_YEAR = 2025;
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = currentNbaSeason();
 
 function getSeasons(): number[] {
   const seasons: number[] = [];

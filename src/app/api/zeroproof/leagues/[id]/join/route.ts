@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { API_URL, buildHeaders, withBackend } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -12,7 +13,7 @@ export const POST = withBackend<RouteCtx>(
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const result = await fetchUpstream(
-      `${API_URL}/api/zeroproof/leagues/${encodeURIComponent(id)}/join`,
+      `${API_URL}/api/zeroproof/leagues/${safeSegment(id)}/join`,
       {
         method: "POST",
         headers: buildHeaders(token, null, { "Content-Type": "application/json" }),

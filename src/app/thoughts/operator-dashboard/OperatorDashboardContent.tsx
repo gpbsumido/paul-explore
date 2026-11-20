@@ -34,6 +34,8 @@ export default function OperatorDashboardContent() {
           "Restock history given a tab. The endpoint had always returned it and nothing rendered it, so the counts the shrink report is built on could not be reviewed after the fact.",
           "Every ranked row made a way in: shrink and revenue leaderboards link to the store, and the Needs Attention tile filters the grid to the stores it counted.",
           "Copy that no longer promises what the UI cannot do — the sensor button says it reloaded readings rather than claiming it reached the hardware.",
+          "Writes only fall back to the seed when the API never answered, so a refused or failed write reaches the browser instead of passing as a success.",
+          "Resuming a restock survives a dropped connection and shows the slots already counted.",
         ]}
         couldImprove={[
           "Polling rather than streaming. For a dashboard claiming to be live, server-sent events would be both cheaper and more honest than re-asking every fifteen seconds.",

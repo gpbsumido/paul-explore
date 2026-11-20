@@ -341,6 +341,10 @@ export const todoCommentBodySchema = z.object({
 export const ripPackBodySchema = z.object({
   sport: z.enum(["nba", "wnba", "nfl"]),
   mode: z.enum(["nightly", "season"]).optional(),
+  season: z
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)

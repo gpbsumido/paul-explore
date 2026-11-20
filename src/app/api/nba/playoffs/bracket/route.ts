@@ -1,15 +1,9 @@
 import { fetchUpstream } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import type { PlayoffBracket, PlayoffTeam, PlayoffMatchup } from "@/types/nba";
+import { currentNbaSeason } from "@/lib/nbaSeason";
 
 const CACHE_CONTROL = "public, s-maxage=3600";
-
-// Derive the current NBA season year (the year the season ends).
-// Before September → the season that started last fall (e.g. April 2026 → 2026).
-function currentSeasonYear(): number {
-  const now = new Date();
-  return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
-}
 
 // ---- Hardcoded fallback bracket ----
 // Used when the ESPN API is unavailable or returns an unexpected shape.
@@ -159,7 +153,7 @@ function buildFallbackBracket(season: number): PlayoffBracket {
 // ---- Route handler ----
 
 export async function GET() {
-  const season = currentSeasonYear();
+  const season = currentNbaSeason();
 
   try {
     // ESPN is a third party and this route already knows how to live without

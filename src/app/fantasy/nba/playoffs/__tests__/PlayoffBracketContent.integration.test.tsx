@@ -165,3 +165,71 @@ describe("PlayoffBracketContent — submit button", () => {
     expect(submitBtn).toBeDisabled();
   });
 });
+
+describe("PlayoffBracketContent — failed saves", () => {
+  it("says an auto-save failed instead of sitting on Saving…", async () => {
+    const user = userEvent.setup();
+    setupDefaultHandlers();
+    server.use(
+      http.put("/api/nba/playoffs/picks", () =>
+        HttpResponse.json({ error: "nope" }, { status: 500 }),
+      ),
+    );
+
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+
+    await user.click(
+      await screen.findByRole("checkbox", { name: /auto-save/i }),
+    );
+    await user.click(screen.getByRole("button", { name: /DET/ }));
+
+    expect(
+      await screen.findByText(/couldn.t save/i, {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Saving…")).not.toBeInTheDocument();
+  });
+
+  it("says a submit failed and lets it be tried again", async () => {
+    const user = userEvent.setup();
+    setupDefaultHandlers();
+    server.use(
+      http.put("/api/nba/playoffs/picks", () =>
+        HttpResponse.json({ error: "nope" }, { status: 500 }),
+      ),
+    );
+
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+
+    await user.click(
+      await screen.findByRole("button", { name: /submit bracket/i }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /couldn.t submit/i,
+    );
+    expect(
+      screen.getByRole("button", { name: /submit bracket/i }),
+    ).toBeEnabled();
+  });
+});
+
+describe("PlayoffBracketContent — signed out", () => {
+  it("doesn't ask for picks without a session", async () => {
+    setupDefaultHandlers();
+    let pickReads = 0;
+    server.use(
+      http.get("/api/me", () =>
+        HttpResponse.json({ name: null, email: null, sub: null, isFlagAdmin: false }),
+      ),
+      http.get("/api/nba/playoffs/picks", () => {
+        pickReads += 1;
+        return HttpResponse.json({ picks: {} });
+      }),
+    );
+
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+
+    await screen.findByText(/Detroit Pistons|DET/);
+    expect(pickReads).toBe(0);
+  });
+});

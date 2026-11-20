@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import type {
   Environment,
   EvaluationContext,
@@ -9,7 +8,6 @@ import type {
   Flag,
   RolloutWeight,
 } from "@/types/flags";
-import { queryKeys } from "@/lib/queryKeys";
 import { msUntilNextReset, formatResetCountdown } from "@/lib/flags-reset";
 import { evaluateAllFlags } from "@/lib/flags-engine";
 import { useFlags, useFlagAudit } from "@/hooks/useFlags";
@@ -30,6 +28,7 @@ import {
 } from "@/lib/flags-access";
 import TestUserBar from "@/components/flags/TestUserBar";
 import AuditLog from "@/components/flags/AuditLog";
+import { useMe } from "@/hooks/useMe";
 
 /** The user the console tests against on first load. */
 const DEFAULT_CONTEXT: EvaluationContext = {
@@ -44,7 +43,7 @@ const DEFAULT_CONTEXT: EvaluationContext = {
  * audit log.
  */
 export default function FlagsConsole() {
-  const { flags, loading, error } = useFlags();
+  const { flags, showingSeed, loading, error } = useFlags();
   const { audit } = useFlagAudit();
   const { updateFlag, pendingKey } = useUpdateFlag();
 
@@ -54,15 +53,7 @@ export default function FlagsConsole() {
   // Writes go through the authed BFF, so a signed-out visitor can view and
   // evaluate everything but not change flags. Detect the session the same way
   // the header does, so the controls lock with a clear sign-in affordance.
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; isFlagAdmin?: boolean }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const meQuery = useMe();
   const isLoggedIn = meQuery.data?.sub != null;
   // A hint for rendering only. The API re-derives this from the session on
   // every write, so a tampered response changes what the page draws and
@@ -128,10 +119,21 @@ export default function FlagsConsole() {
         </p>
       </div>
 
+      {showingSeed ? (
+        <p
+          role="status"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-muted"
+        >
+          Showing the built-in demo flags. The flags service isn&apos;t
+          answering right now, so these aren&apos;t the live configs.
+        </p>
+      ) : null}
+
       <FlagsInfoStrip
         isLoggedIn={isLoggedIn}
         isFlagAdmin={isAdmin}
         resetLabel={resetLabel || "a few hours"}
+        showingSeed={showingSeed}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">

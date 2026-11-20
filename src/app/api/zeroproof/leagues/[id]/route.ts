@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { type NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
+import { InvalidSegmentError, safeSegment } from "@/lib/safeSegment";
 import { auth0 } from "@/lib/auth0";
 
 type RouteCtx = { params: Promise<{ id: string }> };
@@ -21,7 +22,7 @@ export async function GET(_request: NextRequest, { params }: RouteCtx) {
 
   try {
     const result = await fetchUpstream(
-      `${API_URL}/api/zeroproof/leagues/${encodeURIComponent(id)}`,
+      `${API_URL}/api/zeroproof/leagues/${safeSegment(id)}`,
       { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
     );
     if (!result.ok) return upstreamErrorResponse(result);
@@ -30,6 +31,10 @@ export async function GET(_request: NextRequest, { params }: RouteCtx) {
       status: result.response.status,
     });
   } catch (err) {
+    // Same mapping as withBackend: a rejected id is a bad request, not an outage.
+    if (err instanceof InvalidSegmentError) {
+      return NextResponse.json({ error: "Invalid identifier" }, { status: 400 });
+    }
     console.error("[BFF] GET /zeroproof/leagues/:id — fetch threw:", err);
     return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -9,7 +10,7 @@ import {
   restockSessionSchema,
 } from "@/lib/operator-schemas";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
-import type { RestockSession } from "@/types/operator";
+import type { RestockLine, RestockSession } from "@/types/operator";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 const STORAGE_PREFIX = "operator-restock-session";
@@ -69,13 +70,26 @@ function storeSessionId(storeId: string, sessionId: string | null): void {
   }
 }
 
+/**
+ * What came of trying to pick a session back up.
+ *
+ * "gone" and "failed" are different on purpose. Gone means the server said the
+ * session is finished or doesn't exist, so the stored id is dead. Failed means
+ * we never got a straight answer (a dropped connection, a 5xx), and the
+ * session is probably still sitting there with real counts on it.
+ */
+export type ResumeOutcome =
+  | { kind: "resumed"; session: RestockSession; lines: readonly RestockLine[] }
+  | { kind: "gone" }
+  | { kind: "failed" };
+
 export type UseRestockSessionReturn = {
   session: RestockSession | null;
   isOpening: boolean;
   isCompleting: boolean;
   error: string | null;
   open: () => Promise<RestockSession | null>;
-  resume: (sessionId: string) => Promise<RestockSession | null>;
+  resume: (sessionId: string) => Promise<ResumeOutcome>;
   saveLine: (itemId: string, body: RestockLineBody) => Promise<boolean>;
   complete: (notes: string | null) => Promise<boolean>;
   discard: () => void;
@@ -120,23 +134,31 @@ export function useRestockSession(storeId: string): UseRestockSessionReturn {
   }, [storeId]);
 
   const resume = useCallback(
-    async (sessionId: string): Promise<RestockSession | null> => {
+    async (sessionId: string): Promise<ResumeOutcome> => {
+      setError(null);
       try {
         const res = await fetch(`/api/operator/restock-sessions/${sessionId}`);
-        if (!res.ok) throw new Error("gone");
+        if (res.status === 404) {
+          storeSessionId(storeId, null);
+          return { kind: "gone" };
+        }
+        if (!res.ok) throw new Error(`resume answered ${res.status}`);
 
         const json = await res.json();
         const parsed = restockSessionSchema.parse(json.session);
         // A session someone already finished is not resumable.
         if (parsed.completedAt !== null) {
           storeSessionId(storeId, null);
-          return null;
+          return { kind: "gone" };
         }
+        const lines = z.array(restockLineSchema).parse(json.lines);
         setSession(parsed);
-        return parsed;
+        return { kind: "resumed", session: parsed, lines };
       } catch {
-        storeSessionId(storeId, null);
-        return null;
+        // Keep the stored id. Wiping it here is how one bad bar of signal
+        // used to throw away a whole walk of counts.
+        setError("Could not load that restock. Your progress is still saved, so try again.");
+        return { kind: "failed" };
       }
     },
     [storeId],

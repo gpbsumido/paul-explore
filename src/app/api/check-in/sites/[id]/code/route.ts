@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { withBackend, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -15,7 +16,7 @@ export const GET = withBackend<RouteCtx>(
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/check-in/sites/${encodeURIComponent(id)}/code`,
+      `${API_URL}/api/check-in/sites/${safeSegment(id)}/code`,
       {
         headers: buildHeaders(token, email),
         cache: "no-store",

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fetchStore, postRestock } from "@/lib/operator-client";
+import { fetchStore, patchDismiss, postRestock, OperatorContractError } from "@/lib/operator-client";
 import { InvalidSegmentError } from "@/lib/safeSegment";
 
 // These calls carry OPERATOR_SERVICE_TOKEN and are reachable unauthenticated,
@@ -69,5 +69,27 @@ describe("operator-client read timeout", () => {
 
     const init = fetchMock.mock.calls[0][1] as RequestInit;
     expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+});
+
+/**
+ * A write the API answered with a 2xx may already have applied upstream. If the
+ * body can't be read, the BFF must not treat that like an outage and replay the
+ * write against the seed, so the client names it as its own error.
+ */
+describe("operator-client unreadable write responses", () => {
+  it("throws OperatorContractError when a 2xx body doesn't match the schema", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ unexpected: true }), { status: 200 })),
+    );
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorContractError);
+  });
+
+  it("throws OperatorContractError when a 2xx body isn't JSON", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("<html>", { status: 200 })));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorContractError);
   });
 });

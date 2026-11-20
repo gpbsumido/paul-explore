@@ -144,7 +144,7 @@ export default function CardLabContent({ cards, sport, mode, season, date, weeks
           ) : null}
         </header>
 
-        <PackBar slate={{ sport, mode, date, week: weeks?.current }} />
+        <PackBar slate={{ sport, mode, season, date, week: weeks?.current }} />
 
         {error ? (
           <p className="rounded-xl border border-border bg-surface px-4 py-6 text-[15px] text-muted">

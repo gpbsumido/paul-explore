@@ -108,7 +108,8 @@ function SharingTab({
   calendarRole: "owner" | "editor" | "viewer";
   ownerEmail?: string;
 }) {
-  const { members, isLoading } = useCalendarMembers(calendarId);
+  const { members, isLoading, isError: membersFailed } =
+    useCalendarMembers(calendarId);
   const { inviteMember, updateMemberRole, removeMember } = useCalendars();
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -116,6 +117,7 @@ function SharingTab({
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [removeWarning, setRemoveWarning] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   async function handleInvite() {
     if (!inviteEmail.trim()) {
@@ -135,6 +137,7 @@ function SharingTab({
   }
 
   async function handleRemove(memberSub: string) {
+    setRemoveError(null);
     try {
       const result = await removeMember(calendarId, memberSub);
       if (!result.googleAclRemoved) {
@@ -144,7 +147,7 @@ function SharingTab({
         setTimeout(() => setRemoveWarning(null), 8000);
       }
     } catch {
-      // mutation surfaces error in members list
+      setRemoveError("Couldn't remove them. Please try again.");
     }
   }
 
@@ -166,6 +169,11 @@ function SharingTab({
 
       {isLoading ? (
         <SharingTabSkeleton />
+      ) : membersFailed ? (
+        <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+          Couldn&apos;t load who this calendar is shared with. Close and reopen
+          to try again.
+        </p>
       ) : (
         <ul className="space-y-2">
           {members.map((m) => (
@@ -232,6 +240,12 @@ function SharingTab({
             </li>
           ))}
         </ul>
+      )}
+
+      {removeError && (
+        <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+          {removeError}
+        </p>
       )}
 
       {removeWarning && (
@@ -346,7 +360,7 @@ export default function CalendarModal({
   const isEdit = !!calendar;
   const isOwner = !calendar || calendar.role === "owner";
   const queryClient = useQueryClient();
-  const { connected } = useGoogleCalendarStatus();
+  const { connected, statusUnavailable } = useGoogleCalendarStatus();
 
   // non-owners go straight to the sharing tab — they can't edit calendar details
   const [tab, setTab] = useState<"details" | "sharing">(
@@ -360,8 +374,10 @@ export default function CalendarModal({
   );
   const [nameError, setNameError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
   const isBusy = isSaving || isDeleting || disconnecting || connecting;
@@ -419,17 +435,19 @@ export default function CalendarModal({
 
   async function handleDelete() {
     if (!onDelete) return;
+    setDeleteError(null);
     try {
       await onDelete();
       onClose();
     } catch {
-      // the mutation surfaces its own error state
+      setDeleteError("Couldn't delete the calendar. Please try again.");
     }
   }
 
   async function handleDisconnect() {
     if (!calendar) return;
     setDisconnecting(true);
+    setDisconnectError(null);
     try {
       const res = await fetch(`/api/calendar/calendars/${calendar.id}/google`, {
         method: "DELETE",
@@ -440,7 +458,8 @@ export default function CalendarModal({
         queryKey: queryKeys.calendar.calendars(),
       });
     } catch {
-      // badge stays visible, user can try again
+      // The badge stays, so trying again is one click away.
+      setDisconnectError("Couldn't disconnect Google. Please try again.");
     } finally {
       setDisconnecting(false);
     }
@@ -580,7 +599,9 @@ export default function CalendarModal({
                     className="relative flex-1"
                     title={
                       isDisabled
-                        ? "Connect Google Calendar in Settings first"
+                        ? statusUnavailable
+                          ? "Couldn't check your Google connection. Try again later."
+                          : "Connect Google Calendar in Settings first"
                         : undefined
                     }
                   >
@@ -628,6 +649,12 @@ export default function CalendarModal({
             </div>
           )}
 
+          {disconnectError && (
+            <p role="alert" className="text-xs text-error-600 dark:text-error-400">
+              {disconnectError}
+            </p>
+          )}
+
           {showCreateNotice && (
             <p className="text-xs text-muted rounded-lg bg-surface border border-border px-3 py-2">
               Saving will create a Google Calendar named{" "}
@@ -653,6 +680,14 @@ export default function CalendarModal({
           calendarRole={calendar.role}
           ownerEmail={calendar.ownerEmail}
         />
+      )}
+
+      {/* Its own line above the buttons: inside the confirm row it wrapped
+          between Confirm and the modal's Cancel and Save. */}
+      {tab === "details" && confirmDelete && deleteError && (
+        <p role="alert" className="mt-4 text-xs text-error-600 dark:text-error-400">
+          {deleteError}
+        </p>
       )}
 
       {/* action row */}

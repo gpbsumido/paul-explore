@@ -82,10 +82,27 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
 
   const resumeExisting = useCallback(async () => {
     if (!resumable) return;
-    const resumed = await resume(resumable);
-    if (resumed) {
+    const outcome = await resume(resumable);
+    if (outcome.kind === "resumed") {
+      // Saved lines become edits, so slots counted before the reload show as
+      // done instead of asking to be counted again.
+      setEdits(
+        new Map(
+          outcome.lines.map((line) => [
+            line.itemId,
+            {
+              itemId: line.itemId,
+              expectedQty: line.expectedQty,
+              countedQty: line.countedQty,
+              added: line.added,
+              removed: line.removed,
+              removalReason: line.removalReason,
+            },
+          ]),
+        ),
+      );
       setStep("list");
-    } else {
+    } else if (outcome.kind === "gone") {
       setResumable(null);
       addToast({ message: "That restock is no longer open" });
     }

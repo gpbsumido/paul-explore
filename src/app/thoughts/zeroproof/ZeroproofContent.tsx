@@ -1354,6 +1354,52 @@ ON CONFLICT (event_uuid) DO NOTHING;  -- a resend is a no-op`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-18-signed-out-bets"
+        date="November 18, 2026"
+        title="Five copies of one query, and the comment described a different one"
+      >
+        <p>
+          A codebase audit flagged that signed-out visitors were asking for bets
+          they could never have. Every visit to the board without a session
+          fired a request that came back 401.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The comment said it returned nothing when signed out. It didn&rsquo;t.
+        </h3>
+        <pre className={pre}>
+          {`// The caller's bets, so a fixture they've already bet on is flagged on the
+// board — and always shown, even past the horizon. Reuses the profile's query
+// and returns [] when signed out.
+const betsQuery = useQuery({
+  queryKey: queryKeys.zeroproof.bets(),
+  queryFn: fetchBets,
+  staleTime: 30 * 1000,
+});`}
+        </pre>
+        <p className="text-muted">
+          &ldquo;Reuses the profile&rsquo;s query&rdquo; was true in the sense
+          that it shared a cache key. But the board, the bet history, the
+          record trend, the profile and the Compare tab each declared their own
+          copy of this query, and only some of them waited for a session. The
+          board&rsquo;s copy didn&rsquo;t, so it fetched for everyone. Sharing a
+          key shares the cached answer. It doesn&rsquo;t share the rule about
+          when to ask.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One hook, so the rule lives in one place
+        </h3>
+        <p className="text-muted">
+          All five now call <code className={code}>useMyBets</code>, which reads
+          the profile query and only fetches once it says there&rsquo;s a
+          session. The bet history keeps its 30-second poll through an option.
+          The test renders the page signed out and fails if a bets request goes
+          out at all, which is the claim the comment had been making on its own.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Go to date on the highlight cards: the biggest underdog and the closest game show their kickoff, and a button widens the board's horizon just far enough to reach the fixture (resetting filters only if they'd hide it), then scrolls to its card and focuses it.",
@@ -1397,6 +1443,7 @@ ON CONFLICT (event_uuid) DO NOTHING;  -- a resend is a no-op`}
           "A bankroll trend on Your record: cumulative profit and loss over your settled bets, a line for the season and a line for everything, with the figures printed in text under the chart.",
           "A guided tour: a first visit opens with a consent step, then walks the lobby a coach-mark at a time — what ZeroProof is, then the board, leagues, leaderboard and record — spotlighting each real surface and switching to its tab. It asks before it starts, never nags twice, and a Take-the-tour button in the header reopens it any time.",
           "That tour is now a shared engine: the same consent-first coach-mark runs on Fantasy, the Pokémon TCG browser, the operator and vitals dashboards, and the design-system gallery, each built from a small per-page step config.",
+          "Signed-out visitors don't request bets: every surface that shows them goes through one useMyBets hook that waits for a session.",
         ]}
         couldImprove={[
           "The telemetry queue persists to localStorage, keyed per tab. That's the right call at this volume — tiny, infrequent writes — but IndexedDB (off the main thread) and the Web Locks API (so two tabs can't flush the same events) are the upgrade path if ZeroProof ever emits high-frequency events. Today the server dedupe covers the multi-tab overlap.",

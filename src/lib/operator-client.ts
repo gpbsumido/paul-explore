@@ -95,6 +95,18 @@ export class OperatorApiError extends Error {
 }
 
 /**
+ * The API answered a write with a 2xx, but the body didn't parse. The write may
+ * well have applied upstream, so unlike an outage this must never be replayed
+ * against the seed.
+ */
+export class OperatorContractError extends Error {
+  constructor(path: string, cause: unknown) {
+    super(`operator API answered ${path} with a body that doesn't match the contract`, { cause });
+    this.name = "OperatorContractError";
+  }
+}
+
+/**
  * How long a read waits on the upstream before giving up. A cross-service fetch
  * with no deadline can hang for as long as the other end takes to fail, and
  * these reads sit on a page's render path — a hung upstream became a nine-second
@@ -130,7 +142,11 @@ async function sendJson<T>(
     cache: "no-store",
   });
   if (!res.ok) throw new OperatorApiError(res.status);
-  return schema.parse(await res.json());
+  try {
+    return schema.parse(await res.json());
+  } catch (err) {
+    throw new OperatorContractError(path, err);
+  }
 }
 
 // ---------------------------------------------------------------------------

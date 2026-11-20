@@ -11,7 +11,7 @@ type RouteCtx = { params: Promise<{ id: string; memberSub: string }> };
 export const PUT = withBackend<RouteCtx>(
   "members PUT",
   async ({ token, email }, request, { params }) => {
-    // Next.js decodes dynamic segments automatically — use as-is when forwarding
+    // Next.js decodes dynamic segments, so safeSegment re-checks and re-encodes them
     const { id, memberSub } = await params;
 
     const bodyResult = await parseBody(request, updateMemberRoleBodySchema);
@@ -19,7 +19,7 @@ export const PUT = withBackend<RouteCtx>(
     const body = bodyResult.data;
 
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${encodeURIComponent(memberSub)}`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${safeSegment(memberSub)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, email, {
@@ -51,7 +51,7 @@ export const DELETE = withBackend<RouteCtx>(
     const { id, memberSub } = await params;
 
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${encodeURIComponent(memberSub)}`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${safeSegment(memberSub)}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

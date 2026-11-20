@@ -48,6 +48,9 @@ export default defineConfig({
           include: [
             "src/**/*.{test,spec}.{ts,tsx}",
             "scripts/**/*.{test,spec}.ts",
+            // Playwright owns e2e/**/*.spec.ts; plain .test.ts files there
+            // cover the setup code around it.
+            "e2e/**/*.test.ts",
           ],
           exclude: ["**/node_modules/**", integrationGlob, svelteGlob],
         },

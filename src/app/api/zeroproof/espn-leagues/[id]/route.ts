@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { API_URL, buildHeaders, withAdminBackend } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -10,7 +11,7 @@ export const DELETE = withAdminBackend<RouteCtx>(
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
     const result = await fetchUpstream(
-      `${API_URL}/api/zeroproof/espn-leagues/${encodeURIComponent(id)}`,
+      `${API_URL}/api/zeroproof/espn-leagues/${safeSegment(id)}`,
       { method: "DELETE", headers: buildHeaders(token, email) },
     );
     if (!result.ok) return upstreamErrorResponse(result);

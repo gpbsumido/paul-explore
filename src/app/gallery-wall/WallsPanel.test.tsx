@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import WallsPanel from "./WallsPanel";
 import { initialGalleryState, type GalleryState } from "./_lib/state";
 
@@ -44,18 +47,30 @@ const renderPanel = (
   overrides: Partial<React.ComponentProps<typeof WallsPanel>> = {},
 ) =>
   render(
-    <WallsPanel
-      state={seeded}
-      getFiles={() => ({})}
-      canSave
-      onOpen={vi.fn()}
-      onNew={vi.fn()}
-      {...overrides}
-    />,
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <WallsPanel
+        state={seeded}
+        getFiles={() => ({})}
+        canSave
+        onOpen={vi.fn()}
+        onNew={vi.fn()}
+        {...overrides}
+      />
+    </QueryClientProvider>,
+  );
+
+const sessionIs = (sub: string | null) =>
+  server.use(
+    http.get("/api/me", () =>
+      HttpResponse.json({ name: null, email: null, sub, isFlagAdmin: false }),
+    ),
   );
 
 beforeEach(() => {
   vi.clearAllMocks();
+  sessionIs("auth0|me");
   vi.mocked(listWalls).mockResolvedValue([
     { id: "w1", name: "Hallway", updatedAt: "2026-07-28T00:00:00.000Z" },
   ]);
@@ -77,6 +92,31 @@ beforeEach(() => {
     updatedAt: "t2",
   });
   vi.mocked(deleteWall).mockResolvedValue(undefined);
+});
+
+describe("WallsPanel signed out", () => {
+  /**
+   * /gallery-wall is public, and the panel listed walls on mount for everyone.
+   * Signed out, that request could only 401, and its "Not authenticated" body
+   * went straight into the panel's error alert.
+   */
+  it("doesn't ask for walls, and offers sign-in instead of an error", async () => {
+    sessionIs(null);
+    renderPanel();
+
+    expect(await screen.findByRole("link", { name: /sign in/i })).toBeInTheDocument();
+    expect(listWalls).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("says it couldn't check the session, rather than offering sign-in", async () => {
+    server.use(http.get("/api/me", () => new HttpResponse(null, { status: 500 })));
+    renderPanel();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check/i);
+    expect(screen.queryByRole("link", { name: /sign in/i })).toBeNull();
+    expect(listWalls).not.toHaveBeenCalled();
+  });
 });
 
 describe("WallsPanel", () => {

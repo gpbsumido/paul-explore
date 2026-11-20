@@ -60,3 +60,32 @@ describe("Button accessibility", () => {
     });
   });
 });
+
+describe("Button as a link", () => {
+  it("keeps the props it was given instead of dropping them", async () => {
+    const user = userEvent.setup();
+    let clicked = false;
+    render(
+      <Button
+        href="/resume"
+        aria-label="Open my résumé"
+        target="_blank"
+        rel="noreferrer"
+        onClick={(event) => {
+          event.preventDefault();
+          clicked = true;
+        }}
+      >
+        Resume
+      </Button>,
+    );
+
+    const link = screen.getByRole("link", { name: "Open my résumé" });
+    expect(link).toHaveAttribute("href", "/resume");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noreferrer");
+
+    await user.click(link);
+    expect(clicked).toBe(true);
+  });
+});
