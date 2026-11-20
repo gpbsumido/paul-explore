@@ -42,4 +42,18 @@ describe("CodebaseAuditContent", () => {
     );
     expect(pasted.some((text) => text.includes("#2d8f66"))).toBe(true);
   });
+
+  it("carries the second pass as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-19-second-pass"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(pasted.some((text) => text.includes("initialData: initialMe"))).toBe(
+      true,
+    );
+    expect(pasted.some((text) => text.includes("getMonth() >= 9"))).toBe(true);
+  });
 });

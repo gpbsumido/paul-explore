@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline code chip, matching the rest of the write-ups. */
 const C = ({ children }: { children: React.ReactNode }) => (
@@ -268,14 +268,138 @@ return (
         </p>
       </section>
 
+      <Update
+        id="update-2026-11-19-second-pass"
+        date="November 19, 2026"
+        title="Reading the fixes back found the same bug one level up"
+      >
+        <p>
+          A day after the stack went up I reviewed the fixes as if someone
+          else had written them, one bug shape at a time, and checked
+          whether each shape still lived anywhere else. It did, in seven
+          places, and they went out as seven more stacked PRs, each failing
+          first like the originals.
+        </p>
+
+        <h3 className={beat}>
+          The fallback I was going to delete was holding something up
+        </h3>
+        <p>
+          The flags console showed the built-in demo flags whenever the flags
+          API didn&rsquo;t answer, with nothing to say so. The BFF knew which
+          one it had, and the route threw that away:
+        </p>
+        <pre className={pre}>
+          {`const { flags, environments } = await loadFleet();
+return NextResponse.json({ flags, environments });`}
+        </pre>
+        <p>
+          My notes said to throw instead of falling back. That would have
+          been wrong: the server-side gate for the Pocket page reads through
+          the same <C>loadFleet</C>, and it is supposed to keep working when
+          the API is asleep. So the fallback stays, the route passes{" "}
+          <C>source</C> along, and the console says when it&rsquo;s showing
+          demo data. The operator reads had the opposite problem. A real
+          restock session isn&rsquo;t in the seed, so a 500 came back as
+          &ldquo;not found&rdquo; and the resume hook forgot the session. Now
+          only the API saying 404 means gone.
+        </p>
+
+        <h3 className={beat}>A test I wrote was pinning the bug</h3>
+        <p>
+          The Pokémon set page caught every SDK error and called{" "}
+          <C>notFound()</C>, so a tcgdex outage told everyone a real set
+          didn&rsquo;t exist, and a day&rsquo;s revalidate could keep it that
+          way. The test guarding the 404 was this:
+        </p>
+        <pre className={pre}>
+          {`it("still 404s a set that genuinely is not there", async () => {
+  setGet.mockRejectedValue(new Error("upstream 404"));`}
+        </pre>
+        <p>
+          The SDK resolves <C>null</C> for an unknown id and only throws when
+          tcgdex fails, so that test mocked an outage and called it a missing
+          set. It passed because the bug was there. It mocks <C>null</C> now,
+          and a second test says an outage is an error, not a 404.
+        </p>
+
+        <h3 className={beat}>
+          Eleven copies of &ldquo;who&rsquo;s signed in&rdquo;, and one fed
+          the rest a wrong answer
+        </h3>
+        <p>
+          Eleven components ran their own query on the shared <C>me</C> key.
+          The hub on <C>/discover</C> seeded it from the server:
+        </p>
+        <pre className={pre}>
+          {`type MeData = { name: string | null; email: string | null };
+// ...
+const meQuery = useQuery({
+  queryKey: queryKeys.me(),
+  // ...
+  initialData: initialMe,
+  staleTime: 5 * 60_000,
+});`}
+        </pre>
+        <p>
+          No <C>sub</C> in it, and every gated page checks <C>sub</C>. Open
+          one from the hub and the cache said signed out for five minutes.
+          There&rsquo;s one <C>useMe</C> hook now, a failed check throws
+          instead of caching &ldquo;signed out&rdquo;, and the hubs keep
+          their server value to themselves. With one hook it was easy to
+          find the panels that asked for my walls, my leagues and my picks on
+          every signed-out visit, for answers that could only be 401.
+        </p>
+
+        <h3 className={beat}>
+          Two rules for which season it is, and in November they disagree
+        </h3>
+        <pre className={pre}>
+          {`// Before September → the season that started last fall
+return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
+
+const CURRENT_YEAR = new Date().getFullYear();`}
+        </pre>
+        <p>
+          The first is the playoffs routes (and <C>getMonth()</C> is
+          zero-based, so 9 is October, not September). The second is the
+          fantasy pages, which spent every October to December opening on
+          last season. Both use <C>currentNbaSeason()</C> now.
+        </p>
+
+        <h3 className={beat}>A green e2e run that never touched the calendar</h3>
+        <pre className={pre}>
+          {`} else {
+  console.warn(
+    \`[E2E] Could not create test calendar: \${res.status()} \${await res.text()}\`,
+  );
+}`}
+        </pre>
+        <p>
+          If setup couldn&rsquo;t make the test calendar, the calendar specs
+          found no id and skipped themselves. I had fixed the guards inside
+          those tests already. This one sat a level up, in setup, so it
+          survived. It throws now.
+        </p>
+        <p>
+          The rest were smaller: the root layout still set{" "}
+          <C>openGraph.url</C> (the canonical bug again, in a different
+          field), a count-up that froze on its first number and swapped
+          elements for reduced motion (the remount bug again, in a smaller
+          place), and a <C>Textarea</C> wrapper that drew a label pointing at
+          an id nothing had.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An audit that only listed problems, with the bugs in their own table, so fixing them couldn't quietly turn into the redesign.",
           "All thirteen bugs fixed as stacked pull requests, each starting from a test that failed against the old code.",
           "Guards that keep the cross-cutting ones fixed: a route scan for encodeURIComponent path ids, a hue and contrast check on every feature colour, a mount count under reduced motion, and canonical URLs checked on rendered pages.",
+          "A second pass over the fixes, which found seven more of the same shapes one level up: fallbacks that hid which data was showing, failures shown as empty states, eleven session queries, two season rules, a setup step that skipped instead of failing, an inherited og:url and a count-up that froze.",
         ]}
         couldImprove={[
-          "The bugs share a cause the fixes don't remove: every client fetch decides on its own what a failure means. Each of these was patched where it was found, so the next feature can make the same mistake.",
+          "The bugs share a cause the fixes don't remove: every client fetch decides on its own what a failure means. useMe settles it for the session, but everything else is still patched where it was found, so the next feature can make the same mistake.",
           "Screenshots of the visible fixes (the card colours, the bracket's failed-save alert) still need capturing.",
         ]}
         upcoming={[
