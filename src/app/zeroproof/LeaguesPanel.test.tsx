@@ -5,7 +5,10 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import LeaguesPanel from "./LeaguesPanel";
 
-function renderPanel(sub: string | null | "error") {
+function renderPanel(
+  sub: string | null | "error",
+  { mineStatus = 200, discoverStatus = 200 } = {},
+) {
   const asked = { mine: 0 };
   server.use(
     http.get("/api/me", () =>
@@ -15,9 +18,15 @@ function renderPanel(sub: string | null | "error") {
     ),
     http.get("/api/zeroproof/leagues/mine", () => {
       asked.mine += 1;
-      return HttpResponse.json({ leagues: [] });
+      return mineStatus === 200
+        ? HttpResponse.json({ leagues: [] })
+        : new HttpResponse(null, { status: mineStatus });
     }),
-    http.get("/api/zeroproof/leagues", () => HttpResponse.json({ leagues: [] })),
+    http.get("/api/zeroproof/leagues", () =>
+      discoverStatus === 200
+        ? HttpResponse.json({ leagues: [] })
+        : new HttpResponse(null, { status: discoverStatus }),
+    ),
   );
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
@@ -54,5 +63,19 @@ describe("LeaguesPanel", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check/i);
     expect(screen.queryByText(/sign in to see/i)).toBeNull();
     expect(asked.mine).toBe(0);
+  });
+
+  it("says my leagues failed to load, rather than that I'm in none", async () => {
+    renderPanel("auth0|me", { mineStatus: 500 });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t load your leagues/i);
+    expect(screen.queryByText(/not in a league yet/i)).toBeNull();
+  });
+
+  it("says public leagues failed to load, rather than that none are open", async () => {
+    renderPanel(null, { discoverStatus: 500 });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t load public leagues/i);
+    expect(screen.queryByText(/no public leagues open/i)).toBeNull();
   });
 });

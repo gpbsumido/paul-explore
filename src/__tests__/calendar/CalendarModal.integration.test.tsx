@@ -118,4 +118,26 @@ describe("CalendarModal failures", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t remove/i);
   });
+
+  it("says when deleting the calendar failed, and stays open", async () => {
+    const onClose = vi.fn();
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <CalendarModal
+          calendar={linked}
+          onSave={vi.fn()}
+          onDelete={() => Promise.reject(new Error("boom"))}
+          onClose={onClose}
+        />
+      </QueryClientProvider>,
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t delete/i);
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
