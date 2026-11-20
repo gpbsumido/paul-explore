@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-19 - version 9.2.22
+
+- `Textarea` passes `hideLabel` and `required` straight through to the package. It drew its own hidden label pointing at an id the textarea didn't have, and added a second asterisk to required fields. No caller used either prop yet, so nothing visible changes.
+- The codebase-audit write-up has a dated update on the second pass over the fixes, which found the same bug shapes one level up and fixed them in 9.2.17 to 9.2.22.
+
 ## 2026-11-19 - version 9.2.21
 
 - Shared links to pages without their own Open Graph block stopped previewing as the homepage. The root layout still set `openGraph.url` to the site root, and metadata merges shallowly, so every such page inherited it. Same trap as the canonical fix in 9.2.2.
