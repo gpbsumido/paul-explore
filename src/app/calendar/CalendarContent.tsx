@@ -164,7 +164,7 @@ export default function CalendarContent({
     string | null | undefined
   >(undefined);
 
-  const { calendars } = useCalendars();
+  const { calendars, isError: calendarsFailed } = useCalendars();
   const effectiveCalendarId =
     selectedCalendarId === undefined
       ? (calendars[0]?.id ?? null)
@@ -415,6 +415,15 @@ export default function CalendarContent({
         selectedCalendarId={effectiveCalendarId}
         onSelectCalendar={setSelectedCalendarId}
       />
+
+      {calendarsFailed && (
+        <div
+          role="alert"
+          className="mb-4 rounded-md border border-error-200 bg-error-50 px-4 py-2 text-sm text-error-700 dark:border-error-800 dark:bg-error-950/30 dark:text-error-400"
+        >
+          Couldn&apos;t load your calendars. Refresh to try again.
+        </div>
+      )}
 
       {calendarEvents.error && (
         <div className="mb-4 rounded-md border border-error-200 bg-error-50 px-4 py-2 text-sm text-error-700 dark:border-error-800 dark:bg-error-950/30 dark:text-error-400">
