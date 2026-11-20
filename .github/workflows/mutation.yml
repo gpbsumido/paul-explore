@@ -14,6 +14,7 @@ on:
       - "src/lib/nfl/winProbability.ts"
       - "src/lib/nfl/winProbability.test.ts"
       - "stryker.config.json"
+      - "vitest.mutation.config.ts"
       - ".github/workflows/mutation.yml"
   workflow_dispatch:
 
