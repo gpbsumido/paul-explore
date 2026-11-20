@@ -10,8 +10,18 @@ import { queryErrorMessage } from "./queryErrorMessage";
 const EMPTY_FLAGS: Flag[] = [];
 const EMPTY_AUDIT: AuditEntry[] = [];
 
+const flagListSchema = z.object({
+  flags: z.array(flagSchema),
+  source: z.enum(["api", "seed"]),
+});
+
+/** The cached flag list, and whether it came from the API or the built-in seed. */
+export type FlagList = z.infer<typeof flagListSchema>;
+
 export interface UseFlagsReturn {
   flags: Flag[];
+  /** True when the API didn't answer and these are the built-in demo flags. */
+  showingSeed: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -24,17 +34,17 @@ export interface UseFlagsReturn {
 export function useFlags(): UseFlagsReturn {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKeys.flags.list(),
-    queryFn: async ({ signal }): Promise<Flag[]> => {
+    queryFn: async ({ signal }): Promise<FlagList> => {
       const res = await fetch("/api/flags", { signal });
       if (!res.ok) throw new Error("Failed to fetch flags");
-      const json = await res.json();
-      return z.array(flagSchema).parse(json.flags);
+      return flagListSchema.parse(await res.json());
     },
     staleTime: 30_000,
   });
 
   return {
-    flags: data ?? EMPTY_FLAGS,
+    flags: data?.flags ?? EMPTY_FLAGS,
+    showingSeed: data?.source === "seed",
     loading: isLoading,
     error: queryErrorMessage(isError, error, "Failed to load flags."),
   };

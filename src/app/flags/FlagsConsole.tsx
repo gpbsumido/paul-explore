@@ -44,7 +44,7 @@ const DEFAULT_CONTEXT: EvaluationContext = {
  * audit log.
  */
 export default function FlagsConsole() {
-  const { flags, loading, error } = useFlags();
+  const { flags, showingSeed, loading, error } = useFlags();
   const { audit } = useFlagAudit();
   const { updateFlag, pendingKey } = useUpdateFlag();
 
@@ -127,6 +127,16 @@ export default function FlagsConsole() {
           the calls update instantly.
         </p>
       </div>
+
+      {showingSeed ? (
+        <p
+          role="status"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-muted"
+        >
+          Showing the built-in demo flags. The flags service isn&apos;t
+          answering right now, so these aren&apos;t the live configs.
+        </p>
+      ) : null}
 
       <FlagsInfoStrip
         isLoggedIn={isLoggedIn}
