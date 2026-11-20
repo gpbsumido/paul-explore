@@ -108,6 +108,15 @@ describe("WallsPanel signed out", () => {
     expect(listWalls).not.toHaveBeenCalled();
     expect(screen.queryByRole("alert")).toBeNull();
   });
+
+  it("says it couldn't check the session, rather than offering sign-in", async () => {
+    server.use(http.get("/api/me", () => new HttpResponse(null, { status: 500 })));
+    renderPanel();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check/i);
+    expect(screen.queryByRole("link", { name: /sign in/i })).toBeNull();
+    expect(listWalls).not.toHaveBeenCalled();
+  });
 });
 
 describe("WallsPanel", () => {
