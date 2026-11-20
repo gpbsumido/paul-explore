@@ -111,6 +111,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/design-system-showcase",
   "/thoughts/e2e",
   "/thoughts/error-toasts",
+  "/thoughts/error-messages",
   "/thoughts/feature-flags",
   "/thoughts/gallery-wall",
   "/thoughts/graphql",

@@ -730,6 +730,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#c0563f",
   },
   {
+    title: "Errors People Can Read",
+    href: "/thoughts/error-messages",
+    preview:
+      "A calendar create that failed after it worked and a toast that dumped a validation error: what an error is allowed to say, one function that decides it, and what to check when an AI wrote the error handling",
+    color: "#b8553f",
+  },
+  {
     title: "Command Palette",
     href: "/thoughts/command-palette",
     preview:
