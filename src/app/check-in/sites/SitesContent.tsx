@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 type Site = { id: string; name: string; periodSeconds: number };
 type Arrival = { id: string; email: string | null; at: string };
@@ -23,6 +24,7 @@ export default function SitesContent() {
   const [name, setName] = useState("");
   const [openSiteId, setOpenSiteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   const sites = useQuery({
     queryKey: ["check-in-sites"],
@@ -33,14 +35,19 @@ export default function SitesContent() {
     const trimmed = name.trim();
     if (!trimmed) return;
     setSaving(true);
+    setAddError(null);
     try {
-      await fetch("/api/check-in/sites", {
+      const res = await fetch("/api/check-in/sites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmed }),
       });
+      if (!res.ok) throw new Error("Couldn't add the site. Please try again.");
       setName("");
       await queryClient.invalidateQueries({ queryKey: ["check-in-sites"] });
+    } catch (err) {
+      // The name stays in the field so trying again is one click.
+      setAddError(userFacingErrorMessage(err, "Couldn't add the site. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -74,6 +81,11 @@ export default function SitesContent() {
           Add site
         </Button>
       </form>
+      {addError && (
+        <p role="alert" className="text-sm text-warning-600 dark:text-warning-300">
+          {addError}
+        </p>
+      )}
 
       {sites.isLoading && <p className="text-sm text-muted">Loading your sites…</p>}
 
