@@ -84,6 +84,11 @@ function noteFallback(what: string, err: unknown): void {
   );
 }
 
+/** Whether the API answered that the thing asked for doesn't exist. */
+function isNotFound(err: unknown): boolean {
+  return err instanceof api.OperatorApiError && err.status === 404;
+}
+
 /**
  * A read that prefers the live API and falls back to the seed on any failure,
  * announcing the fallback under `label`. This is the shape every read below
@@ -494,9 +499,14 @@ export async function loadRestockSession(
 ): Promise<{ session: RestockSession; lines: RestockLine[] } | undefined> {
   try {
     return await api.fetchRestockSession(sessionId);
-  } catch {
+  } catch (err) {
+    if (isNotFound(err)) return undefined;
+    // A real session lives in the API, not the seed. Answering "gone" for one
+    // the seed has never seen would make resume forget a session that exists,
+    // so the seed only answers for its own.
     const session = seed.getRestockSession(sessionId);
-    if (!session) return undefined;
+    if (!session) throw err;
+    noteFallback("loadRestockSession", err);
     return { session, lines: seed.getRestockLines(sessionId) };
   }
 }
@@ -568,7 +578,11 @@ export async function stopPromotion(
 export async function loadPromotionPerformance(promotionId: string) {
   try {
     return await api.fetchPromotionPerformance(promotionId);
-  } catch {
-    return seed.getPromotionPerformance(promotionId);
+  } catch (err) {
+    if (isNotFound(err)) return undefined;
+    const performance = seed.getPromotionPerformance(promotionId);
+    if (!performance) throw err;
+    noteFallback("loadPromotionPerformance", err);
+    return performance;
   }
 }
