@@ -5,7 +5,7 @@ import type { Calendar, CalendarMember } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   calendarsResponseSchema,
-  calendarResponseSchema,
+  calendarWriteResponseSchema,
   membersResponseSchema,
   memberResponseSchema,
 } from "@/lib/schemas";
@@ -28,7 +28,7 @@ async function apiCreateCalendar(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to create calendar");
-  const json = calendarResponseSchema.parse(await res.json());
+  const json = calendarWriteResponseSchema.parse(await res.json());
   return json.calendar;
 }
 
@@ -42,7 +42,7 @@ async function apiUpdateCalendar(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to update calendar");
-  const json = calendarResponseSchema.parse(await res.json());
+  const json = calendarWriteResponseSchema.parse(await res.json());
   return json.calendar;
 }
 
