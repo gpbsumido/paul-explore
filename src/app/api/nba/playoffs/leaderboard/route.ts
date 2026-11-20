@@ -3,15 +3,11 @@ import { NextResponse } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
 import type { LeaderboardEntry } from "@/types/nba";
 import { safeSegment } from "@/lib/safeSegment";
+import { currentNbaSeason } from "@/lib/nbaSeason";
 
 // Leaderboard is public — no auth required.
 // 5-minute CDN cache keeps it reasonably fresh without hammering the backend.
 const CACHE_CONTROL = "public, s-maxage=300";
-
-function currentSeasonYear(): number {
-  const now = new Date();
-  return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
-}
 
 type BackendEntry = {
   rank: number;
@@ -55,7 +51,7 @@ function toLeaderboardEntry(e: BackendEntry): LeaderboardEntry {
 }
 
 export async function GET() {
-  const season = currentSeasonYear();
+  const season = currentNbaSeason();
 
   try {
     const upstreamResult = await fetchUpstream(
