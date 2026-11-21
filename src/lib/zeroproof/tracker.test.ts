@@ -249,11 +249,7 @@ describe("tracker", () => {
     expect(tracker.pending().map((e) => e.name)).toEqual(["cta_click"]);
   });
 
-  // Known bug: after a 2xx, flush() calls maybeFlush() while `flushing` is still
-  // true, so the follow-up flush returns early and no timer is scheduled. A full
-  // batch that piled up behind the one in flight sits there until the next
-  // track() call. Marked as failing until the production code is fixed.
-  it.fails("sends what piled up behind a batch as soon as it lands, if that is already a full batch", async () => {
+  it("sends what piled up behind a batch as soon as it lands, if that is already a full batch", async () => {
     const pending = deferredSend();
     const { tracker, send } = harness({ send: pending.send, limits: { maxEvents: 2 } });
     tracker.track("page_view", "/a");
