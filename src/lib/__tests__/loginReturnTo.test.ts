@@ -48,12 +48,7 @@ describe("loginReturnToFromReferer", () => {
     expect(loginReturnToFromReferer(`${ORIGIN}/auth/logout`, ORIGIN)).toBeNull();
   });
 
-  // Known bug: A same-origin referer like https://paulsumido.com//evil.example/x has the
-  // pathname "//evil.example/x", which a browser reads as a protocol-relative
-  // URL. The Auth0 SDK sanitizes returnTo before redirecting, so nothing is
-  // exploitable today, but this function is the layer that says it only hands
-  // back same-origin paths. Recorded as a finding.
-  it.fails("never hands back a protocol-relative path", () => {
+  it("never hands back a protocol-relative path", () => {
     expect(
       loginReturnToFromReferer(`${ORIGIN}//evil.example/x`, ORIGIN),
     ).not.toMatch(/^\/\//);
