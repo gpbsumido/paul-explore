@@ -133,7 +133,10 @@ describe("walls api client", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/walls");
     expect(init.method).toBe("POST");
-    expect(init.body).toBeInstanceOf(FormData);
+    const body: FormData = init.body;
+    expect(body.get("name")).toBe("New");
+    expect(JSON.parse(body.get("imageIds") as string)).toEqual(["img0"]);
+    expect(body.getAll("photos")).toHaveLength(1);
   });
 
   it("updates a wall with PUT", async () => {
@@ -148,6 +151,22 @@ describe("walls api client", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/walls/w1");
     expect(init.method).toBe("PUT");
+    expect((init.body as FormData).get("name")).toBe("Renamed");
+  });
+
+  it("escapes an id that is not URL-safe, whichever call uses it", async () => {
+    fetchMock.mockReturnValue(ok({ id: "a/b c", name: "x", updatedAt: "t" }));
+    await getWall("a/b c");
+    await updateWall("a/b c", {
+      state: stateWith([]),
+      filesById: {},
+    });
+    await deleteWall("a/b c");
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "/api/walls/a%2Fb%20c",
+      "/api/walls/a%2Fb%20c",
+      "/api/walls/a%2Fb%20c",
+    ]);
   });
 
   it("deletes a wall", async () => {
@@ -167,5 +186,18 @@ describe("walls api client", () => {
       } as Response),
     );
     await expect(getWall("ghost")).rejects.toThrow(/Wall not found/);
+  });
+
+  it("names the status when the failure has no readable body", async () => {
+    fetchMock.mockReturnValue(
+      Promise.resolve({
+        ok: false,
+        status: 502,
+        json: async () => {
+          throw new SyntaxError("Unexpected token <");
+        },
+      } as unknown as Response),
+    );
+    await expect(listWalls()).rejects.toThrow("Request failed (502)");
   });
 });

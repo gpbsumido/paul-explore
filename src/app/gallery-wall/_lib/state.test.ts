@@ -3,6 +3,8 @@ import {
   galleryReducer,
   initialGalleryState,
   computeArrangement,
+  computePlacements,
+  computeValidation,
   type GalleryState,
 } from "./state";
 
@@ -93,6 +95,134 @@ describe("galleryReducer", () => {
   });
 });
 
+describe("galleryReducer spacing and dragging", () => {
+  const placementOf = (state: GalleryState, id: string) =>
+    computePlacements(state).find((p) => p.id === id)!;
+
+  it("sets the gap between frames", () => {
+    const state = galleryReducer(initialGalleryState, {
+      type: "set-gap",
+      gap: 5,
+    });
+    expect(state.gap).toBe(5);
+  });
+
+  it("never lets the gap go below zero", () => {
+    const state = galleryReducer(initialGalleryState, {
+      type: "set-gap",
+      gap: -4,
+    });
+    expect(state.gap).toBe(0);
+  });
+
+  it("moves the dragged frame and leaves the others where they were", () => {
+    const before = withImages();
+    const moved = galleryReducer(before, {
+      type: "move-image",
+      id: "img-2",
+      x: 5,
+      y: 6,
+    });
+    expect(placementOf(moved, "img-2")).toMatchObject({ x: 5, y: 6 });
+    expect(placementOf(moved, "img-1")).toEqual(placementOf(before, "img-1"));
+  });
+
+  it("keeps a dragged frame on the wall, however far it is thrown", () => {
+    // img-2 is landscape 14 x 11 on a 76 x 60 wall.
+    const far = galleryReducer(withImages(), {
+      type: "move-image",
+      id: "img-2",
+      x: 1000,
+      y: 1000,
+    });
+    expect(placementOf(far, "img-2")).toMatchObject({ x: 62, y: 49 });
+
+    const behind = galleryReducer(withImages(), {
+      type: "move-image",
+      id: "img-2",
+      x: -30,
+      y: -30,
+    });
+    expect(placementOf(behind, "img-2")).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it("pulls a dragged frame back onto the wall when it grows past the edge", () => {
+    const parked = galleryReducer(withImages(), {
+      type: "move-image",
+      id: "img-1",
+      x: 1000,
+      y: 0,
+    });
+    const grown = galleryReducer(parked, {
+      type: "set-frame-size",
+      id: "img-1",
+      sizeId: "24x36",
+    });
+    // A portrait 24 x 36 frame has to start at 76 - 24 to stay on the wall.
+    expect(placementOf(grown, "img-1").x).toBe(52);
+  });
+
+  it("drops manual positions on auto-arrange and keeps the layout unless told otherwise", () => {
+    const dragged = galleryReducer(
+      galleryReducer(withImages(), {
+        type: "set-layout",
+        layout: "masonry",
+      }),
+      { type: "move-image", id: "img-1", x: 9, y: 9 },
+    );
+    const same = galleryReducer(dragged, { type: "auto-arrange" });
+    expect(same.layout).toBe("masonry");
+    expect(same.images.every((i) => i.position === undefined)).toBe(true);
+
+    const switched = galleryReducer(dragged, {
+      type: "auto-arrange",
+      layout: "aesthetic",
+    });
+    expect(switched.layout).toBe("aesthetic");
+  });
+});
+
+describe("computeValidation", () => {
+  it("cannot save an empty wall", () => {
+    expect(computeValidation(initialGalleryState).canSave).toBe(false);
+  });
+
+  it("can save frames that fit without touching", () => {
+    const validation = computeValidation(withImages());
+    expect(validation.invalidIds).toEqual([]);
+    expect(validation.canSave).toBe(true);
+  });
+
+  it("flags both frames of an overlap and blocks saving", () => {
+    const stacked = galleryReducer(
+      galleryReducer(withImages(), {
+        type: "move-image",
+        id: "img-1",
+        x: 0,
+        y: 0,
+      }),
+      { type: "move-image", id: "img-2", x: 1, y: 1 },
+    );
+    const validation = computeValidation(stacked);
+    expect([...validation.overlaps].sort()).toEqual(["img-1", "img-2"]);
+    expect(validation.invalidIds.sort()).toEqual(["img-1", "img-2"]);
+    expect(validation.canSave).toBe(false);
+  });
+
+  it("flags a frame that hangs off the wall and blocks saving", () => {
+    const state = galleryReducer(
+      { ...initialGalleryState, wall: { width: 10, height: 10 } },
+      {
+        type: "add-images",
+        images: [{ id: "big", src: "blob:x", aspect: 0.7 }],
+      },
+    );
+    const validation = computeValidation(state);
+    expect(validation.outOfBounds).toEqual(["big"]);
+    expect(validation.canSave).toBe(false);
+  });
+});
+
 describe("computeArrangement", () => {
   it("turns framed images into placements sized in the wall's unit", () => {
     const state = galleryReducer(
@@ -119,5 +249,19 @@ describe("computeArrangement", () => {
       },
     );
     expect(computeArrangement(state).overflows).toBe(true);
+  });
+
+  it("sizes the content to the lowest frame and stays quiet when all of it fits", () => {
+    const state = galleryReducer(
+      { ...initialGalleryState, wall: { width: 100, height: 100 } },
+      {
+        type: "add-images",
+        images: [{ id: "only", src: "blob:x", aspect: 0.7 }],
+      },
+    );
+    const arrangement = computeArrangement(state);
+    const placed = arrangement.placements[0];
+    expect(arrangement.contentHeight).toBe(placed.y + placed.height);
+    expect(arrangement.overflows).toBe(false);
   });
 });

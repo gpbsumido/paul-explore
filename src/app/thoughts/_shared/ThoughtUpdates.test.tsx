@@ -86,6 +86,34 @@ describe("WhatsNext", () => {
     expect(screen.getByRole("heading", { name: /next/i })).toBeInTheDocument();
   });
 
+  it("puts each list under its own heading", () => {
+    render(
+      <WhatsNext
+        nowShipped={["shipped item"]}
+        couldImprove={["improve item"]}
+        upcoming={["upcoming item"]}
+      />,
+    );
+    const underHeading = (name: RegExp) =>
+      screen.getByRole("heading", { name }).nextElementSibling as HTMLElement;
+    expect(underHeading(/what I'd do now/i)).toHaveTextContent("shipped item");
+    expect(underHeading(/where it could go further/i)).toHaveTextContent(
+      "improve item",
+    );
+    expect(underHeading(/next/i)).toHaveTextContent("upcoming item");
+    expect(underHeading(/next/i)).not.toHaveTextContent("shipped item");
+  });
+
+  it("drops a section whose list is empty, and the whole block when all are", () => {
+    const { container, rerender } = render(
+      <WhatsNext nowShipped={["Only this."]} couldImprove={[]} upcoming={[]} />,
+    );
+    expect(screen.getAllByRole("heading")).toHaveLength(1);
+
+    rerender(<WhatsNext nowShipped={[]} couldImprove={[]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it("omits a section entirely rather than showing an empty heading", () => {
     render(<WhatsNext nowShipped={["Only this."]} />);
     expect(

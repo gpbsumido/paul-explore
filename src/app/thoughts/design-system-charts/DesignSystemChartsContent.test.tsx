@@ -45,8 +45,7 @@ describe("DesignSystemChartsContent", () => {
   it("cites the green test counts that back the work", () => {
     render(<DesignSystemChartsContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/184/);
-    expect(body).toMatch(/20/);
+    expect(body).toMatch(/react 184, angular 20/i);
   });
 
   it("is listed in the thoughts data and sorted into Design & UI", () => {

@@ -31,7 +31,7 @@ const createRoom = (kind: "ably" | "local" = "ably") => {
       },
     };
   };
-  return { wire, connect };
+  return { wire, connect, openConnections: () => listeners.size };
 };
 
 const settle = async () => {
@@ -63,7 +63,7 @@ const twoDevices = async (kind: "ably" | "local" = "ably") => {
     vi.advanceTimersByTime(ms);
     await settle();
   };
-  return { a, b, code, guest, room, press, advance };
+  return { a, b, code, host, guest, room, press, advance };
 };
 
 describe("The Mind Reader across two devices", () => {
@@ -120,6 +120,14 @@ describe("The Mind Reader across two devices", () => {
     expect(b.getByText(/0 guessed · 1 stumped/i)).toBeInTheDocument();
   });
 
+  it("moves player B's focus to the new heading when the round moves on", async () => {
+    const { a, b, press } = await twoDevices();
+    await press(a, /deal a role/i);
+    await vi.waitFor(() =>
+      expect(b.getByRole("heading", { name: /player a is reading their role/i })).toHaveFocus(),
+    );
+  });
+
   it("tells player A when the room only reaches tabs in this browser", async () => {
     const { a } = await twoDevices("local");
     expect(a.getByText(/only between tabs in this browser/i)).toBeInTheDocument();
@@ -131,5 +139,23 @@ describe("The Mind Reader across two devices", () => {
     await press(a, /hide it and start/i);
     vi.useRealTimers();
     expect(await axe(guest.container)).toHaveNoViolations();
+  });
+
+  it("closes both devices' connections when the page is left", async () => {
+    const { host, guest, room } = await twoDevices();
+    expect(room.openConnections()).toBe(2);
+    guest.unmount();
+    expect(room.openConnections()).toBe(1);
+    host.unmount();
+    expect(room.openConnections()).toBe(0);
+  });
+
+  it("does not leave a connection open when player B leaves before it is made", async () => {
+    const room = createRoom();
+    const guest = render(MindReader, { joinCode: "K7QX3", connect: room.connect });
+    guest.unmount();
+    await settle();
+    expect(room.openConnections()).toBe(0);
+    expect(room.wire).toEqual([]);
   });
 });

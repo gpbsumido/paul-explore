@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 
 /**
  * The nightly production build died exporting `/tcg/pokemon/sets/me02`, which
@@ -62,6 +62,43 @@ async function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   setGet.mockResolvedValue(complete);
+});
+
+describe("set detail page with a complete record", () => {
+  it("shows the series, the year, the card count and each format's legality", async () => {
+    await renderPage();
+    expect(screen.getByRole("heading", { name: "Mega Evolution" })).toBeInTheDocument();
+    expect(screen.getByText("Scarlet & Violet")).toBeInTheDocument();
+    expect(screen.getByText("2026")).toBeInTheDocument();
+    expect(screen.getByText("120 cards")).toBeInTheDocument();
+    expect(screen.getByText(/Standard ✓/)).toBeInTheDocument();
+    expect(screen.getByText(/Expanded ✓/)).toBeInTheDocument();
+  });
+
+  it("marks a format as not legal, and one with no decision the same way", async () => {
+    setGet.mockResolvedValue({ ...complete, legal: { standard: false, expanded: true } });
+    await renderPage();
+    expect(screen.getByText(/Standard ✗/)).toBeInTheDocument();
+    expect(screen.getByText(/Expanded ✓/)).toBeInTheDocument();
+    cleanup();
+
+    setGet.mockResolvedValue({ ...complete, legal: { standard: true } });
+    await renderPage();
+    expect(screen.getByText(/Standard ✓/)).toBeInTheDocument();
+    expect(screen.getByText(/Expanded ✗/)).toBeInTheDocument();
+  });
+
+  it("prints a count of zero rather than hiding it", async () => {
+    setGet.mockResolvedValue({ ...complete, cardCount: { official: 0 } });
+    await renderPage();
+    expect(screen.getByText("0 cards")).toBeInTheDocument();
+  });
+
+  it("hands the grid the set it is showing", async () => {
+    await renderPage();
+    expect(screen.getByTestId("cards-grid")).toBeInTheDocument();
+    expect(setGet).toHaveBeenCalledWith("me02");
+  });
 });
 
 describe("set detail page with incomplete upstream data", () => {

@@ -8,12 +8,23 @@ import AdminAboutSection from "./AdminAboutSection";
 
 const renderSection = (version = "9.9.9") => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <QueryClientProvider client={client}>
-      <AdminAboutSection version={version} />
-    </QueryClientProvider>,
-  );
+  return {
+    client,
+    ...render(
+      <QueryClientProvider client={client}>
+        <AdminAboutSection version={version} />
+      </QueryClientProvider>,
+    ),
+  };
 };
+
+/** Waits until the who-am-i request has been answered, so "nothing" is a verdict, not a loading state. */
+const whoAmIAnswered = (client: QueryClient) =>
+  waitFor(() => {
+    const queries = client.getQueryCache().findAll();
+    expect(queries.length).toBeGreaterThan(0);
+    expect(queries.every((q) => q.state.status === "success")).toBe(true);
+  });
 
 const asAdmin = () =>
   server.use(
@@ -36,13 +47,15 @@ describe("AdminAboutSection", () => {
         HttpResponse.json({ sub: "auth0|me", isFlagAdmin: false }),
       ),
     );
-    const { container } = renderSection();
-    await waitFor(() => expect(container.querySelector("section")).toBeNull());
+    const { container, client } = renderSection();
+    await whoAmIAnswered(client);
+    expect(container.querySelector("section")).toBeNull();
   });
 
   it("renders nothing for a signed-out visitor", async () => {
-    const { container } = renderSection();
-    await waitFor(() => expect(container.querySelector("section")).toBeNull());
+    const { container, client } = renderSection();
+    await whoAmIAnswered(client);
+    expect(container.querySelector("section")).toBeNull();
   });
 
   it("has no a11y violations for an admin", async () => {

@@ -78,4 +78,47 @@ describe("arrangeMasonry", () => {
     // One column, two 20-tall frames + gap = 42 > 30.
     expect(result.overflows).toBe(true);
   });
+
+  it("does not report overflow when the content fits the wall exactly", () => {
+    const result = arrangeMasonry({
+      wallWidth: 24,
+      wallHeight: 42,
+      gap: 2,
+      frames: [frame("a", 20, 20), frame("b", 20, 20)],
+    });
+    expect(result.contentHeight).toBe(42);
+    expect(result.overflows).toBe(false);
+  });
+
+  it("reports overflow for a frame wider than the wall even when it is short", () => {
+    const result = arrangeMasonry({
+      wallWidth: 24,
+      wallHeight: 200,
+      gap: 2,
+      frames: [frame("wide", 30, 10)],
+    });
+    expect(result.overflows).toBe(true);
+  });
+
+  it("leaves a gap between frames stacked in the same column", () => {
+    const result = arrangeMasonry({
+      wallWidth: 24,
+      wallHeight: 200,
+      gap: 2,
+      frames: [frame("a", 20, 10), frame("b", 20, 10)],
+    });
+    const second = result.placements.find((p) => p.id === "b")!;
+    expect(second.y).toBe(12);
+    expect(result.contentHeight).toBe(22);
+  });
+
+  it("centres a narrow frame in its column", () => {
+    const result = arrangeMasonry({
+      wallWidth: 40,
+      wallHeight: 200,
+      gap: 2,
+      frames: [frame("a", 20, 10)],
+    });
+    expect(result.placements[0].x).toBe(10);
+  });
 });

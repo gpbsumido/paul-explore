@@ -47,4 +47,22 @@ describe("parseRoomMessage", () => {
     expect(parseRoomMessage({ t: "view", view: { ...view, remainingMs: -1 } })).toBeNull();
     expect(parseRoomMessage({ t: "view", view: { ...view, phase: "lobby" } })).toBeNull();
   });
+
+  it("rejects a view that cannot be a real round", () => {
+    const reject = (patch: object) =>
+      expect(parseRoomMessage({ t: "view", view: { ...view, ...patch } })).toBeNull();
+    reject({ round: 0 });
+    reject({ guessed: -1 });
+    reject({ guessed: 0.5 });
+    reject({ stumped: -1 });
+    reject({ stumped: 1.5 });
+    reject({ remainingMs: Number.POSITIVE_INFINITY });
+    reject({ role: "x".repeat(201) });
+    expect(parseRoomMessage({ t: "view", view: { ...view, role: "x".repeat(200) } })).not.toBeNull();
+  });
+
+  it("drops a message type it does not know", () => {
+    expect(parseRoomMessage({ t: "chat", text: "hi" })).toBeNull();
+    expect(parseRoomMessage({ t: "view" })).toBeNull();
+  });
 });

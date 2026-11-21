@@ -1,11 +1,19 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, within, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { TOPICS, JOURNALS, DEMOGRAPHICS } from "@/lib/research/data";
 import ResearchContent from "./ResearchContent";
+import { useSourcePrefs } from "./useSourcePrefs";
 
 /** Requests the page made, so tests can assert the query contract. */
 const seen = { topics: 0, publicationUrls: [] as string[] };
@@ -32,7 +40,42 @@ const publication = (title: string) => ({
   source: "pubmed",
 });
 
+/**
+ * Puts the reading preferences back to empty. They sit in a module-level
+ * cache over localStorage, so clearing localStorage alone leaves the previous
+ * test's ignored sources, journals and custom topics in memory. Going through
+ * the hook's own setters is the only way to reset that cache.
+ */
+function resetSourcePrefs() {
+  const { result, unmount } = renderHook(() => useSourcePrefs());
+  const isEmpty = () => {
+    const { prefs } = result.current;
+    return (
+      prefs.ignoredSources.length === 0 &&
+      prefs.ignoredJournals.length === 0 &&
+      prefs.customJournals.length === 0 &&
+      prefs.customTopics.length === 0
+    );
+  };
+  // Each setter spreads the prefs it last rendered with, so undo one thing per
+  // act() and let the hook re-render before the next.
+  while (!isEmpty()) {
+    act(() => {
+      const { prefs, toggleSource, toggleJournal, removeJournal, removeTopic } =
+        result.current;
+      if (prefs.ignoredSources[0]) toggleSource(prefs.ignoredSources[0]);
+      else if (prefs.ignoredJournals[0])
+        toggleJournal(prefs.ignoredJournals[0]);
+      else if (prefs.customJournals[0])
+        removeJournal(prefs.customJournals[0].id);
+      else if (prefs.customTopics[0]) removeTopic(prefs.customTopics[0].id);
+    });
+  }
+  unmount();
+}
+
 beforeEach(() => {
+  resetSourcePrefs();
   seen.topics = 0;
   seen.publicationUrls = [];
   server.use(
@@ -976,7 +1019,6 @@ describe("ResearchContent ask access", () => {
 
 describe("ResearchContent custom topics", () => {
   beforeEach(() => {
-    window.localStorage.clear();
     server.use(
       http.get("/api/research/topics", ({ request }) => {
         const phrase = new URL(request.url).searchParams.get("phrase");
@@ -1048,7 +1090,6 @@ describe("ResearchContent custom topics", () => {
 
 describe("ResearchContent MeSH custom topics", () => {
   beforeEach(() => {
-    window.localStorage.clear();
     server.use(
       http.get("/api/research/topics", ({ request }) => {
         const params = new URL(request.url).searchParams;
@@ -1114,5 +1155,307 @@ describe("ResearchContent MeSH custom topics", () => {
     await screen.findByRole("link", { name: /Topic paper/ });
     const last = seen.publicationUrls.at(-1) ?? "";
     expect(new URL(last).searchParams.get("mesh")).toBe("Endarterectomy");
+  });
+});
+
+describe("ResearchContent facet scoping", () => {
+  const demographicsUrls = () => {
+    const urls: string[] = [];
+    server.use(
+      http.get("/api/research/demographics", ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 7 })),
+        });
+      }),
+    );
+    return urls;
+  };
+
+  it("asks nothing about which populations lead nowhere until one is chosen", async () => {
+    const user = userEvent.setup();
+    const urls = demographicsUrls();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    expect(urls).toEqual([]);
+
+    await user.click(
+      screen.getByRole("checkbox", { name: DEMOGRAPHICS[0].label }),
+    );
+    await vi.waitFor(() => expect(urls).toHaveLength(1));
+  });
+
+  it("checks which populations still combine within the open topic", async () => {
+    const user = userEvent.setup();
+    const urls = demographicsUrls();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(
+      await screen.findByRole("checkbox", { name: DEMOGRAPHICS[0].label }),
+    );
+    await vi.waitFor(() => expect(urls).toHaveLength(1));
+    const params = new URL(urls[0]).searchParams;
+    expect(params.get("topic")).toBe(TOPICS[1].id);
+    expect(params.get("demo")).toBe(DEMOGRAPHICS[0].id);
+  });
+
+  it("checks them within a custom topic's phrase too", async () => {
+    const user = userEvent.setup();
+    const urls = demographicsUrls();
+    server.use(
+      http.get("/api/research/topics", ({ request }) => {
+        if (new URL(request.url).searchParams.get("phrase") === null) {
+          return HttpResponse.json(topicsPayload());
+        }
+        return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
+          topics: [{ id: "custom", total: 58, recent: 25, status: "emerging" }],
+        });
+      }),
+    );
+    renderPage();
+    await user.type(await screen.findByLabelText("Topic phrase"), "carotid web");
+    await user.click(screen.getByRole("button", { name: "Add topic" }));
+    await user.click(
+      await screen.findByRole("button", { name: /^carotid web/ }),
+    );
+    await user.click(
+      await screen.findByRole("checkbox", { name: DEMOGRAPHICS[0].label }),
+    );
+    await vi.waitFor(() => expect(urls).toHaveLength(1));
+    expect(new URL(urls[0]).searchParams.get("phrase")).toBe("carotid web");
+  });
+});
+
+describe("ResearchContent figures", () => {
+  it("rounds a population's share to the nearest percent", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/topics", ({ request }) => {
+        const scoped = new URL(request.url).searchParams.get("demo");
+        return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
+          topics: TOPICS.map((t) => ({
+            id: t.id,
+            total: 9,
+            recent: scoped ? 2 : 3,
+            status: "sparse",
+          })),
+        });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    await screen.findByText(TOPICS[1].name);
+    await user.click(
+      screen.getByRole("button", { name: DEMOGRAPHICS[0].label }),
+    );
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    // Two of three is 66.7%, which reads as 67 and not 66.
+    expect(await within(row!).findByText("2 of 3 · 67%")).toBeInTheDocument();
+  });
+
+  it("names the oldest paper on screen, which is the last in the list", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/publications", () =>
+        HttpResponse.json({
+          total: 2,
+          publications: [
+            { ...publication("Newer paper"), id: "1", pubDate: "2026 Mar" },
+            { ...publication("Older paper"), id: "2", pubDate: "2024 Jan" },
+          ],
+          sources: ["pubmed"],
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Older paper/ });
+    expect(screen.getByText(/oldest shown: 2024 Jan/i)).toBeInTheDocument();
+  });
+
+  it("draws each population's bar in proportion to the largest", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", () =>
+        HttpResponse.json({
+          window: null,
+          facets: DEMOGRAPHICS.map((d, i) => ({
+            id: d.id,
+            count: i === 0 ? 10 : i === 1 ? 5 : 0,
+          })),
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const widthOf = async (label: string) => {
+      const row = (await screen.findByText(label)).closest("li")!;
+      return (row.querySelector("[style]") as HTMLElement).style.width;
+    };
+    await vi.waitFor(async () =>
+      expect(await widthOf(DEMOGRAPHICS[0].label)).toBe("100%"),
+    );
+    expect(await widthOf(DEMOGRAPHICS[1].label)).toBe("50%");
+    expect(await widthOf(DEMOGRAPHICS[2].label)).toBe("0%");
+  });
+
+  it("does not send an empty question to the model", async () => {
+    const user = userEvent.setup();
+    const asked: unknown[] = [];
+    server.use(
+      http.get("/api/research/journal-club", () =>
+        HttpResponse.json({
+          papers: [
+            {
+              id: "europepmc-PMC9",
+              title: "Robotic repair: a first-in-human series.",
+              journal: "Annals of Vascular Surgery",
+              pubDate: "2025-04-02",
+              authors: ["Doe A"],
+              doi: null,
+              url: "https://europepmc.org/article/MED/PMC9",
+              design: { label: "Case report", caveat: "One case.", canSupportCausality: false },
+              innovation: { score: 1, signals: ["first-in-human"] },
+              points: ["Point one is long enough here.", "Point two is long enough here.", "Point three is long enough."],
+              questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+            },
+          ],
+          window: { fromYear: THIS_YEAR - 2, toYear: THIS_YEAR },
+        }),
+      ),
+      http.post("/api/research/ask", async ({ request }) => {
+        asked.push(await request.json());
+        return HttpResponse.json({ answer: "Confounding by indication." });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: /first-in-human series/ }),
+    );
+
+    // The button is disabled for a blank box, but Enter in the field is not.
+    await user.type(screen.getByLabelText(/ask about this paper/i), "   {Enter}");
+    await user.clear(screen.getByLabelText(/ask about this paper/i));
+    await user.type(screen.getByLabelText(/ask about this paper/i), "Main weakness?");
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+
+    expect(await screen.findByText("Confounding by indication.")).toBeInTheDocument();
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatchObject({ question: "Main weakness?" });
+  });
+});
+
+describe("ResearchContent counts, ordering and split bars", () => {
+  it("sorts A to Z when asked", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    await screen.findByText(TOPICS[1].name);
+    await user.click(screen.getByRole("button", { name: /A–Z/ }));
+    const names = screen
+      .getAllByRole("button", { name: /papers in the last 5 years/ })
+      .map((b) => b.textContent ?? "");
+    const topicNames = TOPICS.map((t) => t.name).sort((a, b) => a.localeCompare(b));
+    expect(names[0]).toContain(topicNames[0]);
+    expect(names.at(-1)).toContain(topicNames.at(-1)!);
+  });
+
+  it("draws a topic's split bars in proportion to its largest population", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", () =>
+        HttpResponse.json({
+          facets: DEMOGRAPHICS.map((d, i) => ({
+            id: d.id,
+            count: i === 0 ? 10 : i === 1 ? 5 : 0,
+          })),
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li")!;
+    await user.click(within(row).getByRole("button"));
+    await within(row).findByText(/how many papers include each/);
+
+    const widthOf = (label: string) => {
+      const item = within(row).getByText(label).closest("li")!;
+      return (item.querySelector("[style]") as HTMLElement).style.width;
+    };
+    await vi.waitFor(() => expect(widthOf(DEMOGRAPHICS[0].label)).toBe("100%"));
+    expect(widthOf(DEMOGRAPHICS[1].label)).toBe("50%");
+    expect(widthOf(DEMOGRAPHICS[2].label)).toBe("0%");
+  });
+});
+
+describe("ResearchContent asking a second question", () => {
+  it("clears the last answer while the next one is on its way, so the two never read as one", async () => {
+    const user = userEvent.setup();
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let calls = 0;
+    server.use(
+      http.get("/api/research/journal-club", () =>
+        HttpResponse.json({
+          papers: [
+            {
+              id: "europepmc-PMC9",
+              title: "Robotic repair: a first-in-human series.",
+              journal: "Annals of Vascular Surgery",
+              pubDate: "2025-04-02",
+              authors: ["Doe A"],
+              doi: null,
+              url: "https://europepmc.org/article/MED/PMC9",
+              design: { label: "Case report", caveat: "One case.", canSupportCausality: false },
+              innovation: { score: 1, signals: ["first-in-human"] },
+              points: ["Point one is long enough here.", "Point two is long enough here.", "Point three is long enough."],
+              questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+            },
+          ],
+          window: { fromYear: THIS_YEAR - 2, toYear: THIS_YEAR },
+        }),
+      ),
+      http.post("/api/research/ask", async () => {
+        calls += 1;
+        if (calls === 1) return HttpResponse.json({ answer: "First answer." });
+        await gate;
+        return HttpResponse.json({ answer: "Second answer." });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: /first-in-human series/ }),
+    );
+    await user.type(screen.getByLabelText(/ask about this paper/i), "One?");
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    expect(await screen.findByText("First answer.")).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText(/ask about this paper/i));
+    await user.type(screen.getByLabelText(/ask about this paper/i), "Two?");
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    await vi.waitFor(() => expect(calls).toBe(2));
+    expect(screen.queryByText("First answer.")).not.toBeInTheDocument();
+
+    release();
+    expect(await screen.findByText("Second answer.")).toBeInTheDocument();
   });
 });

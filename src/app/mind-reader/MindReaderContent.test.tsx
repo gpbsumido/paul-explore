@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 
 const mount = vi.fn(() => ({ id: "app" }));
@@ -11,6 +11,14 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 import MindReaderContent from "./MindReaderContent";
 
 describe("MindReaderContent", () => {
+  // The mocks are shared by every test in the file, so each one starts from
+  // zero calls and a link with no room code in it.
+  beforeEach(() => {
+    mount.mockClear();
+    unmount.mockClear();
+    window.history.pushState({}, "", "/mind-reader");
+  });
+
   it("mounts the Svelte game into the page and tears it down on leave", async () => {
     const { unmount: leave } = render(<MindReaderContent />);
 
@@ -26,6 +34,14 @@ describe("MindReaderContent", () => {
     expect(unmount).toHaveBeenCalledWith({ id: "app" });
   });
 
+  it("does not mount the game if the page is left before it has loaded", async () => {
+    const { unmount: leave } = render(<MindReaderContent />);
+    leave();
+    await vi.dynamicImportSettled();
+    expect(mount).not.toHaveBeenCalled();
+    expect(unmount).not.toHaveBeenCalled();
+  });
+
   it("names the page and shows a busy placeholder until the game has mounted", async () => {
     render(<MindReaderContent />);
     expect(
@@ -37,7 +53,6 @@ describe("MindReaderContent", () => {
   });
 
   it("joins the room in the link as player B, and ignores a code that isn't one", async () => {
-    mount.mockClear();
     window.history.pushState({}, "", "/mind-reader?room=K7QX3");
     const first = render(<MindReaderContent />);
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(1));
@@ -57,6 +72,5 @@ describe("MindReaderContent", () => {
       { props: { joinCode?: string } },
     ];
     expect(solo.props.joinCode).toBeUndefined();
-    window.history.pushState({}, "", "/mind-reader");
   });
 });

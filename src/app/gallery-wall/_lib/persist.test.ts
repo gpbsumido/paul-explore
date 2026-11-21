@@ -73,6 +73,21 @@ describe("computeHangSheet", () => {
     expect(first.size).toMatch(/×/);
   });
 
+  it("hangs the wire a sixth of the way down, but never more than three inches", () => {
+    const small = computeHangSheet(withImages());
+    // The default 11 x 14 frame: 14 / 6 down.
+    expect(small[0].hookDrop).toBeCloseTo(14 / 6, 5);
+
+    const big = computeHangSheet(
+      galleryReducer(withImages(), {
+        type: "set-frame-size",
+        id: "a",
+        sizeId: "24x36",
+      }),
+    );
+    expect(big[0].hookDrop).toBe(3);
+  });
+
   it("keeps the numbered order of the photo list", () => {
     const sheet = computeHangSheet(withImages());
     expect(sheet.map((r) => r.label)).toEqual([
@@ -98,6 +113,28 @@ describe("serialize / deserialize", () => {
   it("returns null for junk input", () => {
     expect(deserializeGallery("not json")).toBeNull();
     expect(deserializeGallery(JSON.stringify({ nope: true }))).toBeNull();
+  });
+
+  it("returns null for valid JSON that is not a gallery object", () => {
+    // "null" parses fine, and reading a field off it would throw.
+    expect(deserializeGallery("null")).toBeNull();
+    expect(deserializeGallery("42")).toBeNull();
+  });
+
+  it("rejects a save that is missing its gap or has an unknown layout", () => {
+    // JSON.stringify drops an undefined field, so this saves without a gap.
+    const noGap = { ...withImages(), gap: undefined };
+    expect(deserializeGallery(JSON.stringify(noGap))).toBeNull();
+    expect(
+      deserializeGallery(JSON.stringify({ ...withImages(), layout: "spiral" })),
+    ).toBeNull();
+  });
+
+  it("accepts every layout the app can save", () => {
+    for (const layout of ["rows", "masonry", "aesthetic"] as const) {
+      const state = { ...withImages(), layout };
+      expect(deserializeGallery(serializeGallery(state))?.layout).toBe(layout);
+    }
   });
 
   it("restores a whole gallery through the replace action", () => {
