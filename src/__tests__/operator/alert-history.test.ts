@@ -83,10 +83,40 @@ describe("alertsByDay", () => {
     expect(total).toBe(0);
   });
 
-  it("labels each bucket with a weekday", () => {
-    for (const bucket of alertsByDay([], now)) {
-      expect(typeof bucket.day).toBe("string");
-      expect(bucket.day).toBeTruthy();
-    }
+  it("labels each bucket with its weekday, oldest first", () => {
+    // 2026-08-01 is a Saturday, so the week runs Sunday 26 July to Saturday.
+    expect(alertsByDay([], now).map((bucket) => bucket.day)).toEqual([
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ]);
+  });
+
+  it("spreads alerts across the days they were raised on", () => {
+    const alerts = [
+      buildAlert({ timestamp: "2026-07-26T00:00:00Z" }),
+      buildAlert({ timestamp: "2026-07-29T15:00:00Z" }),
+      buildAlert({ timestamp: "2026-07-29T16:00:00Z" }),
+      buildAlert({ timestamp: "2026-08-01T11:59:00Z" }),
+    ];
+    expect(alertsByDay(alerts, now).map((bucket) => bucket.count)).toEqual([
+      1, 0, 0, 2, 0, 0, 1,
+    ]);
+  });
+
+  it("drops an alert from just before the first day of the window", () => {
+    const alerts = [buildAlert({ timestamp: "2026-07-25T23:59:59Z" })];
+    const total = alertsByDay(alerts, now).reduce((sum, b) => sum + b.count, 0);
+    expect(total).toBe(0);
+  });
+
+  it("drops an alert dated after the window closes", () => {
+    const alerts = [buildAlert({ timestamp: "2026-08-02T00:00:00Z" })];
+    const total = alertsByDay(alerts, now).reduce((sum, b) => sum + b.count, 0);
+    expect(total).toBe(0);
   });
 });

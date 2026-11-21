@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTab, TABS, getConnectionQuality } from "@/lib/operator-detail";
+import { parseTab, TABS } from "@/lib/operator-detail";
 
 // ---------------------------------------------------------------------------
 // parseTab — resolves a URL search param into a valid tab ID
@@ -44,51 +44,16 @@ describe("parseTab", () => {
     ]);
   });
 
-  it("gives every tab a human-readable label", () => {
-    for (const tab of TABS) {
-      expect(tab.label).toBeTruthy();
-      expect(typeof tab.label).toBe("string");
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getConnectionQuality — derives signal quality from lastPing timestamp
-// ---------------------------------------------------------------------------
-
-describe("getConnectionQuality", () => {
-  it("returns 'strong' when lastPing is within 2 minutes", () => {
-    const recent = new Date(Date.now() - 60_000).toISOString();
-    expect(getConnectionQuality(recent)).toBe("strong");
-  });
-
-  it("returns 'weak' when lastPing is between 2 and 5 minutes ago", () => {
-    const threeMinutesAgo = new Date(Date.now() - 3 * 60_000).toISOString();
-    expect(getConnectionQuality(threeMinutesAgo)).toBe("weak");
-  });
-
-  it("returns 'offline' when lastPing is older than 10 minutes", () => {
-    const fifteenMinAgo = new Date(Date.now() - 15 * 60_000).toISOString();
-    expect(getConnectionQuality(fifteenMinAgo)).toBe("offline");
-  });
-
-  it("returns 'strong' for a ping that just happened", () => {
-    const now = new Date().toISOString();
-    expect(getConnectionQuality(now)).toBe("strong");
-  });
-
-  it("returns 'offline' for a ping from hours ago", () => {
-    const hoursAgo = new Date(Date.now() - 2 * 60 * 60_000).toISOString();
-    expect(getConnectionQuality(hoursAgo)).toBe("offline");
-  });
-
-  it("returns 'weak' right at 2 minutes (not strong)", () => {
-    const exactlyTwoMin = new Date(Date.now() - 2 * 60_000).toISOString();
-    expect(getConnectionQuality(exactlyTwoMin)).toBe("weak");
-  });
-
-  it("returns 'poor' right at 5 minutes (not weak)", () => {
-    const exactlyFiveMin = new Date(Date.now() - 5 * 60_000).toISOString();
-    expect(getConnectionQuality(exactlyFiveMin)).toBe("poor");
+  it("labels every tab the way it reads in the tab bar", () => {
+    expect(Object.fromEntries(TABS.map((t) => [t.id, t.label]))).toEqual({
+      inventory: "Inventory",
+      alerts: "Alerts",
+      activity: "Activity",
+      planogram: "Planogram",
+      sales: "Sales",
+      pricing: "Pricing",
+      tax: "Tax",
+      "restock-history": "Restock History",
+    });
   });
 });

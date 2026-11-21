@@ -61,6 +61,21 @@ describe("weeklyUnitsFor", () => {
     expect(weeklyUnitsFor(sales, "Energy Bar", NOW)).toBe(5);
   });
 
+  it("includes a sale made exactly seven days ago and drops one a moment earlier", () => {
+    const justInside = saleDaysAgo("Bar", 2, 7);
+    const justOutside = buildSale({
+      productName: "Bar",
+      quantity: 5,
+      timestamp: new Date(NOW.getTime() - 7 * DAY - 1).toISOString(),
+    });
+    expect(weeklyUnitsFor([justInside, justOutside], "Bar", NOW)).toBe(2);
+  });
+
+  it("looks back as far as the days argument says", () => {
+    const sales = [saleDaysAgo("Bar", 2, 10), saleDaysAgo("Bar", 3, 20)];
+    expect(weeklyUnitsFor(sales, "Bar", NOW, 14)).toBe(2);
+  });
+
   it("is zero when the product has no recent sales", () => {
     expect(weeklyUnitsFor([saleDaysAgo("Cola", 9, 40)], "Cola", NOW)).toBe(0);
   });
@@ -92,6 +107,27 @@ describe("buildProductPricing", () => {
       weeklyUnits: 10,
       weeklyRevenueAtList: 30,
       weeklyRevenueAtPromo: 24,
+    });
+  });
+});
+
+describe("buildPricingTable", () => {
+  it("gives an item with no chosen discount a 0% promo", () => {
+    const items = [buildInventoryItem({ id: "a", price: 4 })];
+    const [row] = buildPricingTable(items, [], {}, NOW);
+    expect(row.promoPercent).toBe(0);
+    expect(row.promoPrice).toBe(4);
+  });
+
+  it("clamps a discount outside 0-100 on the row itself", () => {
+    const item = buildInventoryItem({ id: "a", price: 4 });
+    expect(buildProductPricing(item, [], 150, NOW)).toMatchObject({
+      promoPercent: 100,
+      promoPrice: 0,
+    });
+    expect(buildProductPricing(item, [], -10, NOW)).toMatchObject({
+      promoPercent: 0,
+      promoPrice: 4,
     });
   });
 });
@@ -135,6 +171,13 @@ describe("summarizePricing", () => {
     expect(summary.avgDiscount).toBe(15);
   });
 
+  it("reports a zero average discount when nothing is on promo", () => {
+    const items = [buildInventoryItem({ id: "a", productName: "A", price: 2 })];
+    const summary = summarizePricing(buildPricingTable(items, [], {}, NOW));
+    expect(summary.itemsOnPromo).toBe(0);
+    expect(summary.avgDiscount).toBe(0);
+  });
+
   it("has a stable set of discount steps from zero to a clearance cut", () => {
     expect(DISCOUNT_STEPS[0]).toBe(0);
     expect([...DISCOUNT_STEPS]).toEqual([0, 10, 20, 30, 40, 50]);
@@ -150,6 +193,10 @@ describe("unitCost", () => {
     // 40% margin on a $3 item means cost is 60% of list = $1.80.
     expect(unitCost(3, 40)).toBe(1.8);
     expect(unitCost(6.99, 50)).toBe(3.5);
+  });
+
+  it("caps a margin above 100% so cost never goes negative", () => {
+    expect(unitCost(3, 150)).toBe(0);
   });
 
   it("offers a stable set of margin steps", () => {
@@ -182,7 +229,24 @@ describe("buildProfitTable", () => {
     const [row] = buildProfitTable(items, sales, { bar: 50 }, 10, NOW);
 
     expect(row.belowCost).toBe(true);
-    expect(row.weeklyProfitAtPromo).toBeLessThan(0); // (1.00 - 1.80) * 4
+    expect(row.weeklyProfitAtPromo).toBe(-3.2); // (1.00 - 1.80) * 4
+  });
+});
+
+describe("buildProfitTable defaults", () => {
+  it("assumes a 45% margin when none is given", () => {
+    const items = [buildInventoryItem({ id: "bar", price: 4 })];
+    const [row] = buildProfitTable(items, [], {}, undefined, NOW);
+    // cost is 55% of the $4 list price
+    expect(row.unitCost).toBe(2.2);
+  });
+
+  it("does not flag a promo price that lands exactly on cost", () => {
+    const items = [buildInventoryItem({ id: "bar", productName: "Bar", price: 4 })];
+    // 50% margin -> cost $2.00; 50% off -> promo $2.00
+    const [row] = buildProfitTable(items, [], { bar: 50 }, 50, NOW);
+    expect(row.promoPrice).toBe(row.unitCost);
+    expect(row.belowCost).toBe(false);
   });
 });
 
@@ -193,15 +257,16 @@ describe("summarizeProfit", () => {
       buildInventoryItem({ id: "b", productName: "B", price: 2 }),
     ];
     const sales = [saleDaysAgo("A", 10, 1), saleDaysAgo("B", 5, 1)];
-    // A: 40% margin cost 1.80, 20% off -> profit 6/wk. B: cost 1.80, 50% off -> promo 1.00.
-    const rows = buildProfitTable(items, sales, { a: 20, b: 50 }, 10, NOW);
+    // 10% margin: A costs $2.70 and B costs $1.80.
+    // A stays at list, so $0.30 * 10 = $3 either way.
+    // B at 50% off sells at $1.00, below its $1.80 cost.
+    const rows = buildProfitTable(items, sales, { a: 0, b: 50 }, 10, NOW);
 
-    // A's margin at 10% -> cost 2.70; recompute deliberately below with margin 10.
-    const summary = summarizeProfit(rows);
-
-    expect(summary.itemsBelowCost).toBe(2);
-    expect(summary.profitDelta).toBe(
-      summary.weeklyProfitAtPromo - summary.weeklyProfitAtList,
-    );
+    expect(summarizeProfit(rows)).toEqual({
+      weeklyProfitAtList: 4, // A $3 + B $0.20 * 5
+      weeklyProfitAtPromo: -1, // A $3 + B -$0.80 * 5
+      profitDelta: -5,
+      itemsBelowCost: 1,
+    });
   });
 });

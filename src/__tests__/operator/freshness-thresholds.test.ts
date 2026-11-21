@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   getFreshnessLevel,
   isStaleData,
@@ -111,5 +111,30 @@ describe("isSensorOffline", () => {
   it("returns false for recent data", () => {
     const justNow = new Date(now).toISOString();
     expect(isSensorOffline(justNow, now)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Callers that do not pass a clock measure against the current time
+// ---------------------------------------------------------------------------
+
+describe("freshness helpers without an explicit clock", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("measure the ping against the current time", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-01T12:00:00.000Z"));
+    const minutesAgo = (minutes: number) =>
+      new Date(Date.now() - minutes * 60_000).toISOString();
+
+    expect(getFreshnessLevel(minutesAgo(1))).toBe("fresh");
+    expect(getFreshnessLevel(minutesAgo(5))).toBe("aging");
+    expect(getFreshnessLevel(minutesAgo(15))).toBe("stale");
+    expect(isStaleData(minutesAgo(5))).toBe(false);
+    expect(isStaleData(minutesAgo(15))).toBe(true);
+    expect(isSensorOffline(minutesAgo(15))).toBe(false);
+    expect(isSensorOffline(minutesAgo(45))).toBe(true);
   });
 });

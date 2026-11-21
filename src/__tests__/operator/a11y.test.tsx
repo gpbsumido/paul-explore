@@ -74,6 +74,9 @@ describe("AlertSummaryBanner accessibility", () => {
         onFilterWarning={vi.fn()}
       />,
     );
+    // an empty container would pass axe too, so check the banner is there
+    expect(screen.getByRole("button", { name: "2 critical" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "5 warnings" })).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -86,6 +89,7 @@ describe("AlertSummaryBanner accessibility", () => {
 describe("FleetStatsBar accessibility", () => {
   it("has no axe violations", async () => {
     const { container } = render(<FleetStatsBar stats={makeFleetStats()} />);
+    expect(screen.getByText("Total Stores")).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -98,12 +102,14 @@ describe("FleetStatsBar accessibility", () => {
 describe("StockBar accessibility", () => {
   it("has no axe violations for healthy stock", async () => {
     const { container } = render(<StockBar currentStock={10} capacity={12} />);
+    expect(screen.getByRole("meter")).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
 
   it("has no axe violations for critical stock", async () => {
     const { container } = render(<StockBar currentStock={1} capacity={12} />);
+    expect(screen.getByRole("meter")).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -135,6 +141,9 @@ describe("Bone accessibility", () => {
 describe("ToastNotification accessibility", () => {
   it("has no axe violations", async () => {
     const { container } = render(<ToastNotification />);
+    expect(
+      screen.getByRole("button", { name: "Store refreshed" }),
+    ).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -153,6 +162,7 @@ describe("ToastNotification accessibility", () => {
 describe("RefreshBar accessibility", () => {
   it("has no axe violations", async () => {
     const { container } = render(<RefreshBar />);
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -171,6 +181,7 @@ describe("RefreshBar accessibility", () => {
 describe("AlertTrendChart accessibility", () => {
   it("has no axe violations", async () => {
     const { container } = render(<AlertTrendChart data={makeTrendData()} />);
+    expect(screen.getByRole("img")).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -191,6 +202,7 @@ describe("FleetHealthChart accessibility", () => {
       buildStore({ status: "degraded" }),
     ];
     const { container } = render(<FleetHealthChart stores={stores} />);
+    expect(screen.getByRole("img")).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -202,8 +214,9 @@ describe("FleetHealthChart accessibility", () => {
     ];
     render(<FleetHealthChart stores={stores} />);
     const chart = screen.getByRole("img");
-    expect(chart).toHaveAttribute("aria-label");
-    expect(chart.getAttribute("aria-label")).toContain("Fleet health");
+    expect(chart).toHaveAccessibleName(
+      "Fleet health distribution: Online: 1, Degraded: 1",
+    );
   });
 });
 
@@ -216,6 +229,7 @@ describe("InventoryComparisonChart accessibility", () => {
 
   it("has no axe violations", async () => {
     const { container } = render(<InventoryComparisonChart data={data} />);
+    expect(screen.getByRole("img")).toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

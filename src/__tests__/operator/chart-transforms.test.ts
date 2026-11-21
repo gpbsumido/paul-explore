@@ -50,7 +50,7 @@ describe("toFleetHealthData", () => {
     expect(toFleetHealthData([])).toEqual([]);
   });
 
-  it("assigns distinct fill colors per status", () => {
+  it("colours online green, degraded amber and offline red", () => {
     const stores: readonly Store[] = [
       buildStore({ id: "s1", status: "online" }),
       buildStore({ id: "s2", status: "degraded" }),
@@ -58,9 +58,26 @@ describe("toFleetHealthData", () => {
     ];
 
     const result = toFleetHealthData(stores);
-    const fills = result.map((d) => d.fill);
 
-    expect(new Set(fills).size).toBe(3);
+    expect(result.map((d) => d.fill)).toEqual([
+      "var(--color-success-500)",
+      "var(--color-warning-500)",
+      "var(--color-error-500)",
+    ]);
+  });
+
+  it("lists statuses in a fixed order whatever order the stores come in", () => {
+    const stores: readonly Store[] = [
+      buildStore({ id: "s1", status: "offline" }),
+      buildStore({ id: "s2", status: "degraded" }),
+      buildStore({ id: "s3", status: "online" }),
+    ];
+
+    expect(toFleetHealthData(stores).map((d) => d.name)).toEqual([
+      "Online",
+      "Degraded",
+      "Offline",
+    ]);
   });
 
   it("does not mutate the input array", () => {
@@ -80,71 +97,77 @@ describe("toFleetHealthData", () => {
 // ---------------------------------------------------------------------------
 
 describe("toAlertTrendData", () => {
+  // 2:30 pm local on a mid-summer day, built from local parts so the hour
+  // boundaries sit where the function (which works in local time) puts them,
+  // and well away from any daylight-saving change.
+  const now = new Date(2026, 6, 15, 14, 30);
+
+  /** An alert stamped at the given local time. */
+  const alertAt = (when: Date): Alert =>
+    buildAlert({ timestamp: when.toISOString() });
+
+  /** The label the chart shows for the hour containing `when`. */
+  const hourLabel = (when: Date): string =>
+    when.toLocaleTimeString([], { hour: "numeric", hour12: true });
+
+  const counts = (alerts: readonly Alert[]): number[] =>
+    toAlertTrendData(alerts, now).map((point) => point.count);
+
   it("returns 24 data points (one per hour)", () => {
-    const alerts: readonly Alert[] = [
-      buildAlert({ id: "a1", timestamp: new Date().toISOString() }),
-    ];
-
-    const result = toAlertTrendData(alerts);
-
-    expect(result).toHaveLength(24);
+    expect(toAlertTrendData([], now)).toHaveLength(24);
   });
 
-  it("each data point has hour label and count", () => {
-    const result = toAlertTrendData([]);
-
-    for (const point of result) {
-      expect(point).toHaveProperty("hour");
-      expect(point).toHaveProperty("count");
-      expect(typeof point.hour).toBe("string");
-      expect(typeof point.count).toBe("number");
-    }
-  });
-
-  it("buckets alerts into the correct hour", () => {
-    const now = new Date();
-    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-
-    const alerts: readonly Alert[] = [
-      buildAlert({ id: "a1", timestamp: twoHoursAgo.toISOString() }),
-      buildAlert({ id: "a2", timestamp: twoHoursAgo.toISOString() }),
-      buildAlert({ id: "a3", timestamp: now.toISOString() }),
-    ];
-
-    const result = toAlertTrendData(alerts);
-    const totalCount = result.reduce((sum, p) => sum + p.count, 0);
-
-    expect(totalCount).toBe(3);
+  it("labels the hours oldest to newest, ending on the current hour", () => {
+    const expected = Array.from({ length: 24 }, (_, i) =>
+      hourLabel(new Date(2026, 6, 15, 14 - 23 + i)),
+    );
+    expect(toAlertTrendData([], now).map((point) => point.hour)).toEqual(
+      expected,
+    );
   });
 
   it("returns all zeros for empty alerts", () => {
-    const result = toAlertTrendData([]);
+    expect(counts([])).toEqual(new Array(24).fill(0));
+  });
 
-    expect(result.every((p) => p.count === 0)).toBe(true);
+  it("counts alerts from the current hour in the last bucket", () => {
+    const result = counts([
+      alertAt(new Date(2026, 6, 15, 14, 5)),
+      alertAt(new Date(2026, 6, 15, 14, 55)),
+    ]);
+    expect(result.slice(0, 23)).toEqual(new Array(23).fill(0));
+    expect(result[23]).toBe(2);
+  });
+
+  it("puts an alert stamped on the hour into that hour's bucket", () => {
+    // 11:00 is three hours before the 2 pm bucket, so 23 - 3 = 20
+    const result = counts([alertAt(new Date(2026, 6, 15, 11, 0))]);
+    expect(result[20]).toBe(1);
+    expect(result.reduce((sum, count) => sum + count, 0)).toBe(1);
+  });
+
+  it("keeps an alert from the first hour of the window", () => {
+    // 3 pm yesterday is the oldest bucket
+    const result = counts([alertAt(new Date(2026, 6, 14, 15, 0))]);
+    expect(result[0]).toBe(1);
+  });
+
+  it("drops an alert from the hour before the window starts", () => {
+    const result = counts([alertAt(new Date(2026, 6, 14, 14, 0))]);
+    expect(result.every((count) => count === 0)).toBe(true);
   });
 
   it("ignores alerts older than 24 hours", () => {
-    const old = new Date();
-    old.setHours(old.getHours() - 25);
-
-    const alerts: readonly Alert[] = [
-      buildAlert({ id: "a1", timestamp: old.toISOString() }),
-    ];
-
-    const result = toAlertTrendData(alerts);
-    const totalCount = result.reduce((sum, p) => sum + p.count, 0);
-
-    expect(totalCount).toBe(0);
+    const result = counts([alertAt(new Date(2026, 6, 14, 12, 0))]);
+    expect(result.every((count) => count === 0)).toBe(true);
   });
 
-  it("hours are ordered oldest to newest", () => {
-    const result = toAlertTrendData([]);
-    const hours = result.map((p) => p.hour);
-
-    // first entry should be ~23 hours ago, last should be current hour
-    expect(hours.length).toBe(24);
-    // just verify they're in chronological order by checking they're unique
-    expect(new Set(hours).size).toBe(24);
+  // Bucket index comes from floor((hourStart - alert) / 1h), so an alert at
+  // 11:30 gives floor(2.5) = 2 and lands in the 12:00 bucket instead of the
+  // 11:00 one. Everything not stamped exactly on the hour is one bucket late.
+  it.fails("puts an alert from mid-hour into the bucket for that hour", () => {
+    const result = counts([alertAt(new Date(2026, 6, 15, 11, 30))]);
+    expect(result[20]).toBe(1);
   });
 });
 
@@ -250,8 +273,18 @@ describe("toInventoryComparisonData", () => {
 
     const result = toInventoryComparisonData(stores, inventoryByStore);
 
-    // name should be truncated to fit bar chart labels
-    expect(result[0].name.length).toBeLessThanOrEqual(20);
+    // 19 characters of the name, then an ellipsis, so it is 20 wide
+    expect(result[0].name).toBe("Parking Garage Kios…");
+  });
+
+  it("leaves a name of exactly 20 characters alone", () => {
+    const name = "Twenty Characters Ok";
+    expect(name).toHaveLength(20);
+    const result = toInventoryComparisonData(
+      [buildStore({ id: "s1", name })],
+      new Map(),
+    );
+    expect(result[0].name).toBe(name);
   });
 
   it("preserves store order from input", () => {

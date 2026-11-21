@@ -28,10 +28,33 @@ describe("buildInventoryList", () => {
 
   it("keeps each item's price and capacity matched to its product", () => {
     resetFactoryCounter();
-    for (const item of buildInventoryList("store-001", 6)) {
-      expect(item.price).toBeGreaterThan(0);
-      expect(item.capacity).toBeGreaterThan(0);
+    const items = buildInventoryList("store-001", 4);
+
+    expect(
+      items.map((i) => [i.productName, i.price, i.capacity]),
+    ).toEqual([
+      ["Coca-Cola 355ml", 2.5, 12],
+      ["Sparkling Water 500ml", 1.75, 15],
+      ["Turkey Club Sandwich", 6.99, 8],
+      ["Greek Yogurt Cup", 3.25, 10],
+    ]);
+  });
+
+  it("never stocks a slot above its capacity", () => {
+    resetFactoryCounter();
+    for (const item of buildInventoryList("store-001", 24)) {
+      expect(item.currentStock).toBeGreaterThanOrEqual(0);
       expect(item.currentStock).toBeLessThanOrEqual(item.capacity);
     }
+  });
+
+  it("puts every slot in the store it was built for", () => {
+    resetFactoryCounter();
+    const items = buildInventoryList("store-042", 3);
+    expect(items.map((i) => i.storeId)).toEqual([
+      "store-042",
+      "store-042",
+      "store-042",
+    ]);
   });
 });

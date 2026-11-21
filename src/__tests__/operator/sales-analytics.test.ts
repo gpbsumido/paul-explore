@@ -29,12 +29,44 @@ describe("salesByPeriod bucket counts", () => {
     expect(salesByPeriod([], "year", NOW)).toHaveLength(5);
   });
 
-  it("labels every bucket", () => {
-    for (const g of ["day", "week", "month", "year"] as const) {
-      for (const bucket of salesByPeriod([], g, NOW)) {
-        expect(bucket.label).toBeTruthy();
-      }
-    }
+  it("labels each bucket with its weekday, week start, month or year", () => {
+    const labels = (g: "day" | "week" | "month" | "year") =>
+      salesByPeriod([], g, NOW).map((bucket) => bucket.label);
+    // NOW is Wednesday 15 July 2026
+    expect(labels("day")).toEqual([
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+    ]);
+    expect(labels("week")).toEqual([
+      "May 21",
+      "May 28",
+      "Jun 4",
+      "Jun 11",
+      "Jun 18",
+      "Jun 25",
+      "Jul 2",
+      "Jul 9",
+    ]);
+    expect(labels("month")).toEqual([
+      "Aug 25",
+      "Sep 25",
+      "Oct 25",
+      "Nov 25",
+      "Dec 25",
+      "Jan 26",
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26",
+    ]);
+    expect(labels("year")).toEqual(["2022", "2023", "2024", "2025", "2026"]);
   });
 });
 
@@ -46,6 +78,26 @@ describe("salesByPeriod bucketing", () => {
     const buckets = salesByPeriod(sales, "day", NOW);
     expect(buckets[6].revenue).toBe(12);
     expect(buckets[6].units).toBe(2);
+  });
+
+  it("buckets sales into the right rolling week", () => {
+    const sales = [
+      buildSale({ total: 1, quantity: 1, timestamp: "2026-07-08T23:59:00Z" }),
+      buildSale({ total: 2, quantity: 2, timestamp: "2026-07-09T00:00:00Z" }),
+      buildSale({ total: 4, quantity: 4, timestamp: "2026-07-15T23:59:00Z" }),
+      buildSale({ total: 8, quantity: 8, timestamp: "2026-07-16T00:00:00Z" }),
+    ];
+    const buckets = salesByPeriod(sales, "week", NOW);
+    expect(buckets[6]).toMatchObject({ revenue: 1, units: 1 }); // Jul 2 - Jul 8
+    expect(buckets[7]).toMatchObject({ revenue: 6, units: 6 }); // Jul 9 - Jul 15
+  });
+
+  it("rounds a bucket's revenue to the cent", () => {
+    const sales = [
+      buildSale({ total: 0.1, timestamp: "2026-07-15T09:00:00Z" }),
+      buildSale({ total: 0.2, timestamp: "2026-07-15T10:00:00Z" }),
+    ];
+    expect(salesByPeriod(sales, "day", NOW)[6].revenue).toBe(0.3);
   });
 
   it("buckets sales into the right calendar month", () => {
@@ -120,6 +172,14 @@ describe("aggregateFleetSales", () => {
     expect(result.byStore[1].totalRevenue).toBe(90);
   });
 
+  it("totals units per store inside the window", () => {
+    const result = aggregateFleetSales(input, "month", NOW);
+    expect(result.byStore.map((s) => [s.storeId, s.unitsSold])).toEqual([
+      ["s1", 5],
+      ["s2", 5],
+    ]);
+  });
+
   it("returns zeroes for an empty fleet", () => {
     const result = aggregateFleetSales([], "day", NOW);
     expect(result.totalRevenue).toBe(0);
@@ -142,6 +202,22 @@ describe("filterSalesForRange", () => {
 
   it("keeps sales inside the month window", () => {
     expect(filterSalesForRange(sales, "month", now)).toHaveLength(2);
+  });
+
+  it("includes a sale at the start of the day window and drops one a moment earlier", () => {
+    const edges = [
+      buildSale({ timestamp: "2026-07-08T23:59:59Z" }),
+      buildSale({ timestamp: "2026-07-09T00:00:00Z" }),
+    ];
+    expect(filterSalesForRange(edges, "day", now)).toEqual([edges[1]]);
+  });
+
+  it("drops a sale at the end of the day window (tomorrow's midnight)", () => {
+    const edges = [
+      buildSale({ timestamp: "2026-07-15T23:59:59Z" }),
+      buildSale({ timestamp: "2026-07-16T00:00:00Z" }),
+    ];
+    expect(filterSalesForRange(edges, "day", now)).toEqual([edges[0]]);
   });
 
   it("keeps sales inside the year window", () => {

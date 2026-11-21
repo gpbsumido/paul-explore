@@ -1,5 +1,33 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { getStores, getInventory, getAlerts } from "@/lib/operator-data";
+
+const GLOBAL_KEY = "__operatorDataStore";
+
+/**
+ * Re-seeds the demo store with Math.random answering from a fixed function, so
+ * the shelves (and so the alerts) are the same on every run instead of whatever
+ * the dice gave this time.
+ */
+function seedWith(random: () => number): void {
+  delete (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
+  vi.spyOn(Math, "random").mockImplementation(random);
+}
+
+/** A small repeatable pseudo-random sequence (mulberry32). */
+function seededRandom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  delete (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
+});
 
 /**
  * An alert is a claim about a store. These pin that it can never contradict the
@@ -13,6 +41,10 @@ import { getStores, getInventory, getAlerts } from "@/lib/operator-data";
  * most people actually see.
  */
 describe("seeded alerts against the inventory they describe", () => {
+  beforeEach(() => {
+    seedWith(seededRandom(20260820));
+  });
+
   it("only names products the store actually stocks", () => {
     for (const store of getStores()) {
       const stocked = new Set(
@@ -64,5 +96,95 @@ describe("seeded alerts against the inventory they describe", () => {
       0,
     );
     expect(total).toBeGreaterThan(0);
+  });
+
+  it("raises the temperature warning for the store that is over threshold", () => {
+    const warned = getStores().filter((store) =>
+      (getAlerts(store.id) ?? []).some(
+        (alert) => alert.category === "temperature-warning",
+      ),
+    );
+    // exactly the degraded store, which the seed pins at 8.4 degrees
+    expect(warned.map((store) => store.temperature)).toEqual([8.4]);
+  });
+});
+
+describe("seeded alerts for known shelves", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("raises a critical out-of-stock alert for every empty slot", () => {
+    seedWith(() => 0);
+    for (const store of getStores()) {
+      const outOfStock = (getAlerts(store.id) ?? []).filter(
+        (alert) => alert.category === "low-stock",
+      );
+      const names = (getInventory(store.id) ?? []).map(
+        (item) => item.productName,
+      );
+      expect(outOfStock.map((alert) => alert.message).sort()).toEqual(
+        names.map((name) => `${name} out of stock`).sort(),
+      );
+      expect(outOfStock.every((alert) => alert.severity === "critical")).toBe(
+        true,
+      );
+    }
+  });
+
+  it("raises a below-20% warning for a slot that is low but not empty", () => {
+    seedWith(() => 0.1);
+    for (const store of getStores()) {
+      const lowStock = getAlerts(store.id)?.filter(
+        (alert) => alert.category === "low-stock",
+      );
+      for (const item of getInventory(store.id) ?? []) {
+        const alert = lowStock?.find((a) => a.message.includes(item.productName));
+        if (item.currentStock === 0) {
+          expect(alert).toMatchObject({
+            severity: "critical",
+            message: `${item.productName} out of stock`,
+          });
+        } else {
+          expect(item.currentStock / item.capacity).toBeLessThan(0.2);
+          expect(alert).toMatchObject({
+            severity: "warning",
+            message: `${item.productName} stock below 20%`,
+          });
+        }
+      }
+    }
+  });
+
+  it("raises no stock alert for slots at a quarter full or more", () => {
+    seedWith(() => 0.3);
+    for (const store of getStores()) {
+      for (const item of getInventory(store.id) ?? []) {
+        expect(item.currentStock / item.capacity).toBeGreaterThanOrEqual(0.2);
+      }
+      const categories = (getAlerts(store.id) ?? []).map((a) => a.category);
+      expect(categories).not.toContain("low-stock");
+    }
+  });
+
+  it("raises no stock alert for a full shelf", () => {
+    seedWith(() => 0.999);
+    for (const store of getStores()) {
+      const categories = (getAlerts(store.id) ?? []).map((a) => a.category);
+      expect(categories).not.toContain("low-stock");
+    }
+  });
+
+  it("always adds the door-ajar info alert to a store", () => {
+    seedWith(() => 0.999);
+    for (const store of getStores()) {
+      expect(getAlerts(store.id)).toContainEqual(
+        expect.objectContaining({
+          category: "door-ajar",
+          severity: "info",
+          message: "Door open for more than 60 seconds",
+        }),
+      );
+    }
   });
 });

@@ -19,6 +19,15 @@ describe("moveToBox", () => {
     expect(result[0]).toEqual({ itemId: null, sensorMatch: true });
   });
 
+  it("leaves a clean empty box behind, whatever the target's sensor flag said", () => {
+    const staleEmpty: PlanogramSlotRecord = {
+      itemId: null,
+      sensorMatch: false,
+    };
+    const result = moveToBox([A, staleEmpty], 0, 1);
+    expect(result[0]).toEqual({ itemId: null, sensorMatch: true });
+  });
+
   it("swaps contents when the target box is occupied", () => {
     const result = moveToBox([A, B], 0, 1);
     expect(result[0]).toEqual(B);
