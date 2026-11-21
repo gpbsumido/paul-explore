@@ -35,10 +35,12 @@ describe("the public feed keeps pace with releases", () => {
     // purpose. A minor or major bump (X.Y.0) ships a feature or a real change,
     // so it has to be told to a reader here — this is the guard that a version
     // bump can't land without one.
-    if (patch !== "0") return;
+    const needsEntry = patch === "0";
     const shipped = new Set(UPDATE_ENTRIES.map((e) => e.version));
+    // Always asserts, so a patch version is a passing check and not an empty
+    // test that proves nothing.
     expect(
-      shipped.has(version),
+      !needsEntry || shipped.has(version),
       `${version} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts`,
     ).toBe(true);
   });

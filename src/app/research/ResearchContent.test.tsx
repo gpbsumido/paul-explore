@@ -1125,7 +1125,9 @@ describe("ResearchContent MeSH custom topics", () => {
     await user.type(screen.getByLabelText("MeSH descriptor"), "Thrombectomy");
     await user.click(screen.getByRole("button", { name: "Add topic" }));
     const card = await screen.findByRole("button", { name: /^Thrombectomy/ });
-    await within(card).findByText(/14 papers · 5 recent/);
+    expect(
+      await within(card).findByText(/14 papers · 5 recent/),
+    ).toBeInTheDocument();
   });
 
   it("saves a discovered topic into My topics", async () => {

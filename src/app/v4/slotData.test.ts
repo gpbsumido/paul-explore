@@ -34,16 +34,33 @@ describe("buildSlots", () => {
     expect(operator!.thoughts[0].href).toBe("/thoughts/operator-dashboard");
   });
 
-  it("gives a feature without a write-up an empty reel 3", () => {
-    // Asserted against whichever features genuinely lack a thoughtsHref rather
-    // than a named one. This used to point at work-portfolio, which then got a
-    // write-up and broke a test that was really about the rule, not the
-    // feature. If every feature has one, the rule still holds vacuously.
-    const withoutWriteUp = FEATURES.filter((f) => !f.thoughtsHref);
-    withoutWriteUp.forEach((feature) => {
-      const option = apps.options.find((o) => o.id === `feat:${feature.id}`);
-      expect(option).toBeDefined();
-      expect(option!.thoughts).toEqual([]);
+  it("gives a feature without a write-up an empty reel 3", async () => {
+    // The loop above checks nothing once every real feature has a write-up,
+    // which is where the site is now. This builds the case it is about.
+    vi.resetModules();
+    vi.doMock("@/app/_shared/featureData.data", async (importOriginal) => {
+      const actual =
+        await importOriginal<typeof import("@/app/_shared/featureData.data")>();
+      const withoutWriteUp = {
+        ...actual.FEATURES[0],
+        id: "no-write-up-fixture",
+        thoughtsHref: undefined,
+      };
+      return { ...actual, FEATURES: [...actual.FEATURES, withoutWriteUp] };
+    });
+    const { buildSlots: buildWithFixture } = await import("./slotData");
+    const option = buildWithFixture()[0].options.find(
+      (o) => o.id === "feat:no-write-up-fixture",
+    );
+    vi.doUnmock("@/app/_shared/featureData.data");
+    expect(option?.thoughts).toEqual([]);
+
+    // And the real ones, for whichever features genuinely lack a write-up. This
+    // used to point at work-portfolio, which then got one and broke a test that
+    // was about the rule, not the feature.
+    FEATURES.filter((f) => !f.thoughtsHref).forEach((feature) => {
+      const real = apps.options.find((o) => o.id === `feat:${feature.id}`);
+      expect(real?.thoughts).toEqual([]);
     });
   });
 
