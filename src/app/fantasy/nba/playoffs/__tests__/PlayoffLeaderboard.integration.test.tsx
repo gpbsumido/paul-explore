@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse, delay } from "msw";
 import type { ReactNode } from "react";
 import { server } from "@/test/server";
 import PlayoffLeaderboard from "../PlayoffLeaderboard";
+import { LEADERBOARD_ROW_STATES } from "../leaderboardRowStates";
 import type { LeaderboardEntry, PlayoffLeaderboardResponse } from "@/types/nba";
 
 // ---- Factories ----
@@ -161,16 +162,84 @@ describe("PlayoffLeaderboard", () => {
     });
 
     expect(screen.getByTestId("leaderboard-skeleton")).toBeInTheDocument();
+  });
 
-    await waitFor(
-      () => {
-        expect(
-          screen.queryByTestId("leaderboard-skeleton"),
-        ).not.toBeInTheDocument();
-      },
-      { timeout: 100 },
-    ).catch(() => {
-      // Still loading — skeleton persists, which is what we're testing
+  it("says so, rather than showing an empty table, when the leaderboard can't be loaded", async () => {
+    server.use(
+      http.get("/api/nba/playoffs/leaderboard", () =>
+        HttpResponse.json({ error: "nope" }, { status: 500 }),
+      ),
+    );
+
+    render(<PlayoffLeaderboard currentUserSub={null} />, {
+      wrapper: makeWrapper(),
     });
+
+    expect(await screen.findByText(/leaderboard/i)).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.queryByText("No brackets submitted yet.")).not.toBeInTheDocument();
+  });
+
+  it("links each row to that bracket, by username and otherwise by bracket id", async () => {
+    server.use(
+      http.get("/api/nba/playoffs/leaderboard", () =>
+        HttpResponse.json(
+          makeResponse([
+            makeEntry({ rank: 1, sub: "auth0|u1", displayName: "Paul", username: "paul s" }),
+            makeEntry({
+              rank: 2,
+              sub: "auth0|u2",
+              displayName: "Anon",
+              username: null,
+              bracketId: "00000000-0000-0000-0000-0000000000aa",
+            }),
+          ]),
+        ),
+      ),
+    );
+
+    render(<PlayoffLeaderboard currentUserSub={null} />, {
+      wrapper: makeWrapper(),
+    });
+
+    await screen.findByText("Paul");
+    expect(screen.getByRole("link", { name: "View Paul's bracket" })).toHaveAttribute(
+      "href",
+      "/fantasy/nba/playoffs?view=paul%20s",
+    );
+    expect(screen.getByRole("link", { name: "View Anon's bracket" })).toHaveAttribute(
+      "href",
+      "/fantasy/nba/playoffs?view=00000000-0000-0000-0000-0000000000aa",
+    );
+  });
+
+  it("styles the bracket being viewed differently from the signed-in user's own row", async () => {
+    server.use(
+      http.get("/api/nba/playoffs/leaderboard", () =>
+        HttpResponse.json(
+          makeResponse([
+            makeEntry({ rank: 1, sub: "auth0|me", displayName: "Me", username: "me" }),
+            makeEntry({ rank: 2, sub: "auth0|v", displayName: "Viewed", username: "viewed" }),
+            makeEntry({ rank: 3, sub: "auth0|o", displayName: "Other", username: "other" }),
+          ]),
+        ),
+      ),
+    );
+
+    render(<PlayoffLeaderboard currentUserSub="auth0|me" viewSub="viewed" />, {
+      wrapper: makeWrapper(),
+    });
+
+    await screen.findByText("Me");
+    const rowOf = (name: string) =>
+      screen.getAllByRole("row").find((r) => within(r).queryByText(name)) as HTMLElement;
+    const [currentUserTint] = LEADERBOARD_ROW_STATES.currentUser.row.split(" ");
+    const [viewedTint] = LEADERBOARD_ROW_STATES.viewedUser.row.split(" ");
+
+    expect(rowOf("Me")).toHaveClass(currentUserTint);
+    expect(rowOf("Me")).not.toHaveClass(viewedTint);
+    expect(rowOf("Viewed")).toHaveClass(viewedTint);
+    expect(rowOf("Viewed")).not.toHaveClass(currentUserTint);
+    expect(rowOf("Other")).not.toHaveClass(currentUserTint, viewedTint);
   });
 });

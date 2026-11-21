@@ -28,6 +28,18 @@ describe("chooseBestFrame default size", () => {
     expect(canPrintAt(frameById(frame.sizeId)!, tooSmall)).toBe(true);
   });
 
+  it("picks the biggest size the photo can carry, not just any that fits", () => {
+    // 1200 x 1600 clears 8x10 (1200 x 1500) but not 11x14 (1650 x 2100).
+    expect(chooseBestFrame(0.75, { width: 1200, height: 1600 }).sizeId).toBe("8x10");
+    // 800 x 1000 misses 5x7 on the long side (1050 needed), so 4x6 it is.
+    expect(chooseBestFrame(0.8, tooSmall).sizeId).toBe("4x6");
+  });
+
+  it("treats a zero or negative resolution as unknown and takes the default", () => {
+    expect(chooseBestFrame(0.8, { width: 0, height: 0 }).sizeId).toBe("11x14");
+    expect(chooseBestFrame(0.8, { width: -5, height: 400 }).sizeId).toBe("11x14");
+  });
+
   it("never picks a size the photo cannot print sharply", () => {
     for (const res of [tooSmall, { width: 1200, height: 1600 }, bigEnough]) {
       const frame = chooseBestFrame(0.8, res);

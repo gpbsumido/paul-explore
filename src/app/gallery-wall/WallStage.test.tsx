@@ -39,7 +39,23 @@ describe("WallStage", () => {
         images={images}
       />,
     );
-    expect(screen.getByRole("img", { name: /wall/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: "Gallery wall preview: 2 frames on a 96 by 60 inch wall",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("says so when the wall is empty, and uses the singular for one frame", () => {
+    const { rerender } = render(<WallStage wall={wall} placements={[]} images={[]} />);
+    expect(screen.getByRole("img", { name: "Empty 96 by 60 inch wall" })).toBeInTheDocument();
+
+    rerender(
+      <WallStage wall={wall} placements={[placementFor("a")]} images={images} />,
+    );
+    expect(
+      screen.getByRole("img", { name: "Gallery wall preview: 1 frame on a 96 by 60 inch wall" }),
+    ).toBeInTheDocument();
   });
 
   it("scales the viewBox to the physical wall size", () => {
@@ -129,6 +145,86 @@ describe("WallStage", () => {
       x: start.x + 1,
       y: start.y,
     });
+  });
+
+  it("nudges one inch in each of the other three directions", () => {
+    const onMove = vi.fn();
+    const { container } = render(
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+        onMove={onMove}
+      />,
+    );
+    const a = container.querySelector('[data-frame-id="a"]')!;
+    const start = placementFor("a");
+    fireEvent.keyDown(a, { key: "ArrowLeft" });
+    expect(onMove).toHaveBeenLastCalledWith("a", { x: start.x - 1, y: start.y });
+    fireEvent.keyDown(a, { key: "ArrowUp" });
+    expect(onMove).toHaveBeenLastCalledWith("a", { x: start.x, y: start.y - 1 });
+    fireEvent.keyDown(a, { key: "ArrowDown" });
+    expect(onMove).toHaveBeenLastCalledWith("a", { x: start.x, y: start.y + 1 });
+  });
+
+  it("leaves other keys alone", () => {
+    const onMove = vi.fn();
+    const { container } = render(
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+        onMove={onMove}
+      />,
+    );
+    const a = container.querySelector('[data-frame-id="a"]')!;
+    expect(fireEvent.keyDown(a, { key: "Enter" })).toBe(true);
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  it("drags a frame by the pointer, scaled from screen pixels to wall inches", () => {
+    const onMove = vi.fn();
+    const { container } = render(
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+        onMove={onMove}
+      />,
+    );
+    // jsdom has no layout or pointer capture, so give the svg a size (10px per
+    // inch) and let the frame accept a capture.
+    const svg = container.querySelector("svg")!;
+    svg.getBoundingClientRect = () =>
+      ({ width: 960, height: 600, top: 0, left: 0, right: 960, bottom: 600, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+    const a = container.querySelector('[data-frame-id="a"]')! as SVGGElement;
+    a.setPointerCapture = vi.fn();
+    a.releasePointerCapture = vi.fn();
+    const start = placementFor("a");
+
+    fireEvent.pointerDown(a, { clientX: 100, clientY: 100, pointerId: 1 });
+    fireEvent.pointerMove(a, { clientX: 150, clientY: 120, pointerId: 1 });
+    expect(onMove).toHaveBeenLastCalledWith("a", { x: start.x + 5, y: start.y + 2 });
+
+    fireEvent.pointerUp(a, { clientX: 150, clientY: 120, pointerId: 1 });
+    onMove.mockClear();
+    fireEvent.pointerMove(a, { clientX: 400, clientY: 400, pointerId: 1 });
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  it("ignores pointer movement that did not start on a frame", () => {
+    const onMove = vi.fn();
+    const { container } = render(
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+        onMove={onMove}
+      />,
+    );
+    const a = container.querySelector('[data-frame-id="a"]')!;
+    fireEvent.pointerMove(a, { clientX: 150, clientY: 120, pointerId: 1 });
+    expect(onMove).not.toHaveBeenCalled();
   });
 
   it("takes a bigger step with Shift held", () => {

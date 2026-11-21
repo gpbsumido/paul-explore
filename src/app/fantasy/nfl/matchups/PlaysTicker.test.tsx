@@ -69,6 +69,21 @@ describe("PlaysTickerPanel", () => {
     expect(screen.getByText(/no scoring plays yet/i)).toBeInTheDocument();
   });
 
+  it("says it is loading, or that the plays couldn't load, instead of an empty list", () => {
+    const { unmount } = render(
+      <PlaysTickerPanel plays={[]} matchups={matchups} status="loading" selectedPlayId={null} onSelectPlay={vi.fn()} />,
+    );
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
+    expect(screen.queryByText(/no scoring plays yet/i)).not.toBeInTheDocument();
+    unmount();
+
+    render(
+      <PlaysTickerPanel plays={[]} matchups={matchups} status="error" selectedPlayId={null} onSelectPlay={vi.fn()} />,
+    );
+    expect(screen.getByText(/couldn.t load live scoring plays/i)).toBeInTheDocument();
+    expect(screen.queryByText(/no scoring plays yet/i)).not.toBeInTheDocument();
+  });
+
   it("collapses to its header and expands again", async () => {
     const user = userEvent.setup();
     renderPanel();

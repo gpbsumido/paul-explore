@@ -18,10 +18,12 @@ describe("CraftContent", () => {
 
   it("shows every trait's evidence links while expanded", () => {
     render(<CraftContent />);
-    const perf = CRAFT_TRAITS.find((t) => t.id === "performance")!;
-    for (const ev of perf.evidence) {
-      const link = screen.getByRole("link", { name: new RegExp(ev.label) });
-      expect(link).toHaveAttribute("href", ev.href);
+    for (const trait of CRAFT_TRAITS) {
+      const panel = within(screen.getByRole("region", { name: trait.title }));
+      for (const ev of trait.evidence) {
+        const link = panel.getByRole("link", { name: new RegExp(ev.label) });
+        expect(link).toHaveAttribute("href", ev.href);
+      }
     }
   });
 

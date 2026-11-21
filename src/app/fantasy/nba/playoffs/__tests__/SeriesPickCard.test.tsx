@@ -116,6 +116,35 @@ describe("SeriesPickCard", () => {
     );
   });
 
+  it("keeps the chosen series score when the winner changes, and starts at 4-0 without one", async () => {
+    const onPick = vi.fn();
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <SeriesPickCard
+        matchupId="E_R1_M1"
+        topTeam={topTeam}
+        bottomTeam={bottomTeam}
+        pick={{ winner: "CLE", seriesScore: "4-2" }}
+        onPick={onPick}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /MIA/i }));
+    expect(onPick).toHaveBeenLastCalledWith("E_R1_M1", { winner: "MIA", seriesScore: "4-2" });
+
+    rerender(
+      <SeriesPickCard
+        matchupId="E_R1_M1"
+        topTeam={topTeam}
+        bottomTeam={bottomTeam}
+        pick={undefined}
+        onPick={onPick}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: /CLE/i }));
+    expect(onPick).toHaveBeenLastCalledWith("E_R1_M1", { winner: "CLE", seriesScore: "4-0" });
+  });
+
   it("marks the picked team as selected via aria-pressed", () => {
     const pick: PlayoffSeriesPick = { winner: "CLE", seriesScore: "4-2" };
 

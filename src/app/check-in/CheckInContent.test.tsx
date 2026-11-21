@@ -59,8 +59,33 @@ describe("CheckInContent", () => {
     await user.click(screen.getByRole("button", { name: /confirm arrival/i }));
 
     expect(await screen.findByText(/checked in/i)).toBeInTheDocument();
-    expect(screen.getByText(/Riverside Food Bank/)).toBeInTheDocument();
+    // Shown in the viewer's own locale and zone, so build the expectation the
+    // same way rather than hard-coding a time that only holds in one place.
+    const arrivedAt = new Date("2026-08-30T13:04:00.000Z").toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    expect(screen.getByText(/Riverside Food Bank/)).toHaveTextContent(arrivedAt);
     expect(posted.body).toEqual([{ siteId: SITE, code: "123456" }]);
+  });
+
+  it("does not need the server to say why: a bare 429 reads as throttled, a bare 400 as a wrong code", async () => {
+    for (const [status, message] of [
+      [429, /too many attempts/i],
+      [400, /wrong or has expired/i],
+    ] as const) {
+      server.use(
+        http.post("/api/check-in/arrivals", () => HttpResponse.json({}, { status })),
+      );
+      const user = userEvent.setup();
+      const { unmount } = renderPage();
+
+      await user.type(await screen.findByLabelText(/code/i), "000000");
+      await user.click(screen.getByRole("button", { name: /confirm arrival/i }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      unmount();
+    }
   });
 
   it("says a wrong code is wrong without wiping what was typed", async () => {

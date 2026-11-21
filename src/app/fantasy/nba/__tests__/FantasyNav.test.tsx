@@ -21,6 +21,10 @@ describe("FantasyNav", () => {
     expect(
       screen.getByRole("link", { name: "Court Vision" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Card Lab" })).toHaveAttribute(
+      "href",
+      "/fantasy/nba/cards",
+    );
   });
 
   it("renders the Playoffs link pointing to /fantasy/nba/playoffs", () => {

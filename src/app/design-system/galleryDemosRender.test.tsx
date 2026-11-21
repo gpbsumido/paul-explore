@@ -68,5 +68,7 @@ describe("effect gallery demos render once revealed", () => {
     // The preview was revealed: the deferred skeleton has been replaced by the
     // real component. A render error would already have failed this line.
     expect(container.querySelector(".animate-pulse")).toBeNull();
+    // And it drew something: a demo that returns null would pass the line above.
+    expect(container.querySelectorAll("*").length).toBeGreaterThan(1);
   });
 });

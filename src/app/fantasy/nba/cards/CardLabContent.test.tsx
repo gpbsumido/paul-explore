@@ -76,6 +76,48 @@ describe("CardLabContent", () => {
     expect(screen.getByText(/couldn.t reach/i)).toBeInTheDocument();
   });
 
+  it("lists cards by points to start with and A to Z when sorted by name", async () => {
+    render(
+      <CardLabContent
+        {...base}
+        cards={[
+          card({ id: "c1", playerId: 1, playerName: "Amy Low", points: 10, title: "Amy Low · 10 PTS" }),
+          card({ id: "c2", playerId: 2, playerName: "Zed High", points: 30, title: "Zed High · 30 PTS" }),
+        ]}
+      />,
+    );
+    const names = () =>
+      screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
+    expect(names()).toEqual(["Zed High", "Amy Low"]);
+
+    await userEvent.selectOptions(screen.getByRole("combobox"), "name");
+    expect(names()).toEqual(["Amy Low", "Zed High"]);
+  });
+
+  it("marks the sport on view and offers no season toggle for the nightly-only WNBA", () => {
+    render(<CardLabContent {...base} sport="wnba" cards={[card()]} />);
+    const sports = within(screen.getByRole("group", { name: "Sport" }));
+    expect(sports.getByRole("link", { name: "WNBA" })).toHaveAttribute("aria-current", "page");
+    expect(sports.getByRole("link", { name: "NBA" })).not.toHaveAttribute("aria-current");
+    expect(screen.queryByRole("group", { name: "View" })).not.toBeInTheDocument();
+  });
+
+  it("offers a week picker for NFL by week, with the current week marked", () => {
+    render(
+      <CardLabContent
+        {...base}
+        sport="nfl"
+        weeks={{ current: 3, latest: 5 }}
+        cards={[card({ sport: "nfl" })]}
+      />,
+    );
+    const weeks = within(screen.getByRole("group", { name: "Week" }));
+    expect(weeks.getAllByRole("link").map((link) => link.textContent)).toEqual(["1", "2", "3", "4", "5"]);
+    expect(weeks.getByRole("link", { name: "3" })).toHaveAttribute("aria-current", "page");
+    expect(weeks.getByRole("link", { name: "4" })).toHaveAttribute("href", "/fantasy/nba/cards?sport=nfl&week=4");
+    expect(screen.getByRole("link", { name: "By week" })).toBeInTheDocument();
+  });
+
   it("filters the grid to a rarity when its pill is pressed", async () => {
     render(
       <CardLabContent

@@ -28,6 +28,22 @@ describe("rectsOverlap", () => {
   it("treats frames that merely touch edges as not overlapping", () => {
     // a spans x 0..10, b starts exactly at x 10 -- flush, not overlapping.
     expect(rectsOverlap(rect("a", 0, 0), rect("b", 10, 0))).toBe(false);
+    // And the same one above the other.
+    expect(rectsOverlap(rect("a", 0, 0), rect("b", 0, 10))).toBe(false);
+  });
+
+  it("treats touching edges as apart whichever frame is on which side", () => {
+    expect(rectsOverlap(rect("a", 10, 0), rect("b", 0, 0))).toBe(false);
+    expect(rectsOverlap(rect("a", 0, 10), rect("b", 0, 0))).toBe(false);
+  });
+
+  it("is false for frames in the same column but apart vertically, and the other way round", () => {
+    expect(rectsOverlap(rect("a", 0, 0), rect("b", 0, 25))).toBe(false);
+    expect(rectsOverlap(rect("a", 0, 0), rect("b", 25, 0))).toBe(false);
+  });
+
+  it("is true when one frame sits wholly inside another", () => {
+    expect(rectsOverlap(rect("big", 0, 0, 40, 40), rect("small", 10, 10, 5, 5))).toBe(true);
   });
 });
 
@@ -75,6 +91,15 @@ describe("findOutOfBounds", () => {
 
   it("flags a frame that runs off the bottom", () => {
     expect(findOutOfBounds([rect("a", 0, 55)], wall)).toEqual(["a"]);
+  });
+
+  it("flags a frame above the wall, and only the frames that are out", () => {
+    expect(findOutOfBounds([rect("a", 0, -1), rect("ok", 10, 10)], wall)).toEqual(["a"]);
+  });
+
+  it("lets a frame sit flush against every edge", () => {
+    expect(findOutOfBounds([rect("corner", 90, 50)], wall)).toEqual([]);
+    expect(findOutOfBounds([rect("origin", 0, 0)], wall)).toEqual([]);
   });
 });
 

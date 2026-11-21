@@ -83,19 +83,26 @@ describe("PlayoffBracketContent — submit button", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls PUT /api/nba/playoffs/picks when submit is clicked", async () => {
+  it("sends the picks that were made when submit is clicked", async () => {
     const user = userEvent.setup();
-    const handlePut = vi.fn(() => HttpResponse.json({ ok: true }));
-
+    const bodies: unknown[] = [];
     setupDefaultHandlers();
-    server.use(http.put("/api/nba/playoffs/picks", handlePut));
+    server.use(
+      http.put("/api/nba/playoffs/picks", async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json({ ok: true });
+      }),
+    );
 
     render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
 
-    await screen.findByRole("button", { name: /submit bracket/i });
+    await user.click(await screen.findByRole("button", { name: /DET/ }));
     await user.click(screen.getByRole("button", { name: /submit bracket/i }));
 
-    await waitFor(() => expect(handlePut).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toMatchObject({
+      picks: { E_R1_M1: { winner: "DET" } },
+    });
   });
 
   it("shows submitting state while PUT is in flight", async () => {
@@ -134,14 +141,21 @@ describe("PlayoffBracketContent — submit button", () => {
     ).toBeInTheDocument();
   });
 
-  it("clears the saving indicator when submit succeeds", async () => {
+  it("clears a pending saving indicator when submit succeeds", async () => {
     const user = userEvent.setup();
 
     setupDefaultHandlers();
 
     render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
 
-    await screen.findByRole("button", { name: /submit bracket/i });
+    // Auto-save marks the pick as saving straight away. Turning it back off
+    // before the debounce fires leaves "Saving…" up with nothing to resolve
+    // it, which is exactly the state a manual submit has to clean up.
+    await user.click(await screen.findByRole("checkbox", { name: /auto-save/i }));
+    await user.click(screen.getByRole("button", { name: /DET/ }));
+    expect(await screen.findByText("Saving…")).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: /auto-save/i }));
+
     await user.click(screen.getByRole("button", { name: /submit bracket/i }));
 
     await screen.findByRole("button", { name: "Submitted!" });

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -61,14 +61,60 @@ describe("SitesContent", () => {
     expect(await screen.findByText(new RegExp(`/check-in\\?site=${SITE}`))).toBeInTheDocument();
   });
 
-  it("creates a site", async () => {
+  it("creates a site from the trimmed name and clears the field for the next one", async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.type(await screen.findByLabelText(/site name/i), "Depot");
+    const field = await screen.findByLabelText(/site name/i);
+    await user.type(field, "  Depot  ");
     await user.click(screen.getByRole("button", { name: /add site/i }));
 
     expect(created).toEqual([{ name: "Depot" }]);
+    await waitFor(() => expect(field).toHaveValue(""));
+  });
+
+  it("does not post a blank name", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(await screen.findByLabelText(/site name/i), "   ");
+    await user.click(screen.getByRole("button", { name: /add site/i }));
+    // Give a wrongly-sent request time to land before saying none did.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(created).toEqual([]);
+  });
+
+  it("closes the roster again when the same site is toggled twice", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const toggle = await screen.findByRole("button", { name: /today.s arrivals/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    expect(await screen.findByText("vol@example.com")).toBeInTheDocument();
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("vol@example.com")).not.toBeInTheDocument();
+  });
+
+  it("names an arrival without an email as a volunteer", async () => {
+    server.use(
+      http.get(`/api/check-in/sites/${SITE}/arrivals`, () =>
+        HttpResponse.json({
+          siteName: "Riverside Food Bank",
+          arrivals: [{ id: "a2", email: null, at: "2026-08-30T13:10:00.000Z" }],
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: /today.s arrivals/i }));
+
+    expect(await screen.findByText("Volunteer")).toBeInTheDocument();
   });
 
   it("shows who arrived today when a site is opened", async () => {

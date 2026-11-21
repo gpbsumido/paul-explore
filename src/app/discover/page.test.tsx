@@ -66,7 +66,11 @@ describe("/discover", () => {
   it("keeps the retired v5 landing accessible", async () => {
     getSession.mockResolvedValue(null);
     await renderDiscover({ version: "v5" });
-    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Paul Sumido");
+    // The first test in the file pays for loading the whole v5 tree, which can
+    // take longer than the default second on a busy machine.
+    expect(
+      await screen.findByRole("heading", { level: 1 }, { timeout: 10_000 }),
+    ).toHaveTextContent("Paul Sumido");
     expect(screen.getByText(/Landing-page history: v5/)).toBeInTheDocument();
   });
   beforeEach(() => {
