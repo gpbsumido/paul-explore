@@ -412,7 +412,7 @@ expected '//evil.example/x' not to match /^\\/\\//
           I returned null from the login path check. The test wanted a string.
         </h3>
         <p className="text-muted">
-          My first fix rejected a <C>//evil.example/x</C> pathname outright. It
+          My first fix rejected a <C>{"//evil.example/x"}</C> pathname outright. It
           looked right and failed the test, because the assertion is{" "}
           <C>expect(result).not.toMatch(...)</C> and that matcher throws on a
           null:
@@ -424,7 +424,7 @@ expected '//evil.example/x' not to match /^\\/\\//
         <p className="text-muted">
           So I collapsed the leading slashes to one instead, which keeps the
           result on this origin. Then I noticed I had done that after the{" "}
-          <C>/auth/</C> check, so <C>//auth/login</C> would have come back as{" "}
+          <C>/auth/</C> check, so <C>{"//auth/login"}</C> would have come back as{" "}
           <C>/auth/login</C> and looped into the auth routes. The collapse now
           runs before both checks.
         </p>
