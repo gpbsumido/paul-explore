@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-21 - version 9.2.30
+
+- The twenty bugs the test audit held as expected failures are fixed, and each test is an ordinary passing test again. A malformed id on the operator and NBA routes answers 400 instead of a 404, 503 or unhandled 500, a budget delete the backend answers with 204 gets through, a mid-hour alert is counted in its own hour, a blank planner param falls back to the default, and the events date filters read the day in the viewer's zone instead of UTC.
+- `useCalendarEvents` keeps the seeded events when a write lands before the first fetch, `useCountUp` shows the target when the duration is zero, and `useStreamingText` closes the stream it replaces and the one it is unmounted with. The SSE parser carries an unfinished line and its event across chunks, which also fixes multi-line data split over two chunks.
+- The login return path can no longer start with `//`, pull request links refuse a `.` or `..` repo, a type named like an object method gets the default colour, and the ZeroProof tracker sends a full batch that piled up behind the one in flight as soon as it lands.
+- The card collection page says it could not load your collection when the request fails, rather than asking a signed-in user to sign in.
+- Dated update on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said.
+
 ## 2026-11-21 - version 9.2.29
 
 - A test that asserts nothing, a skipped or `.only` test, an expected failure that doesn't say which bug it waits on, and a BFF route no test imports now all fail the build. Vitest runs tests in a random order on CI and prints the seed, so a red run replays with `VITEST_SEED=<n>`. Lint fails on any warning.
