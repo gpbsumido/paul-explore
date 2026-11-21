@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom";
 import "vitest-axe/extend-expect";
 import * as axeMatchers from "vitest-axe/matchers";
+import "./pinFactories";
 import { server } from "./server";
 import { beforeAll, afterEach, afterAll, expect, vi } from "vitest";
 

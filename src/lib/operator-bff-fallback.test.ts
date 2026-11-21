@@ -184,7 +184,7 @@ describe("promotions with the API down", () => {
     const created = await createPromotion(storeId, {
       productName: null,
       percent: 15,
-      startsAt: "2026-07-01T00:00:00.000Z",
+      startsAt: "2026-06-01T00:00:00.000Z",
       endsAt: null,
     });
     expect(created).toMatchObject({ percent: 15, status: "active" });
@@ -201,8 +201,8 @@ describe("promotions with the API down", () => {
     const created = await createPromotion(storeId, {
       productName: null,
       percent: 20,
-      startsAt: "2026-07-01T00:00:00.000Z",
-      endsAt: "2026-07-11T00:00:00.000Z",
+      startsAt: "2026-06-01T00:00:00.000Z",
+      endsAt: "2026-06-11T00:00:00.000Z",
     });
 
     const performance = await loadPromotionPerformance(created!.id);
@@ -425,7 +425,7 @@ describe("a rejected write is a misconfiguration, not an outage", () => {
       createPromotion(storeId, {
         productName: null,
         percent: 10,
-        startsAt: "2026-07-01T00:00:00.000Z",
+        startsAt: "2026-06-01T00:00:00.000Z",
         endsAt: null,
       }),
     ).rejects.toBeDefined();
