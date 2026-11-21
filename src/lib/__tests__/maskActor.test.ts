@@ -9,6 +9,12 @@ describe("maskActor", () => {
     expect(masked).not.toContain("gmail.com");
   });
 
+  it("masks an address as a short, readable tag", () => {
+    // The tag is the first eight hex characters of the sha-256 of the lower-cased
+    // address, so the same person shows up as the same tag after a deploy.
+    expect(maskActor("alice@example.com")).toBe("user-ff8d9819");
+  });
+
   it("keeps enough to tell two actors apart", () => {
     expect(maskActor("alice@example.com")).not.toBe(maskActor("bob@example.com"));
   });
@@ -23,6 +29,10 @@ describe("maskActor", () => {
 
   it("passes through a non-address actor unchanged", () => {
     expect(maskActor("system")).toBe("system");
+  });
+
+  it("trims the padding off a non-address actor too", () => {
+    expect(maskActor("  system ")).toBe("system");
   });
 
   it("handles a missing actor", () => {

@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import {
   eventsForDay,
   allDayEventsForDay,
@@ -7,6 +9,18 @@ import {
   layoutDayEvents,
   formatHeading,
   formatHour,
+  slotDate,
+  toInputValue,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  addCardToEvent,
+  updateEventCard,
+  removeCardFromEvent,
+  fetchCountdowns,
+  createCountdown,
+  updateCountdown,
+  deleteCountdown,
 } from "../calendar";
 import type { CalendarEvent } from "@/types/calendar";
 
@@ -16,7 +30,7 @@ import type { CalendarEvent } from "@/types/calendar";
 
 function makeEvent(overrides: Partial<CalendarEvent> = {}): CalendarEvent {
   return {
-    id: crypto.randomUUID(),
+    id: "event-1",
     title: "Test Event",
     startDate: "2024-03-15T10:00:00",
     endDate: "2024-03-15T11:00:00",
@@ -151,14 +165,38 @@ describe("spanningEventsForDay", () => {
     expect(spanningEventsForDay([event], MARCH_15)).not.toContain(event);
   });
 
+  it("leaves out events that haven't started yet", () => {
+    const allDayTomorrow = makeAllDay("2024-03-16", "2024-03-16");
+    const multiDayStartingTomorrow = makeEvent({
+      startDate: "2024-03-16T09:00:00",
+      endDate: "2024-03-17T09:00:00",
+    });
+    expect(
+      spanningEventsForDay([allDayTomorrow, multiDayStartingTomorrow], MARCH_15),
+    ).toEqual([]);
+  });
+
+  it("leaves out events that ended before the day", () => {
+    const allDayYesterday = makeAllDay("2024-03-13", "2024-03-14");
+    expect(spanningEventsForDay([allDayYesterday], MARCH_15)).toEqual([]);
+  });
+
+  it("treats a timed event that runs past midnight as spanning", () => {
+    const overnight = makeEvent({
+      startDate: "2024-03-15T22:00:00",
+      endDate: "2024-03-16T01:00:00",
+    });
+    expect(spanningEventsForDay([overnight], MARCH_15)).toEqual([overnight]);
+    expect(spanningEventsForDay([overnight], MARCH_16)).toEqual([overnight]);
+  });
+
   it("lists all-day events before multi-day timed events", () => {
     const timed = makeEvent({
       startDate: "2024-03-15T09:00:00",
       endDate: "2024-03-16T09:00:00",
     });
     const allDay = makeAllDay("2024-03-15", "2024-03-15");
-    const result = spanningEventsForDay([timed, allDay], MARCH_15);
-    expect(result.indexOf(allDay)).toBeLessThan(result.indexOf(timed));
+    expect(spanningEventsForDay([timed, allDay], MARCH_15)).toEqual([allDay, timed]);
   });
 });
 
@@ -228,8 +266,68 @@ describe("layoutDayEvents", () => {
       endDate: "2024-03-15T15:00:00",
     });
     const layouts = layoutDayEvents([morning, afternoon], ROW_HEIGHT);
-    expect(layouts[0].totalColumns).toBe(1);
-    expect(layouts[1].totalColumns).toBe(1);
+    expect(layouts.map((l) => [l.column, l.totalColumns])).toEqual([
+      [0, 1],
+      [0, 1],
+    ]);
+  });
+
+  it("lets an event start in the same minute another one ends, sharing its column", () => {
+    const first = makeEvent({
+      startDate: "2024-03-15T09:00:00",
+      endDate: "2024-03-15T10:00:00",
+    });
+    const second = makeEvent({
+      startDate: "2024-03-15T10:00:00",
+      endDate: "2024-03-15T11:00:00",
+    });
+    const layouts = layoutDayEvents([first, second], ROW_HEIGHT);
+    expect(layouts.map((l) => [l.column, l.totalColumns])).toEqual([
+      [0, 1],
+      [0, 1],
+    ]);
+  });
+
+  it("gives a lone event after a busy stretch the full width", () => {
+    const events = [
+      makeEvent({ startDate: "2024-03-15T09:00:00", endDate: "2024-03-15T11:00:00" }),
+      makeEvent({ startDate: "2024-03-15T09:00:00", endDate: "2024-03-15T11:00:00" }),
+      makeEvent({ startDate: "2024-03-15T12:00:00", endDate: "2024-03-15T13:00:00" }),
+    ];
+    const layouts = layoutDayEvents(events, ROW_HEIGHT);
+    expect(layouts.map((l) => l.totalColumns)).toEqual([2, 2, 1]);
+  });
+
+  it("reuses a freed column when a later event starts after an earlier one ends", () => {
+    const a = makeEvent({ id: "a", startDate: "2024-03-15T09:00:00", endDate: "2024-03-15T11:00:00" });
+    const b = makeEvent({ id: "b", startDate: "2024-03-15T10:00:00", endDate: "2024-03-15T12:00:00" });
+    const c = makeEvent({ id: "c", startDate: "2024-03-15T11:30:00", endDate: "2024-03-15T13:00:00" });
+    const layouts = layoutDayEvents([a, b, c], ROW_HEIGHT);
+    expect(layouts.map((l) => [l.ev.id, l.column, l.totalColumns])).toEqual([
+      ["a", 0, 2],
+      ["b", 1, 2],
+      ["c", 0, 2],
+    ]);
+  });
+
+  it("puts the longer of two events that start together in the first column", () => {
+    const short = makeEvent({ id: "short", startDate: "2024-03-15T09:00:00", endDate: "2024-03-15T09:30:00" });
+    const long = makeEvent({ id: "long", startDate: "2024-03-15T09:00:00", endDate: "2024-03-15T11:00:00" });
+    const layouts = layoutDayEvents([short, long], ROW_HEIGHT);
+    expect(layouts.map((l) => [l.ev.id, l.column])).toEqual([
+      ["long", 0],
+      ["short", 1],
+    ]);
+  });
+
+  it("lays out events by start time however they were passed in", () => {
+    const early = makeEvent({ id: "early", startDate: "2024-03-15T10:00:00", endDate: "2024-03-15T12:00:00" });
+    const late = makeEvent({ id: "late", startDate: "2024-03-15T11:00:00", endDate: "2024-03-15T13:00:00" });
+    const layouts = layoutDayEvents([late, early], ROW_HEIGHT);
+    expect(layouts.map((l) => [l.ev.id, l.column])).toEqual([
+      ["early", 0],
+      ["late", 1],
+    ]);
   });
 
   it("places two overlapping events in separate columns", () => {
@@ -305,7 +403,17 @@ describe("layoutDayEvents", () => {
       endDate: "2024-03-15T09:05:00",
     });
     const [layout] = layoutDayEvents([event], ROW_HEIGHT);
-    expect(layout.heightPx).toBeGreaterThanOrEqual(20);
+    expect(layout.heightPx).toBe(20);
+  });
+
+  it("counts minutes when placing and sizing an event", () => {
+    const event = makeEvent({
+      startDate: "2024-03-15T09:30:00",
+      endDate: "2024-03-15T10:45:00",
+    });
+    const [layout] = layoutDayEvents([event], ROW_HEIGHT);
+    expect(layout.topPx).toBe(9.5 * ROW_HEIGHT);
+    expect(layout.heightPx).toBe(1.25 * ROW_HEIGHT);
   });
 });
 
@@ -330,7 +438,13 @@ describe("formatHeading", () => {
 
   it("formats week view starting from Sunday of that week", () => {
     // March 15 2024 is a Friday — week starts March 10 (Sunday)
-    expect(formatHeading(date, "week")).toMatch(/Week of Mar 10, 2024/);
+    expect(formatHeading(date, "week")).toBe("Week of Mar 10, 2024");
+  });
+
+  it("keeps a Sunday as the start of its own week", () => {
+    expect(formatHeading(new Date("2024-03-10T00:00:00"), "week")).toBe(
+      "Week of Mar 10, 2024",
+    );
   });
 });
 
@@ -375,5 +489,291 @@ describe("eventsForDay day boundary", () => {
       endDate: "2024-03-16T01:00:00",
     });
     expect(eventsForDay([event], MARCH_16)).toContain(event);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// slotDate / toInputValue
+// ---------------------------------------------------------------------------
+
+describe("slotDate", () => {
+  it("lands on the top of the given hour on the same day", () => {
+    const slot = slotDate(new Date(2024, 2, 15, 13, 45, 30, 500), 9);
+    expect(slot).toEqual(new Date(2024, 2, 15, 9, 0, 0, 0));
+  });
+});
+
+describe("toInputValue", () => {
+  it("drops seconds so a datetime-local input accepts it", () => {
+    expect(toInputValue("2024-03-15T10:30:45")).toBe("2024-03-15T10:30");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Answers one route and records what the client actually sent, so a test can
+ * check the method, the path it hit and the body it posted.
+ */
+function answer(
+  method: "get" | "post" | "put" | "delete",
+  path: string,
+  response: () => Response,
+) {
+  const sent: { url: string; body: unknown; contentType: string | null }[] = [];
+  server.use(
+    http[method](path, async ({ request }) => {
+      const text = await request.text();
+      sent.push({
+        url: request.url,
+        body: text ? JSON.parse(text) : undefined,
+        contentType: request.headers.get("content-type"),
+      });
+      return response();
+    }),
+  );
+  return sent;
+}
+
+const savedEvent = {
+  id: "event-9",
+  title: "Dentist",
+  startDate: "2024-03-15T10:00:00",
+  endDate: "2024-03-15T11:00:00",
+  color: "#3b82f6",
+  allDay: false,
+};
+
+const savedCard = {
+  id: "entry-1",
+  eventId: "event-9",
+  cardId: "base1-4",
+  cardName: "Charizard",
+  quantity: 2,
+  createdAt: "2024-03-15T00:00:00Z",
+};
+
+const savedCountdown = {
+  id: "cd-1",
+  title: "Trip",
+  targetDate: "2024-06-01",
+  color: "#ef4444",
+  createdAt: "2024-03-15T00:00:00Z",
+};
+
+describe("event helpers", () => {
+  it("createEvent posts the event as JSON and returns the saved one", async () => {
+    const { id: _id, ...draft } = savedEvent;
+    const sent = answer("post", "/api/calendar/events", () =>
+      HttpResponse.json({ event: savedEvent }),
+    );
+
+    await expect(createEvent(draft)).resolves.toEqual(savedEvent);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].body).toEqual(draft);
+    expect(sent[0].contentType).toBe("application/json");
+  });
+
+  it("createEvent throws when the server refuses", async () => {
+    answer("post", "/api/calendar/events", () => HttpResponse.json({}, { status: 500 }));
+    const { id: _id, ...draft } = savedEvent;
+
+    await expect(createEvent(draft)).rejects.toThrow("Failed to create event");
+  });
+
+  it("createEvent rejects an answer that isn't an event", async () => {
+    answer("post", "/api/calendar/events", () => HttpResponse.json({ event: { id: 7 } }));
+    const { id: _id, ...draft } = savedEvent;
+
+    await expect(createEvent(draft)).rejects.toThrow();
+  });
+
+  it("updateEvent puts only the changed fields at the event's own path", async () => {
+    const sent = answer("put", "/api/calendar/events/event-9", () =>
+      HttpResponse.json({ event: { ...savedEvent, title: "Dentist (moved)" } }),
+    );
+
+    const updated = await updateEvent("event-9", { title: "Dentist (moved)" });
+
+    expect(updated.title).toBe("Dentist (moved)");
+    expect(sent[0].body).toEqual({ title: "Dentist (moved)" });
+  });
+
+  it("updateEvent throws when the server refuses", async () => {
+    answer("put", "/api/calendar/events/event-9", () => HttpResponse.json({}, { status: 404 }));
+
+    await expect(updateEvent("event-9", { title: "x" })).rejects.toThrow(
+      "Failed to update event",
+    );
+  });
+
+  it("deleteEvent sends a DELETE to the event's path", async () => {
+    const sent = answer("delete", "/api/calendar/events/event-9", () =>
+      new HttpResponse(null, { status: 204 }),
+    );
+
+    await expect(deleteEvent("event-9")).resolves.toBeUndefined();
+    expect(sent).toHaveLength(1);
+  });
+
+  it("deleteEvent throws when the server refuses", async () => {
+    answer("delete", "/api/calendar/events/event-9", () => HttpResponse.json({}, { status: 403 }));
+
+    await expect(deleteEvent("event-9")).rejects.toThrow("Failed to delete event");
+  });
+});
+
+describe("event card helpers", () => {
+  it("addCardToEvent posts the card under the event and returns the saved entry", async () => {
+    const sent = answer("post", "/api/calendar/events/event-9/cards", () =>
+      HttpResponse.json({ card: savedCard }),
+    );
+
+    const card = await addCardToEvent("event-9", {
+      cardId: "base1-4",
+      cardName: "Charizard",
+      quantity: 2,
+    });
+
+    expect(card).toEqual(savedCard);
+    expect(sent[0].body).toEqual({ cardId: "base1-4", cardName: "Charizard", quantity: 2 });
+  });
+
+  it("addCardToEvent throws when the server refuses", async () => {
+    answer("post", "/api/calendar/events/event-9/cards", () => HttpResponse.json({}, { status: 500 }));
+
+    await expect(
+      addCardToEvent("event-9", { cardId: "base1-4", cardName: "Charizard" }),
+    ).rejects.toThrow("Failed to add card to event");
+  });
+
+  it("updateEventCard puts the new quantity and notes at the entry's path", async () => {
+    const sent = answer("put", "/api/calendar/events/event-9/cards/entry-1", () =>
+      HttpResponse.json({ card: { ...savedCard, quantity: 3 } }),
+    );
+
+    const card = await updateEventCard("event-9", "entry-1", { quantity: 3, notes: "foil" });
+
+    expect(card.quantity).toBe(3);
+    expect(sent[0].body).toEqual({ quantity: 3, notes: "foil" });
+  });
+
+  it("updateEventCard throws when the server refuses", async () => {
+    answer("put", "/api/calendar/events/event-9/cards/entry-1", () =>
+      HttpResponse.json({}, { status: 500 }),
+    );
+
+    await expect(updateEventCard("event-9", "entry-1", { quantity: 3 })).rejects.toThrow(
+      "Failed to update card",
+    );
+  });
+
+  it("removeCardFromEvent sends a DELETE to the entry's path", async () => {
+    const sent = answer("delete", "/api/calendar/events/event-9/cards/entry-1", () =>
+      new HttpResponse(null, { status: 204 }),
+    );
+
+    await expect(removeCardFromEvent("event-9", "entry-1")).resolves.toBeUndefined();
+    expect(sent).toHaveLength(1);
+  });
+
+  it("removeCardFromEvent throws when the server refuses", async () => {
+    answer("delete", "/api/calendar/events/event-9/cards/entry-1", () =>
+      HttpResponse.json({}, { status: 500 }),
+    );
+
+    await expect(removeCardFromEvent("event-9", "entry-1")).rejects.toThrow(
+      "Failed to remove card from event",
+    );
+  });
+});
+
+describe("countdown helpers", () => {
+  it("fetchCountdowns reads the first page without a cursor", async () => {
+    const sent = answer("get", "/api/calendar/countdowns", () =>
+      HttpResponse.json({ countdowns: [savedCountdown], nextCursor: "abc" }),
+    );
+
+    const page = await fetchCountdowns();
+
+    expect(page).toEqual({ countdowns: [savedCountdown], nextCursor: "abc" });
+    expect(new URL(sent[0].url).search).toBe("");
+  });
+
+  it("fetchCountdowns passes the cursor along, encoded", async () => {
+    const sent = answer("get", "/api/calendar/countdowns", () =>
+      HttpResponse.json({ countdowns: [], nextCursor: null }),
+    );
+
+    await fetchCountdowns("a b&c=d");
+
+    expect(new URL(sent[0].url).searchParams.get("cursor")).toBe("a b&c=d");
+  });
+
+  it("fetchCountdowns throws when the server refuses", async () => {
+    answer("get", "/api/calendar/countdowns", () => HttpResponse.json({}, { status: 500 }));
+
+    await expect(fetchCountdowns()).rejects.toThrow("Failed to fetch countdowns");
+  });
+
+  it("fetchCountdowns rejects an answer that isn't a page of countdowns", async () => {
+    answer("get", "/api/calendar/countdowns", () =>
+      HttpResponse.json({ countdowns: [{ id: 1 }], nextCursor: null }),
+    );
+
+    await expect(fetchCountdowns()).rejects.toThrow();
+  });
+
+  it("createCountdown posts the fields and returns the saved countdown", async () => {
+    const { id: _id, createdAt: _createdAt, ...draft } = savedCountdown;
+    const sent = answer("post", "/api/calendar/countdowns", () =>
+      HttpResponse.json({ countdown: savedCountdown }),
+    );
+
+    await expect(createCountdown(draft)).resolves.toEqual(savedCountdown);
+    expect(sent[0].body).toEqual(draft);
+  });
+
+  it("createCountdown throws when the server refuses", async () => {
+    answer("post", "/api/calendar/countdowns", () => HttpResponse.json({}, { status: 500 }));
+    const { id: _id, createdAt: _createdAt, ...draft } = savedCountdown;
+
+    await expect(createCountdown(draft)).rejects.toThrow("Failed to create countdown");
+  });
+
+  it("updateCountdown puts only the changed fields at the countdown's path", async () => {
+    const sent = answer("put", "/api/calendar/countdowns/cd-1", () =>
+      HttpResponse.json({ countdown: { ...savedCountdown, title: "Holiday" } }),
+    );
+
+    const updated = await updateCountdown("cd-1", { title: "Holiday" });
+
+    expect(updated.title).toBe("Holiday");
+    expect(sent[0].body).toEqual({ title: "Holiday" });
+  });
+
+  it("updateCountdown throws when the server refuses", async () => {
+    answer("put", "/api/calendar/countdowns/cd-1", () => HttpResponse.json({}, { status: 404 }));
+
+    await expect(updateCountdown("cd-1", { title: "x" })).rejects.toThrow(
+      "Failed to update countdown",
+    );
+  });
+
+  it("deleteCountdown sends a DELETE to the countdown's path", async () => {
+    const sent = answer("delete", "/api/calendar/countdowns/cd-1", () =>
+      new HttpResponse(null, { status: 204 }),
+    );
+
+    await expect(deleteCountdown("cd-1")).resolves.toBeUndefined();
+    expect(sent).toHaveLength(1);
+  });
+
+  it("deleteCountdown throws when the server refuses", async () => {
+    answer("delete", "/api/calendar/countdowns/cd-1", () => HttpResponse.json({}, { status: 500 }));
+
+    await expect(deleteCountdown("cd-1")).rejects.toThrow("Failed to delete countdown");
   });
 });

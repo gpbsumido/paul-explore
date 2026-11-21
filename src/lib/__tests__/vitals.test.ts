@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatValue, getRatingColor, METRIC_CONFIGS } from "../vitals";
+import { formatValue, getRatingColor, METRIC_CONFIGS, METRIC_ORDER } from "../vitals";
 
 describe("formatValue", () => {
   describe("millisecond metrics (unit = 'ms')", () => {
@@ -74,5 +74,24 @@ describe("getRatingColor", () => {
     expect(getRatingColor(150, inpGood, inpPoor)).toBe("#22c55e");
     expect(getRatingColor(350, inpGood, inpPoor)).toBe("#eab308");
     expect(getRatingColor(600, inpGood, inpPoor)).toBe("#ef4444");
+  });
+});
+
+describe("METRIC_CONFIGS", () => {
+  // Google's published Core Web Vitals cut-offs. The rating colours are only as
+  // honest as these numbers, and the tests above read them back from the table.
+  it.each([
+    ["LCP", 2500, 4000, "ms"],
+    ["FCP", 1800, 3000, "ms"],
+    ["INP", 200, 500, "ms"],
+    ["CLS", 0.1, 0.25, ""],
+    ["TTFB", 800, 1800, "ms"],
+  ] as const)("holds Google's thresholds for %s", (name, good, poor, unit) => {
+    expect(METRIC_CONFIGS[name]).toMatchObject({ name, good, poor, unit });
+  });
+
+  it("shows every configured metric, each once, in the dashboard order", () => {
+    expect([...METRIC_ORDER].sort()).toEqual(Object.keys(METRIC_CONFIGS).sort());
+    expect(METRIC_ORDER).toEqual(["LCP", "FCP", "INP", "CLS", "TTFB"]);
   });
 });

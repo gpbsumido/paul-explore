@@ -25,6 +25,13 @@ describe("isPermissionDenied", () => {
     expect(isPermissionDenied({ code: "discovery_error" })).toBe(false);
   });
 
+  it("is false when access_denied sits somewhere that isn't a code", () => {
+    expect(isPermissionDenied({ message: "access_denied" })).toBe(false);
+    expect(isPermissionDenied({ cause: "access_denied" })).toBe(false);
+    expect(isPermissionDenied({ code: 403, cause: { code: 403 } })).toBe(false);
+    expect(isPermissionDenied({ code: "authorization_error", cause: null })).toBe(false);
+  });
+
   it("is false for null and non-objects", () => {
     expect(isPermissionDenied(null)).toBe(false);
     expect(isPermissionDenied("access_denied")).toBe(false);

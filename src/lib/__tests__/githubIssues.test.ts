@@ -2,11 +2,17 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   findOpenIssue,
   createIssue,
+  updateIssue,
   closeIssue,
 } from "@/lib/githubIssues";
 
 const REPO = "gpbsumido/paul-explore";
 const TOKEN = "ghp_test";
+
+/** The headers of one recorded fetch call, as a plain object. */
+function headersOf(init: RequestInit): Record<string, string> {
+  return Object.fromEntries(new Headers(init.headers).entries());
+}
 
 /** Stubs global fetch with a queue of responses, returning the spy. */
 function stubFetch(...responses: Response[]) {
@@ -39,9 +45,35 @@ describe("findOpenIssue", () => {
 
     expect(issue).toEqual({ number: 42 });
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain(`/repos/${REPO}/issues`);
-    expect(url).toContain("state=open");
-    expect(url).toContain("vitals-alert");
+    expect(url).toBe(
+      `https://api.github.com/repos/${REPO}/issues?state=open&labels=vitals-alert`,
+    );
+  });
+
+  it("sends the token as a bearer credential", async () => {
+    const fetchMock = stubFetch(json([]));
+
+    await findOpenIssue({ repo: REPO, token: TOKEN, label: "vitals-alert" });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(headersOf(init).authorization).toBe(`Bearer ${TOKEN}`);
+  });
+
+  it("encodes a label that has spaces or punctuation in it", async () => {
+    const fetchMock = stubFetch(json([]));
+
+    await findOpenIssue({ repo: REPO, token: TOKEN, label: "web vitals & more" });
+
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(new URL(url).searchParams.get("labels")).toBe("web vitals & more");
+  });
+
+  it("treats an answer that isn't a list as no open issue", async () => {
+    stubFetch(json({ message: "Not a list" }));
+
+    await expect(
+      findOpenIssue({ repo: REPO, token: TOKEN, label: "vitals-alert" }),
+    ).resolves.toBeNull();
   });
 
   it("returns null when no open issue has the label", async () => {
@@ -61,7 +93,7 @@ describe("findOpenIssue", () => {
 
     await expect(
       findOpenIssue({ repo: REPO, token: TOKEN, label: "vitals-alert" }),
-    ).rejects.toThrow();
+    ).rejects.toThrow("GitHub list issues failed: 401");
   });
 });
 
@@ -81,13 +113,46 @@ describe("createIssue", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe(`https://api.github.com/repos/${REPO}/issues`);
     expect(init.method).toBe("POST");
-    expect(String(init.headers && (init.headers as Record<string, string>).Authorization)).toContain(TOKEN);
+    expect(headersOf(init).authorization).toBe(`Bearer ${TOKEN}`);
+    expect(headersOf(init)["content-type"]).toBe("application/json");
     const sent = JSON.parse(String(init.body));
     expect(sent).toMatchObject({
       title: "Web Vitals in the Poor band",
       body: "LCP is slow",
       labels: ["vitals-alert"],
     });
+  });
+});
+
+describe("createIssue failures", () => {
+  it("throws, naming the status, when GitHub refuses the issue", async () => {
+    stubFetch(json({ message: "Validation Failed" }, 422));
+
+    await expect(
+      createIssue({ repo: REPO, token: TOKEN, title: "t", body: "b", label: "vitals-alert" }),
+    ).rejects.toThrow("GitHub create issue failed: 422");
+  });
+});
+
+describe("updateIssue", () => {
+  it("patches the new body onto the issue", async () => {
+    const fetchMock = stubFetch(json({}, 200));
+
+    await updateIssue({ repo: REPO, token: TOKEN, number: 12, body: "LCP is still slow" });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`https://api.github.com/repos/${REPO}/issues/12`);
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(String(init.body))).toEqual({ body: "LCP is still slow" });
+    expect(headersOf(init).authorization).toBe(`Bearer ${TOKEN}`);
+  });
+
+  it("throws, naming the status, when GitHub refuses the update", async () => {
+    stubFetch(json({ message: "Not Found" }, 404));
+
+    await expect(
+      updateIssue({ repo: REPO, token: TOKEN, number: 12, body: "x" }),
+    ).rejects.toThrow("GitHub update issue failed: 404");
   });
 });
 
@@ -109,6 +174,33 @@ describe("closeIssue", () => {
     );
     expect(patchUrl).toBe(`https://api.github.com/repos/${REPO}/issues/7`);
     expect(patchInit.method).toBe("PATCH");
-    expect(JSON.parse(String(patchInit.body))).toMatchObject({ state: "closed" });
+    expect(JSON.parse(String(patchInit.body))).toEqual({ state: "closed" });
+  });
+
+  it("leaves the recovery note as the comment", async () => {
+    const fetchMock = stubFetch(json({}, 201), json({}, 200));
+
+    await closeIssue({ repo: REPO, token: TOKEN, number: 7, comment: "back in the Good band" });
+
+    const [, commentInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(commentInit.method).toBe("POST");
+    expect(JSON.parse(String(commentInit.body))).toEqual({ body: "back in the Good band" });
+  });
+
+  it("leaves the issue open when the recovery comment can't be posted", async () => {
+    const fetchMock = stubFetch(json({ message: "Forbidden" }, 403));
+
+    await expect(
+      closeIssue({ repo: REPO, token: TOKEN, number: 7, comment: "recovered" }),
+    ).rejects.toThrow("GitHub comment on issue failed: 403");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when the close itself is refused", async () => {
+    stubFetch(json({}, 201), json({ message: "Forbidden" }, 403));
+
+    await expect(
+      closeIssue({ repo: REPO, token: TOKEN, number: 7, comment: "recovered" }),
+    ).rejects.toThrow("GitHub close issue failed: 403");
   });
 });

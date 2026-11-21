@@ -38,4 +38,12 @@ describe("linking a to-do to its pull request", () => {
       "https://github.com/gpbsumido/paul.design.system/pull/4",
     );
   });
+
+  // "." and ".." pass the character check, and a ".." segment makes the URL
+  // resolve to github.com/pull/1 instead of a pull request in the repo.
+  // Harmless today since it stays on github.com, but it is not a repo name.
+  it.fails("refuses a repo name made only of dots", () => {
+    expect(pullRequestUrl("..", 1)).toBeNull();
+    expect(pullRequestUrl(".", 1)).toBeNull();
+  });
 });
