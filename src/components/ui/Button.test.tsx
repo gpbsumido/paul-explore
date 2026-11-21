@@ -38,6 +38,46 @@ describe("Button accessibility", () => {
     });
   });
 
+  describe("loading state", () => {
+    it("is busy, disabled and does not fire onClick while loading", async () => {
+      const user = userEvent.setup();
+      let clicked = false;
+      render(
+        <Button loading onClick={() => (clicked = true)}>
+          Saving
+        </Button>,
+      );
+      const button = screen.getByRole("button", { name: "Saving" });
+      expect(button).toHaveAttribute("aria-busy", "true");
+      expect(button).toBeDisabled();
+      await user.click(button);
+      expect(clicked).toBe(false);
+    });
+
+    it("is not busy by default", () => {
+      render(<Button>Save</Button>);
+      expect(screen.getByRole("button")).not.toHaveAttribute("aria-busy");
+    });
+  });
+
+  describe("variants and sizes", () => {
+    it("is the primary variant at the standard size when nothing is asked for", () => {
+      render(<Button>Save</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("btn--primary");
+      expect(button.className).not.toMatch(/btn--(xs|sm|lg)/);
+    });
+
+    it("passes the variant and size it is given to the design-system button", () => {
+      render(
+        <Button variant="danger" size="lg">
+          Delete
+        </Button>,
+      );
+      expect(screen.getByRole("button")).toHaveClass("btn--danger", "btn--lg");
+    });
+  });
+
   describe("disabled state", () => {
     it("marks the button as disabled", () => {
       render(<Button disabled>Cannot click</Button>);

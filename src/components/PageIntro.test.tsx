@@ -12,7 +12,11 @@ describe("PageIntro", () => {
   it("shows the eyebrow above the title without making it a heading", () => {
     render(<PageIntro eyebrow="Dev notes" title="Thoughts" />);
     // The eyebrow is a label, not part of the heading outline.
-    expect(screen.getByText("Dev notes")).toBeInTheDocument();
+    const eyebrow = screen.getByText("Dev notes");
+    const title = screen.getByRole("heading", { level: 1 });
+    expect(
+      eyebrow.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(
       screen.queryByRole("heading", { name: "Dev notes" }),
     ).not.toBeInTheDocument();
@@ -23,6 +27,17 @@ describe("PageIntro", () => {
     expect(
       screen.getByText("A running note of what shipped."),
     ).toBeInTheDocument();
+  });
+
+  it("adds a caller's classes to the header without losing the default spacing", () => {
+    render(<PageIntro title="Craft" className="mt-12" />);
+    const header = screen.getByRole("banner");
+    expect(header).toHaveClass("mb-10", "mt-12");
+  });
+
+  it("renders no eyebrow or lede element when neither is given", () => {
+    render(<PageIntro title="Craft" />);
+    expect(screen.getByRole("banner").querySelectorAll("p")).toHaveLength(0);
   });
 
   it("uses the display type scale, not the timid text-3xl", () => {

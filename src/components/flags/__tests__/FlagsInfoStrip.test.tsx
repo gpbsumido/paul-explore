@@ -8,6 +8,16 @@ describe("FlagsInfoStrip", () => {
 
     expect(screen.getByText(/backed by a live api/i)).toBeInTheDocument();
     expect(screen.getByText(/portfolio_api/i)).toBeInTheDocument();
+    expect(screen.queryByText(/demo data/i)).not.toBeInTheDocument();
+  });
+
+  it("stops claiming to be live when the flags are the built-in demo set", () => {
+    render(<FlagsInfoStrip isLoggedIn isFlagAdmin={false} resetLabel="2h 14m" showingSeed />);
+
+    expect(screen.getByText(/demo data/i)).toBeInTheDocument();
+    expect(screen.queryByText(/backed by a live api/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/normally come from the api/i)).toBeInTheDocument();
+    expect(screen.queryByText(/are stored in a live api/i)).not.toBeInTheDocument();
   });
 
   it("shows when the demo next resets", () => {
@@ -39,11 +49,14 @@ describe("FlagsInfoStrip", () => {
 
     expect(screen.getByText(/first two groups/i)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/every group is yours/i)).not.toBeInTheDocument();
   });
 
   it("tells an admin every group is theirs", () => {
     render(<FlagsInfoStrip isLoggedIn isFlagAdmin resetLabel="43m" showingSeed={false} />);
 
     expect(screen.getByText(/every group is yours/i)).toBeInTheDocument();
+    expect(screen.queryByText(/first two groups/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
   });
 });

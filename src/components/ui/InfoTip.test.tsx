@@ -30,7 +30,34 @@ describe("InfoTip accessibility", () => {
 
     await user.tab();
     expect(screen.getByRole("img", { name: "More information" })).toHaveFocus();
-    expect(await screen.findByRole("tooltip")).toBeInTheDocument();
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "This is helpful context",
+    );
+  });
+
+  it("shows on hover as well", async () => {
+    const user = userEvent.setup();
+    renderInfoTip();
+    await user.hover(screen.getByRole("img", { name: "More information" }));
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "This is helpful context",
+    );
+  });
+
+  it("opens above by default and below when asked", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<InfoTip delay={0}>tip</InfoTip>);
+    await user.tab();
+    expect(await screen.findByRole("tooltip")).toHaveClass("tooltip--top");
+    unmount();
+
+    render(
+      <InfoTip delay={0} side="bottom">
+        tip
+      </InfoTip>,
+    );
+    await user.tab();
+    expect(await screen.findByRole("tooltip")).toHaveClass("tooltip--bottom");
   });
 
   it("links tooltip content via aria-describedby", async () => {

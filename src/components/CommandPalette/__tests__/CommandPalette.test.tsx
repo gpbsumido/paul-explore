@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, within } from "@testing-library/react";
+import {
+  render,
+  screen,
+  cleanup,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import CommandPalette from "../CommandPalette";
@@ -110,13 +116,87 @@ describe("CommandPalette", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("selects a command when its option is clicked", async () => {
-    const { user, onSelect } = setup();
+  it("selects a command when its option is clicked, then closes", async () => {
+    const { user, onSelect, onClose } = setup();
     const themeOption = screen.getByRole("option", { name: /Toggle theme/ });
     await user.click(themeOption);
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({ id: "toggle-theme" }),
     );
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("wraps from the first option to the last on ArrowUp", async () => {
+    const { user } = setup();
+    const input = screen.getByRole("combobox");
+    input.focus();
+    await user.keyboard("{ArrowUp}");
+    const options = screen.getAllByRole("option");
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      options[options.length - 1].id,
+    );
+  });
+
+  it("makes an option active when the pointer moves over it", async () => {
+    const { user } = setup();
+    const target = screen.getByRole("option", { name: /Toggle theme/ });
+    await user.hover(target);
+    expect(target).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("option", { name: /Home/ })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+
+  it("does nothing on Enter when no command matches", async () => {
+    const { user, onSelect, onClose } = setup();
+    await user.type(screen.getByRole("combobox"), "zzzzz");
+    await user.keyboard("{Enter}");
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("stays open when the click lands inside the panel rather than on the backdrop", async () => {
+    const { user, onClose } = setup();
+    await user.click(screen.getByRole("combobox"));
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("starts from a clean query each time it is reopened", async () => {
+    const { user, rerender, onClose, onSelect } = setup();
+    await user.type(screen.getByRole("combobox"), "cal");
+    const palette = (open: boolean) => (
+      <CommandPalette
+        open={open}
+        onClose={onClose}
+        onSelect={onSelect}
+        commands={COMMANDS}
+      />
+    );
+    rerender(palette(false));
+    await waitFor(() =>
+      expect(screen.queryByRole("combobox")).not.toBeInTheDocument(),
+    );
+    rerender(palette(true));
+    expect(screen.getByRole("combobox")).toHaveValue("");
+    expect(screen.getAllByRole("option")).toHaveLength(COMMANDS.length);
+  });
+
+  it("locks page scroll while open and gives it back on close", async () => {
+    document.body.style.overflow = "auto";
+    const { rerender, onClose, onSelect } = setup();
+    expect(document.body.style.overflow).toBe("hidden");
+    rerender(
+      <CommandPalette
+        open={false}
+        onClose={onClose}
+        onSelect={onSelect}
+        commands={COMMANDS}
+      />,
+    );
+    expect(document.body.style.overflow).toBe("auto");
+    document.body.style.overflow = "";
   });
 
   it("closes on Escape", async () => {
@@ -138,6 +218,19 @@ describe("CommandPalette", () => {
     const option = screen.getByRole("option", { name: /Calendar/ });
     const marks = within(option).getAllByTestId("cmdk-highlight");
     expect(marks.map((m) => m.textContent).join("")).toBe("Cal");
+  });
+
+  it("keeps the unmatched text around a mid-title match", async () => {
+    const { user } = setup();
+    await user.type(screen.getByRole("combobox"), "lend");
+    const option = screen.getByRole("option", { name: /Calendar/ });
+    expect(option).toHaveTextContent("Calendar");
+    expect(
+      within(option)
+        .getAllByTestId("cmdk-highlight")
+        .map((m) => m.textContent)
+        .join(""),
+    ).toBe("lend");
   });
 
   it("has no accessibility violations", async () => {

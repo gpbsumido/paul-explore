@@ -26,7 +26,49 @@ describe("Tooltip accessibility", () => {
     await user.tab();
     expect(screen.getByRole("button", { name: "Trigger" })).toHaveFocus();
     // The DS tooltip shows after a (here zero) delay via setTimeout, so await it.
-    expect(await screen.findByRole("tooltip")).toBeInTheDocument();
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Helpful tip");
+  });
+
+  it("shows on hover as well", async () => {
+    const user = userEvent.setup();
+    renderTooltip();
+    await user.hover(screen.getByRole("button", { name: "Trigger" }));
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Helpful tip");
+  });
+
+  it("waits half a second by default before showing", async () => {
+    const user = userEvent.setup();
+    render(
+      <Tooltip content="Slow tip">
+        <button type="button">Trigger</button>
+      </Tooltip>,
+    );
+    await user.tab();
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Slow tip");
+  });
+
+  it("bounds the label's width only when asked to wrap", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <Tooltip content="Short" delay={0}>
+        <button type="button">Trigger</button>
+      </Tooltip>,
+    );
+    await user.tab();
+    const single = (await screen.findByRole("tooltip")).style.maxWidth;
+    unmount();
+
+    render(
+      <Tooltip content="Short" delay={0} multiline>
+        <button type="button">Trigger</button>
+      </Tooltip>,
+    );
+    await user.tab();
+    const wrapped = (await screen.findByRole("tooltip")).style.maxWidth;
+
+    expect(single).toBe("");
+    expect(wrapped).toContain("288px");
   });
 
   it("hides on blur", async () => {
