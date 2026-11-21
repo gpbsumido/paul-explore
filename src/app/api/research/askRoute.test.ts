@@ -60,20 +60,23 @@ afterEach(() => {
 });
 
 /** What the route sent to OpenAI for a request, captured off the wire. */
-async function sentToOpenAi(body: unknown) {
-  let sent: {
-    model: string;
-    messages: { role: string; content: string }[];
-  } | null = null;
+type OpenAiRequest = {
+  model: string;
+  messages: { role: string; content: string }[];
+};
+
+async function sentToOpenAi(body: unknown): Promise<OpenAiRequest> {
+  const requests: OpenAiRequest[] = [];
   server.use(
-    http.post(OPENAI, async ({ request }) => {
-      sent = (await request.json()) as NonNullable<typeof sent>;
+    http.post<never, OpenAiRequest>(OPENAI, async ({ request }) => {
+      requests.push(await request.json());
       return HttpResponse.json({ choices: [{ message: { content: "ok" } }] });
     }),
   );
   await askPOST(post(body));
+  const [sent] = requests;
   if (!sent) throw new Error("OpenAI was never called");
-  return sent as NonNullable<typeof sent>;
+  return sent;
 }
 
 describe("POST /api/research/ask", () => {

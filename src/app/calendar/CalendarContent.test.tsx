@@ -27,11 +27,13 @@ const hooks = vi.hoisted(() => ({
 }));
 
 vi.mock("next/dynamic", () => ({
-  default: (loader: () => Promise<{ default: ComponentType<never> }>) => {
+  default: (
+    loader: () => Promise<{ default: ComponentType<Record<string, unknown>> }>,
+  ) => {
     const Lazy = lazy(loader);
     return (props: Record<string, unknown>) => (
       <Suspense fallback={null}>
-        <Lazy {...(props as never)} />
+        <Lazy {...props} />
       </Suspense>
     );
   },

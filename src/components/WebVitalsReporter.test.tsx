@@ -24,7 +24,7 @@ vi.mock("web-vitals", () => ({
 const currentPath = vi.hoisted(() => ({ value: "/graphql" }));
 vi.mock("next/navigation", () => ({ usePathname: () => currentPath.value }));
 
-const beacon = vi.fn(() => true);
+const beacon = vi.fn((_url: string, _data: Blob) => true);
 
 function setEnv(
   visibilityState: "visible" | "hidden",
@@ -53,7 +53,7 @@ const metric = (name: string) => ({
 
 /** The JSON the reporter put in the beacon's body. */
 async function sentPayload(callIndex = 0): Promise<Record<string, unknown>> {
-  const blob = beacon.mock.calls[callIndex][1] as Blob;
+  const blob = beacon.mock.calls[callIndex][1];
   return JSON.parse(await blob.text());
 }
 

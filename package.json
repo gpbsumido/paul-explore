@@ -12,7 +12,7 @@
     "prebuild": "node scripts/count-tests.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings 0",
     "test": "vitest run --project unit --project svelte",
     "test:watch": "vitest --project unit --project svelte",
     "test:integration": "vitest run --project integration",
