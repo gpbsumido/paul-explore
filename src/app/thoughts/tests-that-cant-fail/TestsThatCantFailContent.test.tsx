@@ -30,6 +30,15 @@ describe("TestsThatCantFailContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("has a dated update on the twenty fixed bugs", () => {
+    render(<TestsThatCantFailContent />);
+    expect(
+      screen.getByRole("heading", {
+        name: /the twenty bugs, fixed, and the three i got wrong on the way/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("links to the Green Checks write-up, which links back", () => {
     render(<TestsThatCantFailContent />);
     expect(screen.getByRole("link", { name: "Green Checks" })).toHaveAttribute(

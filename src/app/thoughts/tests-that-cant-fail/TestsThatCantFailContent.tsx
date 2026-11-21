@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline code chip, matching the rest of the write-ups. */
 const C = ({ children }: { children: React.ReactNode }) => (
@@ -385,6 +385,80 @@ expected '//evil.example/x' not to match /^\\/\\//
         </ul>
       </section>
 
+      <Update
+        id="update-2026-11-21-twenty-fixed"
+        date="November 21, 2026"
+        title="The twenty bugs, fixed, and the three I got wrong on the way"
+      >
+        <p>
+          All twenty expected failures are ordinary tests now and the suite
+          exits 0. Fifteen root causes, one commit each. Most were a line or
+          two. Three of them were not what the note on the test said.
+        </p>
+
+        <h3 className={beat}>
+          The SSE bug was not about the trailing newline. It was about state.
+        </h3>
+        <p className="text-muted">
+          The note blamed the empty string after a final <C>\n</C> being read
+          as a blank line. True, but fixing only that would have left the
+          other half: <C>eventType</C> and <C>dataLines</C> were declared
+          inside <C>feed()</C>, so a chunk that ended between two lines of one
+          event started the next call with a fresh event. The fix moved them
+          up beside the buffer and kept only the unfinished last line in it.
+        </p>
+
+        <h3 className={beat}>
+          I returned null from the login path check. The test wanted a string.
+        </h3>
+        <p className="text-muted">
+          My first fix rejected a <C>//evil.example/x</C> pathname outright. It
+          looked right and failed the test, because the assertion is{" "}
+          <C>expect(result).not.toMatch(...)</C> and that matcher throws on a
+          null:
+        </p>
+        <pre className={pre}>
+          {`Tests  1 failed | 45 passed (46)
+ FAIL  never hands back a protocol-relative path`}
+        </pre>
+        <p className="text-muted">
+          So I collapsed the leading slashes to one instead, which keeps the
+          result on this origin. Then I noticed I had done that after the{" "}
+          <C>/auth/</C> check, so <C>//auth/login</C> would have come back as{" "}
+          <C>/auth/login</C> and looped into the auth routes. The collapse now
+          runs before both checks.
+        </p>
+
+        <h3 className={beat}>
+          The stream test helper was lying about what a cancelled source does.
+        </h3>
+        <p className="text-muted">
+          Cancelling the old reader in <C>start()</C> is the fix, but the test
+          then calls <C>sendEvent</C> on the first stream after it was
+          cancelled, and a real source cannot do that:
+        </p>
+        <pre className={pre}>
+          {`throws Invalid state: Controller is already closed`}
+        </pre>
+        <p className="text-muted">
+          I made the helper skip the enqueue once cancelled. The assertion did
+          not change, and it still fails without the fix because the stale
+          token only arrives if the first reader is left open. The read loop
+          also leaves state alone once it is no longer the current reader,
+          otherwise the old loop finishing would have switched{" "}
+          <C>isStreaming</C> off in the middle of the new run.
+        </p>
+
+        <h3 className={beat}>What I left alone</h3>
+        <p className="text-muted">
+          The shared test helpers are unchanged: the operator seed and
+          factories still use <C>Math.random</C> and the real clock, and the
+          reset between tests leaves some state behind. One file failed once
+          under shuffle seed 1234 on a loaded machine and passed nine reruns. I
+          could not reproduce it, so I have not written a fix for it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Every test file has been run alone, shuffled, under two seeds, and every test has a verdict. About one in seven was weak, tautological, leaky, misnamed or redundant, and those were strengthened or replaced.",
@@ -393,9 +467,9 @@ expected '//evil.example/x' not to match /^\\/\\//
           "The untested BFF routes and the logic files nothing touched got real tests.",
         ]}
         couldImprove={[
-          "Fix the twenty bugs held as expected failures, and turn each marker back into an ordinary test.",
           "Run mutation testing in CI on the code that handles money and auth. It only runs on the NFL projection math today.",
           "Make the operator seed and factories deterministic. Three reviewers found the same unseeded random and real clock.",
+          "Find out why one file failed once under shuffle seed 1234. It passed nine reruns and I have not reproduced it.",
           "Decide what to do about tests that pin exact prose. Rewording a write-up should not break a build.",
           "A coverage floor for logic files, so a new one cannot arrive without a test.",
         ]}
