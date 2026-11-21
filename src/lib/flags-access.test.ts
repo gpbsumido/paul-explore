@@ -42,7 +42,19 @@ describe("accessOf", () => {
     expect(accessOf(flag({ key: "dark-mode", access: "admin" }))).toBe("admin");
   });
 
-  it("falls back to open for a key it has never heard of", () => {
+  it.each([
+    { key: "pocket-tcg", tier: "admin" },
+    { key: "world-live-presence", tier: "admin" },
+    { key: "new-checkout", tier: "authed" },
+    { key: "checkout-experience", tier: "authed" },
+    { key: "priority-support", tier: "authed" },
+    { key: "dark-mode", tier: "open" },
+    { key: "ai-search", tier: "open" },
+  ])("puts $key in the $tier tier", ({ key, tier }) => {
+    expect(accessOf({ key })).toBe(tier);
+  });
+
+  it("falls back to open for an unmapped key only when the record is marked as a demo", () => {
     expect(accessOf(flag({ key: "brand-new-flag" }))).toBe("open");
   });
 });
@@ -86,10 +98,17 @@ describe("canChangeFlag", () => {
 describe("copy", () => {
   it("names every tier", () => {
     expect(ACCESS_TIERS).toEqual(["open", "authed", "admin"]);
-    for (const tier of ACCESS_TIERS) {
-      expect(ACCESS_LABEL[tier].length).toBeGreaterThan(0);
-      expect(whoCanChange(tier).length).toBeGreaterThan(0);
-    }
+    expect(ACCESS_LABEL).toEqual({
+      open: "Open to everyone",
+      authed: "Signed-in visitors",
+      admin: "Site owner only",
+    });
+  });
+
+  it("tells each tier's story about who can flip its flags", () => {
+    expect(whoCanChange("open")).toMatch(/anyone.*signed in or not/i);
+    expect(whoCanChange("authed")).toMatch(/signed-in visitor/i);
+    expect(whoCanChange("admin")).toMatch(/allowlist/i);
   });
 
   it("explains the lock differently depending on what is missing", () => {
@@ -108,10 +127,10 @@ describe("copy", () => {
     expect(emptyTierNote("admin").length).toBeGreaterThan(40);
   });
 
-  it("has a note for every tier", () => {
-    for (const tier of ACCESS_TIERS) {
-      expect(emptyTierNote(tier).length).toBeGreaterThan(0);
-    }
+  it("keeps the open and signed-in groups' empty note short, and the admin one distinct", () => {
+    expect(emptyTierNote("open")).toBe("Nothing in this group right now.");
+    expect(emptyTierNote("authed")).toBe("Nothing in this group right now.");
+    expect(emptyTierNote("admin")).not.toBe(emptyTierNote("open"));
   });
 
   it("gives no lock reason when the flag is changeable", () => {

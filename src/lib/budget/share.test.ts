@@ -27,6 +27,27 @@ describe("invite encoding", () => {
     expect(decodeInvite(token)).toEqual(budget);
   });
 
+  it("keeps non-ASCII names intact through the round trip", () => {
+    const named: Budget = {
+      ...budget,
+      people: [{ id: "p-1", name: "Jos\u00e9 \u{1F354}" }],
+    };
+    expect(decodeInvite(encodeInvite(named))).toEqual(named);
+  });
+
+  it("only uses characters that are safe in a URL, even when the JSON would encode to + and /", () => {
+    const awkward: Budget = {
+      ...budget,
+      people: [{ id: "p-1", name: "???>>>~~~???>>>" }],
+    };
+    expect(encodeInvite(awkward)).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(decodeInvite(encodeInvite(awkward))).toEqual(awkward);
+  });
+
+  it("returns null for a token that decodes to JSON but not a budget", () => {
+    expect(decodeInvite(btoa(JSON.stringify({ people: [] })))).toBeNull();
+  });
+
   it("returns null for a token that isn't a valid budget", () => {
     expect(decodeInvite("not-a-real-token")).toBeNull();
   });

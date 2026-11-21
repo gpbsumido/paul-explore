@@ -58,4 +58,29 @@ describe("fuzzyMatch", () => {
     expect(boundary.matched && nonBoundary.matched).toBe(true);
     expect(boundary.score).toBeGreaterThan(nonBoundary.score);
   });
+
+  it.each(["-", "/", "_"])(
+    "treats a character after %s as the start of a word",
+    (separator) => {
+      const afterSeparator = fuzzyMatch(`ab${separator}cd`, "c");
+      const insideWord = fuzzyMatch("abxcd", "c");
+      expect(afterSeparator.score).toBeGreaterThan(insideWord.score);
+    },
+  );
+
+  it("needs a separate character in the text for each repeated query character", () => {
+    expect(fuzzyMatch("a", "aa").matched).toBe(false);
+    expect(fuzzyMatch("aba", "aa").matched).toBe(true);
+  });
+
+  it("matches in order, so a reversed query misses", () => {
+    expect(fuzzyMatch("Calendar", "lc").matched).toBe(false);
+  });
+
+  it("scores one point per matched character plus the position bonuses", () => {
+    // "cal" at the start: c gets the prefix bonus, a and l each follow their predecessor
+    expect(fuzzyMatch("Calendar", "cal").score).toBe(3 + 8 + 4 + 4);
+    // mid-word, scattered: nothing but the base points
+    expect(fuzzyMatch("xaxbxc", "abc").score).toBe(3);
+  });
 });

@@ -59,6 +59,23 @@ describe("isAllowedEmail", () => {
     ).toBe(false);
   });
 
+  it("does not admit an address that merely contains an allowed one", () => {
+    expect(
+      isAllowedEmail({
+        email: "xada@example.com",
+        emailVerified: true,
+        allowlist: list,
+      }),
+    ).toBe(false);
+    expect(
+      isAllowedEmail({
+        email: "ada@example.com.evil.io",
+        emailVerified: true,
+        allowlist: list,
+      }),
+    ).toBe(false);
+  });
+
   it("rejects everyone when the allowlist is unset, rather than opening up", () => {
     expect(
       isAllowedEmail({

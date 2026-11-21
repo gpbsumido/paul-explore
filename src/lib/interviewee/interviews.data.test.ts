@@ -79,19 +79,26 @@ describe("interviewee interviews data", () => {
 });
 
 describe("interview lookup helpers", () => {
-  it("finds an interview by id", () => {
-    const first = INTERVIEWS[0];
-    expect(interviewById(first.id)).toEqual(first);
+  it("finds every interview by its own id", () => {
+    for (const interview of INTERVIEWS) {
+      expect(interviewById(interview.id)).toBe(interview);
+    }
   });
 
   it("returns undefined for an unknown interview id", () => {
     expect(interviewById("not-a-real-interview")).toBeUndefined();
   });
 
-  it("finds a topic within an interview", () => {
-    const interview = INTERVIEWS[0];
-    const topic = interview.topics[0];
-    expect(topicInInterview(interview, topic.id)).toEqual(topic);
+  it("finds every topic by its own id within its interview", () => {
+    for (const interview of INTERVIEWS) {
+      for (const topic of interview.topics) {
+        expect(topicInInterview(interview, topic.id)).toBe(topic);
+      }
+    }
+  });
+
+  it("returns undefined for a topic id the interview does not have", () => {
+    expect(topicInInterview(INTERVIEWS[0], "not-a-real-topic")).toBeUndefined();
   });
 
   it("resolves related ids to real topics in the same interview, in order", () => {
@@ -102,5 +109,13 @@ describe("interview lookup helpers", () => {
     const topic = interview!.topics.find((t) => t.related.length > 0)!;
     const resolved = relatedTopicsInInterview(interview!, topic);
     expect(resolved.map((t) => t.id)).toEqual(topic.related);
+  });
+
+  it("skips a related id that no longer resolves instead of returning a hole", () => {
+    const [first, second] = INTERVIEWS[0].topics;
+    const interview = { ...INTERVIEWS[0], topics: [first, second] };
+    const topic = { ...first, related: [second.id, "deleted-topic"] };
+
+    expect(relatedTopicsInInterview(interview, topic)).toEqual([second]);
   });
 });

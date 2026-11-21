@@ -31,6 +31,35 @@ describe("agentReducer", () => {
     expect(result).toBe(state);
   });
 
+  it("START while waiting on an approval does not wipe the pending request", () => {
+    const pendingAction = {
+      kind: "approval_request" as const,
+      id: "approval_1",
+      action: "delete_file",
+      description: "Delete config.json",
+      status: "pending" as const,
+    };
+    const state: AgentRunState = {
+      status: "awaiting_approval",
+      steps: [pendingAction],
+      pendingAction,
+    };
+
+    expect(reduce(state, { type: "START" })).toBe(state);
+  });
+
+  it("START after a finished run begins a fresh run with no old steps", () => {
+    const finished: AgentRunState = {
+      status: "completed",
+      steps: [{ kind: "text", content: "old answer", isStreaming: false }],
+    };
+
+    expect(reduce(finished, { type: "START" })).toEqual({
+      status: "running",
+      steps: [],
+    });
+  });
+
   // --- APPEND_TEXT ---
 
   it("APPEND_TEXT creates a new text step when last step is not text", () => {
@@ -195,13 +224,40 @@ describe("agentReducer", () => {
       error: "Connection timeout",
     });
 
-    if (result.status === "running") {
-      const step = result.steps[0];
-      if (step.kind === "tool_call") {
-        expect(step.status).toBe("error");
-        expect(step.error).toBe("Connection timeout");
-      }
-    }
+    expect(result).toEqual({
+      status: "running",
+      steps: [
+        {
+          kind: "tool_call",
+          id: "call_1",
+          name: "search_db",
+          input: {},
+          status: "error",
+          error: "Connection timeout",
+        },
+      ],
+    });
+  });
+
+  it("COMPLETE_TOOL_CALL only touches the call with the matching id", () => {
+    const first: AgentStep = {
+      kind: "tool_call",
+      id: "call_1",
+      name: "search_db",
+      input: {},
+      status: "running",
+    };
+    const second: AgentStep = { ...first, id: "call_2", name: "read_file" };
+    const result = reduce(running([first, second]), {
+      type: "COMPLETE_TOOL_CALL",
+      id: "call_2",
+      result: "file contents",
+    });
+
+    expect(result).toEqual({
+      status: "running",
+      steps: [first, { ...second, status: "done", result: "file contents" }],
+    });
   });
 
   it("COMPLETE_TOOL_CALL with unknown id returns state unchanged", () => {
@@ -315,6 +371,33 @@ describe("agentReducer", () => {
     }
   });
 
+  it("RESOLVE_APPROVAL leaves earlier resolved approvals alone", () => {
+    const earlier = {
+      kind: "approval_request" as const,
+      id: "approval_1",
+      action: "read_file",
+      description: "Read notes.txt",
+      status: "approved" as const,
+    };
+    const pendingAction = {
+      kind: "approval_request" as const,
+      id: "approval_2",
+      action: "delete_file",
+      description: "Delete config.json",
+      status: "pending" as const,
+    };
+    const state: AgentRunState = {
+      status: "awaiting_approval",
+      steps: [earlier, pendingAction],
+      pendingAction,
+    };
+
+    expect(reduce(state, { type: "RESOLVE_APPROVAL", approved: false })).toEqual({
+      status: "completed",
+      steps: [earlier, { ...pendingAction, status: "denied" }],
+    });
+  });
+
   it("RESOLVE_APPROVAL on non-awaiting state returns state unchanged", () => {
     const state = running();
     const result = reduce(state, {
@@ -346,7 +429,10 @@ describe("agentReducer", () => {
     const state = running([{ kind: "thinking", text: "hmm" }]);
     const result = reduce(state, { type: "COMPLETE" });
 
-    expect(result.status).toBe("completed");
+    expect(result).toEqual({
+      status: "completed",
+      steps: [{ kind: "thinking", text: "hmm" }],
+    });
   });
 
   it("COMPLETE on idle returns state unchanged", () => {
@@ -397,6 +483,40 @@ describe("agentReducer", () => {
   it("CANCEL on idle returns state unchanged", () => {
     const result = reduce(initialAgentState, { type: "CANCEL" });
     expect(result).toBe(initialAgentState);
+  });
+
+  // --- RESET ---
+
+  it("RESET from any state returns to idle", () => {
+    const finished: AgentRunState = {
+      status: "error",
+      steps: [{ kind: "text", content: "partial", isStreaming: false }],
+      error: "Stream interrupted",
+    };
+
+    expect(reduce(finished, { type: "RESET" })).toEqual({ status: "idle" });
+    expect(reduce(running(), { type: "RESET" })).toEqual({ status: "idle" });
+  });
+
+  // --- Finished runs ---
+
+  it.each<AgentRunAction>([
+    { type: "APPEND_TEXT", content: "late" },
+    { type: "APPEND_THINKING", text: "late" },
+    { type: "ADD_TOOL_CALL", id: "c", name: "late", input: {} },
+    { type: "COMPLETE_TOOL_CALL", id: "c", result: "late" },
+    { type: "REQUEST_APPROVAL", id: "a", action: "x", description: "y" },
+    { type: "RESOLVE_APPROVAL", approved: true },
+    { type: "COMPLETE" },
+    { type: "ERROR", error: "late" },
+    { type: "CANCEL" },
+  ])("a late $type after the run was cancelled changes nothing", (action) => {
+    const cancelled: AgentRunState = {
+      status: "cancelled",
+      steps: [{ kind: "text", content: "partial", isStreaming: false }],
+    };
+
+    expect(reduce(cancelled, action)).toBe(cancelled);
   });
 
   // --- Immutability ---

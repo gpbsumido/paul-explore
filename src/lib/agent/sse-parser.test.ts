@@ -104,4 +104,57 @@ describe("createSSEParser", () => {
     expect(events[0].event).toBe("custom");
     expect(events[1].event).toBe("message");
   });
+
+  it("strips only the single space after the colon and keeps the rest of the value", () => {
+    const parser = createSSEParser();
+    const events = parser.feed("data:   padded value  \n\n");
+
+    expect(events).toEqual([{ event: "message", data: "  padded value  " }]);
+  });
+
+  it("holds a trailing partial event until its chunk completes it", () => {
+    const parser = createSSEParser();
+
+    const first = parser.feed("data: one\n\ndata: tw");
+    const second = parser.feed("o\n\n");
+
+    expect(first).toEqual([{ event: "message", data: "one" }]);
+    expect(second).toEqual([{ event: "message", data: "two" }]);
+  });
+
+  it("does not carry an id or retry over to the next event", () => {
+    const parser = createSSEParser();
+    const events = parser.feed(
+      "id: 7\nretry: 100\ndata: first\n\ndata: second\n\n",
+    );
+
+    expect(events).toEqual([
+      { event: "message", data: "first", id: "7", retry: 100 },
+      { event: "message", data: "second" },
+    ]);
+  });
+
+  // Real bug: a chunk that ends on a single newline looks like it ends on a
+  // blank line, so the event: field is reset before its data arrives.
+  it.fails("keeps the event type when a chunk ends right after the event: line", () => {
+    const parser = createSSEParser();
+
+    parser.feed("event: text_delta\n");
+    const events = parser.feed('data: {"content":"hi"}\n\n');
+
+    expect(events).toEqual([{ event: "text_delta", data: '{"content":"hi"}' }]);
+  });
+
+  // Real bug, same cause: the trailing empty string after "\n" is read as the
+  // blank line that ends the event, so multi-line data is cut in two.
+  it.fails("joins data lines that arrive in separate chunks", () => {
+    const parser = createSSEParser();
+
+    const first = parser.feed("data: line one\n");
+    const second = parser.feed("data: line two\n\n");
+
+    expect([...first, ...second]).toEqual([
+      { event: "message", data: "line one\nline two" },
+    ]);
+  });
 });
