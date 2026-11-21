@@ -261,7 +261,7 @@ describe("planner URL state", () => {
     expect(plannerInputsFromParams({ utm_source: "mail" }).hasQuery).toBe(false);
   });
 
-  // Number("") is 0, so a blank param quietly zeroes the input instead of
+  // Known bug: Number("") is 0, so a blank param quietly zeroes the input instead of
   // falling back to the default like any other unparseable value does.
   it.fails("falls back to the default for a blank param", () => {
     const { inputs } = plannerInputsFromParams({ ft: "" });

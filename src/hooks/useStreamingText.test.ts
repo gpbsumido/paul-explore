@@ -124,7 +124,7 @@ describe("useStreamingText", () => {
     expect(result.current.isStreaming).toBe(false);
   });
 
-  // The hook has no unmount cleanup: the reader is left open and still
+  // Known bug: The hook has no unmount cleanup: the reader is left open and still
   // appends to the buffer. Recorded as a finding; nothing calls this hook yet.
   it.fails("cancels the stream when the component unmounts", async () => {
     const { result, unmount } = renderHook(() => useStreamingText());
@@ -240,7 +240,7 @@ describe("useStreamingText", () => {
     expect(result.current.text).toBe("abc");
   });
 
-  // start() never cancels the reader it is replacing, so the old stream keeps
+  // Known bug: start() never cancels the reader it is replacing, so the old stream keeps
   // writing into the new run's buffer. Recorded as a finding.
   it.fails("a second start() ignores late tokens from the first stream", async () => {
     const { result } = renderHook(() => useStreamingText());

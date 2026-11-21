@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { http, HttpResponse, delay } from "msw";
+import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { useCalendarEvents } from "../useCalendarEvents";
 import type { CalendarEvent } from "@/types/calendar";
@@ -277,7 +277,7 @@ describe("useCalendarEvents — createEvent", () => {
 });
 
 describe("useCalendarEvents — a write before the first fetch lands", () => {
-  // Found while auditing: the SSR seed is placeholderData, which is not in the
+  // Known bug: Found while auditing: the SSR seed is placeholderData, which is not in the
   // cache, so the optimistic write starts from an empty list. A create made
   // before the first fetch resolves shows only the new event and the seeded
   // ones vanish until the refetch; an update or delete matches nothing at all.

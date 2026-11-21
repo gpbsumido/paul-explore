@@ -155,6 +155,7 @@ describe("EventsContent", () => {
       expect([end.getMonth(), end.getDate(), end.getHours(), end.getMinutes()]).toEqual([10, 30, 23, 59]);
     });
 
+    // Known bug, kept red on purpose: starts the range at local midnight of the day chosen. Drop .fails when it is fixed.
     it.fails("starts the range at local midnight of the day chosen", async () => {
       process.env.TZ = "America/Toronto";
       const user = userEvent.setup();

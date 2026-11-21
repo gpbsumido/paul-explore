@@ -107,7 +107,7 @@ describe("CollectionContent", () => {
     expect(screen.queryByRole("article")).not.toBeInTheDocument();
   });
 
-  // Finding: a failed request lands in the same branch as a guest, so a signed-in
+  // Known bug: a failed request lands in the same branch as a guest, so a signed-in
   // user whose collection fails to load is told to sign in. Marked it.fails until
   // the page tells the two apart.
   it.fails("does not tell a signed-in user to sign in when the collection request fails", async () => {

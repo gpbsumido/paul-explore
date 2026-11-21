@@ -162,7 +162,7 @@ describe("toAlertTrendData", () => {
     expect(result.every((count) => count === 0)).toBe(true);
   });
 
-  // Bucket index comes from floor((hourStart - alert) / 1h), so an alert at
+  // Known bug: Bucket index comes from floor((hourStart - alert) / 1h), so an alert at
   // 11:30 gives floor(2.5) = 2 and lands in the 12:00 bucket instead of the
   // 11:00 one. Everything not stamped exactly on the hour is one bucket late.
   it.fails("puts an alert from mid-hour into the bucket for that hour", () => {

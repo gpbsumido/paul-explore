@@ -16,7 +16,7 @@ describe("typeStyle", () => {
     expect(new Set(styles).size).toBe(POKEMON_TYPES.length);
   });
 
-  // TYPE_COLORS is a plain object, so a name that exists on Object.prototype
+  // Known bug: TYPE_COLORS is a plain object, so a name that exists on Object.prototype
   // finds a function there instead of falling back. Not reachable with real
   // TCG types today; recorded as a finding.
   it.fails("falls back to the default colour for a type named like an object method", () => {

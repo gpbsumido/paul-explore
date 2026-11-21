@@ -98,7 +98,7 @@ describe("NBA proxy routes", () => {
     });
   }
 
-  // Known gap: safeSegment throws on a path separator and nothing in these
+  // Known bug: Known gap: safeSegment throws on a path separator and nothing in these
   // routes catches it, so a bad id surfaces as an unhandled error instead of
   // the 400 the withBackend routes give. Flip this to a plain `it` once fixed.
   it.fails("answers 400 to an id that could climb out of the path", async () => {
