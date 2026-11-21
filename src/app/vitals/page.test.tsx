@@ -1,13 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { API_URL } from "@/lib/apiUrl";
 
+// No session by default; a test signs in by setting a token.
+const session = vi.hoisted(() => ({ token: undefined as string | undefined }));
+
 vi.mock("@/lib/auth0", () => ({
   auth0: {
     getAccessToken: async () => {
-      throw new Error("no session");
+      if (session.token === undefined) throw new Error("no session");
+      return { token: session.token };
     },
   },
 }));
@@ -33,8 +37,25 @@ function recordDataCalls() {
   return requested;
 }
 
-const renderPage = async () =>
-  render(await VitalsPage({ searchParams: Promise.resolve({}) }));
+afterEach(() => {
+  session.token = undefined;
+});
+
+const renderPage = async (searchParams: { v?: string } = {}) =>
+  render(await VitalsPage({ searchParams: Promise.resolve(searchParams) }));
+
+/** The scope a recorded request asked for, read as parameters rather than substrings. */
+const scopeOf = (url: string) => {
+  const { searchParams } = new URL(url);
+  return { v: searchParams.get("v"), mode: searchParams.get("mode") };
+};
+
+const answerWithVersions = (versions: string[]) =>
+  server.use(
+    http.get(`${API_URL}/api/vitals/versions`, () =>
+      HttpResponse.json({ versions }),
+    ),
+  );
 
 describe("VitalsPage when the versions endpoint is unreachable", () => {
   it("does not fall back to a version that never existed", async () => {
@@ -83,7 +104,7 @@ describe("VitalsPage when the versions endpoint answers", () => {
   it("scopes to the current major", async () => {
     server.use(
       http.get(`${API_URL}/api/vitals/versions`, () =>
-        HttpResponse.json({ versions: ["4.5.9", "4.5.8"] }),
+        HttpResponse.json({ versions: ["5.1.0", "4.5.9"] }),
       ),
     );
     const requested = recordDataCalls();
@@ -92,10 +113,100 @@ describe("VitalsPage when the versions endpoint answers", () => {
 
     expect(requested).toHaveLength(3);
     for (const url of requested) {
-      expect(url).toContain("v=4");
-      expect(url).toContain("mode=major");
+      expect(scopeOf(url)).toEqual({ v: "5", mode: "major" });
     }
     expect(screen.queryByText(/couldn't reach the vitals api/i)).toBeNull();
+  });
+
+  it.each([
+    ["major:3", { v: "3", mode: "major" }],
+    ["minor:4.2", { v: "4.2", mode: "minor" }],
+    ["4.5.8", { v: "4.5.8", mode: null }],
+  ])("honours ?v=%s over the current major", async (urlVersion, expected) => {
+    answerWithVersions(["4.5.9", "4.5.8"]);
+    const requested = recordDataCalls();
+
+    await renderPage({ v: urlVersion });
+
+    expect(requested).toHaveLength(3);
+    for (const url of requested) expect(scopeOf(url)).toEqual(expected);
+  });
+
+  it("forwards the visitor's token on every call when they are signed in", async () => {
+    session.token = "visitor-token";
+    const authorizations: (string | null)[] = [];
+    server.use(
+      http.get(`${API_URL}/api/vitals/versions`, ({ request }) => {
+        authorizations.push(request.headers.get("authorization"));
+        return HttpResponse.json({ versions: ["4.5.9"] });
+      }),
+      ...["summary", "by-page", "by-version"].map((path) =>
+        http.get(`${API_URL}/api/vitals/${path}`, ({ request }) => {
+          authorizations.push(request.headers.get("authorization"));
+          return HttpResponse.json({ summary: {}, byPage: [], byVersion: [] });
+        }),
+      ),
+    );
+
+    await renderPage();
+
+    expect(authorizations).toEqual(Array(4).fill("Bearer visitor-token"));
+  });
+
+  it("sends no authorization for a signed-out visitor, and still renders", async () => {
+    const authorizations: (string | null)[] = [];
+    server.use(
+      http.get(`${API_URL}/api/vitals/versions`, ({ request }) => {
+        authorizations.push(request.headers.get("authorization"));
+        return HttpResponse.json({ versions: ["4.5.9"] });
+      }),
+    );
+    recordDataCalls();
+
+    await renderPage();
+
+    expect(authorizations).toEqual([null]);
+    expect(screen.getByRole("heading", { name: "Core Web Vitals" })).toBeInTheDocument();
+  });
+
+  it("shows the empty state, not a crash, when the data endpoints error", async () => {
+    answerWithVersions(["4.5.9"]);
+    server.use(
+      http.get(`${API_URL}/api/vitals/summary`, () =>
+        HttpResponse.json({ error: "boom" }, { status: 500 }),
+      ),
+      http.get(`${API_URL}/api/vitals/by-page`, () =>
+        HttpResponse.json({ error: "boom" }, { status: 500 }),
+      ),
+      http.get(`${API_URL}/api/vitals/by-version`, () =>
+        HttpResponse.json({ error: "boom" }, { status: 500 }),
+      ),
+    );
+
+    await renderPage();
+
+    expect(
+      screen.getByText(/visit a few pages and check back/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/couldn't reach the vitals api/i)).toBeNull();
+  });
+
+  it("renders the rows the by-page endpoint returns", async () => {
+    answerWithVersions(["4.5.9"]);
+    recordDataCalls();
+    server.use(
+      http.get(`${API_URL}/api/vitals/by-page`, () =>
+        HttpResponse.json({
+          byPage: [
+            { page: "/thoughts", total: 40, metrics: { LCP: { p75: 1800, count: 40 } } },
+          ],
+        }),
+      ),
+    );
+
+    await renderPage();
+
+    expect(screen.getByRole("row", { name: /\/thoughts/ })).toBeInTheDocument();
   });
 
   it("asks for all-time data when no versions exist yet, not a version zero", async () => {

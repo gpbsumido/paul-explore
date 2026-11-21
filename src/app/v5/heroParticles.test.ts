@@ -41,6 +41,42 @@ describe("hero particle sampling", () => {
   it("gives different shapes different clouds", () => {
     expect(buildShapePoints("knot")).not.toEqual(buildShapePoints("card"));
   });
+
+  it("gives every shape a cloud of its own, no two alike", () => {
+    const clouds = HERO_SHAPES.map((shape) =>
+      Array.from(buildShapePoints(shape.id)).join(","),
+    );
+    expect(new Set(clouds).size).toBe(HERO_SHAPES.length);
+  });
+
+  it("keeps the card thin: it is a 1.6 by 2.2 slab, not a block", () => {
+    const points = buildShapePoints("card");
+    let deepest = 0;
+    let widest = 0;
+    let tallest = 0;
+    for (let i = 0; i < points.length; i += 3) {
+      widest = Math.max(widest, Math.abs(points[i]));
+      tallest = Math.max(tallest, Math.abs(points[i + 1]));
+      deepest = Math.max(deepest, Math.abs(points[i + 2]));
+    }
+    expect(widest).toBeCloseTo(0.8, 1);
+    expect(tallest).toBeCloseTo(1.1, 1);
+    expect(deepest).toBeLessThan(0.05);
+  });
+
+  it("spreads points by edge length, so a short edge is not as dense as a long one", () => {
+    // The card's four thin edges (0.08 long) are under 3% of its wireframe. If
+    // every edge drew the same share of particles they would hold a third.
+    const points = buildShapePoints("card");
+    let onThinEdges = 0;
+    for (let i = 0; i < points.length; i += 3) {
+      const atCornerColumn =
+        Math.abs(Math.abs(points[i]) - 0.8) < 0.01 &&
+        Math.abs(Math.abs(points[i + 1]) - 1.1) < 0.01;
+      if (atCornerColumn) onThinEdges += 1;
+    }
+    expect(onThinEdges / PARTICLE_COUNT).toBeLessThan(0.08);
+  });
 });
 
 describe("particle progress", () => {
@@ -49,6 +85,26 @@ describe("particle progress", () => {
     const late = particleProgress(0.3, 1);
     expect(early).toBeGreaterThan(0);
     expect(late).toBe(0);
+  });
+
+  it("eases in and out, so a particle never snaps off or onto its mark", () => {
+    // Offset 0 travels over t in [0, 0.6]. A straight line would read 0.25 and
+    // 0.75 at a quarter and three quarters of the way; the ease is gentler at
+    // both ends.
+    expect(particleProgress(0.15, 0)).toBeLessThan(0.25);
+    expect(particleProgress(0.45, 0)).toBeGreaterThan(0.75);
+    expect(particleProgress(0.3, 0)).toBeCloseTo(0.5, 5);
+  });
+
+  it("only ever moves forward as the morph advances", () => {
+    for (const offset of [0, 0.4, 1]) {
+      let previous = -1;
+      for (let t = 0; t <= 1.0001; t += 0.05) {
+        const progress = particleProgress(t, offset);
+        expect(progress).toBeGreaterThanOrEqual(previous);
+        previous = progress;
+      }
+    }
   });
 
   it("lands every particle exactly at the end, whatever its offset", () => {
