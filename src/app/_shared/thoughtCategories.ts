@@ -95,6 +95,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "e2e",
       "ci-e2e",
       "green-checks",
+      "tests-that-cant-fail",
       "test-tiers",
     ],
   },

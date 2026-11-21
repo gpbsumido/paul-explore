@@ -20,6 +20,14 @@ describe("the green checks write-up", () => {
     expect(body).toMatch(/nothing\s+in\s+CI\s+ever\s+ran\s+them/);
   });
 
+  it("points to the later write-up on the same shape in this repo, with the real pasted failure", () => {
+    const { container } = render(<GreenChecksContent />);
+    const link = container.querySelector('a[href="/thoughts/tests-that-cant-fail"]');
+    expect(link?.textContent).toBe("Tests that can't fail");
+    expect(container.textContent).toContain("Tests  4 passed (4)");
+    expect(container.textContent).toContain("exit=1");
+  });
+
   it("proves the new workflow against a real regression before trusting it", () => {
     render(<GreenChecksContent />);
     const body = document.body.textContent ?? "";
