@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { InvalidSegmentError } from "@/lib/safeSegment";
 
 /**
  * Default deadline for a call from a BFF route to portfolio_api.
@@ -107,4 +108,24 @@ export async function proxyUpstream(
   } catch {
     return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }
+}
+
+/**
+ * Wraps a public proxy route so a rejected path segment answers 400, the same
+ * as withBackend does for the signed-in routes. Without it safeSegment's throw
+ * escapes the handler as an unhandled 500.
+ */
+export function rejectInvalidSegments<Args extends unknown[]>(
+  handler: (...args: Args) => Promise<NextResponse>,
+) {
+  return async (...args: Args): Promise<NextResponse> => {
+    try {
+      return await handler(...args);
+    } catch (err) {
+      if (err instanceof InvalidSegmentError) {
+        return NextResponse.json({ error: "Invalid identifier" }, { status: 400 });
+      }
+      throw err;
+    }
+  };
 }
