@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
@@ -249,10 +250,222 @@ describe("OperatorDashboard", () => {
 
     await screen.findByText("Store One");
 
-    // fleet stats bar
-    expect(screen.getByText("Total Stores")).toBeInTheDocument();
-    expect(screen.getByText("Needs Attention")).toBeInTheDocument();
-    expect(screen.getByText("Low Stock Items")).toBeInTheDocument();
+    // fleet stats bar: each tile reads value-then-label
+    await waitFor(() => expect(statValue("Low Stock Items")).toBe("3"));
+    expect(statValue("Total Stores")).toBe("2");
+    expect(statValue("Needs Attention")).toBe("1");
+    expect(statValue("Avg Inventory")).toBe("70%");
+  });
+});
+
+/** The figure shown in the fleet stats tile with this label. */
+function statValue(label: string): string | null | undefined {
+  return screen.getByText(label).previousElementSibling?.textContent;
+}
+
+const summaryFor = (
+  store: Store,
+  over: Partial<FleetSummaryResponse["summaries"][number]> = {},
+): FleetSummaryResponse["summaries"][number] => ({
+  storeId: store.id,
+  alertCount: 0,
+  inventoryHealth: 80,
+  hasCritical: false,
+  hasWarning: false,
+  ...over,
+});
+
+/** Serves a fleet whose stats are filled in from its own summaries. */
+function serveFleet(
+  stores: Store[],
+  summaries: FleetSummaryResponse["summaries"],
+  fleetStats: Partial<FleetSummaryResponse["fleetStats"]> = {},
+) {
+  const summary: FleetSummaryResponse = {
+    summaries,
+    fleetStats: {
+      criticalAlerts: 0,
+      warningAlerts: 0,
+      lowStockItems: 0,
+      avgInventoryHealth: 80,
+      ...fleetStats,
+    },
+    alertTrend: emptyTrend(),
+  };
+  server.use(
+    http.get("/api/operator/stores", () => HttpResponse.json({ stores })),
+    http.get("/api/operator/fleet-summary", () => HttpResponse.json(summary)),
+  );
+}
+
+describe("OperatorDashboard filtering", () => {
+  const alpha = makeStore({ id: "a", name: "Alpha Market", status: "online" });
+  const beta = makeStore({ id: "b", name: "Beta Corner", status: "degraded" });
+  const gamma = makeStore({ id: "g", name: "Gamma Outlet", status: "offline" });
+
+  // A first visit opens the tour dialog, which would sit over the grid.
+  beforeEach(() => window.localStorage.setItem("operator-tour-seen", "true"));
+
+  /**
+   * Names of the store cards in the grid. The sales table further down links to
+   * stores too, once its own request lands, so only a link with a card heading
+   * counts.
+   */
+  const visibleNames = () =>
+    screen
+      .queryAllByRole("link", { hidden: true })
+      .map((link) => within(link).queryByRole("heading", { level: 2, hidden: true }))
+      .filter((heading) => heading !== null)
+      .map((heading) => heading.textContent);
+
+  it("narrows the grid to the stores that need attention from the stats tile", async () => {
+    serveFleet(
+      [alpha, beta, gamma],
+      [summaryFor(alpha), summaryFor(beta), summaryFor(gamma)],
+    );
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Alpha Market");
+
+    await user.click(screen.getByRole("button", { name: /needs attention/i }));
+
+    expect(visibleNames()).toEqual(["Gamma Outlet", "Beta Corner"]);
+  });
+
+  it("narrows the grid by store name as you type", async () => {
+    serveFleet([alpha, beta, gamma], [summaryFor(alpha), summaryFor(beta), summaryFor(gamma)]);
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Alpha Market");
+
+    await user.type(screen.getByRole("textbox", { name: /search stores/i }), "corner");
+
+    expect(visibleNames()).toEqual(["Beta Corner"]);
+  });
+
+  it("says nothing matches and offers to clear the filters", async () => {
+    serveFleet([alpha, beta], [summaryFor(alpha), summaryFor(beta)]);
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Alpha Market");
+
+    await user.type(screen.getByRole("textbox", { name: /search stores/i }), "zzz");
+    expect(screen.getByText(/no stores match the current filters/i)).toBeInTheDocument();
+    expect(visibleNames()).toEqual([]);
+
+    await user.click(screen.getByRole("button", { name: /clear filters/i }));
+
+    expect(visibleNames().sort()).toEqual(["Alpha Market", "Beta Corner"]);
+  });
+
+  it("filters to stores with a critical alert from the banner, and clears again", async () => {
+    serveFleet(
+      [alpha, beta],
+      [summaryFor(alpha), summaryFor(beta, { alertCount: 2, hasCritical: true })],
+      { criticalAlerts: 2 },
+    );
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Alpha Market");
+
+    await user.click(await screen.findByRole("button", { name: "2 critical" }));
+    expect(visibleNames()).toEqual(["Beta Corner"]);
+    expect(screen.getByText(/critical alerts only/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /clear severity filter/i }));
+    expect(visibleNames().sort()).toEqual(["Alpha Market", "Beta Corner"]);
+  });
+});
+
+describe("OperatorDashboard stores without a summary", () => {
+  const known = makeStore({ id: "k", name: "Known Market" });
+  const unknown = makeStore({ id: "u", name: "Unknown Market" });
+
+  beforeEach(() => window.localStorage.setItem("operator-tour-seen", "true"));
+
+  it("shows a dash for a store the summary doesn't mention, not a made-up 0%", async () => {
+    serveFleet([known, unknown], [summaryFor(known, { inventoryHealth: 64 })]);
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+
+    const card = (await screen.findByText("Unknown Market")).closest("a") as HTMLElement;
+
+    await waitFor(() => expect(within(card).getByText("—")).toBeInTheDocument());
+    expect(within(card).queryByText("0%")).not.toBeInTheDocument();
+  });
+
+  it("leaves it out when filtering by alert severity, since nothing says it has one", async () => {
+    serveFleet(
+      [known, unknown],
+      [summaryFor(known, { alertCount: 1, hasCritical: true })],
+      { criticalAlerts: 1 },
+    );
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Unknown Market");
+
+    await user.click(await screen.findByRole("button", { name: "1 critical" }));
+
+    expect(screen.getByText("Known Market")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown Market")).not.toBeInTheDocument();
+  });
+
+  it("clear filters also drops an alert-severity filter that matches no store", async () => {
+    serveFleet([known], [summaryFor(known)], { criticalAlerts: 1 });
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+    await screen.findByText("Known Market");
+
+    await user.click(await screen.findByRole("button", { name: "1 critical" }));
+    expect(screen.getByText(/no stores match the current filters/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /clear filters/i }));
+
+    expect(screen.getByText("Known Market")).toBeInTheDocument();
+    expect(screen.queryByText(/critical alerts only/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("OperatorDashboard when a request fails", () => {
+  it("says the fleet summary failed, still lists the stores, and shows no made-up stats", async () => {
+    const stores = [makeStore({ id: "a", name: "Alpha Market" })];
+    server.use(
+      http.get("/api/operator/stores", () => HttpResponse.json({ stores })),
+      http.get("/api/operator/fleet-summary", () =>
+        HttpResponse.json({ error: "down" }, { status: 500 }),
+      ),
+    );
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+
+    expect(await screen.findByText("Alpha Market")).toBeInTheDocument();
+    expect(await screen.findByText(/this is an error, not an empty store/i)).toBeInTheDocument();
+    expect(screen.queryByText("Low Stock Items")).not.toBeInTheDocument();
+  });
+
+  it("shows the store list error with a retry that asks again", async () => {
+    let attempts = 0;
+    const stores = [makeStore({ id: "a", name: "Alpha Market" })];
+    server.use(
+      http.get("/api/operator/stores", () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.json({ error: "down" }, { status: 500 })
+          : HttpResponse.json({ stores });
+      }),
+      http.get("/api/operator/fleet-summary", () =>
+        HttpResponse.json({
+          summaries: [summaryFor(stores[0])],
+          fleetStats: { criticalAlerts: 0, warningAlerts: 0, lowStockItems: 0, avgInventoryHealth: 80 },
+          alertTrend: emptyTrend(),
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<OperatorDashboard />, { wrapper: makeWrapper() });
+
+    expect(await screen.findByText("Failed to fetch stores")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Alpha Market")).toBeInTheDocument();
+    expect(attempts).toBe(2);
   });
 });
 

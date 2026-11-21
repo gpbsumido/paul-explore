@@ -192,7 +192,7 @@ describe("PATCH /api/operator/alerts/:id/dismiss", () => {
     const unacked = alerts.find(
       (a: { acknowledged: boolean }) => !a.acknowledged,
     );
-    if (!unacked) return;
+    if (!unacked) throw new Error("seed data should include an unacknowledged alert");
 
     const res = await fetch(`/api/operator/alerts/${unacked.id}/dismiss`, {
       method: "PATCH",
@@ -233,7 +233,7 @@ describe("POST /api/operator/stores/:id/restock", () => {
     expect(res.ok).toBe(true);
     const body = await res.json();
 
-    expect(Array.isArray(body.items)).toBe(true);
+    expect(body.items.map((i: { id: string }) => i.id)).toEqual(itemIds);
     for (const item of body.items) {
       expect(item.currentStock).toBe(item.capacity);
     }

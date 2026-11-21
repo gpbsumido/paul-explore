@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { toCsv } from "@/lib/csv";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { downloadCsv, downloadText, toCsv } from "@/lib/csv";
 
 type Row = { name: string; qty: number };
 
@@ -7,6 +7,8 @@ const COLUMNS = [
   { header: "Name", value: (r: Row) => r.name },
   { header: "Qty", value: (r: Row) => r.qty },
 ] as const;
+
+afterEach(() => vi.restoreAllMocks());
 
 describe("toCsv", () => {
   it("writes a header row and one line per row", () => {
@@ -31,6 +33,18 @@ describe("toCsv", () => {
   it("quotes a field that contains a newline", () => {
     const csv = toCsv([{ name: "line1\nline2", qty: 1 }], COLUMNS);
     expect(csv).toBe('Name,Qty\r\n"line1\nline2",1');
+  });
+
+  it("quotes a field that contains a bare carriage return", () => {
+    const csv = toCsv([{ name: "line1\rline2", qty: 1 }], COLUMNS);
+    expect(csv).toBe('Name,Qty\r\n"line1\rline2",1');
+  });
+
+  it("escapes a header the same way as a field", () => {
+    const csv = toCsv([{ name: "Cola", qty: 1 }], [
+      { header: "Name, full", value: (r: Row) => r.name },
+    ]);
+    expect(csv).toBe('"Name, full"\r\nCola');
   });
 });
 
@@ -83,5 +97,45 @@ describe("toCsv formula injection", () => {
     // in a finance export, which is worse than the thing being defended against.
     const csv = toCsv([{ name: "Refund", qty: -5 }], COLUMNS);
     expect(csv).toBe("Name,Qty\r\nRefund,-5");
+  });
+});
+
+describe("downloading an export", () => {
+  /** Stubs the object-URL calls and returns what the anchor was asked to do. */
+  const captureDownload = () => {
+    const blobs: Blob[] = [];
+    const createObjectURL = vi.fn((blob: Blob) => {
+      blobs.push(blob);
+      return "blob:fake-url";
+    });
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
+    const clicked: { href: string; download: string }[] = [];
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push({ href: this.href, download: this.download });
+    });
+    return { blobs, clicked, revokeObjectURL };
+  };
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("hands the browser a CSV file under the requested name, then lets go of the object URL", async () => {
+    const { blobs, clicked, revokeObjectURL } = captureDownload();
+
+    downloadCsv("stock.csv", "Name,Qty\r\nCola,3");
+
+    expect(clicked).toEqual([{ href: "blob:fake-url", download: "stock.csv" }]);
+    expect(blobs[0].type).toBe("text/csv;charset=utf-8;");
+    expect(await blobs[0].text()).toBe("Name,Qty\r\nCola,3");
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
+  });
+
+  it("downloads any text with the type it is given", () => {
+    const { blobs, clicked } = captureDownload();
+
+    downloadText("report.json", "{}", "application/json");
+
+    expect(clicked[0].download).toBe("report.json");
+    expect(blobs[0].type).toBe("application/json");
   });
 });
