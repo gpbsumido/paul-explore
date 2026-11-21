@@ -582,16 +582,123 @@ AssertionError: expected [ [ 'Kombucha', +0, false ] ] to deeply equal [ [ 'Cola
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-21-act-noise"
+        date="November 21, 2026"
+        title="The run I had called clean printed 94 act warnings and 25 unmatched requests"
+      >
+        <p>
+          A changelog entry from weeks ago says the test run is clean: zero
+          unmatched requests, zero <C>act()</C> warnings. I compared this PR&apos;s CI
+          log with develop&apos;s to check I had not made the output worse, and
+          neither was clean. Both had the same noise.
+        </p>
+
+        <h3 className={beat}>
+          I replayed the CI seed locally and saw nothing, and almost concluded
+          it was a CI-only timing problem.
+        </h3>
+        <p className="text-muted">
+          I ran <C>VITEST_SEED=1795280842425 pnpm test</C>, the seed from the CI
+          log, and got a green run with no warnings. I then ran it under heavy
+          CPU load and got the same. The log it wrote was 18 lines long, which I
+          should have read as the clue: when it detects an agent, Vitest swaps to
+          a reporter that hides the output of passing tests. My local runs had
+          never shown a console line. With the default reporter named, the
+          replay matched CI to the count:
+        </p>
+        <pre className={pre}>
+          {`$ VITEST_SEED=1795280842425 vitest run --reporter=default
+act warnings          94
+unmatched requests    25`}
+        </pre>
+
+        <h3 className={beat}>
+          Noise nobody reads is a failure that has not been written yet.
+        </h3>
+        <p className="text-muted">
+          Cleaning 94 warnings by hand would last until the next test. So the
+          setup now records every <C>act()</C> warning and every unmatched
+          request and fails the test that caused it. I wrote that first, so I
+          had the list instead of an estimate:
+        </p>
+        <pre className={pre}>
+          {` Test Files  19 failed | 560 passed (579)
+      Tests  31 failed | 7200 passed (7231)`}
+        </pre>
+
+        <h3 className={beat}>
+          Fifty-seven of the warnings were one count-up in one test.
+        </h3>
+        <p className="text-muted">
+          The ZeroProof live-update test jumps fake timers forward 31 seconds,
+          and the win celebration&apos;s count-up sets state on every frame of
+          it. Each frame logged its own warning. Advancing the timers inside{" "}
+          <C>act()</C> fixed that test, and the same one-line helper fixed the
+          polling hook tests and the calendar banner. The axe scans needed the
+          same treatment, since a page with a timer updates while axe waits, so
+          the shared <C>axe</C> helper runs the scan inside <C>act()</C>.
+        </p>
+
+        <h3 className={beat}>
+          Two files still warned after I fixed the helper, because they never
+          used it.
+        </h3>
+        <p className="text-muted">
+          The gallery wall and the slot machine imported <C>axe</C> straight
+          from <C>vitest-axe</C>, so my wrapper did nothing for them. They
+          import the shared one now. The remaining fixes were smaller: four
+          ZeroProof endpoints the tour tests never mocked, a card endpoint the
+          event modal asks for, toast dismissals done with a bare{" "}
+          <C>.click()</C>, and three sleeps used to assert that something never
+          appears. One of those was my own collection test from earlier in this
+          PR. It now waits for the error message instead of for fifty
+          milliseconds.
+        </p>
+
+        <h3 className={beat}>
+          I waited for the lazy import before it had started.
+        </h3>
+        <p className="text-muted">
+          The reduced-motion hydration test warned about{" "}
+          <C>LazyMotion</C> on some orderings and not others. LazyMotion starts
+          its import in an effect, and effects flush when the hydrating{" "}
+          <C>act()</C> ends. I put <C>vi.dynamicImportSettled()</C> inside that
+          same act, where there was no import yet to wait for, and the failure
+          stayed:
+        </p>
+        <pre className={pre}>
+          {`An update to LazyMotion inside a test was not wrapped in act(...).`}
+        </pre>
+        <p className="text-muted">
+          The wait belongs in a second act, after the first has started the
+          import. Setting <C>IS_REACT_ACT_ENVIRONMENT</C> once in the setup
+          also ended the &quot;not configured to support act&quot; warnings from
+          the two hydration files that call React&apos;s act without Testing
+          Library.
+        </p>
+
+        <h3 className={beat}>The test timeout is now a default, not a patch.</h3>
+        <p className="text-muted">
+          While running these under load, a plain render in the design-system
+          gallery timed out at five seconds, the same failure as the updates
+          list. I had patched that one file. The default is fifteen seconds now,
+          and the per-file patch is gone.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Every test file has been run alone, shuffled, under two seeds, and every test has a verdict. About one in seven was weak, tautological, leaky, misnamed or redundant, and those were strengthened or replaced.",
           "Tests that assert nothing, run in an order they depend on, are skipped, or are expected to fail without saying why now fail the build, as does a BFF route nobody tests.",
           "Lint fails on a warning. The e2e log names every test and each step keeps a report.",
           "The untested BFF routes and the logic files nothing touched got real tests.",
-          "The operator factories and the test clock are pinned, the handlers wait a constant tick, and the reset restores the seed. The updates list tests have a timeout that survives a loaded machine.",
+          "The operator factories and the test clock are pinned, the handlers wait a constant tick, and the reset restores the seed. The default test timeout is fifteen seconds, so a page-sized render survives a loaded machine.",
+          "An act() warning or an unmatched mock request fails the test that caused it. The run printed 94 and 25 of them before.",
         ]}
         couldImprove={[
           "Run mutation testing in CI on the code that handles money and auth. It only runs on the NFL projection math today.",
+          "About a hundred blocks of stderr remain, mostly the app logging errors on paths a test provokes on purpose. Mute them in the test that causes them, then fail on any console error.",
           "Decide what to do about tests that pin exact prose. Rewording a write-up should not break a build.",
           "A coverage floor for logic files, so a new one cannot arrive without a test.",
         ]}

@@ -8,7 +8,8 @@
 - The card collection page says it could not load your collection when the request fails, rather than asking a signed-in user to sign in.
 - The shared test helpers are repeatable: the operator factories and the test clock are pinned in setup, the mock handlers wait a constant tick instead of a random 100 to 300ms, `resetOperatorWriteState` restores dismissed alerts, restocked items and rearranged planograms, and the mock `/api/me` returns `isFlagAdmin`. The production demo seed still uses the real dice and clock.
 - The `UpdatesContent` tests failed once under shuffle seed 1234 on a loaded machine. That was a 5 second timeout on a list that renders every update, reproduced with heavy CPU load, and the file now has a timeout that survives it.
-- Dated updates on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said, and the helper and timeout work that was first left alone.
+- The test run printed 94 `act()` warnings and 25 unmatched mock requests, which the changelog had called clean. Both are fixed at the source, and the setup now fails the test that causes either one. The shared `axe` helper runs inside `act()`, fake-timer jumps go through `advanceTimersWithinAct`, `IS_REACT_ACT_ENVIRONMENT` is set once in setup, and the default test timeout is 15 seconds so a page-sized render survives a loaded machine.
+- Dated updates on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said, the helper and timeout work that was first left alone, and the console noise.
 
 ## 2026-11-21 - version 9.2.29
 
