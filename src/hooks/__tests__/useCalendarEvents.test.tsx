@@ -277,11 +277,7 @@ describe("useCalendarEvents — createEvent", () => {
 });
 
 describe("useCalendarEvents — a write before the first fetch lands", () => {
-  // Known bug: Found while auditing: the SSR seed is placeholderData, which is not in the
-  // cache, so the optimistic write starts from an empty list. A create made
-  // before the first fetch resolves shows only the new event and the seeded
-  // ones vanish until the refetch; an update or delete matches nothing at all.
-  it.fails("keeps the seeded events on screen when one is created straight away", async () => {
+  it("keeps the seeded events on screen when one is created straight away", async () => {
     const existing = makeEvent({ title: "Existing" });
     const release = gate();
     server.use(
