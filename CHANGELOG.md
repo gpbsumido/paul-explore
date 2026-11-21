@@ -7,6 +7,7 @@
 - Three files only passed in the order they were written and no longer depend on it: `ResearchContent` leaked a module-level cache between tests, `MindReaderContent` never cleared its mocks, and `DesignSystemShowcaseContent` carried a filter in the page URL from one test to the next.
 - Twenty bugs the audit found are held as expected failures with a note on each, not fixed here. The accessibility scan's route list moved to a helper with a guard against the real public routes, and `/toolkit` and the interview-prep plan page are now scanned.
 - The e2e log names every test with its time, each Playwright step keeps its own HTML report, and the empty quarantine step no longer ends in a red "No tests found". The six lint warnings in production code are cleared.
+- The interview-prep toolkit page's code blocks and check lists can be scrolled from the keyboard. The first run of the wider accessibility scan found it: they were scroll boxes nobody could focus. The checks are now one scroll box with one tab stop.
 - New write-up at `/thoughts/tests-that-cant-fail`, and a dated update on the Green Checks write-up linking to it.
 
 ## 2026-11-20 - version 9.2.28
