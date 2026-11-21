@@ -48,7 +48,8 @@ export const DEFAULT_TYPE_COLOR =
   "bg-primary-100 text-primary-900 dark:bg-primary-950 dark:text-primary-200";
 
 export function typeStyle(type: string): string {
-  return TYPE_COLORS[type] ?? DEFAULT_TYPE_COLOR;
+  // hasOwn, so a name like "constructor" cannot find Object.prototype members.
+  return Object.hasOwn(TYPE_COLORS, type) ? TYPE_COLORS[type] : DEFAULT_TYPE_COLOR;
 }
 
 /**
