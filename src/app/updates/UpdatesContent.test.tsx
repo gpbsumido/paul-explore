@@ -7,9 +7,16 @@ import { SEED_TICKETS } from "@/lib/updates/tickets.data";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
+// Most of these tests render and re-render every update card, and the list
+// grows with each release. Idle they take under a second; under heavy CPU
+// contention (seed 1234 with 8 busy processes per core) the axe and sort tests
+// passed 5s and timed out, and four more sat above 4s. That is the "failed once
+// on a loaded machine" this used to be.
+const WHOLE_LIST_TIMEOUT_MS = 30_000;
+
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-describe("UpdatesContent", () => {
+describe("UpdatesContent", { timeout: WHOLE_LIST_TIMEOUT_MS }, () => {
   it("renders one article per update by default", () => {
     render(<UpdatesContent />);
     expect(screen.getAllByRole("article")).toHaveLength(UPDATE_ENTRIES.length);
