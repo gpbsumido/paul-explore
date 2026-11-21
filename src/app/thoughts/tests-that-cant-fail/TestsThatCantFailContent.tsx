@@ -459,17 +459,139 @@ expected '//evil.example/x' not to match /^\\/\\//
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-21-left-alone"
+        date="November 21, 2026"
+        title="The thing I could not reproduce was a timeout, and the helpers were less random than I thought"
+      >
+        <p>
+          The update above ends with a list of things I left alone. Leaving them
+          was the wrong call, since each one was a way for a green run to lie.
+          So I went back for them: the shared helpers, and the one file that
+          failed once under shuffle seed 1234.
+        </p>
+
+        <h3 className={beat}>
+          I said I could not reproduce it. I had been running it on an idle
+          machine.
+        </h3>
+        <p className="text-muted">
+          The failure was reported on a loaded machine and passed nine reruns on
+          a quiet one. Seed 1234 on its own passes. Running the whole suite
+          under it passes too, all 7,207 tests. What changed it was putting load
+          under the file: eight busy processes per core, and the same seed.
+        </p>
+        <pre className={pre}>
+          {` × has no axe violations 7663ms
+   → Test timed out in 5000ms.
+ × lists the newest update first, and the oldest first once the order is flipped 6608ms
+   → Test timed out in 5000ms.`}
+        </pre>
+        <p className="text-muted">
+          It was never about order. Each test in <C>UpdatesContent</C> renders
+          or re-renders every update card, about 76 of them and one more every
+          release, and idle that takes a few hundred milliseconds. Under load it
+          is ten to twenty times that.
+        </p>
+
+        <h3 className={beat}>
+          My first fix covered the two tests that failed. Four more were at 4.7
+          seconds.
+        </h3>
+        <p className="text-muted">
+          I put a longer timeout on the axe test and the sort test, reran under
+          the same load, and it went green. Then I read the other durations in
+          that run: the category chip, the expand toggle and the tag filter were
+          all above four seconds. Fixing the two that happened to cross the line
+          would have moved the flake to whichever test lost the next toss, so
+          the timeout is on the whole <C>describe</C> instead.
+        </p>
+
+        <h3 className={beat}>
+          Pinning the factories was easy. Pinning them without the clock would
+          have been a trap.
+        </h3>
+        <p className="text-muted">
+          The operator factories now take a random function and a clock, and the
+          test setup pins both before the mock server loads, since loading it is
+          what builds the seed. Everything else is the default it was: the demo
+          seed that serves the app when the backend is asleep still uses the
+          real dice and the real time. I pinned the factories first and ran the
+          suite:
+        </p>
+        <pre className={pre}>
+          {`FAIL  operator aggregation parity > product performance category index and dead SKU
+AssertionError: expected [ [ 'Kombucha', +0, false ] ] to deeply equal [ [ 'Cola', 200, true ], …(2) ]`}
+        </pre>
+        <p className="text-muted">
+          The seed was dated June 17 and the code under test windows{" "}
+          <C>the last 7 days</C> against the real clock, so every sale fell
+          outside it. A seed fixed at one instant and read against another is
+          empty by the next day, which is the real-clock bug turned inside out.
+          The setup now pins <C>Date</C> to the same instant, and the failures
+          went away without touching the code that does the windowing.
+        </p>
+
+        <h3 className={beat}>
+          One test only passed because it was already past July.
+        </h3>
+        <p className="text-muted">
+          With the clock pinned, a bff fallback test failed on a promotion it
+          created with a start date of July 1, 2026 and expected to be active:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected { id: 'promo-001', …(6) } to match object { percent: 15, status: 'active' }
+-   "status": "active",
++   "status": "scheduled",`}
+        </pre>
+        <p className="text-muted">
+          It had been written when July was behind us. It would have gone red
+          the other way for anyone who ran it earlier in the year. The dates are
+          now June 1, in the past of the pinned instant, and they stay there.
+        </p>
+
+        <h3 className={beat}>
+          The delay test I wrote first could not fail for the right reason.
+        </h3>
+        <p className="text-muted">
+          The handlers waited a random 100 to 300 milliseconds, and the handler
+          tests worked around it by mocking <C>Math.random</C> to 0. I replaced
+          the delay with a constant tick and asserted that a request never rolls
+          the dice. That failed after the fix:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected "random" to not be called at all, but actually been called 2 times`}
+        </pre>
+        <p className="text-muted">
+          MSW rolls <C>Math.random</C> itself to id each request, once per
+          fetch. My first attempt to mock the <C>delay</C> export did nothing
+          either, because the setup had already loaded the module. The test now
+          records only the rolls whose stack starts in the handler file, and I
+          ran it against the old handlers to see it fail before trusting it.
+        </p>
+
+        <h3 className={beat}>The reset did not reset.</h3>
+        <p className="text-muted">
+          <C>resetOperatorWriteState</C> cleared sessions and promotions and
+          nothing else, but the handlers also mutate the seed in place:
+          dismissing an alert, restocking an item, rearranging a planogram. A
+          test that did any of those left it for the next test in the file. It
+          now restores a copy of the seed taken at load, and there is a test per
+          mutation. The shared <C>/api/me</C> handler was also missing{" "}
+          <C>isFlagAdmin</C>, which the real route has always returned.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Every test file has been run alone, shuffled, under two seeds, and every test has a verdict. About one in seven was weak, tautological, leaky, misnamed or redundant, and those were strengthened or replaced.",
           "Tests that assert nothing, run in an order they depend on, are skipped, or are expected to fail without saying why now fail the build, as does a BFF route nobody tests.",
           "Lint fails on a warning. The e2e log names every test and each step keeps a report.",
           "The untested BFF routes and the logic files nothing touched got real tests.",
+          "The operator factories and the test clock are pinned, the handlers wait a constant tick, and the reset restores the seed. The updates list tests have a timeout that survives a loaded machine.",
         ]}
         couldImprove={[
           "Run mutation testing in CI on the code that handles money and auth. It only runs on the NFL projection math today.",
-          "Make the operator seed and factories deterministic. Three reviewers found the same unseeded random and real clock.",
-          "Find out why one file failed once under shuffle seed 1234. It passed nine reruns and I have not reproduced it.",
           "Decide what to do about tests that pin exact prose. Rewording a write-up should not break a build.",
           "A coverage floor for logic files, so a new one cannot arrive without a test.",
         ]}

@@ -6,7 +6,9 @@
 - `useCalendarEvents` keeps the seeded events when a write lands before the first fetch, `useCountUp` shows the target when the duration is zero, and `useStreamingText` closes the stream it replaces and the one it is unmounted with. The SSE parser carries an unfinished line and its event across chunks, which also fixes multi-line data split over two chunks.
 - The login return path can no longer start with `//`, pull request links refuse a `.` or `..` repo, a type named like an object method gets the default colour, and the ZeroProof tracker sends a full batch that piled up behind the one in flight as soon as it lands.
 - The card collection page says it could not load your collection when the request fails, rather than asking a signed-in user to sign in.
-- Dated update on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said.
+- The shared test helpers are repeatable: the operator factories and the test clock are pinned in setup, the mock handlers wait a constant tick instead of a random 100 to 300ms, `resetOperatorWriteState` restores dismissed alerts, restocked items and rearranged planograms, and the mock `/api/me` returns `isFlagAdmin`. The production demo seed still uses the real dice and clock.
+- The `UpdatesContent` tests failed once under shuffle seed 1234 on a loaded machine. That was a 5 second timeout on a list that renders every update, reproduced with heavy CPU load, and the file now has a timeout that survives it.
+- Dated updates on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said, and the helper and timeout work that was first left alone.
 
 ## 2026-11-21 - version 9.2.29
 
