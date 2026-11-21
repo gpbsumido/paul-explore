@@ -36,6 +36,11 @@ describe("VersionBanner", () => {
     ).toHaveAttribute("href", "/");
   });
 
+  it("is a named landmark, since it sits outside the page's main region", () => {
+    render(<VersionBanner version="v2" />);
+    expect(screen.getByRole("region", { name: "Landing page version" })).toBeInTheDocument();
+  });
+
   it("has no axe violations", async () => {
     const { container } = render(
       <VersionBanner version="v3" label="Landing-page history: v3" />,

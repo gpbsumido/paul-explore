@@ -12,7 +12,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("RiskScoringApiContent", () => {
   it("renders the write-up heading", () => {
     render(<RiskScoringApiContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Learning Go by building a risk-scoring API" })).toBeInTheDocument();
   });
 
   it("is now deprecated and filed under the Deprecated group", () => {

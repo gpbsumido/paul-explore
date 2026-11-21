@@ -7,7 +7,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("LandingPageContent", () => {
   it("renders the write-up heading", () => {
     render(<LandingPageContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Landing Page" })).toBeInTheDocument();
   });
 
   it("keeps its sections in order after the split", () => {
@@ -15,7 +15,7 @@ describe("LandingPageContent", () => {
     const body = document.body.textContent ?? "";
     // One heading from each half, in document order.
     const first = body.indexOf("Zero-dependency first");
-    const later = body.indexOf("Predictions panel");
+    const later = body.indexOf("Auth section padlock");
     expect(first).toBeGreaterThan(-1);
     expect(later).toBeGreaterThan(first);
   });

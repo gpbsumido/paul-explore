@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
@@ -6,6 +6,10 @@ import { queryKeys } from "@/lib/queryKeys";
 import HarnessVisualPlanContent from "./HarnessVisualPlanContent";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 function makeClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -97,4 +101,32 @@ describe("HarnessVisualPlanContent", () => {
       screen.queryByRole("heading", { name: /interview me first/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("keeps the write-up locked while the session is still loading, so the gated prose never flashes", () => {
+    // A request that never answers: the page has no idea who is reading yet.
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+    const { container } = renderWith(makeClient());
+
+    expect(screen.getByTestId("paywall-teaser")).toBeInTheDocument();
+    expect(screen.queryByTestId("gated-content")).not.toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/I used to jump straight into the code/i);
+  });
+
+  it("keeps the write-up locked for a signed-out reader", () => {
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { name: null, email: null, sub: null, isFlagAdmin: false });
+    renderWith(client);
+
+    expect(screen.queryByTestId("gated-content")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /interview me first/i })).toBeInTheDocument();
+  });
+
+  it("does not unlock for an address that only looks like the owner's", () => {
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { email: "psumido@gmail.com.evil.example" });
+    renderWith(client);
+
+    expect(screen.queryByTestId("gated-content")).not.toBeInTheDocument();
+  });
 });
+

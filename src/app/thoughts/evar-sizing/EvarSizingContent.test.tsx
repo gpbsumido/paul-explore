@@ -7,7 +7,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("EvarSizingContent", () => {
   it("renders the write-up heading", () => {
     render(<EvarSizingContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Practising EVAR Sizing on a CT Phantom" })).toBeInTheDocument();
   });
 
   it("links to the practice where it lives now, on its own domain", () => {

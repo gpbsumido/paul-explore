@@ -7,7 +7,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("LearnContent", () => {
   it("renders the write-up heading", () => {
     render(<LearnContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Thirteen Demos, One Player" })).toBeInTheDocument();
   });
 
   it("carries a timeline that jumps to its dated updates", () => {
