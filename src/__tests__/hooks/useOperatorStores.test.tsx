@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -11,8 +11,36 @@ import {
   buildStore,
   buildInventoryList,
 } from "@/test/factories/operator";
-import { storeSchema, inventoryItemSchema } from "@/lib/operator-schemas";
+import { CONNECTION_ERROR_MESSAGE } from "@/lib/userFacingError";
 import type { ReactNode } from "react";
+
+afterEach(() => vi.restoreAllMocks());
+
+/** Counts how often a polled hook asks again, with only the interval timer faked. */
+async function countPolls({
+  everyMs,
+  usePolledHook,
+  requests,
+}: {
+  everyMs: number;
+  usePolledHook: () => { loading: boolean };
+  requests: () => number;
+}) {
+  vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+  try {
+    const { result } = renderHook(usePolledHook, { wrapper: makeWrapper() });
+    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    expect(requests()).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(everyMs - 1_000);
+    expect(requests()).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.waitFor(() => expect(requests()).toBe(2));
+  } finally {
+    vi.useRealTimers();
+  }
+}
 
 function makeWrapper() {
   const queryClient = new QueryClient({
@@ -31,7 +59,7 @@ function makeWrapper() {
 // ---------------------------------------------------------------------------
 
 describe("useOperatorStores", () => {
-  it("fetches and exposes stores from the API", async () => {
+  it("fetches and exposes the stores from the API", async () => {
     const stores = [...buildStoreList(3)];
     server.use(
       http.get("/api/operator/stores", () => HttpResponse.json({ stores })),
@@ -42,10 +70,8 @@ describe("useOperatorStores", () => {
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.stores).toHaveLength(3);
-    result.current.stores.forEach((s) => {
-      expect(storeSchema.safeParse(s).success).toBe(true);
-    });
+    expect(result.current.stores).toEqual(stores);
+    expect(result.current.error).toBeNull();
   });
 
   it("returns an empty array while loading", () => {
@@ -57,14 +83,61 @@ describe("useOperatorStores", () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it("exposes an error message when the fetch fails", async () => {
+  it("says the stores couldn't be fetched when the server errors", async () => {
+    server.use(
+      http.get("/api/operator/stores", () =>
+        HttpResponse.json({ error: "down" }, { status: 500 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useOperatorStores(), {
+      wrapper: makeWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.error).toBe("Failed to fetch stores"));
+    expect(result.current.stores).toEqual([]);
+  });
+
+  it("says the connection failed when the request never arrives", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     server.use(http.get("/api/operator/stores", () => HttpResponse.error()));
 
     const { result } = renderHook(() => useOperatorStores(), {
       wrapper: makeWrapper(),
     });
 
-    await waitFor(() => expect(result.current.error).not.toBeNull());
+    await waitFor(() => expect(result.current.error).toBe(CONNECTION_ERROR_MESSAGE));
+  });
+
+  it("falls back to a plain message when the body isn't a list of stores", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    server.use(
+      http.get("/api/operator/stores", () =>
+        HttpResponse.json({ stores: [{ id: 1, nonsense: true }] }),
+      ),
+    );
+
+    const { result } = renderHook(() => useOperatorStores(), {
+      wrapper: makeWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.error).toBe("Failed to load stores."));
+  });
+
+  it("checks the fleet again every 30 seconds", async () => {
+    let requests = 0;
+    server.use(
+      http.get("/api/operator/stores", () => {
+        requests += 1;
+        return HttpResponse.json({ stores: [] });
+      }),
+    );
+
+    await countPolls({
+      everyMs: 30_000,
+      usePolledHook: () => useOperatorStores(),
+      requests: () => requests,
+    });
   });
 });
 
@@ -73,10 +146,14 @@ describe("useOperatorStores", () => {
 // ---------------------------------------------------------------------------
 
 describe("useOperatorStore", () => {
-  it("fetches a single store by ID", async () => {
+  it("fetches the store it is given by ID", async () => {
     const store = buildStore({ id: "store-detail" });
+    const askedFor: string[] = [];
     server.use(
-      http.get("/api/operator/stores/:id", () => HttpResponse.json({ store })),
+      http.get("/api/operator/stores/:id", ({ params }) => {
+        askedFor.push(String(params.id));
+        return HttpResponse.json({ store });
+      }),
     );
 
     const { result } = renderHook(() => useOperatorStore("store-detail"), {
@@ -84,11 +161,11 @@ describe("useOperatorStore", () => {
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.store?.id).toBe("store-detail");
-    expect(storeSchema.safeParse(result.current.store).success).toBe(true);
+    expect(askedFor).toEqual(["store-detail"]);
+    expect(result.current.store).toEqual(store);
   });
 
-  it("exposes an error when the store is not found", async () => {
+  it("says the store couldn't be fetched when it is not found", async () => {
     server.use(
       http.get("/api/operator/stores/:id", () =>
         HttpResponse.json({ error: "Store not found" }, { status: 404 }),
@@ -99,7 +176,23 @@ describe("useOperatorStore", () => {
       wrapper: makeWrapper(),
     });
 
-    await waitFor(() => expect(result.current.error).not.toBeNull());
+    await waitFor(() => expect(result.current.error).toBe("Failed to fetch store"));
+    expect(result.current.store).toBeUndefined();
+  });
+
+  it("falls back to a plain message when the body isn't a store", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    server.use(
+      http.get("/api/operator/stores/:id", () =>
+        HttpResponse.json({ store: { id: "x", nonsense: true } }),
+      ),
+    );
+
+    const { result } = renderHook(() => useOperatorStore("x"), {
+      wrapper: makeWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.error).toBe("Failed to load store."));
   });
 
   it("shows a server-seeded store immediately, with no loading pass", () => {
@@ -114,7 +207,22 @@ describe("useOperatorStore", () => {
     );
 
     expect(result.current.loading).toBe(false);
-    expect(result.current.store?.id).toBe("seeded");
+    expect(result.current.store).toEqual(seeded);
+  });
+
+  it("swaps the seeded store for the fresher one the background refetch returns", async () => {
+    const seeded = buildStore({ id: "seeded", name: "Old name" });
+    const fresh = { ...seeded, name: "New name" };
+    server.use(
+      http.get("/api/operator/stores/:id", () => HttpResponse.json({ store: fresh })),
+    );
+
+    const { result } = renderHook(
+      () => useOperatorStore("seeded", { initialData: seeded }),
+      { wrapper: makeWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.store?.name).toBe("New name"));
   });
 });
 
@@ -123,12 +231,14 @@ describe("useOperatorStore", () => {
 // ---------------------------------------------------------------------------
 
 describe("useOperatorInventory", () => {
-  it("fetches inventory items for a store", async () => {
+  it("fetches the inventory items of the store it is given", async () => {
     const items = [...buildInventoryList("store-inv", 4)];
+    const askedFor: string[] = [];
     server.use(
-      http.get("/api/operator/stores/:id/inventory", () =>
-        HttpResponse.json({ items }),
-      ),
+      http.get("/api/operator/stores/:id/inventory", ({ params }) => {
+        askedFor.push(String(params.id));
+        return HttpResponse.json({ items });
+      }),
     );
 
     const { result } = renderHook(() => useOperatorInventory("store-inv"), {
@@ -136,10 +246,8 @@ describe("useOperatorInventory", () => {
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.items).toHaveLength(4);
-    result.current.items.forEach((item) => {
-      expect(inventoryItemSchema.safeParse(item).success).toBe(true);
-    });
+    expect(askedFor).toEqual(["store-inv"]);
+    expect(result.current.items).toEqual(items);
   });
 
   it("returns an empty array while loading", () => {
@@ -151,7 +259,7 @@ describe("useOperatorInventory", () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it("exposes an error when the store is not found", async () => {
+  it("says the inventory couldn't be fetched when the store is not found", async () => {
     server.use(
       http.get("/api/operator/stores/:id/inventory", () =>
         HttpResponse.json({ error: "Store not found" }, { status: 404 }),
@@ -162,6 +270,37 @@ describe("useOperatorInventory", () => {
       wrapper: makeWrapper(),
     });
 
-    await waitFor(() => expect(result.current.error).not.toBeNull());
+    await waitFor(() => expect(result.current.error).toBe("Failed to fetch inventory"));
+  });
+
+  it("falls back to a plain message when the body isn't a list of items", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    server.use(
+      http.get("/api/operator/stores/:id/inventory", () =>
+        HttpResponse.json({ items: [{ id: 1, nonsense: true }] }),
+      ),
+    );
+
+    const { result } = renderHook(() => useOperatorInventory("store-inv"), {
+      wrapper: makeWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.error).toBe("Failed to load inventory."));
+  });
+
+  it("checks stock again every 60 seconds", async () => {
+    let requests = 0;
+    server.use(
+      http.get("/api/operator/stores/:id/inventory", () => {
+        requests += 1;
+        return HttpResponse.json({ items: [] });
+      }),
+    );
+
+    await countPolls({
+      everyMs: 60_000,
+      usePolledHook: () => useOperatorInventory("store-inv"),
+      requests: () => requests,
+    });
   });
 });

@@ -6,6 +6,7 @@ import { notifyMutationError } from "./mutationErrorToast";
 
 // The Toaster store is a module-level singleton, so clear anything a test raised.
 afterEach(() => {
+  vi.restoreAllMocks();
   document.querySelectorAll(".toast__dismiss").forEach((btn) => {
     act(() => fireEvent.click(btn));
   });
@@ -28,6 +29,12 @@ describe("notifyMutationError", () => {
     render(<Toaster />);
     act(() => notifyMutationError(new Error("Boom"), { silent: true }));
     expect(screen.queryByText("Boom")).not.toBeInTheDocument();
+  });
+
+  it("still toasts when the mutation's meta doesn't ask for silence", () => {
+    render(<Toaster />);
+    act(() => notifyMutationError(new Error("Boom"), { silent: false, other: true }));
+    expect(screen.getByText("Boom")).toBeInTheDocument();
   });
 
   it("falls back to a plain message when there's no usable one", () => {

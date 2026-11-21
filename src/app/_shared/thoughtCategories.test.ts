@@ -5,23 +5,80 @@ import {
   DEPRECATED_GROUP,
 } from "./thoughtCategories";
 import { THOUGHTS } from "./featureData";
+import type { ThoughtItem } from "@/types/hub";
 
-describe("groupThoughts deprecation", () => {
-  const groups = groupThoughts(THOUGHTS);
-  const deprecated = groups.find((g) => g.name === DEPRECATED_GROUP);
+/** A write-up at /thoughts/<slug>, with the fields the grouping does not read filled in. */
+function buildThought(
+  slug: string,
+  overrides: Partial<ThoughtItem> = {},
+): ThoughtItem {
+  return {
+    title: slug,
+    href: `/thoughts/${slug}`,
+    preview: "",
+    color: "#336699",
+    ...overrides,
+  };
+}
 
-  it("collects deprecated write-ups into a trailing Deprecated group", () => {
-    const deprecatedCount = THOUGHTS.filter((t) => t.deprecated).length;
-    expect(deprecatedCount).toBeGreaterThan(0);
-    expect(deprecated?.items).toHaveLength(deprecatedCount);
-    expect(groups[groups.length - 1].name).toBe(DEPRECATED_GROUP);
+describe("groupThoughts", () => {
+  it("files a write-up under the category that claims its slug", () => {
+    const groups = groupThoughts([
+      buildThought("vitals"),
+      buildThought("world"),
+    ]);
+    expect(
+      groups.map((g) => [g.name, g.items.map((t) => t.title)]),
+    ).toEqual([
+      ["Features", ["world"]],
+      ["Performance", ["vitals"]],
+    ]);
   });
 
-  it("keeps deprecated write-ups out of the normal category groups", () => {
-    for (const g of groups) {
-      if (g.name === DEPRECATED_GROUP) continue;
-      expect(g.items.every((t) => !t.deprecated)).toBe(true);
-    }
+  it("orders groups by category, not by the order write-ups arrive", () => {
+    const groups = groupThoughts([
+      buildThought("security"),
+      buildThought("vitals"),
+      buildThought("world"),
+    ]);
+    expect(groups.map((g) => g.name)).toEqual([
+      "Features",
+      "Performance",
+      "Security",
+    ]);
+  });
+
+  it("puts a write-up nobody categorised into a trailing More group", () => {
+    const groups = groupThoughts([
+      buildThought("world"),
+      buildThought("brand-new-writeup"),
+    ]);
+    expect(groups.map((g) => g.name)).toEqual(["Features", "More"]);
+    expect(groups[1].items.map((t) => t.title)).toEqual(["brand-new-writeup"]);
+  });
+
+  it("leaves out a category that has no write-ups", () => {
+    expect(groupThoughts([buildThought("world")]).map((g) => g.name)).toEqual([
+      "Features",
+    ]);
+  });
+
+  it("drops a deprecated write-up from its category into the Deprecated group", () => {
+    const groups = groupThoughts([
+      buildThought("world"),
+      buildThought("vitals", { deprecated: true }),
+      buildThought("brand-new-writeup", { deprecated: true }),
+    ]);
+    expect(groups.map((g) => [g.name, g.items.map((t) => t.title)])).toEqual([
+      ["Features", ["world"]],
+      [DEPRECATED_GROUP, ["vitals", "brand-new-writeup"]],
+    ]);
+  });
+
+  it("shows every real write-up exactly once", () => {
+    const shown = groupThoughts(THOUGHTS).flatMap((g) => g.items);
+    expect(shown).toHaveLength(THOUGHTS.length);
+    expect(new Set(shown).size).toBe(THOUGHTS.length);
   });
 });
 

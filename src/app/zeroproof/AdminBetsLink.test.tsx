@@ -8,12 +8,24 @@ import AdminBetsLink from "./AdminBetsLink";
 
 const renderLink = () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const view = render(
     <QueryClientProvider client={client}>
       <AdminBetsLink />
     </QueryClientProvider>,
   );
+  return { ...view, client };
 };
+
+/**
+ * Waits for /api/me to be answered. The link starts out absent, so checking for
+ * its absence before the answer lands would pass whatever the answer said.
+ */
+const untilSessionIsKnown = (client: QueryClient) =>
+  waitFor(() => {
+    const queries = client.getQueryCache().findAll();
+    expect(queries.length).toBeGreaterThan(0);
+    expect(queries.every((query) => query.state.status === "success")).toBe(true);
+  });
 
 const asAdmin = () =>
   server.use(
@@ -36,13 +48,15 @@ describe("AdminBetsLink", () => {
         HttpResponse.json({ sub: "auth0|me", isFlagAdmin: false }),
       ),
     );
-    const { container } = renderLink();
-    await waitFor(() => expect(container.querySelector("a")).toBeNull());
+    const { container, client } = renderLink();
+    await untilSessionIsKnown(client);
+    expect(container.querySelector("a")).toBeNull();
   });
 
   it("renders nothing for a signed-out visitor (the /api/me default)", async () => {
-    const { container } = renderLink();
-    await waitFor(() => expect(container.querySelector("a")).toBeNull());
+    const { container, client } = renderLink();
+    await untilSessionIsKnown(client);
+    expect(container.querySelector("a")).toBeNull();
   });
 
   it("has no a11y violations for an admin", async () => {

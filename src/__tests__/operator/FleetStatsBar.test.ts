@@ -95,6 +95,36 @@ describe("computeFleetStats", () => {
     expect(stats.lowStockItems).toBe(2);
   });
 
+  it("doesn't call an item low until it is below 20% of capacity", () => {
+    const inventory = new Map<string, readonly InventoryItem[]>([
+      [
+        "s-1",
+        [
+          buildInventoryItem({ id: "i-1", storeId: "s-1", currentStock: 2, capacity: 10 }),
+          buildInventoryItem({ id: "i-2", storeId: "s-1", currentStock: 19, capacity: 100 }),
+        ],
+      ],
+    ]);
+
+    const stats = computeFleetStats([buildStore({ id: "s-1" })], new Map(), inventory);
+
+    // 2 of 10 is exactly 20%, so only the 19% item is low.
+    expect(stats.lowStockItems).toBe(1);
+  });
+
+  it("rounds the average inventory health to a whole percent", () => {
+    const inventory = new Map<string, readonly InventoryItem[]>([
+      [
+        "s-1",
+        [buildInventoryItem({ id: "i-1", storeId: "s-1", currentStock: 2, capacity: 3 })],
+      ],
+    ]);
+
+    const stats = computeFleetStats([buildStore({ id: "s-1" })], new Map(), inventory);
+
+    expect(stats.avgInventoryHealth).toBe(67);
+  });
+
   it("computes average inventory health as percent of capacity filled", () => {
     const inventory = new Map<string, readonly InventoryItem[]>([
       [

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import BlobBackground from "./BlobBackground";
@@ -7,6 +7,10 @@ const mocks = vi.hoisted(() => ({ reduced: false }));
 vi.mock("@/app/providers", () => ({
   useHubReducedMotion: () => mocks.reduced,
 }));
+
+beforeEach(() => {
+  mocks.reduced = false;
+});
 
 describe("BlobBackground", () => {
   it("drifts its layers ambiently, each on its own clock", () => {
@@ -24,7 +28,24 @@ describe("BlobBackground", () => {
     mocks.reduced = true;
     const { container } = render(<BlobBackground seeds={[1, 2]} />);
     expect(container.querySelector(".blob-drift")).not.toBeInTheDocument();
-    mocks.reduced = false;
+  });
+
+  it("gives each layer two more points than the one below it", () => {
+    const { container } = render(<BlobBackground seeds={[1, 2, 3]} />);
+    const curves = [...container.querySelectorAll("path")].map(
+      (path) => path.getAttribute("d")?.match(/C/g)?.length,
+    );
+    expect(curves).toEqual([8, 10, 12]);
+  });
+
+  it("cycles its colours across the layers", () => {
+    const { container } = render(
+      <BlobBackground seeds={[1, 2, 3]} colors={["red", "blue"]} />,
+    );
+    const firstStops = [...container.querySelectorAll("radialGradient")].map(
+      (gradient) => gradient.querySelector("stop")?.getAttribute("stop-color"),
+    );
+    expect(firstStops).toEqual(["red", "blue", "red"]);
   });
 
   it("renders one path per seed", () => {

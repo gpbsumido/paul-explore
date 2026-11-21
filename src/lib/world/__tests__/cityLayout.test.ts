@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ROADS, BUILDINGS, COLLIDERS, SPAWN, LAKE_EDGE_Z } from "../cityLayout";
+import { EXHIBITS } from "../exhibits";
 import { WORLD_BOUNDS, PLAYER_RADIUS } from "../movement";
 import { resolveColliders } from "../colliders";
 
@@ -67,6 +68,21 @@ describe("city layout", () => {
     }
   });
 
+  it("leaves a clearing around every exhibit and around the spawn point", () => {
+    const clearings = [
+      ...EXHIBITS.map((e) => ({ name: e.featureId, x: e.position.x, z: e.position.z })),
+      { name: "spawn", x: SPAWN.x, z: SPAWN.z },
+    ];
+    for (const clearing of clearings) {
+      const blocker = BUILDINGS.find(
+        (b) =>
+          Math.abs(b.x - clearing.x) < b.width / 2 + 3 &&
+          Math.abs(b.z - clearing.z) < b.depth / 2 + 3,
+      );
+      expect(blocker, `a generated building crowds ${clearing.name}`).toBeUndefined();
+    }
+  });
+
   it("builds a dense enough downtown to feel like a city", () => {
     expect(BUILDINGS.length).toBeGreaterThan(40);
   });
@@ -80,7 +96,6 @@ describe("city layout", () => {
   });
 
   it("is deterministic — the same layout every load", () => {
-    expect(BUILDINGS).toEqual(BUILDINGS.map((b) => ({ ...b })));
     const signature = BUILDINGS.slice(0, 5).map((b) => `${b.x},${b.z},${b.height.toFixed(3)}`);
     expect(signature).toMatchSnapshot();
   });

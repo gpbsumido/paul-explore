@@ -76,6 +76,73 @@ describe("TopicDetail", () => {
     expect(push).toHaveBeenCalledWith("/interviewee/general");
   });
 
+  it("also goes back on Backspace", async () => {
+    const user = userEvent.setup();
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
+    await user.keyboard("{Backspace}");
+    expect(push).toHaveBeenCalledWith("/interviewee/general");
+  });
+
+  it("leaves Backspace and Escape alone while a field has focus", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <TopicDetail interviewId="general" topic={topic} related={related} />
+        <input aria-label="scratch" />
+      </>,
+    );
+    await user.click(screen.getByLabelText("scratch"));
+    await user.keyboard("{Backspace}{Escape}");
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("leaves a browser shortcut alone when a modifier is held", async () => {
+    const user = userEvent.setup();
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
+    await user.keyboard("{Control>}{Backspace}{/Control}");
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("marks the topic reviewed, remembers it, and can undo it", async () => {
+    const user = userEvent.setup();
+    render(<TopicDetail interviewId="general" topic={topic} related={related} />);
+
+    await user.click(screen.getByRole("button", { name: "Mark reviewed" }));
+    const undo = screen.getByRole("button", { name: /bring back/i });
+    expect(undo).toHaveAttribute("aria-pressed", "true");
+    expect(
+      Object.keys(
+        JSON.parse(window.localStorage.getItem("interviewee-answered") ?? "{}")
+          .reviewed,
+      ),
+    ).toEqual(["general/system-design"]);
+
+    await user.click(undo);
+    expect(screen.getByRole("button", { name: "Mark reviewed" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("only adds a disclosure to questions that have detail", () => {
+    const withEmptyDetail: IntervieweeTopic = {
+      ...topic,
+      entries: [
+        ...topic.entries,
+        { question: "Anything else?", points: ["No"], details: [] },
+      ],
+    };
+    const { container } = render(
+      <TopicDetail
+        interviewId="general"
+        topic={withEmptyDetail}
+        related={related}
+      />,
+    );
+    // Three questions: one with detail, one with none, one with an empty list.
+    expect(container.querySelectorAll("details")).toHaveLength(1);
+  });
+
   it("shows related topics as cards scoped to the same interview", () => {
     render(<TopicDetail interviewId="general" topic={topic} related={related} />);
     expect(

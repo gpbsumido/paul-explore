@@ -40,6 +40,39 @@ describe("parseAbstractSections", () => {
     expect(parsed.conclusions).toBe("One thing follows.");
   });
 
+  it.each([
+    ["Introduction", "background"],
+    ["Context", "background"],
+    ["Purpose", "objective"],
+    ["Aims", "objective"],
+    ["Materials and Methods", "methods"],
+    ["Patients and Methods", "methods"],
+    ["Findings", "results"],
+    ["Conclusions:", "conclusions"],
+  ] as const)("files a %s heading under %s", (heading, section) => {
+    const parsed = parseAbstractSections(`<h4>${heading}</h4>Something stated.`);
+    expect(parsed[section]).toBe("Something stated.");
+  });
+
+  it("leaves a heading with nothing under it empty rather than blank", () => {
+    const parsed = parseAbstractSections("<h4>Results</h4><h4>Conclusions</h4>Done.");
+    expect(parsed.results).toBeNull();
+    expect(parsed.conclusions).toBe("Done.");
+  });
+
+  it("ignores a heading it doesn't recognise, but keeps its text in the body", () => {
+    const parsed = parseAbstractSections("<h4>Funding</h4>None declared.");
+    expect(parsed.body).toContain("None declared.");
+    expect([parsed.background, parsed.objective, parsed.methods, parsed.results, parsed.conclusions]).toEqual([
+      null, null, null, null, null,
+    ]);
+  });
+
+  it("turns markup into spaces and unescapes entities in the body", () => {
+    const parsed = parseAbstractSections("Stenosis &lt;50% in <i>all</i>patients &amp; controls");
+    expect(parsed.body).toBe("Stenosis <50% in all patients & controls");
+  });
+
   it("survives an empty abstract", () => {
     const parsed = parseAbstractSections("");
     expect(parsed.body).toBe("");
@@ -64,6 +97,28 @@ describe("detectDesign", () => {
       abstract: "",
     });
     expect(design.label).toBe("Multicentre observational study");
+  });
+
+  it("names a multicentre study and an observational study on their own", () => {
+    const only = (pubType: string) => detectDesign({ pubTypes: [pubType], title: "", abstract: "" }).label;
+    expect(only("Multicenter Study")).toBe("Multicentre study");
+    expect(only("Observational Study")).toBe("Observational study");
+  });
+
+  it("matches publication types whatever their capitalisation", () => {
+    expect(detectDesign({ pubTypes: ["SYSTEMATIC REVIEW"], title: "", abstract: "" }).label).toBe("Systematic review");
+  });
+
+  it("reads the design off the title as well as the abstract, whatever the case", () => {
+    const label = detectDesign({ pubTypes: [], title: "Prospective registry of limb salvage", abstract: "" }).label;
+    expect(label).toBe("Prospective cohort");
+  });
+
+  it("says only a randomised trial can support causal claims", () => {
+    const supports = (pubTypes: string[]) => detectDesign({ pubTypes, title: "", abstract: "" }).canSupportCausality;
+    expect(supports(["Randomized Controlled Trial"])).toBe(true);
+    expect(supports(["Observational Study"])).toBe(false);
+    expect(supports([])).toBe(false);
   });
 
   it("reads the design off the text when no type says", () => {
@@ -113,6 +168,22 @@ describe("extractSampleSize", () => {
 
   it("ignores years, which are not sample sizes", () => {
     expect(extractSampleSize("between 2019 and 2024")).toBeNull();
+    expect(extractSampleSize("In 2019 patients were enrolled")).toBeNull();
+  });
+
+  it("refuses a count of zero, whichever way it is written", () => {
+    expect(extractSampleSize("The cohort (n = 0) was empty")).toBeNull();
+    expect(extractSampleSize("We reviewed 0 patients")).toBeNull();
+  });
+
+  it("counts consecutive patients, limbs and procedures", () => {
+    expect(extractSampleSize("We treated 87 consecutive patients")).toBe(87);
+    expect(extractSampleSize("including 1,350 limbs")).toBe(1350);
+    expect(extractSampleSize("after 40 procedures")).toBe(40);
+  });
+
+  it("prefers a stated n to a loose count elsewhere in the sentence", () => {
+    expect(extractSampleSize("Of 900 patients screened, the cohort (n = 412) was analysed")).toBe(412);
   });
 });
 
@@ -158,6 +229,50 @@ describe("buildDiscussion", () => {
   it("quotes the paper's own conclusion back as something to challenge", () => {
     const d = buildDiscussion(paper);
     expect(d.questions.join(" ")).toContain("screened substantially less often");
+  });
+
+  it("reads the sample size from the methods before the rest of the abstract", () => {
+    const d = buildDiscussion({
+      ...paper,
+      abstract: "<h4>Background</h4>Of 9,000 patients screened nationally.<h4>Methods</h4>We analysed 412 patients.",
+    });
+    expect(d.points.join(" ")).toContain("412");
+    expect(d.points.join(" ")).not.toContain("9,000");
+  });
+
+  it("says case, not cases, for a single patient", () => {
+    const d = buildDiscussion({ ...paper, abstract: "<h4>Methods</h4>A report on 1 patients." });
+    expect(d.points.join(" ")).toMatch(/rests on 1 case\./);
+    expect(d.questions.join(" ")).toContain("With 1 case,");
+  });
+
+  it("quotes only the first sentence of the results, trimmed to a sensible length", () => {
+    const long = `${"A very long finding ".repeat(20)}ends here. A second sentence.`;
+    const d = buildDiscussion({
+      ...paper,
+      abstract: `<h4>Results</h4>Uptake was 41% in women. Then something else.<h4>Conclusions</h4>${long}`,
+    });
+    const text = d.points.join(" ");
+    expect(text).toContain("What the paper reports: Uptake was 41% in women. Check");
+    expect(text).not.toContain("Then something else");
+    expect(text).toContain("…");
+    expect(text).not.toContain("A second sentence");
+  });
+
+  it("closes with the randomisation question for a trial and the confounding one for the rest", () => {
+    const rct = buildDiscussion({ ...paper, pubTypes: ["Randomized Controlled Trial"] });
+    const cohort = buildDiscussion({ ...paper, pubTypes: ["Observational Study"] });
+    expect(rct.questions.join(" ")).toContain("Randomisation removes confounding");
+    expect(cohort.questions.join(" ")).toContain("Nothing here was randomised");
+    expect(rct.questions.join(" ")).not.toContain("Nothing here was randomised");
+  });
+
+  it("names the journal and year in the fallback prompts, or says the journal is unnamed", () => {
+    const bare = { title: "A short report.", abstract: "", pubTypes: [] as string[] };
+    const named = buildDiscussion({ ...bare, journal: "Ann Vasc Surg", pubDate: "2025-04-02" });
+    expect(named.points.join(" ")).toContain("Published in Ann Vasc Surg in 2025.");
+    const unnamed = buildDiscussion({ ...bare, journal: "", pubDate: "" });
+    expect(unnamed.points.join(" ")).toContain("Published in an unnamed journal.");
   });
 
   it("never emits an empty or placeholder prompt", () => {
@@ -222,6 +337,38 @@ describe("detectInnovation", () => {
       abstract: "No novel complications were observed during follow-up.",
     });
     expect(r.score).toBe(0);
+  });
+
+  it.each([
+    "There was nothing novel in the complication profile.",
+    "The technique was not innovative.",
+    "No new technique was introduced.",
+  ])("does not fire on a denial: %s", (abstract) => {
+    expect(detectInnovation({ title: "Outcomes after repair.", abstract }).signals).toEqual([]);
+  });
+
+  it("keeps the signals a denial doesn't touch", () => {
+    const r = detectInnovation({
+      title: "Outcomes after repair.",
+      abstract: "No novel complications were seen. A machine learning model was used.",
+    });
+    expect(r.signals).toEqual(["machine learning"]);
+  });
+
+  it("reads AI as a capitalised word, not any 'ai' inside another", () => {
+    const hits = (abstract: string) => detectInnovation({ title: "", abstract }).signals;
+    expect(hits("An AI-assisted workflow.")).toEqual(["artificial intelligence"]);
+    expect(hits("Reviewed by Ai Nguyen and the aide.")).toEqual([]);
+  });
+
+  it("reads a denial through the markup around the word", () => {
+    const r = detectInnovation({ title: "", abstract: "No <i>novel</i> complications were seen." });
+    expect(r.signals).toEqual([]);
+  });
+
+  it("strips markup before looking for signals", () => {
+    const r = detectInnovation({ title: "A <i>novel</i> stent", abstract: "" });
+    expect(r.signals).toEqual(["novel"]);
   });
 
   it("names every signal it matched, so the reason is visible", () => {

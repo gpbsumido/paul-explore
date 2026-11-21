@@ -6,6 +6,7 @@ import {
   ROUTE_CEILING,
   compare,
   formatFailures,
+  formatReport,
   measure,
   routeChunks,
   sharedChunks,
@@ -173,6 +174,57 @@ describe("the failure message", () => {
 
   it("says why that budget is the number it is", () => {
     expect(formatFailures(failures)).toContain("deliberately heavy 3D city");
+  });
+
+  it("leaves out the routes that are within budget", () => {
+    const text = formatFailures(
+      compare({
+        measurements: [
+          { name: "/world", bytes: 400 * 1024 },
+          { name: "/fine", bytes: 1024 },
+        ],
+        budgets: { "/world": { kb: 330, note: "heavy" } },
+        ceiling: { kb: 360, note: "ceiling" },
+      }),
+    );
+
+    expect(text).toContain("/world");
+    expect(text).not.toContain("/fine");
+  });
+
+  it("marks a route that blew the catch-all ceiling as having no budget of its own", () => {
+    const text = formatFailures(
+      compare({
+        measurements: [{ name: "/brand-new", bytes: 3000 }],
+        budgets: {},
+        ceiling: { kb: 2, note: "ceiling" },
+      }),
+    );
+
+    expect(text).toContain("(catch-all ceiling)");
+  });
+});
+
+describe("the passing report", () => {
+  const results = compare({
+    measurements: [
+      { name: "/small", bytes: 512 * 1024 },
+      { name: "/large", bytes: 900 * 1024 },
+      { name: "/unnamed", bytes: 100 * 1024 },
+    ],
+    budgets: {
+      "/small": { kb: 1024, note: "test" },
+      "/large": { kb: 1000, note: "test" },
+    },
+    ceiling: { kb: 360, note: "ceiling" },
+  });
+
+  it("lists only the named routes, heaviest first, with how much of the budget each has used", () => {
+    const lines = formatReport(results).split("\n");
+
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(/\/large\s+900\.0KB \/\s+1000\.0KB\s+\(90% used\)/);
+    expect(lines[1]).toMatch(/\/small\s+512\.0KB \/\s+1024\.0KB\s+\(50% used\)/);
   });
 });
 

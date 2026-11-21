@@ -13,6 +13,29 @@ const metrics = {
   clientHeight: 160,
 };
 
+describe("viewportRect", () => {
+  it("covers the whole wall when nothing is scrollable", () => {
+    const flat = { ...metrics, scrollWidth: 0, scrollHeight: 0 };
+    expect(viewportRect(flat, wall)).toMatchObject({
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 80,
+    });
+  });
+
+  it("shows the visible share of the wall at the scrolled offset", () => {
+    expect(
+      viewportRect({ ...metrics, scrollLeft: 100, scrollTop: 80 }, wall),
+    ).toMatchObject({ x: 25, y: 20, width: 50, height: 40 });
+  });
+
+  it("never claims more than the whole wall when the window is larger than the content", () => {
+    const small = { ...metrics, scrollWidth: 100, scrollHeight: 80 };
+    expect(viewportRect(small, wall)).toMatchObject({ width: 100, height: 80 });
+  });
+});
+
 describe("minimapPointToScroll", () => {
   it("centres the window on the requested wall point", () => {
     const { scrollLeft, scrollTop } = minimapPointToScroll(
@@ -43,6 +66,14 @@ describe("minimapPointToScroll", () => {
   it("returns the origin when nothing is scrollable", () => {
     const flat = { ...metrics, scrollWidth: 0, scrollHeight: 0 };
     expect(minimapPointToScroll({ x: 50, y: 40 }, flat, wall)).toEqual({
+      scrollLeft: 0,
+      scrollTop: 0,
+    });
+  });
+
+  it("stays at the origin when the content is smaller than the window", () => {
+    const small = { ...metrics, scrollWidth: 100, scrollHeight: 80 };
+    expect(minimapPointToScroll({ x: 50, y: 40 }, small, wall)).toEqual({
       scrollLeft: 0,
       scrollTop: 0,
     });

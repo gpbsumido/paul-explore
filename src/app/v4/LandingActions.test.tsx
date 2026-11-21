@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -17,14 +17,23 @@ const renderActions = (loggedIn?: boolean) => {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
+  render(
     <QueryClientProvider client={client}>
       <ThemeProvider>
         <LandingActions loggedIn={loggedIn} />
       </ThemeProvider>
     </QueryClientProvider>,
   );
+  return client;
 };
+
+/** Waits until every query on the client has settled with data, so a check made after it reads the resolved session, not the optimistic one. */
+const untilQueriesResolve = (client: QueryClient) =>
+  waitFor(() => {
+    const queries = client.getQueryCache().findAll();
+    expect(queries.length).toBeGreaterThan(0);
+    expect(queries.every((q) => q.state.status === "success")).toBe(true);
+  });
 
 describe("LandingActions", () => {
   it("renders the settings menu trigger", () => {
@@ -93,10 +102,12 @@ describe("LandingActions without a loggedIn prop", () => {
     server.use(
       http.get("/api/me", () => HttpResponse.json({ sub: null })),
     );
-    renderActions(undefined);
+    const client = renderActions(undefined);
 
     // Guest-optimistic: Log in shows immediately, never a wrong "Log out".
-    const cta = await screen.findByRole("link", { name: /log in/i });
+    expect(await screen.findByRole("link", { name: /log in/i })).toBeVisible();
+    await untilQueriesResolve(client);
+    const cta = screen.getByRole("link", { name: /log in/i });
     expect(cta).toHaveAttribute("href", "/auth/login");
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
     expect(
@@ -108,9 +119,10 @@ describe("LandingActions without a loggedIn prop", () => {
     server.use(
       http.get("/api/me", () => HttpResponse.json({ sub: "auth0|paul" })),
     );
-    renderActions(undefined);
+    const client = renderActions(undefined);
 
     const cta = await screen.findByRole("link", { name: /log out/i });
+    await untilQueriesResolve(client);
     expect(cta).toHaveAttribute("href", "/auth/logout");
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
     expect(screen.getByRole("link", { name: /settings/i })).toHaveAttribute(

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 
 import {
   DEFAULT_ZONE,
@@ -36,8 +36,22 @@ describe("storeTimeZone", () => {
     );
   });
 
+  it.each([
+    ["AB", "America/Edmonton"],
+    ["MB", "America/Winnipeg"],
+    ["QC", "America/Toronto"],
+    ["SK", "America/Regina"],
+    ["YT", "America/Whitehorse"],
+  ] as const)("maps %s to %s when no zone was sent", (province, zone) => {
+    expect(storeTimeZone({ province })).toBe(zone);
+  });
+
   it("falls back to UTC when there is nothing to go on", () => {
     expect(storeTimeZone(undefined)).toBe(DEFAULT_ZONE);
+  });
+
+  it("falls back to UTC for a province it has no zone for", () => {
+    expect(storeTimeZone({ province: "ZZ" })).toBe(DEFAULT_ZONE);
   });
 });
 
@@ -85,6 +99,21 @@ describe("dayStartInZone", () => {
 });
 
 describe("zonedInstant", () => {
+  it("lands a wall clock after the spring-forward gap on the right instant", () => {
+    // 03:00 on Mar 8 is 03:00 EDT, which is 07:00 UTC. Using the pre-gap EST
+    // offset would put it an hour late.
+    expect(zonedInstant(2026, 3, 8, 3, "America/Toronto").toISOString()).toBe(
+      "2026-03-08T07:00:00.000Z",
+    );
+  });
+
+  it("lands a wall clock after the fall-back repeat on the right instant", () => {
+    // 03:00 on Nov 1 is 03:00 EST, which is 08:00 UTC.
+    expect(zonedInstant(2026, 11, 1, 3, "America/Toronto").toISOString()).toBe(
+      "2026-11-01T08:00:00.000Z",
+    );
+  });
+
   it("rolls a negative day back into the previous month", () => {
     const at = zonedInstant(2026, 7, 0, 0, "UTC");
     expect(at.toISOString()).toBe("2026-06-30T00:00:00.000Z");
@@ -92,7 +121,17 @@ describe("zonedInstant", () => {
 });
 
 describe("browserTimeZone", () => {
-  it("returns a zone this runtime recognises", () => {
-    expect(isValidTimeZone(browserTimeZone())).toBe(true);
+  const originalZone = process.env.TZ;
+
+  afterEach(() => {
+    if (originalZone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalZone;
+  });
+
+  it("reports the zone the machine is set to", () => {
+    process.env.TZ = "Asia/Tokyo";
+    expect(browserTimeZone()).toBe("Asia/Tokyo");
+    process.env.TZ = "America/Vancouver";
+    expect(browserTimeZone()).toBe("America/Vancouver");
   });
 });

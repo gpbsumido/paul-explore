@@ -8,6 +8,23 @@ vi.mock("@/components/PageHeader", () => ({
 }));
 
 describe("ThoughtsIndexContent deep-link anchors", () => {
+  it("decodes an encoded hash before looking for the section", async () => {
+    const scrollSpy = vi.fn();
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = scrollSpy;
+    window.location.hash = "#architecture%2Dbackend";
+    try {
+      render(<ThoughtsIndexContent />);
+      await vi.waitFor(() => expect(scrollSpy).toHaveBeenCalled());
+      expect(scrollSpy.mock.instances[0]).toBe(
+        document.getElementById("architecture-backend"),
+      );
+    } finally {
+      Element.prototype.scrollIntoView = original;
+      window.location.hash = "";
+    }
+  });
+
   it("every landing category deep-link resolves to a real section on the index", () => {
     const { container } = render(<ThoughtsIndexContent />);
     const ids = new Set(

@@ -44,12 +44,35 @@ describe("sortStores", () => {
   });
 
   it("preserves relative order for stores with the same priority", () => {
-    const a = buildStore({ id: "s-a", status: "online" });
-    const b = buildStore({ id: "s-b", status: "online" });
-    const c = buildStore({ id: "s-c", status: "online" });
+    // Names run against the id order, so only a stable sort keeps this order.
+    const a = buildStore({ id: "s-a", name: "Zed Cafe", status: "online" });
+    const b = buildStore({ id: "s-b", name: "Mid Lobby", status: "online" });
+    const c = buildStore({ id: "s-c", name: "Alpha Gym", status: "online" });
 
     const sorted = sortStores([a, b, c], new Map());
     expect(sorted.map((s) => s.id)).toEqual(["s-a", "s-b", "s-c"]);
+  });
+
+  it("ranks degraded with alerts first whichever way round they are listed", () => {
+    const loud = buildStore({ id: "s-loud", status: "degraded" });
+    const quiet = buildStore({ id: "s-quiet", status: "degraded" });
+    const alertCounts = new Map([["s-loud", 1]]);
+
+    expect(
+      sortStores([loud, quiet], alertCounts).map((s) => s.id),
+    ).toEqual(["s-loud", "s-quiet"]);
+    expect(
+      sortStores([quiet, loud], alertCounts).map((s) => s.id),
+    ).toEqual(["s-loud", "s-quiet"]);
+  });
+
+  it("does not move an online store up for having alerts", () => {
+    const onlineLoud = buildStore({ id: "s-online-loud", status: "online" });
+    const degradedQuiet = buildStore({ id: "s-degraded", status: "degraded" });
+    const alertCounts = new Map([["s-online-loud", 4]]);
+
+    const sorted = sortStores([onlineLoud, degradedQuiet], alertCounts);
+    expect(sorted.map((s) => s.id)).toEqual(["s-degraded", "s-online-loud"]);
   });
 
   it("does not mutate the original array", () => {
@@ -130,6 +153,11 @@ describe("filterStores", () => {
     const result = filterStores(stores, { status: "all", search: "lobby" });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe("s-1");
+  });
+
+  it("ignores the case of what was typed", () => {
+    const result = filterStores(stores, { status: "all", search: "LOBBY" });
+    expect(result.map((s) => s.id)).toEqual(["s-1"]);
   });
 
   it("combines status and search filters", () => {

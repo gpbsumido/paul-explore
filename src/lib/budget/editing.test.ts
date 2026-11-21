@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadBudget, addExpense, updateExpense, deleteExpense } from "./budgetStore";
+import { BUDGET_KEY, loadBudget, addExpense, updateExpense, deleteExpense } from "./budgetStore";
 import { personSplits } from "./analytics";
 import type { Person } from "./types";
 
@@ -60,14 +60,46 @@ describe("updateExpense", () => {
       },
       storage,
     );
-    expect(after.expenses[0].splits).toHaveLength(2);
+    expect(after.expenses[0].splits).toEqual([
+      { personId: "p-you", amountCents: 600 },
+      { personId: "p-sam", amountCents: 400 },
+    ]);
+    expect(loadBudget(storage).expenses[0].splits).toEqual(after.expenses[0].splits);
   });
 
-  it("leaves other items untouched and ignores an unknown id", () => {
+  it("ignores an unknown id", () => {
     const storage = makeStorage();
     seed(storage);
     const before = loadBudget(storage);
     expect(updateExpense("nope", { amountCents: 9 }, storage)).toEqual(before);
+    expect(loadBudget(storage)).toEqual(before);
+  });
+
+  it("does not write to storage for an unknown id", () => {
+    const storage = makeStorage();
+    updateExpense("nope", { amountCents: 9 }, storage);
+    expect(storage.getItem(BUDGET_KEY)).toBeNull();
+  });
+
+  it("changes only the targeted item and keeps the fields it was not given", () => {
+    const storage = makeStorage();
+    seed(storage);
+    addExpense({ categoryId: "rent", amountCents: 9000, note: "september" }, storage, {
+      id: "e-2",
+      now: NOW,
+    });
+
+    const after = updateExpense("e-2", { amountCents: 9500 }, storage);
+
+    const first = after.expenses.find((e) => e.id === "e-1");
+    const second = after.expenses.find((e) => e.id === "e-2");
+    expect(first).toMatchObject({ amountCents: 1000, categoryId: "food" });
+    expect(second).toMatchObject({
+      amountCents: 9500,
+      categoryId: "rent",
+      note: "september",
+      occurredAt: NOW,
+    });
   });
 });
 
@@ -78,6 +110,27 @@ describe("deleteExpense", () => {
     const after = deleteExpense("e-1", storage);
     expect(after.expenses).toEqual([]);
     expect(loadBudget(storage).expenses).toEqual([]);
+  });
+});
+
+describe("deleteExpense with several items", () => {
+  it("removes only the matching item", () => {
+    const storage = makeStorage();
+    seed(storage);
+    addExpense({ categoryId: "rent", amountCents: 9000 }, storage, { id: "e-2", now: NOW });
+
+    const after = deleteExpense("e-1", storage);
+
+    expect(after.expenses.map((e) => e.id)).toEqual(["e-2"]);
+  });
+
+  it("leaves everything alone for an unknown id", () => {
+    const storage = makeStorage();
+    seed(storage);
+
+    const after = deleteExpense("nope", storage);
+
+    expect(after.expenses.map((e) => e.id)).toEqual(["e-1"]);
   });
 });
 

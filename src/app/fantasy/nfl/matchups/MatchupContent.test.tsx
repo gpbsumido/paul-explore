@@ -79,10 +79,18 @@ describe("NflMatchupCard", () => {
 
   it("lists starters with their actual and projected points", () => {
     render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
-    expect(screen.getByText("Josh Allen")).toBeInTheDocument();
-    expect(screen.getByText("Bijan Robinson")).toBeInTheDocument();
-    // projected points surfaced somewhere on the card
-    expect(screen.getAllByText(/proj/i).length).toBeGreaterThan(0);
+    const allen = screen.getByText("Josh Allen").closest("[data-player-id]");
+    expect(allen).toHaveTextContent("24.5");
+    expect(allen).toHaveTextContent("proj 21");
+    const robinson = screen.getByText("Bijan Robinson").closest("[data-player-id]");
+    expect(robinson).toHaveTextContent("12");
+    expect(robinson).toHaveTextContent("proj 15");
+  });
+
+  it("projects each side's final score as points so far plus points still to play", () => {
+    render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
+    // away 24.5 + 10 remaining, home 30 + 8 remaining
+    expect(screen.getByText("proj 34.5–38")).toBeInTheDocument();
   });
 
   it("carries each full name in a title, so a truncated name reads on hover", () => {

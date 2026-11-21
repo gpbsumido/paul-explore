@@ -54,4 +54,30 @@ describe("blobPath", () => {
     const b = blobPath({ seed: 999, points: 8, variance: 0, size: 200 });
     expect(a).toBe(b);
   });
+
+  it("rounds coordinates to two decimals so the markup stays small", () => {
+    const d = blobPath({ seed: 21, points: 8, variance: 0.6, size: 200 });
+    expect(d).not.toMatch(/\.\d{3,}/);
+  });
+
+  it("traces a round outline when variance is zero, not a lumpy one", () => {
+    const size = 200;
+    const d = blobPath({ seed: 4, points: 8, variance: 0, size });
+    const [startX, startY, ...rest] = (d.match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
+    const radiusOf = (x: number, y: number) =>
+      Math.hypot(x - size / 2, y - size / 2);
+    const nominal = size * 0.44;
+    expect(radiusOf(startX, startY)).toBeCloseTo(nominal, 0);
+
+    // Walk each cubic segment and take its midpoint: on a circle they all sit
+    // at the nominal radius, and a mis-scaled control point bows them off it.
+    let from = [startX, startY];
+    for (let i = 0; i + 5 < rest.length; i += 6) {
+      const [c1x, c1y, c2x, c2y, x, y] = rest.slice(i, i + 6);
+      const midX = (from[0] + 3 * c1x + 3 * c2x + x) / 8;
+      const midY = (from[1] + 3 * c1y + 3 * c2y + y) / 8;
+      expect(Math.abs(radiusOf(midX, midY) - nominal)).toBeLessThan(1.5);
+      from = [x, y];
+    }
+  });
 });

@@ -54,7 +54,30 @@ beforeEach(() => {
   );
 });
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
+});
+
+/** What the route sent to OpenAI for a request, captured off the wire. */
+type OpenAiRequest = {
+  model: string;
+  messages: { role: string; content: string }[];
+};
+
+async function sentToOpenAi(body: unknown): Promise<OpenAiRequest> {
+  const requests: OpenAiRequest[] = [];
+  server.use(
+    http.post<never, OpenAiRequest>(OPENAI, async ({ request }) => {
+      requests.push(await request.json());
+      return HttpResponse.json({ choices: [{ message: { content: "ok" } }] });
+    }),
+  );
+  await askPOST(post(body));
+  const [sent] = requests;
+  if (!sent) throw new Error("OpenAI was never called");
+  return sent;
+}
 
 describe("POST /api/research/ask", () => {
   it("answers a question about a paper", async () => {
@@ -154,6 +177,55 @@ describe("POST /api/research/ask", () => {
     expect((await res.json()).error).toMatch(/500/);
   });
 
+  it("sends the question itself, after the paper, as the user's message", async () => {
+    const sent = await sentToOpenAi(valid);
+    const userMessage = sent.messages.find((m) => m.role === "user");
+    expect(userMessage?.content).toContain(`Question: ${valid.question}`);
+    expect(userMessage?.content).toContain("Journal: Annals of Vascular Surgery");
+    expect(userMessage?.content).toContain("Published: 2025-04-02");
+  });
+
+  it("tells the model to answer only from the abstract", async () => {
+    const sent = await sentToOpenAi(valid);
+    expect(sent.messages[0].role).toBe("system");
+    expect(sent.messages[0].content).toMatch(/only from the paper's title and abstract/);
+  });
+
+  it("copes with a paper that has only a title", async () => {
+    const sent = await sentToOpenAi({
+      question: valid.question,
+      paper: { title: "Just a title" },
+    });
+    const userMessage = sent.messages.find((m) => m.role === "user")?.content ?? "";
+    expect(userMessage).toContain("Title: Just a title");
+    expect(userMessage).not.toContain("Abstract:");
+    expect(userMessage).not.toContain("Journal:");
+    expect(userMessage).not.toContain("Published:");
+  });
+
+  it("answers 502 when the model returns an empty answer", async () => {
+    server.use(
+      http.post(OPENAI, () =>
+        HttpResponse.json({ choices: [{ message: { content: "   " } }] }),
+      ),
+    );
+    const res = await askPOST(post(valid));
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toMatch(/empty answer/i);
+  });
+
+  it("answers 502 when a successful reply is not JSON", async () => {
+    server.use(http.post(OPENAI, () => new HttpResponse("<html>", { status: 200 })));
+    const res = await askPOST(post(valid));
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toMatch(/unreadable/i);
+  });
+
+  it("400s on a question over 1000 characters or only whitespace", async () => {
+    expect((await askPOST(post({ ...valid, question: "x".repeat(1001) }))).status).toBe(400);
+    expect((await askPOST(post({ ...valid, question: "   " }))).status).toBe(400);
+  });
+
   it("is never cached, since answers are per-question", async () => {
     const res = await askPOST(post(valid));
     expect(res.headers.get("Cache-Control")).toContain("no-store");
@@ -186,8 +258,20 @@ describe("POST /api/research/ask is not an open door to a paid API", () => {
     for (let i = 0; i < 12; i += 1) {
       statuses.push((await askPOST(post(valid))).status);
     }
-    expect(statuses.filter((s) => s === 200).length).toBeLessThanOrEqual(10);
-    expect(statuses).toContain(429);
+    expect(statuses.filter((s) => s === 200)).toHaveLength(10);
+    expect(statuses.slice(10)).toEqual([429, 429]);
+  });
+
+  it("lets a person ask again once the minute is up", async () => {
+    vi.useFakeTimers({ now: new Date("2026-11-19T12:00:00Z"), toFake: ["Date"] });
+    for (let i = 0; i < 10; i += 1) await askPOST(post(valid));
+    expect((await askPOST(post(valid))).status).toBe(429);
+
+    vi.setSystemTime(new Date("2026-11-19T12:00:59Z"));
+    expect((await askPOST(post(valid))).status).toBe(429);
+
+    vi.setSystemTime(new Date("2026-11-19T12:01:01Z"));
+    expect((await askPOST(post(valid))).status).toBe(200);
   });
 
   it("counts the limit per person, not globally", async () => {
@@ -223,6 +307,12 @@ describe("POST /api/research/ask is limited to named people", () => {
 
   it("ignores case and padding in the address", async () => {
     asUser({ sub: "c", email: "  Allowed@Example.COM ", email_verified: true });
+    expect((await askPOST(post(valid))).status).toBe(200);
+  });
+
+  it("ignores case and padding in the configured list too", async () => {
+    vi.stubEnv("RESEARCH_ASK_ALLOWED_EMAILS", " Allowed@Example.com ,Other@Example.com");
+    asUser({ sub: "g", email: "allowed@example.com", email_verified: true });
     expect((await askPOST(post(valid))).status).toBe(200);
   });
 
@@ -273,6 +363,21 @@ describe("POST /api/research/ask model choice", () => {
     expect(await modelSent({ ...valid, model: "gpt-4o-mini" })).toBe(
       "gpt-4o-mini",
     );
+  });
+
+  it("lets OPENAI_MODEL change the default to another listed model", async () => {
+    vi.stubEnv("OPENAI_MODEL", "gpt-5");
+    expect(await modelSent(valid)).toBe("gpt-5");
+  });
+
+  it("ignores an OPENAI_MODEL that is not on the list", async () => {
+    vi.stubEnv("OPENAI_MODEL", "gpt-3.5-turbo");
+    expect(await modelSent(valid)).toBe("gpt-4.1");
+  });
+
+  it("prefers the model the caller picked over OPENAI_MODEL", async () => {
+    vi.stubEnv("OPENAI_MODEL", "gpt-5");
+    expect(await modelSent({ ...valid, model: "gpt-4o-mini" })).toBe("gpt-4o-mini");
   });
 
   it("ignores a model that is not on the list rather than forwarding it", async () => {

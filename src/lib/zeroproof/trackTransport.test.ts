@@ -12,7 +12,10 @@ const event: TrackEvent = {
   appVersion: "7.9.3",
 };
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("createTransport", () => {
   it("beacons a plain string body, never an application/json Blob (a Blob forces a CORS preflight)", () => {
@@ -40,7 +43,18 @@ describe("createTransport", () => {
     expect(status).toBe(202);
     const call = fetchMock.mock.calls[0];
     if (!call) throw new Error("fetch was not called");
-    expect(call[1]).toMatchObject({ method: "POST", keepalive: true });
+    expect(call[0]).toBe("/api/zeroproof/track");
+    expect(call[1]).toMatchObject({
+      method: "POST",
+      keepalive: true,
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(JSON.parse(String(call[1]?.body))).toEqual({ events: [event] });
+  });
+
+  it("reports the beacon as unsent when the browser has no sendBeacon", () => {
+    vi.stubGlobal("navigator", {});
+    expect(createTransport("/api/zeroproof/track").beacon([event])).toBe(false);
   });
 
   it("maps a network error to status 0 so the queue retries", async () => {

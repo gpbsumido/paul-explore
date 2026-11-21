@@ -56,6 +56,21 @@ describe("searchEntries", () => {
   });
 });
 
+describe("searchEntries with a padded query", () => {
+  it("ignores the whitespace around what was typed", () => {
+    const entries = [
+      makeEntry({ id: "hit", title: "Catalog rewrite" }),
+      makeEntry({ id: "miss", title: "Unrelated" }),
+    ];
+    expect(searchEntries(entries, "  CATALOG ").map((e) => e.id)).toEqual(["hit"]);
+  });
+
+  it("returns a copy, so a caller can't reorder the original", () => {
+    const entries = [makeEntry({ id: "a" })];
+    expect(searchEntries(entries, "")).not.toBe(entries);
+  });
+});
+
 describe("filterEntriesByCategory", () => {
   it("passes everything through for 'all'", () => {
     const entries = [
@@ -131,6 +146,12 @@ describe("ticket queries", () => {
     expect(searchTickets(tickets, "dark").map((t) => t.id)).toEqual(["a", "b"]);
   });
 
+  it("searchTickets returns everything for an empty query and ignores padding", () => {
+    const tickets = [makeTicket({ id: "a", title: "Dark mode" }), makeTicket({ id: "b" })];
+    expect(searchTickets(tickets, " ")).toHaveLength(2);
+    expect(searchTickets(tickets, "  DARK ").map((t) => t.id)).toEqual(["a"]);
+  });
+
   it("filterTicketsByType narrows to features or bugs, or all", () => {
     const tickets = [
       makeTicket({ id: "f", type: "feature" }),
@@ -138,6 +159,15 @@ describe("ticket queries", () => {
     ];
     expect(filterTicketsByType(tickets, "bug").map((t) => t.id)).toEqual(["b"]);
     expect(filterTicketsByType(tickets, "all")).toHaveLength(2);
+  });
+
+  it("sortTickets doesn't reorder the list it was given", () => {
+    const tickets = [
+      makeTicket({ id: "low", votes: 1 }),
+      makeTicket({ id: "high", votes: 9 }),
+    ];
+    sortTickets(tickets, "top");
+    expect(tickets.map((t) => t.id)).toEqual(["low", "high"]);
   });
 
   it("sortTickets 'top' ranks by votes then recency; 'newest' by recency", () => {
@@ -182,6 +212,11 @@ describe("ticketsByStatus", () => {
     ]);
     expect(columns[0].tickets.map((t) => t.id)).toEqual(["o"]);
     expect(columns[3].tickets.map((t) => t.id)).toEqual(["s"]);
+  });
+
+  it("leaves a column empty rather than dropping it", () => {
+    const columns = ticketsByStatus([makeTicket({ id: "o", status: "open" })]);
+    expect(columns.map((c) => c.tickets.length)).toEqual([1, 0, 0, 0]);
   });
 
   it("orders each column by votes, highest first", () => {

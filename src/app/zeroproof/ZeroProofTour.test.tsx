@@ -64,9 +64,38 @@ describe("ZeroProof guided tour", () => {
 
     // Walk to the last step and finish
     fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // leaderboard
+    expect(
+      screen.getByRole("tab", { name: "Leaderboard" }),
+    ).toHaveAttribute("aria-selected", "true");
     fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // record
+    expect(
+      screen.getByRole("tab", { name: "Your record" }),
+    ).toHaveAttribute("aria-selected", "true");
     fireEvent.click(within(tour()).getByRole("button", { name: /finish/i }));
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
+  });
+
+  it("brings the board back when the tour steps onto it from another tab", () => {
+    window.localStorage.setItem(TOUR_KEY, "true");
+    renderLobby(<ZeroProofContent />);
+    fireEvent.click(screen.getByRole("tab", { name: "Leaderboard" }));
+    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    const tour = () => screen.getByRole("dialog", { name: /tour/i });
+
+    fireEvent.click(within(tour()).getByRole("button", { name: /^next$/i })); // intro
+    fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // board
+
+    expect(screen.getByRole("tab", { name: "Board" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("remembers the tour was seen, whether it was finished or skipped", () => {
+    renderLobby(<ZeroProofContent />);
+    fireEvent.click(screen.getByRole("button", { name: /^skip$/i }));
+
+    expect(window.localStorage.getItem(TOUR_KEY)).toBe("true");
   });
 
   it("closes immediately when the visitor declines", () => {

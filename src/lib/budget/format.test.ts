@@ -22,6 +22,16 @@ describe("parseAmountToCents", () => {
     expect(parseAmountToCents("1.005")).toBe(101);
   });
 
+  it("accepts a leading or trailing decimal point", () => {
+    expect(parseAmountToCents(".5")).toBe(50);
+    expect(parseAmountToCents("7.")).toBe(700);
+  });
+
+  it("rejects thousands separators and exponents rather than guessing", () => {
+    expect(parseAmountToCents("1,000.50")).toBeNull();
+    expect(parseAmountToCents("1e3")).toBeNull();
+  });
+
   it("rejects a zero or negative amount", () => {
     expect(parseAmountToCents("0")).toBeNull();
     expect(parseAmountToCents("-3")).toBeNull();

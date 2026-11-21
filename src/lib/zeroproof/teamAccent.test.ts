@@ -19,8 +19,8 @@ describe("teamAccentColor", () => {
     expect(Number(l)).toBeLessThanOrEqual(62);
   });
 
-  it("handles an empty name without throwing", () => {
-    expect(() => teamAccentColor("")).not.toThrow();
+  it("still returns a usable colour for an empty name", () => {
+    expect(teamAccentColor("")).toMatch(/^hsl\(\d{1,3} 52% 48%\)$/);
   });
 
   it("uses the real brand colour when the sport is known", () => {

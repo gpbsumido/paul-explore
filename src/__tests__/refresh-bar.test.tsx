@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import RefreshBar from "@/components/operator/RefreshBar";
 
@@ -71,5 +76,78 @@ describe("RefreshBar last-refreshed display", () => {
     render(<RefreshBar />, { wrapper: wrapper(queryClient) });
 
     expect(screen.getByText("less than a minute ago")).toBeInTheDocument();
+  });
+});
+
+/** An active operator query next to the bar, the way the dashboard mounts it. */
+function BarWithOperatorQuery({
+  queryFn,
+}: {
+  queryFn: () => Promise<unknown>;
+}) {
+  useQuery({ queryKey: ["operator", "stores"], queryFn });
+  return <RefreshBar />;
+}
+
+describe("RefreshBar refresh button", () => {
+  it("refetches the operator queries when pressed", async () => {
+    const user = userEvent.setup();
+    const fetchStores = vi.fn().mockResolvedValue({ stores: [] });
+
+    render(<BarWithOperatorQuery queryFn={fetchStores} />, {
+      wrapper: wrapper(makeClient()),
+    });
+    await waitFor(() => expect(fetchStores).toHaveBeenCalledTimes(1));
+    await user.click(await screen.findByRole("button", { name: "Refresh" }));
+
+    await waitFor(() => expect(fetchStores).toHaveBeenCalledTimes(2));
+  });
+
+  it("leaves queries outside the operator namespace alone", async () => {
+    const user = userEvent.setup();
+    const queryClient = makeClient();
+    await queryClient.fetchQuery({
+      queryKey: ["elsewhere"],
+      queryFn: () => Promise.resolve("x"),
+    });
+
+    render(<RefreshBar />, { wrapper: wrapper(queryClient) });
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+
+    expect(queryClient.getQueryState(["elsewhere"])?.isInvalidated).toBe(false);
+  });
+
+  it("disables the button and says so while an operator query is fetching", async () => {
+    let finishFetch: (value: unknown) => void = () => {};
+    const slowFetch = () =>
+      new Promise((resolve) => {
+        finishFetch = resolve;
+      });
+
+    render(<BarWithOperatorQuery queryFn={slowFetch} />, {
+      wrapper: wrapper(makeClient()),
+    });
+
+    const busyButton = await screen.findByRole("button", {
+      name: "Refreshing...",
+    });
+    expect(busyButton).toBeDisabled();
+
+    await act(async () => finishFetch({ stores: [] }));
+    expect(
+      await screen.findByRole("button", { name: "Refresh" }),
+    ).toBeEnabled();
+  });
+
+  it("stays enabled while only a non-operator query is fetching", async () => {
+    const queryClient = makeClient();
+    void queryClient.prefetchQuery({
+      queryKey: ["elsewhere"],
+      queryFn: () => new Promise(() => {}),
+    });
+
+    render(<RefreshBar />, { wrapper: wrapper(queryClient) });
+
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
   });
 });

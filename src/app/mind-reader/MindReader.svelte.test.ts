@@ -94,6 +94,9 @@ describe("The Mind Reader (Svelte)", () => {
 
   it("moves focus to the new heading on every phase change, but not on first load", async () => {
     setup();
+    // Give a wrongly eager focus move time to land before checking for it.
+    await tick();
+    await vi.advanceTimersByTimeAsync(0);
     expect(document.body).toHaveFocus();
     await click(/deal a role/i);
     await vi.waitFor(() =>

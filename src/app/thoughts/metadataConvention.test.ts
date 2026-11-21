@@ -21,7 +21,8 @@ describe("write-up metadata", () => {
   it("comes from buildArticleMetadata on every page", () => {
     const handRolled = pages
       .filter(
-        (p) => !readFileSync(p.file, "utf-8").includes("buildArticleMetadata"),
+        // A call, not just the import: an unused import would otherwise count.
+        (p) => !/buildArticleMetadata\(/.test(readFileSync(p.file, "utf-8")),
       )
       .map((p) => p.slug);
     expect(handRolled).toEqual([]);

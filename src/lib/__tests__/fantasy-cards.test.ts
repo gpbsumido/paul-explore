@@ -45,6 +45,44 @@ describe("generateCards", () => {
     expect(at(1)?.rarity).toBe("common");
   });
 
+  // 21 distinct scores, so a score's percentile is exactly (score - 1) / 20 and
+  // each cut-off (0.5, 0.8, 0.95) lands on a score of its own.
+  it.each([
+    [10, "common"],
+    [11, "uncommon"],
+    [16, "uncommon"],
+    [17, "rare"],
+    [19, "rare"],
+    [20, "sir"],
+    [21, "sir"],
+  ] as const)("rates a score of %i as %s in a pool of 21", (points, rarity) => {
+    const cards = generateCards(pool(Array.from({ length: 21 }, (_, i) => i + 1)));
+    expect(cards.find((c) => c.points === points)?.rarity).toBe(rarity);
+  });
+
+  it("lets a pool of four crown an SIR but a pool of three top out at rare", () => {
+    expect(generateCards(pool([1, 2, 3, 4]))[0].rarity).toBe("sir");
+    expect(generateCards(pool([1, 2, 3]))[0].rarity).toBe("rare");
+  });
+
+  it("makes a lone positive score rare, since it beat everyone else in the pool", () => {
+    expect(generateCards(pool([12]))[0].rarity).toBe("rare");
+  });
+
+  it("gives nobody more than common when everyone scores the same", () => {
+    const cards = generateCards(pool([10, 10, 10, 10, 10]));
+    expect(cards.map((c) => c.rarity)).toEqual(Array(5).fill("common"));
+  });
+
+  it("orders equal scores by player id", () => {
+    const cards = generateCards([
+      perf({ playerId: 9, points: 10 }),
+      perf({ playerId: 3, points: 10 }),
+      perf({ playerId: 5, points: 10 }),
+    ]);
+    expect(cards.map((c) => c.playerId)).toEqual([3, 5, 9]);
+  });
+
   it("gives tied performances the same rarity", () => {
     const cards = generateCards(pool([5, 5, 5, 5, 20, 1, 2, 3]));
     const fives = cards.filter((c) => c.points === 5).map((c) => c.rarity);
@@ -77,9 +115,21 @@ describe("generateCards", () => {
     const [card] = generateCards([
       perf({ playerId: 3975, playerName: "Victor Wembanyama", points: 50.4 }),
     ]);
-    expect(card.title).toContain("Victor Wembanyama");
-    expect(card.title).toContain("50");
+    expect(card.title).toBe("Victor Wembanyama · 50 PTS");
     expect(card.imageUrl).toBe(headshotUrl("nba", 3975));
+  });
+
+  it("rounds the points in the title to the nearest whole number", () => {
+    const [card] = generateCards([perf({ points: 50.6 })]);
+    expect(card.title).toBe("Test Player · 51 PTS");
+    expect(card.points).toBe(50.6);
+  });
+
+  it("carries the pro team and game context onto the card", () => {
+    const [card] = generateCards([
+      perf({ proTeamId: 21, opponent: "PHX", home: false, periodId: "2026-04-17" }),
+    ]);
+    expect(card).toMatchObject({ proTeamId: 21, opponent: "PHX", home: false });
   });
 
   it("orders the pool rarest performance first", () => {
@@ -121,6 +171,10 @@ describe("prettyGameDate", () => {
   it("passes through anything that isn't a plain date", () => {
     expect(prettyGameDate("2025-season")).toBe("2025-season");
   });
+  it("passes through a date whose month doesn't exist", () => {
+    expect(prettyGameDate("2026-13-01")).toBe("2026-13-01");
+    expect(prettyGameDate("2026-00-01")).toBe("2026-00-01");
+  });
 });
 
 describe("generateCards game context", () => {
@@ -153,6 +207,13 @@ describe("generateCards game context", () => {
     expect(card.subtitle).toBe("2025 season");
   });
 
+  it("drops the leading zero from an NFL week number", () => {
+    const [card] = generateCards([
+      { playerId: 3, playerName: "RB One", points: 28.4, periodId: "2025-wk05", sport: "nfl" },
+    ]);
+    expect(card.subtitle).toBe("Week 5, 2025");
+  });
+
   it("labels an NFL weekly card by its week", () => {
     const [card] = generateCards([
       { playerId: 3, playerName: "RB One", points: 28.4, periodId: "2025-wk5", sport: "nfl" },
@@ -183,6 +244,16 @@ describe("drawPack", () => {
     expect(new Set(pack.map((x) => x.id)).size).toBe(3);
   });
 
+  it("draws a pack of five by default", () => {
+    const big = Array.from({ length: 8 }, (_, i) => c("common", `card-${i}`));
+    expect(drawPack(big, { random: () => 0.3 })).toHaveLength(5);
+  });
+
+  it("never draws the same card twice, even when every roll lands on the first", () => {
+    const pool = [c("common", "a"), c("common", "b"), c("common", "c")];
+    expect(drawPack(pool, { size: 3, random: () => 0 }).map((x) => x.id)).toEqual(["a", "b", "c"]);
+  });
+
   it("returns the whole pool when it's smaller than the pack", () => {
     const pool = [c("common", "a"), c("sir", "b")];
     expect(drawPack(pool, { size: 5, random: () => 0.5 })).toHaveLength(2);
@@ -211,7 +282,11 @@ describe("rarity boosts", () => {
       sport: "nba" as const,
     })),
   ];
-  const low = (cards: ReturnType<typeof generateCards>) => cards.find((c) => c.playerId === 1)!;
+  const low = (cards: ReturnType<typeof generateCards>): GeneratedCard => {
+    const card = cards.find((c) => c.playerId === 1);
+    if (!card) throw new Error("the low scorer is missing from the pool");
+    return card;
+  };
 
   it("has no boosts and unchanged rarity by default", () => {
     const card = low(generateCards(boosted({})));
@@ -235,6 +310,22 @@ describe("rarity boosts", () => {
     const card = low(generateCards(boosted({ fantasyResult: "finals" })));
     expect(card.rarity).toBe("sir");
     expect(card.boosts).toContain("Fantasy Finals");
+  });
+
+  it.each([
+    ["win", "uncommon", "Fantasy W"],
+    ["playoff", "rare", "Fantasy Playoffs"],
+    ["finals", "sir", "Fantasy Finals"],
+  ] as const)("a fantasy %s lifts a floor card to %s and badges it %s", (fantasyResult, rarity, badge) => {
+    const card = low(generateCards(boosted({ fantasyResult })));
+    expect(card.rarity).toBe(rarity);
+    expect(card.boosts).toEqual([badge]);
+  });
+
+  it("stacks a real win and a real playoff game for two tiers", () => {
+    const card = low(generateCards(boosted({ wonGame: true, playoff: true })));
+    expect(card.rarity).toBe("rare");
+    expect(card.boosts).toEqual(["Won", "Playoffs"]);
   });
 
   it("shows the rostering fantasy team as a badge without changing rarity", () => {
@@ -286,11 +377,20 @@ describe("rarity boosts", () => {
     expect(cards.filter((c) => c.rarity === "rare")).toHaveLength(3);
   });
 
+  it("demotes overflow a tier at a time, down through every capped tier", () => {
+    const finalsPool = [10, 20, 30, 40].map((p, i) =>
+      perf({ playerId: i + 1, points: p, fantasyResult: "finals" }),
+    );
+    const cards = generateCards(finalsPool, { caps: { sir: 1, rare: 1, uncommon: 1 } });
+    expect(cards.map((c) => c.rarity)).toEqual(["sir", "rare", "uncommon", "common"]);
+  });
+
   it("does not boost a zero or negative outing", () => {
     const cards = generateCards([
       { playerId: 1, playerName: "DNP", points: 0, periodId: "2026-04-17", sport: "nba", wonGame: true, fantasyResult: "finals" },
       { playerId: 2, playerName: "P2", points: 20, periodId: "2026-04-17", sport: "nba" },
     ]);
-    expect(cards.find((c) => c.playerId === 1)!.rarity).toBe("common");
+    expect(cards.find((c) => c.playerId === 1)?.rarity).toBe("common");
+    expect(cards.find((c) => c.playerId === 1)?.boosts).toEqual([]);
   });
 });

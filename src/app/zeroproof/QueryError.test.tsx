@@ -26,6 +26,18 @@ describe("QueryError", () => {
     expect(screen.getByText("Request failed: 503")).toBeInTheDocument();
   });
 
+  it("shows no detail line when the server gave none", () => {
+    const { rerender } = render(
+      <QueryError message="Down." onRetry={() => {}} />,
+    );
+    const alert = screen.getByRole("alert");
+    expect(alert.querySelectorAll("p")).toHaveLength(1);
+
+    rerender(<QueryError message="Down." detail={null} onRetry={() => {}} />);
+    expect(alert.querySelectorAll("p")).toHaveLength(1);
+    expect(alert).not.toHaveTextContent(/null|undefined/);
+  });
+
   it("is announced as an alert", () => {
     render(<QueryError message="Down." onRetry={() => {}} />);
     expect(screen.getByRole("alert")).toBeInTheDocument();

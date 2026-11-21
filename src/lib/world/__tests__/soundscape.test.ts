@@ -51,6 +51,20 @@ describe("ambienceMix", () => {
     expect(city).toBeGreaterThan(quiet);
   });
 
+  it("centres the traffic hum on the downtown core", () => {
+    // Thirty units north and thirty south of the core's centre line are equally far from it.
+    const north = ambienceMix({ player: { x: 0, z: -40 }, carX: 999, condition: "clear" }).city;
+    const south = ambienceMix({ player: { x: 0, z: 20 }, carX: 999, condition: "clear" }).city;
+    expect(north).toBeGreaterThan(0);
+    expect(north).toBeCloseTo(south);
+  });
+
+  it("only hears the streetcar from near the tracks, not just from the right x", () => {
+    const onTheTracks = ambienceMix({ player: { x: 0, z: -12 }, carX: 0, condition: "clear" });
+    const aCrossStreetAway = ambienceMix({ player: { x: 0, z: -40 }, carX: 0, condition: "clear" });
+    expect(onTheTracks.streetcar).toBeGreaterThan(aCrossStreetAway.streetcar);
+  });
+
   it("brings the streetcar up as it passes and drops it when it's gone", () => {
     const passing = ambienceMix({ player: { x: 0, z: -12 }, carX: 1, condition: "clear" });
     const distant = ambienceMix({ player: { x: 0, z: -12 }, carX: 70, condition: "clear" });

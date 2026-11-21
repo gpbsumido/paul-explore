@@ -35,6 +35,27 @@ describe("readableOn", () => {
     expect(pair!.background).not.toBe("#2b8a7e");
   });
 
+  it("darkens only as far as it has to, so the colour is still recognisably theirs", () => {
+    const pair = chipColors("#2b8a7e");
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(pair!.background.slice(i, i + 2), 16));
+    // Same hue family: the green and blue channels still lead the red one, and
+    // it is nowhere near black.
+    expect(g).toBeGreaterThan(r);
+    expect(b).toBeGreaterThan(r);
+    expect(contrastRatio(pair!.color, pair!.background)).toBeLessThan(5.5);
+  });
+
+  it("leaves a fill that already works with its label alone", () => {
+    expect(chipColors("#f6a623")).toEqual({ background: "#f6a623", color: "#1d1a15" });
+    expect(chipColors("#124f47")).toEqual({ background: "#124f47", color: "#ffffff" });
+  });
+
+  it("accepts upper-case hex but not shorthand", () => {
+    expect(readableOn("#F6A623")).toBe("#1d1a15");
+    expect(readableOn("#fff")).toBeUndefined();
+    expect(chipColors("#fff")).toBeUndefined();
+  });
+
   it("clears AA across every feature accent in the palette", async () => {
     const { FEATURES } = await import("@/app/_shared/featureData.data");
     const failures = FEATURES.filter((feature) => feature.color)

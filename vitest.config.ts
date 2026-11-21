@@ -16,10 +16,26 @@ const integrationGlob = "src/**/*.integration.{test,spec}.{ts,tsx}";
 // build, where `mount` throws), and neither belongs in the React tests.
 const svelteGlob = "src/**/*.svelte.test.ts";
 
+const shuffleTests = Boolean(process.env.CI) || Boolean(process.env.VITEST_SEED);
+const shuffleSeed = Number(process.env.VITEST_SEED) || Date.now();
+if (shuffleTests && !process.env.VITEST_SEED_LOGGED) {
+  process.env.VITEST_SEED_LOGGED = "1";
+  console.log(`[vitest] tests run in random order, seed ${shuffleSeed} (replay with VITEST_SEED=${shuffleSeed})`);
+}
+
 const sharedTest = {
   environment: "jsdom",
   globals: true,
   setupFiles: ["./src/test/setup.ts"],
+  // A test that never asserts passes whatever the code does. Making it a
+  // failure means an empty or half-written test cannot sit in the suite looking
+  // green.
+  expect: { requireAssertions: true },
+  // Tests run in a random order on CI. Three files only passed in the order
+  // they were written, because an earlier test left a counter or a cache
+  // behind. The seed is printed below, so a red run replays with
+  // VITEST_SEED=<n> pnpm test.
+  sequence: { seed: shuffleSeed, shuffle: { files: false, tests: shuffleTests } },
 };
 
 export default defineConfig({

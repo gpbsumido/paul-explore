@@ -37,6 +37,21 @@ describe("Interviewee page gate", () => {
     await expect(IntervieweePage()).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
+  it("404s the admin's address when the provider has not verified it", async () => {
+    getSession.mockResolvedValue({
+      user: { email: ADMIN, email_verified: false },
+    } as never);
+    await expect(IntervieweePage()).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("404s everyone when no admin allowlist is configured", async () => {
+    delete process.env.FLAG_ADMIN_ALLOWED_EMAILS;
+    getSession.mockResolvedValue({
+      user: { email: ADMIN, email_verified: true },
+    } as never);
+    await expect(IntervieweePage()).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
   it("renders the deck for the verified admin", async () => {
     getSession.mockResolvedValue({
       user: { email: ADMIN, email_verified: true },

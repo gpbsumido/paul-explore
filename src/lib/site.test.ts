@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { buildArticleMetadata, SITE_URL, OG_IMAGE } from "./site";
 
 const base = {
@@ -51,5 +51,25 @@ describe("buildArticleMetadata", () => {
     expect(meta.twitter?.card).toBe("summary_large_image");
     expect(meta.twitter?.title).toBe(base.title);
     expect(meta.twitter?.description).toBe(base.description);
+  });
+});
+
+describe("SITE_URL", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  /** SITE_URL is read once when the module loads, so each case loads a fresh copy. */
+  async function siteUrlWith(env: string | undefined): Promise<string> {
+    if (env === undefined) vi.stubEnv("NEXT_PUBLIC_SITE_URL", undefined);
+    else vi.stubEnv("NEXT_PUBLIC_SITE_URL", env);
+    vi.resetModules();
+    return (await import("./site")).SITE_URL;
+  }
+
+  it("follows NEXT_PUBLIC_SITE_URL when a deploy sets it", async () => {
+    expect(await siteUrlWith("https://staging.example.com")).toBe("https://staging.example.com");
+  });
+
+  it("falls back to the production site when it isn't set", async () => {
+    expect(await siteUrlWith(undefined)).toBe("https://paulsumido.com");
   });
 });

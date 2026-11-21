@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
@@ -83,7 +84,7 @@ describe("LossReport", () => {
     expect(await view.findByText(/3 expired, 2 damaged/i)).toBeInTheDocument();
   });
 
-  it("ranks the worst store first", async () => {
+  it("lists the stores in the order the server ranked them, worst first", async () => {
     const { container } = render(<LossReport />, { wrapper: makeWrapper() });
     const view = within(container);
 
@@ -103,5 +104,104 @@ describe("LossReport", () => {
     expect(
       await within(container).findByText(/nothing to reconcile/i),
     ).toBeInTheDocument();
+  });
+
+  it("breaks explained loss down by reason, biggest first", async () => {
+    server.use(
+      http.get("/api/operator/shrink-summary", () =>
+        HttpResponse.json({
+          ...fleet(),
+          totals: { ...fleet().totals, explainedByReason: { damaged: 2, expired: 3 } },
+        }),
+      ),
+    );
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+
+    expect(await within(container).findByText("3 expired, 2 damaged")).toBeInTheDocument();
+  });
+
+  it("falls back to a plain unit count when no reason was logged for the explained loss", async () => {
+    server.use(
+      http.get("/api/operator/shrink-summary", () =>
+        HttpResponse.json({
+          ...fleet(),
+          totals: { ...fleet().totals, explainedByReason: {}, explainedUnits: 4 },
+        }),
+      ),
+    );
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+
+    expect(await within(container).findByText("4 units")).toBeInTheDocument();
+  });
+
+  it("is honest about how much of the fleet was actually counted", async () => {
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+
+    // 9 counted, 3 skipped
+    expect(
+      await within(container).findByText("75% of slots were counted (3 skipped)"),
+    ).toBeInTheDocument();
+  });
+
+  it("links each store to its restock history", async () => {
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+
+    expect(await within(container).findByRole("link", { name: "Busy Gym" })).toHaveAttribute(
+      "href",
+      "/operator/stores/s2?tab=restock-history",
+    );
+  });
+
+  it("only paints a store's shrink as a problem when there is some", async () => {
+    server.use(
+      http.get("/api/operator/shrink-summary", () =>
+        HttpResponse.json({
+          ...fleet(),
+          stores: [
+            { storeId: "s1", storeName: "Spotless", ...EMPTY, countedLines: 4 },
+            ...fleet().stores,
+          ],
+        }),
+      ),
+    );
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+    const view = within(container);
+    await view.findByText("Spotless");
+
+    const cell = (name: string) =>
+      within(view.getByRole("link", { name }).closest("tr") as HTMLElement).getAllByText(/\$/)[0];
+    expect(cell("Busy Gym")).toHaveClass("text-error-700");
+    expect(cell("Spotless")).not.toHaveClass("text-error-700");
+  });
+
+  it("says the report failed to load, with a retry, rather than reporting no shrink", async () => {
+    let requests = 0;
+    server.use(
+      http.get("/api/operator/shrink-summary", () => {
+        requests += 1;
+        return requests === 1
+          ? HttpResponse.json({ error: "down" }, { status: 500 })
+          : HttpResponse.json(fleet());
+      }),
+    );
+    const user = userEvent.setup();
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    expect(await view.findByText(/could not load the loss report/i)).toBeInTheDocument();
+    await user.click(view.getByRole("button", { name: /try again/i }));
+
+    expect(await view.findByText("$20.00")).toBeInTheDocument();
+  });
+
+  it("offers a way to start a count when none exist", async () => {
+    server.use(
+      http.get("/api/operator/shrink-summary", () => HttpResponse.json({ stores: [], totals: EMPTY })),
+    );
+    const { container } = render(<LossReport />, { wrapper: makeWrapper() });
+
+    expect(
+      await within(container).findByRole("link", { name: "Pick a store to count" }),
+    ).toHaveAttribute("href", "/operator");
   });
 });

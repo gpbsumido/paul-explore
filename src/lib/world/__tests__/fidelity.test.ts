@@ -2,26 +2,30 @@ import { describe, it, expect } from "vitest";
 import { defaultFidelity } from "../fidelity";
 
 describe("defaultFidelity", () => {
-  it("keeps phones and tablets low-poly", () => {
-    expect(defaultFidelity({ cores: 8, coarsePointer: true })).toBeLessThanOrEqual(0.4);
+  it("keeps phones and tablets low-poly, however many cores they report", () => {
+    expect(defaultFidelity({ cores: 8, coarsePointer: true })).toBe(0.35);
+    expect(defaultFidelity({ cores: 16, memory: 16, coarsePointer: true })).toBe(0.35);
   });
 
-  it("gives beefy desktops the high end", () => {
-    expect(defaultFidelity({ cores: 16, memory: 16, coarsePointer: false })).toBeGreaterThanOrEqual(
-      0.8,
-    );
+  it("gives beefy desktops the high end, by cores or by memory", () => {
+    expect(defaultFidelity({ cores: 16, memory: 16, coarsePointer: false })).toBe(0.85);
+    expect(defaultFidelity({ cores: 12, coarsePointer: false })).toBe(0.85);
+    expect(defaultFidelity({ cores: 4, memory: 16, coarsePointer: false })).toBe(0.85);
   });
 
-  it("lands mid-range hardware in the middle", () => {
-    const mid = defaultFidelity({ cores: 8, coarsePointer: false });
-    expect(mid).toBeGreaterThan(0.4);
-    expect(mid).toBeLessThan(0.8);
+  it("steps down through the middle tiers as cores drop", () => {
+    expect(defaultFidelity({ cores: 8, coarsePointer: false })).toBe(0.7);
+    expect(defaultFidelity({ cores: 11, coarsePointer: false })).toBe(0.7);
+    expect(defaultFidelity({ cores: 4, coarsePointer: false })).toBe(0.5);
+    expect(defaultFidelity({ cores: 7, coarsePointer: false })).toBe(0.5);
   });
 
   it("plays it safe when the browser reveals nothing", () => {
-    const unknown = defaultFidelity({ coarsePointer: false });
-    expect(unknown).toBeGreaterThanOrEqual(0.35);
-    expect(unknown).toBeLessThanOrEqual(0.6);
+    expect(defaultFidelity({ coarsePointer: false })).toBe(0.4);
+  });
+
+  it("gives a two-core machine the floor", () => {
+    expect(defaultFidelity({ cores: 2, memory: 4, coarsePointer: false })).toBe(0.4);
   });
 
   it("always returns a valid slider value", () => {

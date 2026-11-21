@@ -22,6 +22,18 @@ describe("StopButton", () => {
     expect(onStop).toHaveBeenCalledOnce();
   });
 
+  it("does not call onStop while disabled", async () => {
+    const onStop = vi.fn();
+    const user = userEvent.setup();
+    render(<StopButton onStop={onStop} disabled />);
+
+    const button = screen.getByRole("button", { name: /stop/i });
+    expect(button).toBeDisabled();
+    await user.click(button);
+
+    expect(onStop).not.toHaveBeenCalled();
+  });
+
   it("has aria-label='Stop generation'", () => {
     render(<StopButton onStop={vi.fn()} />);
 

@@ -215,6 +215,115 @@ describe("parseTradePool", () => {
   });
 });
 
+describe("parseTradePool edge cases", () => {
+  /** A minimal ESPN pool entry; `stats` and the optional fields are the point of each test. */
+  const bare = (over: { onTeamId?: number; player?: Record<string, unknown>; tradeLocked?: boolean } = {}) => ({
+    onTeamId: over.onTeamId ?? 1,
+    ...(over.tradeLocked === undefined ? {} : { tradeLocked: over.tradeLocked }),
+    player: { id: 77, fullName: "Bare Player", defaultPositionId: 2, proTeamId: 8, ...over.player },
+  });
+  const weekly = (appliedTotal: number, extra: Record<string, unknown> = {}) => ({
+    scoringPeriodId: 4, seasonId: 2026, statSourceId: 1, statSplitTypeId: 1, appliedTotal, ...extra,
+  });
+  const restOfSeason = (appliedTotal: number, extra: Record<string, unknown> = {}) => ({
+    scoringPeriodId: 0, seasonId: 2026, statSourceId: 1, statSplitTypeId: 0, appliedTotal, ...extra,
+  });
+  const league = (extra: Record<string, unknown> = {}) => ({
+    scoringPeriodId: 4,
+    status: { finalScoringPeriod: 6 },
+    ...extra,
+  });
+  const read = (players: unknown[], extra: Record<string, unknown> = {}, freeAgents?: unknown) =>
+    parseTradePool(league({ players, ...extra }), schedulesPayload(), 2026, freeAgents);
+
+  it("ignores last season's projection even when it is listed first", () => {
+    const [p] = read([
+      bare({ player: { stats: [restOfSeason(999, { seasonId: 2025 }), weekly(10), restOfSeason(30)] } }),
+    ]).players;
+    expect(p.perGame).toBe(10);
+  });
+
+  it("reads the weekly line only from the weekly split, not another projection for the same period", () => {
+    const [p] = read([
+      bare({ player: { stats: [weekly(500, { statSplitTypeId: 0 }), weekly(10), restOfSeason(30)] } }),
+    ]).players;
+    expect(p.thisWeek).toBe(10);
+  });
+
+  it("reads the rest-of-season total only from the whole-season period", () => {
+    const [p] = read([
+      bare({ player: { stats: [restOfSeason(500, { scoringPeriodId: 4 }), weekly(10), restOfSeason(30)] } }),
+    ]).players;
+    expect(p.perGame).toBe(10);
+  });
+
+  it("never lets a rest-of-season total below this week's projection go negative", () => {
+    const [p] = read([bare({ player: { stats: [weekly(10), restOfSeason(4)] } })]).players;
+    expect(p.perGame).toBe(0);
+  });
+
+  it("fills in an active, droppable, trade-free player when ESPN leaves the flags out", () => {
+    const [p] = read([bare()]).players;
+    expect(p).toMatchObject({
+      injuryStatus: "ACTIVE",
+      droppable: true,
+      tradeLocked: false,
+      eligibleSlots: [],
+      thisWeek: 0,
+      perGame: 0,
+    });
+  });
+
+  it("takes this week from the scoring period, falling back to the matchup period, then week 1", () => {
+    const players = [bare()];
+    expect(parseTradePool({ scoringPeriodId: 7, status: { currentMatchupPeriod: 3 }, players }, {}, 2026).currentWeek).toBe(7);
+    expect(parseTradePool({ status: { currentMatchupPeriod: 3 }, players }, {}, 2026).currentWeek).toBe(3);
+    expect(parseTradePool({ players }, {}, 2026).currentWeek).toBe(1);
+  });
+
+  it("assumes a 17-week season when the league doesn't say", () => {
+    expect(parseTradePool({ players: [bare()] }, {}, 2026).finalWeek).toBe(17);
+  });
+
+  it("counts a player listed under a negative team id as a free agent, not a rostered one", () => {
+    const pool = read([bare({ onTeamId: 1 })], {}, { players: [bare({ onTeamId: -1, player: { id: 78, fullName: "Waiver Guy" } })] });
+    expect(pool.freeAgents.map((p) => p.name)).toEqual(["Waiver Guy"]);
+  });
+
+  it("drops a rostered player that turns up in the free-agent list", () => {
+    const pool = read([], {}, { players: [bare({ onTeamId: 3 })] });
+    expect(pool.freeAgents).toEqual([]);
+  });
+
+  it("reads a tight-end premium from the position or slot override, as the difference from base PPR", () => {
+    const formatWith = (pointsOverrides: Record<string, number>) =>
+      read([], {
+        settings: { scoringSettings: { scoringItems: [{ statId: 53, points: 1, pointsOverrides }] } },
+      }).format;
+    expect(formatWith({ "4": 1.5 }).tePremium).toBe(0.5);
+    expect(formatWith({ "6": 2 }).tePremium).toBe(1);
+    expect(formatWith({}).tePremium).toBe(0);
+  });
+
+  it("reads half PPR and standard scoring, and falls back to the team count when size is missing", () => {
+    const standard = read([], { teams: [{ id: 1 }, { id: 2 }, { id: 3 }] });
+    expect(standard.format).toMatchObject({ teams: 3, ppr: 0, passTdPoints: 0, superflex: false });
+    const half = read([], { settings: { scoringSettings: { scoringItems: [{ statId: 53, points: 0.5 }] } } });
+    expect(half.format.ppr).toBe(0.5);
+  });
+
+  it("is superflex only when the league has an OP slot", () => {
+    const withOp = (count: number) =>
+      read([], { settings: { rosterSettings: { lineupSlotCounts: { "7": count } } } }).format.superflex;
+    expect(withOp(1)).toBe(true);
+    expect(withOp(0)).toBe(false);
+  });
+
+  it("has no roster limit when the league doesn't list its slots", () => {
+    expect(read([]).rosterMax).toBeNull();
+  });
+});
+
 // ---- Lineup and trade math, on normalized players ----
 
 function player(overrides: Partial<TradePlayer> & { playerId: number }): TradePlayer {
@@ -240,14 +349,14 @@ function player(overrides: Partial<TradePlayer> & { playerId: number }): TradePl
 
 describe("optimalLineupPoints", () => {
   it("fills the narrow slots before the wide ones", () => {
-    // Filling OP first would spend the RB there and leave FLEX empty (30);
-    // the best lineup puts the RB at FLEX and the backup QB at OP (39).
+    // Filling OP first would spend the RB there and leave FLEX empty (50);
+    // the best lineup puts the RB at FLEX and the backup QB at OP (59).
     const players = [
       { eligibleSlots: [0, 7], value: 20 },
       { eligibleSlots: [0, 7], value: 9 },
-      { eligibleSlots: [2, 23, 7], value: 10 },
+      { eligibleSlots: [2, 23, 7], value: 30 },
     ];
-    expect(optimalLineupPoints(players, { "0": 1, "7": 1, "23": 1 })).toBe(39);
+    expect(optimalLineupPoints(players, { "0": 1, "7": 1, "23": 1 })).toBe(59);
   });
 
   it("leaves a slot empty when nobody is eligible", () => {
@@ -293,6 +402,11 @@ describe("evaluateTrade", () => {
     expect(week?.b).toEqual({ before: 20, after: 15, delta: -5 });
     expect(week?.winner).toBe("A");
     expect(week?.margin).toBe(10);
+  });
+
+  it("models no drops or pickups when the league didn't say how big a roster is", () => {
+    // The 2-for-1 leaves team 2 with one more player than it started with.
+    expect(horizon("thisWeek")?.moves).toEqual({ a: [], b: [] });
   });
 
   it("covers next week and the rest of the season after this week", () => {
@@ -375,6 +489,34 @@ describe("evaluateTrade — scoring formats", () => {
     expect(horizon(r, "thisWeek")?.a).toEqual({ before: 13, after: 10, delta: -3 });
   });
 
+  it("opens a single superflex slot, however many quarterbacks a team holds", () => {
+    const qbs = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, positionId: 1, eligibleSlots: [0, 7], thisWeek: 20, perGame: 20 }),
+        player({ playerId: 2, fantasyTeamId: 1, positionId: 1, eligibleSlots: [0, 7], thisWeek: 15, perGame: 15 }),
+        player({ playerId: 5, fantasyTeamId: 1, positionId: 1, eligibleSlots: [0, 7], thisWeek: 12, perGame: 12 }),
+        player({ playerId: 3, fantasyTeamId: 2, positionId: 1, eligibleSlots: [0, 7], thisWeek: 18, perGame: 18 }),
+      ],
+      { slotCounts: { "0": 1 } },
+    );
+    const r = evaluateTrade(qbs, { teamA: 1, teamB: 2, fromA: [5], fromB: [3] }, { ppr: 1, tePremium: 0, superflex: true });
+    // QB 20 plus one OP slot (15) = 35, not three quarterbacks.
+    expect(horizon(r, "thisWeek")?.a.before).toBe(35);
+  });
+
+  it("only adds the difference from the league's own TE premium", () => {
+    const leaguePremium = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, positionId: 4, eligibleSlots: [23], thisWeek: 10, perGame: 10, recThisWeek: 6, recPerGame: 6 }),
+        player({ playerId: 3, fantasyTeamId: 2, positionId: 3, eligibleSlots: [23], thisWeek: 10, perGame: 10, recThisWeek: 6, recPerGame: 6 }),
+      ],
+      { slotCounts: { "23": 1 }, format: { teams: 2, ppr: 1, tePremium: 0.5, passTdPoints: 4, superflex: false } },
+    );
+    // ESPN's numbers already include the league's premium, so scoring the league's own format changes nothing.
+    const r = evaluateTrade(leaguePremium, trade);
+    expect(horizon(r, "thisWeek")?.a).toEqual({ before: 10, after: 10, delta: 0 });
+  });
+
   it("opens or closes the superflex slot", () => {
     const qbs = pool(
       [
@@ -418,6 +560,63 @@ describe("evaluateTrade — roster spots", () => {
     expect(week?.a).toEqual({ before: 29, after: 28, delta: -1 });
     // B ends on four players for three spots and cuts B Low, who wasn't starting.
     expect(week?.moves.b).toEqual([{ kind: "drop", playerId: 6, name: "B Low", positionId: 2, points: 0 }]);
+  });
+
+  it.each(["OUT", "INJURY_RESERVE", "SUSPENSION"])(
+    "won't pick up a free agent who is %s",
+    (injuryStatus) => {
+      const unavailable = player({ playerId: 34, name: "Unavailable", fantasyTeamId: 0, thisWeek: 30, perGame: 30, injuryStatus });
+      const pool3 = full([player({ playerId: 6, name: "B Low", fantasyTeamId: 2, thisWeek: 5, perGame: 5 })], {
+        freeAgents: [unavailable, warren],
+      });
+      const r = evaluateTrade(pool3, { teamA: 1, teamB: 2, fromA: [1, 2], fromB: [3] });
+      expect(horizon(r, "thisWeek")?.moves.a.map((m) => m.name)).toEqual(["Jaylen Warren"]);
+    },
+  );
+
+  it("breaks a tie between equally useful pickups by projection, then by id", () => {
+    const base = { fantasyTeamId: 0, thisWeek: 8 } as const;
+    const steady = player({ playerId: 41, name: "Steady", ...base, perGame: 6 });
+    const upside = player({ playerId: 42, name: "Upside", ...base, perGame: 9 });
+    const twinA = player({ playerId: 44, name: "Twin A", ...base, perGame: 9 });
+    const twinB = player({ playerId: 43, name: "Twin B", ...base, perGame: 9 });
+    const spotsOpened = (freeAgents: TradePlayer[]) =>
+      horizon(
+        evaluateTrade(
+          full([player({ playerId: 6, name: "B Low", fantasyTeamId: 2, thisWeek: 5, perGame: 5 })], { freeAgents }),
+          { teamA: 1, teamB: 2, fromA: [1, 2], fromB: [3] },
+        ),
+        "thisWeek",
+      )?.moves.a.map((m) => m.name);
+
+    expect(spotsOpened([steady, upside])).toEqual(["Upside"]);
+    expect(spotsOpened([twinA, twinB])).toEqual(["Twin B"]);
+  });
+
+  it("doesn't force a drop on a side that was already over the limit and stays level", () => {
+    const over = full([
+      player({ playerId: 6, name: "B Low", fantasyTeamId: 2, thisWeek: 5, perGame: 5 }),
+      player({ playerId: 7, name: "B Extra", fantasyTeamId: 2, thisWeek: 4, perGame: 4 }),
+    ]);
+    // Team 2 holds five players for three spots before the trade and still holds five after it.
+    const r = evaluateTrade(over, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
+    expect(horizon(r, "thisWeek")?.moves.b).toEqual([]);
+  });
+
+  it("doesn't count an injured-reserve player against the roster limit", () => {
+    const p = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, thisWeek: 15, perGame: 15 }),
+        player({ playerId: 3, fantasyTeamId: 2, thisWeek: 20, perGame: 20 }),
+        player({ playerId: 4, fantasyTeamId: 2, thisWeek: 6, perGame: 6 }),
+        player({ playerId: 5, fantasyTeamId: 2, onIr: true, thisWeek: 0, perGame: 0 }),
+        player({ playerId: 6, fantasyTeamId: 1, thisWeek: 5, perGame: 5 }),
+      ],
+      { slotCounts: { "2": 2 }, rosterMax: 3 },
+    );
+    // Team 2 holds two active players and one on IR; taking a second RB makes three, which fits.
+    const r = evaluateTrade(p, { teamA: 1, teamB: 2, fromA: [1, 6], fromB: [3] });
+    expect(r.horizons.find((h) => h.key === "thisWeek")?.moves.b).toEqual([]);
   });
 
   it("only credits a pickup at a position the side traded away", () => {
@@ -484,6 +683,59 @@ describe("evaluateTrade — value, even and warnings", () => {
     expect(r.value).toEqual({ a: 10, b: -10, winner: "A", margin: 20 });
   });
 
+  it("never counts a received player as a loss for being worse than the waiver wire", () => {
+    const warren = player({ playerId: 30, fantasyTeamId: 0, thisWeek: 8, perGame: 8 });
+    const p = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, thisWeek: 15, perGame: 15 }),
+        player({ playerId: 3, fantasyTeamId: 2, thisWeek: 5, perGame: 5 }),
+      ],
+      { freeAgents: [warren] },
+    );
+    const r = evaluateTrade(p, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
+    // A receives a 5 where the wire offers 8 (worth 0, not -3); B receives a 15 worth 7 a week over it.
+    expect(r.value.a).toBe(-14);
+    expect(r.value.b).toBe(14);
+  });
+
+  it("sets the replacement level from free agents who can actually play", () => {
+    const hurtStar = player({ playerId: 31, fantasyTeamId: 0, thisWeek: 40, perGame: 40, injuryStatus: "OUT" });
+    const p = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, thisWeek: 15, perGame: 15 }),
+        player({ playerId: 3, fantasyTeamId: 2, thisWeek: 20, perGame: 20 }),
+      ],
+      { freeAgents: [hurtStar] },
+    );
+    const r = evaluateTrade(p, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
+    // With nobody healthy on the wire, the whole projection is value: 20 x 2 weeks vs 15 x 2.
+    expect(r.value.a).toBe(10);
+  });
+
+  it("treats exactly half a point a week as a real edge, not noise", () => {
+    const p = pool([
+      player({ playerId: 1, fantasyTeamId: 1, thisWeek: 10, perGame: 10 }),
+      player({ playerId: 2, fantasyTeamId: 2, thisWeek: 30, perGame: 30 }),
+      player({ playerId: 3, fantasyTeamId: 2, thisWeek: 10.5, perGame: 10.5 }),
+    ]);
+    // Team 1 gains 0.5 at RB; team 2 only loses a bench player, so its lineup doesn't move.
+    const r = evaluateTrade(p, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
+    const week = r.horizons.find((h) => h.key === "thisWeek");
+    expect(week?.margin).toBe(0.5);
+    expect(week?.winner).toBe("A");
+  });
+
+  it("names team B the winner when team B comes out ahead", () => {
+    const p = pool([
+      player({ playerId: 1, fantasyTeamId: 1, thisWeek: 10, perGame: 10 }),
+      player({ playerId: 3, fantasyTeamId: 2, thisWeek: 20, perGame: 20 }),
+    ]);
+    // Same swap as above, seen from the side that gives up the star.
+    const reversed = evaluateTrade(p, { teamA: 2, teamB: 1, fromA: [3], fromB: [1] });
+    expect(reversed.horizons.map((h) => h.winner)).toEqual(["B", "B", "B"]);
+    expect(reversed.value.winner).toBe("B");
+  });
+
   it("calls it even within half a point a week", () => {
     const p = pool([
       player({ playerId: 1, fantasyTeamId: 1, thisWeek: 10, perGame: 10 }),
@@ -493,6 +745,67 @@ describe("evaluateTrade — value, even and warnings", () => {
     // A 0.8 swing is a winner over one week, but even over two.
     expect(r.horizons.find((h) => h.key === "thisWeek")?.winner).toBe("A");
     expect(r.horizons.find((h) => h.key === "restOfSeason")?.winner).toBe("even");
+  });
+
+  it("has an empty next-week horizon when the season ends this week", () => {
+    const lastWeek = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, thisWeek: 10, perGame: 10 }),
+        player({ playerId: 3, fantasyTeamId: 2, thisWeek: 20, perGame: 20 }),
+      ],
+      { currentWeek: 6, finalWeek: 6 },
+    );
+    const r = evaluateTrade(lastWeek, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
+    const byKey = (key: string) => r.horizons.find((h) => h.key === key);
+    expect(byKey("nextWeek")?.weeks).toEqual([7, 6]);
+    expect(byKey("nextWeek")?.a).toEqual({ before: 0, after: 0, delta: 0 });
+    expect(byKey("restOfSeason")?.weeks).toEqual([7, 6]);
+  });
+
+  it("averages strength of schedule over the players that have one, and says so when none do", () => {
+    const sos = pool([
+      player({ playerId: 1, fantasyTeamId: 1, sosRank: 10 }),
+      player({ playerId: 2, fantasyTeamId: 1, sosRank: null }),
+      player({ playerId: 3, fantasyTeamId: 2, sosRank: null }),
+    ]);
+    const r = evaluateTrade(sos, { teamA: 1, teamB: 2, fromA: [1, 2], fromB: [3] });
+    expect(r.sos).toEqual({ aReceives: null, bReceives: 10 });
+    const mixed = evaluateTrade(
+      pool([
+        player({ playerId: 1, fantasyTeamId: 1 }),
+        player({ playerId: 3, fantasyTeamId: 2, sosRank: 6 }),
+        player({ playerId: 4, fantasyTeamId: 2, sosRank: null }),
+      ]),
+      { teamA: 1, teamB: 2, fromA: [1], fromB: [3, 4] },
+    );
+    expect(mixed.sos.aReceives).toBe(6);
+  });
+
+  it("doesn't warn about a position limit a roster only just reaches", () => {
+    const p = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, positionId: 1, eligibleSlots: [0] }),
+        player({ playerId: 3, fantasyTeamId: 2, positionId: 1, eligibleSlots: [0] }),
+      ],
+      { positionLimits: { "1": 1 } },
+    );
+    const r = evaluateTrade(p, { teamA: 1, teamB: 2, fromA: [1], fromB: [3] });
+    expect(r.warnings).toEqual([]);
+  });
+
+  it("only warns that a drop is impossible when nobody on the roster can be dropped", () => {
+    const p = pool(
+      [
+        player({ playerId: 1, fantasyTeamId: 1, droppable: false }),
+        player({ playerId: 2, fantasyTeamId: 1 }),
+        player({ playerId: 3, fantasyTeamId: 2 }),
+        player({ playerId: 4, fantasyTeamId: 2 }),
+      ],
+      { rosterMax: 2 },
+    );
+    // Team 1 ends on three players for two spots, but can still drop player 2.
+    const r = evaluateTrade(p, { teamA: 1, teamB: 2, fromA: [], fromB: [3] });
+    expect(r.warnings).toEqual([]);
   });
 
   it("warns about position limits, trade-locked players and drops nobody can make", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -45,6 +45,11 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({}) }) as Response));
 });
 
+// The stubbed fetch is global, so it has to be taken down with the test.
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("editing an item", () => {
   it("sends only what changed", async () => {
     const user = userEvent.setup();
@@ -85,10 +90,24 @@ describe("editing an item", () => {
   });
 
   it("will not save when nothing has changed", async () => {
+    const user = userEvent.setup();
     renderWith();
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     expect(screen.getByRole("button", { name: /save changes/i })).toBeDisabled();
     expect(screen.getByText(/no changes yet/i)).toBeInTheDocument();
+    expect(patchCalls()).toHaveLength(0);
+  });
+
+  it("treats typing the same value back as no change", async () => {
+    const user = userEvent.setup();
+    renderWith();
+
+    await user.type(screen.getByLabelText(/^title$/i), "x");
+    await user.type(screen.getByLabelText(/^title$/i), "{Backspace}");
+
+    expect(screen.getByRole("button", { name: /save changes/i })).toBeDisabled();
   });
 
   it("will not save a blank title", async () => {
@@ -115,9 +134,14 @@ describe("editing an item", () => {
     const user = userEvent.setup();
     renderWith();
 
-    await user.click(screen.getByRole("button", { name: "4" }));
+    expect(screen.queryByText(/puts this at the end/i)).not.toBeInTheDocument();
 
+    await user.click(screen.getByRole("button", { name: "4" }));
     expect(screen.getByText(/puts this at the end of phase 4/i)).toBeInTheDocument();
+
+    // Back on the phase it started in, nothing moves, so nothing is warned about.
+    await user.click(screen.getByRole("button", { name: "1" }));
+    expect(screen.queryByText(/puts this at the end/i)).not.toBeInTheDocument();
   });
 
   it("keeps the edits and says so when the save fails", async () => {
@@ -133,3 +157,65 @@ describe("editing an item", () => {
     expect(onDone).not.toHaveBeenCalled();
   });
 });
+
+describe("editing the other fields", () => {
+  it("sends the PR number as a number, and clears it back to null", async () => {
+    const user = userEvent.setup();
+    renderWith();
+
+    await user.type(screen.getByLabelText(/^pr repo$/i), "portfolio_api");
+    await user.type(screen.getByLabelText(/^pr number$/i), "137");
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => expect(patchCalls()).toHaveLength(1));
+    expect(sentPatch()).toEqual({ pr_repo: "portfolio_api", pr_number: 137 });
+  });
+
+  it("sends the project, phase and blocking flag it was switched to", async () => {
+    const user = userEvent.setup();
+    renderWith();
+
+    await user.click(screen.getByRole("button", { name: "paul-explore" }));
+    await user.click(screen.getByRole("button", { name: "3" }));
+    await user.click(screen.getByLabelText(/blocks the next step/i));
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => expect(patchCalls()).toHaveLength(1));
+    expect(sentPatch()).toEqual({ project: "paul-explore", phase: 3, blocking: true });
+  });
+
+  it("trims what it sends", async () => {
+    const user = userEvent.setup();
+    renderWith();
+
+    await user.type(screen.getByLabelText(/^command$/i), "  pnpm test  ");
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => expect(patchCalls()).toHaveLength(1));
+    expect(sentPatch()).toEqual({ command: "pnpm test" });
+  });
+});
+
+describe("leaving the form", () => {
+  it("closes once the save lands", async () => {
+    const user = userEvent.setup();
+    const onDone = renderWith();
+
+    await user.type(screen.getByLabelText(/why it exists/i), "a reason");
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+  });
+
+  it("closes without saving when cancelled", async () => {
+    const user = userEvent.setup();
+    const onDone = renderWith();
+
+    await user.type(screen.getByLabelText(/why it exists/i), "a reason");
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(patchCalls()).toHaveLength(0);
+  });
+});
+

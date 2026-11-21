@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -15,7 +15,9 @@ const SCRIPT = join(process.cwd(), "scripts/with-retries.mjs");
 /**
  * A stand-in command that counts its runs in a file and then does what its
  * plan says for that run: `ok`, `fail`, or `hang` (after starting a child that
- * also hangs, the way pnpm starts sudo and apt).
+ * also hangs, the way pnpm starts sudo and apt). `hang-stubborn-child` is a hang
+ * whose child ignores SIGTERM, and `hang-then-exit-zero-on-term` is a hang that
+ * exits 0 once it is asked to stop.
  */
 const FIXTURE = `
 const fs = require("node:fs");
@@ -28,8 +30,11 @@ fs.writeFileSync(dir + "/attempt-" + run, String(process.env.WITH_RETRIES_ATTEMP
 const step = plan[Math.min(run, plan.length) - 1];
 if (step === "ok") process.exit(0);
 if (step === "fail") process.exit(7);
-const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { stdio: "ignore" });
+const stubborn = step === "hang-stubborn-child";
+const childSource = (stubborn ? "process.on('SIGTERM', () => {});" : "") + "setInterval(() => {}, 1000)";
+const child = spawn(process.execPath, ["-e", childSource], { stdio: "ignore" });
 fs.writeFileSync(dir + "/grandchild", String(child.pid));
+if (step === "hang-then-exit-zero-on-term") process.on("SIGTERM", () => process.exit(0));
 setInterval(() => {}, 1000);
 `;
 
@@ -114,5 +119,43 @@ describe("with-retries", () => {
     expect(warnings(result.stdout)[0]).toMatch(/attempt 1 of 2 timed out after 1s/);
     expect(existsSync(join(dir, "grandchild"))).toBe(true);
     expect(alive(Number(readFileSync(join(dir, "grandchild"), "utf8")))).toBe(false);
+  });
+
+  it("exits 124 when the last attempt timed out, so a stall isn't mistaken for the command's own failure", () => {
+    const dir = scratch();
+    const result = runWithRetries(dir, { attempts: 1, timeout: 1, plan: ["hang"] });
+
+    expect(result.status).toBe(124);
+    expect(result.stdout).toMatch(/::error title=Gave up::attempt 1 of 1 timed out after 1s/);
+  });
+
+  it("finishes off a child that ignores the polite stop, so the next attempt starts clean", async () => {
+    const dir = scratch();
+    const result = runWithRetries(dir, { attempts: 2, timeout: 1, plan: ["hang-stubborn-child", "ok"] });
+
+    expect(result.status).toBe(0);
+    const grandchild = Number(readFileSync(join(dir, "grandchild"), "utf8"));
+    await vi.waitFor(() => expect(alive(grandchild)).toBe(false), { timeout: 2000 });
+  });
+
+  it("counts a timed-out attempt as failed even when it exits 0 on the way down", () => {
+    const dir = scratch();
+    const result = runWithRetries(dir, { attempts: 2, timeout: 1, plan: ["hang-then-exit-zero-on-term", "ok"] });
+
+    expect(result.status).toBe(0);
+    expect(runs(dir)).toBe(2);
+    expect(warnings(result.stdout)[0]).toMatch(/attempt 1 of 2 timed out/);
+  });
+
+  it.each([
+    ["no command after --", ["--attempts", "2", "--timeout", "5", "--"]],
+    ["no -- at all", ["--attempts", "2", "--timeout", "5", "true"]],
+    ["zero attempts", ["--attempts", "0", "--timeout", "5", "--", "true"]],
+    ["a non-numeric timeout", ["--attempts", "2", "--timeout", "soon", "--", "true"]],
+  ])("refuses to run with %s, and prints the usage", (_name, args) => {
+    const result = spawnSync(process.execPath, [SCRIPT, ...args], { encoding: "utf8", timeout: 10_000 });
+
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/usage: with-retries\.mjs/);
   });
 });

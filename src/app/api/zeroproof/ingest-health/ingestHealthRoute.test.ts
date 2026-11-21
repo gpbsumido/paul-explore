@@ -58,4 +58,47 @@ describe("GET /api/zeroproof/ingest-health", () => {
     expect(res.status).toBe(404);
     expect(fetchUpstream).not.toHaveBeenCalled();
   });
+
+  it("404s a signed-out caller without calling the backend", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+    const { GET } = await import("./route");
+    const res = await GET(new NextRequest("http://localhost/api/zeroproof/ingest-health"), {});
+    expect(res.status).toBe(404);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("sends the admin's own token upstream", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(admin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({ token: "tok" } as never);
+    vi.mocked(fetchUpstream).mockResolvedValue(upstream({ sports: [], espnLeagues: [] }));
+    const { GET } = await import("./route");
+    await GET(new NextRequest("http://localhost/api/zeroproof/ingest-health"), {});
+    const [url, init] = vi.mocked(fetchUpstream).mock.calls[0];
+    expect(url).toMatch(/\/api\/zeroproof\/ingest-health$/);
+    expect(init?.headers).toMatchObject({ Authorization: "Bearer tok" });
+  });
+
+  it("passes a backend failure through as a labelled error", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(admin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({ token: "tok" } as never);
+    vi.mocked(fetchUpstream).mockResolvedValue(upstream({ error: "x" }, 403));
+    const { GET } = await import("./route");
+    const res = await GET(new NextRequest("http://localhost/api/zeroproof/ingest-health"), {});
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "Failed to load ingest health" });
+  });
+
+  it("answers 502 when the backend cannot be reached", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(admin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({ token: "tok" } as never);
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: false,
+      cause: "unreachable",
+      message: "down",
+    });
+    const { GET } = await import("./route");
+    const res = await GET(new NextRequest("http://localhost/api/zeroproof/ingest-health"), {});
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ cause: "unreachable" });
+  });
 });

@@ -15,12 +15,11 @@ describe("getLowStockItemIds", () => {
     const items = [
       buildInventoryItem({ id: "low-1", currentStock: 2, capacity: 12 }),
       buildInventoryItem({ id: "healthy-1", currentStock: 10, capacity: 12 }),
+      buildInventoryItem({ id: "mid-1", currentStock: 4, capacity: 12 }),
       buildInventoryItem({ id: "empty-1", currentStock: 0, capacity: 12 }),
     ];
-    const ids = getLowStockItemIds(items);
-    expect(ids).toContain("low-1");
-    expect(ids).toContain("empty-1");
-    expect(ids).not.toContain("healthy-1");
+    // low-1 is critical (17%), mid-1 is low (33%), empty-1 is out of stock.
+    expect(getLowStockItemIds(items)).toEqual(["low-1", "mid-1", "empty-1"]);
   });
 
   it("returns empty array when all items are healthy", () => {
@@ -33,16 +32,6 @@ describe("getLowStockItemIds", () => {
 
   it("returns empty array for empty inventory", () => {
     expect(getLowStockItemIds([])).toEqual([]);
-  });
-
-  it("includes critical and out-of-stock items", () => {
-    const items = [
-      buildInventoryItem({ id: "crit", currentStock: 1, capacity: 12 }),
-      buildInventoryItem({ id: "oos", currentStock: 0, capacity: 12 }),
-    ];
-    const ids = getLowStockItemIds(items);
-    expect(ids).toContain("crit");
-    expect(ids).toContain("oos");
   });
 
   it("does not include items at exactly 50% (healthy threshold)", () => {
@@ -64,10 +53,7 @@ describe("getDismissableAlerts", () => {
       buildAlert({ id: "i1", severity: "info", acknowledged: false }),
       buildAlert({ id: "c1", severity: "critical", acknowledged: false }),
     ];
-    const dismissable = getDismissableAlerts(alerts);
-    expect(dismissable.map((a) => a.id)).toContain("w1");
-    expect(dismissable.map((a) => a.id)).toContain("i1");
-    expect(dismissable.map((a) => a.id)).not.toContain("c1");
+    expect(getDismissableAlerts(alerts).map((a) => a.id)).toEqual(["w1", "i1"]);
   });
 
   it("excludes already acknowledged alerts", () => {

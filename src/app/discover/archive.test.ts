@@ -17,6 +17,12 @@ describe("the /discover archive", () => {
     }
   });
 
+  it("does not claim a version it has never held", () => {
+    expect(isArchived("v6")).toBe(false);
+    expect(isArchived("")).toBe(false);
+    expect(isArchived("V1")).toBe(false);
+  });
+
   it("labels each one as landing-page history rather than as stale", () => {
     for (const version of ARCHIVED_VERSIONS) {
       const label = archiveLabel(version);

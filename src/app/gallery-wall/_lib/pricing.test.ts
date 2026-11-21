@@ -30,6 +30,11 @@ describe("estimatePrintCost", () => {
     );
   });
 
+  it("keeps the total to whole cents instead of carrying float drift", () => {
+    // 0.14 three times is 0.42000000000000004 in plain float addition.
+    expect(estimatePrintCost(["4x6", "4x6", "4x6"]).total).toBe(0.42);
+  });
+
   it("reports sizes it has no price for instead of guessing", () => {
     const estimate = estimatePrintCost(["8x10", "99x99"]);
     expect(estimate.total).toBeCloseTo(5.49, 2);
@@ -74,6 +79,15 @@ describe("taxRateFor", () => {
     ).toBeCloseTo(0.12, 5);
   });
 
+  it("accepts the two-letter country code and the accented Québec", () => {
+    expect(taxRateFor({ country: "CA", regionName: "Ontario" }).rate).toBe(
+      0.13,
+    );
+    expect(taxRateFor({ country: "Canada", regionName: "Québec" }).rate).toBe(
+      0.14975,
+    );
+  });
+
   it("has no rate outside Canada, since the vendor is Canadian", () => {
     expect(
       taxRateFor({ country: "United States", regionName: "New York" }).rate,
@@ -96,6 +110,6 @@ describe("taxRateFor", () => {
 describe("withTax", () => {
   it("adds the rate and rounds to cents", () => {
     expect(withTax(100, 0.13)).toBe(113);
-    expect(withTax(17.18, 0.13)).toBeCloseTo(19.41, 2);
+    expect(withTax(17.18, 0.13)).toBe(19.41);
   });
 });

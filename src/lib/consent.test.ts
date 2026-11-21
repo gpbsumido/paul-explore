@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   CONSENT_COOKIE,
   CONSENT_ACCEPTED,
+  CONSENT_COOKIE_MAX_AGE,
   CONSENT_DECLINED,
   hasAcceptedConsent,
 } from "@/lib/consent";
@@ -32,5 +33,9 @@ describe("consent cookie constants", () => {
     expect(CONSENT_COOKIE).toBe("cookie_consent");
     expect(CONSENT_ACCEPTED).toBe("accepted");
     expect(CONSENT_DECLINED).toBe("declined");
+  });
+
+  it("remembers the choice for a year, in seconds", () => {
+    expect(CONSENT_COOKIE_MAX_AGE).toBe(365 * 24 * 60 * 60);
   });
 });

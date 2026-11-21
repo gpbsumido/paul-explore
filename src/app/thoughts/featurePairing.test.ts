@@ -45,17 +45,21 @@ describe("write-ups link back to the page they are about", () => {
   });
 
   it("pairs it in both directions, not just one", () => {
-    const oneWay = slugs
+    const wrong = slugs
       .filter(hasRoute)
       .filter((s) => !UNPAIRED_ON_PURPOSE[s])
       .filter((s) => {
         const toFeature = counterpartFor(`/thoughts/${s}`);
-        if (!toFeature) return false;
-        const back = counterpartFor(toFeature.href);
-        return back?.href !== `/thoughts/${s}`;
+        const toWriteUp = counterpartFor(`/${s}`);
+        return (
+          toFeature?.href !== `/${s}` ||
+          toFeature.direction !== "to-feature" ||
+          toWriteUp?.href !== `/thoughts/${s}` ||
+          toWriteUp.direction !== "to-thoughts"
+        );
       });
 
-    expect(oneWay).toEqual([]);
+    expect(wrong).toEqual([]);
   });
 
   it("keeps the exception list honest", () => {

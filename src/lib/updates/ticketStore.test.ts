@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type { Ticket } from "./types";
 import { loadTickets, addTicket, toggleVote } from "./ticketStore";
 
@@ -91,5 +91,87 @@ describe("toggleVote", () => {
     expect(second.tickets[0].votes).toBe(3);
     expect(second.votedIds).toEqual([]);
     expect(loadTickets(seeds, storage).tickets[0].votes).toBe(3);
+  });
+});
+
+describe("a browser's stored data can't be trusted", () => {
+  const SUBMITTED_KEY = "paul-explore:updates:submitted:v1";
+  const VOTES_KEY = "paul-explore:updates:votes:v1";
+  const seeds = [seed({ id: "a", votes: 3 })];
+
+  it.each([
+    ["unparseable text", "{not json"],
+    ["something that isn't a list", JSON.stringify({ id: "x" })],
+  ])("falls back to the seeds when the submissions are %s", (_label, stored) => {
+    const storage = makeStorage();
+    storage.setItem(SUBMITTED_KEY, stored);
+
+    expect(loadTickets(seeds, storage).tickets.map((t) => t.id)).toEqual(["a"]);
+  });
+
+  it("drops a stored submission that doesn't match the ticket schema, keeping the good ones", () => {
+    const storage = makeStorage();
+    const good = seed({ id: "u-good", title: "Kept" });
+    storage.setItem(SUBMITTED_KEY, JSON.stringify([{ id: "u-bad", title: "" }, good]));
+
+    expect(loadTickets(seeds, storage).tickets.map((t) => t.id)).toEqual(["u-good", "a"]);
+  });
+
+  it("ignores stored votes that aren't ids", () => {
+    const storage = makeStorage();
+    storage.setItem(VOTES_KEY, JSON.stringify([42, null, "a"]));
+
+    const { tickets, votedIds } = loadTickets(seeds, storage);
+
+    expect(votedIds).toEqual(["a"]);
+    expect(tickets[0].votes).toBe(4);
+  });
+
+  it("still hands back the right board for this session when storage refuses a write", () => {
+    const storage = makeStorage();
+    vi.spyOn(storage, "setItem").mockImplementation(() => {
+      throw new DOMException("quota exceeded", "QuotaExceededError");
+    });
+
+    const { tickets, votedIds } = toggleVote("a", seeds, storage);
+
+    // Nothing was saved, so the reload shows the seeds untouched; the call must
+    // not throw into the click handler.
+    expect(votedIds).toEqual([]);
+    expect(tickets[0].votes).toBe(3);
+  });
+});
+
+describe("submitting and voting together", () => {
+  it("keeps a visitor's earlier submissions when they add another, newest first", () => {
+    const seeds = [seed({ id: "a" })];
+    const storage = makeStorage();
+    addTicket({ type: "feature", title: "First", body: "one" }, seeds, storage, { id: "u-1" });
+
+    const { tickets } = addTicket({ type: "bug", title: "Second", body: "two" }, seeds, storage, {
+      id: "u-2",
+    });
+
+    expect(tickets.map((t) => t.id)).toEqual(["u-2", "u-1", "a"]);
+  });
+
+  it("lets a visitor upvote their own submission", () => {
+    const seeds = [seed({ id: "a" })];
+    const storage = makeStorage();
+    addTicket({ type: "feature", title: "Mine", body: "detail" }, seeds, storage, { id: "u-1" });
+
+    const { tickets } = toggleVote("u-1", seeds, storage);
+
+    expect(tickets.find((t) => t.id === "u-1")?.votes).toBe(1);
+  });
+
+  it("generates a u- prefixed id, so a submission can't collide with a seed", () => {
+    const { tickets } = addTicket(
+      { type: "feature", title: "Mine", body: "detail" },
+      [seed({ id: "a" })],
+      makeStorage(),
+    );
+
+    expect(tickets[0].id).toMatch(/^u-/);
   });
 });

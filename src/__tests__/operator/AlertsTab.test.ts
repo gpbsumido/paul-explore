@@ -66,11 +66,8 @@ describe("alerts tab pipeline: filter then sort", () => {
     const filtered = filterAlertsBySeverity(alerts, "all");
     const sorted = sortAlertsBySeverity(filtered);
 
-    expect(sorted).toHaveLength(4);
-    expect(sorted[0].severity).toBe("critical");
-    expect(sorted[1].severity).toBe("warning");
-    expect(sorted[2].severity).toBe("warning");
-    expect(sorted[3].severity).toBe("info");
+    // Within a severity the original order holds: a-3 came before a-5.
+    expect(sorted.map((a) => a.id)).toEqual(["a-2", "a-3", "a-5", "a-1"]);
   });
 
   it("narrows to critical only when filter is 'critical'", () => {
@@ -149,15 +146,5 @@ describe("alert count badge reflects active state", () => {
     const alerts = buildRealisticAlerts();
     // 4 active out of 6 total (a-4 and a-6 are acknowledged)
     expect(countActiveAlerts(alerts)).toBe(4);
-  });
-
-  it("updates count after an optimistic dismiss", () => {
-    const alerts = buildRealisticAlerts();
-
-    const afterDismiss = alerts.map((a) =>
-      a.id === "a-3" ? { ...a, acknowledged: true } : a,
-    );
-
-    expect(countActiveAlerts(afterDismiss)).toBe(3);
   });
 });

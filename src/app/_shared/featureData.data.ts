@@ -508,6 +508,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#6f9440",
   },
   {
+    title: "Tests That Can't Fail",
+    href: "/thoughts/tests-that-cant-fail",
+    preview:
+      "Every test file run alone in a random order and every test judged on whether it would fail if the code broke: three files that only passed in order, tests that tested themselves, the ways a green run hid it, and what to verify when an AI wrote the tests or reported on them",
+    color: "#3e8f84",
+  },
+  {
     title: "Operator Dashboard",
     href: "/thoughts/operator-dashboard",
     preview:

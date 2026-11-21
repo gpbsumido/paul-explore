@@ -54,9 +54,11 @@ describe("planner presets", () => {
     ]);
   });
 
-  it("has a complete default input the UI can start from", () => {
-    expect(DEFAULT_PLANNER_INPUTS.units).toBeGreaterThanOrEqual(1);
-    expect(DEFAULT_PLANNER_INPUTS.avgItemPrice).toBeGreaterThan(0);
+  it("has a default input that projects a location which pays back", () => {
+    const projection = projectLocation(DEFAULT_PLANNER_INPUTS);
+    expect(projection.ordersPerMonth).toBeGreaterThan(0);
+    expect(projection.netProfitMonthly).toBeGreaterThan(0);
+    expect(projection.paybackMonths).not.toBeNull();
   });
 });
 
@@ -121,7 +123,7 @@ describe("projectLocation", () => {
     const p = projectLocation(PROFITABLE);
     // $6,295 / $1,290 = 4.879... -> one decimal
     expect(p.hardwareCost).toBe(UNIT_PRICE_SINGLE);
-    expect(p.paybackMonths).toBeCloseTo(4.9, 1);
+    expect(p.paybackMonths).toBe(4.9);
   });
 
   it("returns null payback when the location never pays back", () => {
@@ -136,6 +138,42 @@ describe("projectLocation", () => {
     });
     expect(doomed.netProfitMonthly).toBeLessThanOrEqual(0);
     expect(doomed.paybackMonths).toBeNull();
+  });
+
+  it("returns null payback when fees leave exactly zero profit", () => {
+    // 7% of $3,000 is $210, which is the $60 platform fee plus the $150 txn fee
+    const breakEven = projectLocation({ ...PROFITABLE, margin: 7 });
+    expect(breakEven.netProfitMonthly).toBe(0);
+    expect(breakEven.paybackMonths).toBeNull();
+  });
+
+  it("scales orders, revenue per unit and hardware cost with the unit count", () => {
+    const p = projectLocation({ ...PROFITABLE, units: 3 });
+    expect(p.ordersPerMonth).toBe(900);
+    expect(p.grossRevenueMonthly).toBe(9000);
+    expect(p.revenuePerUnitAnnual).toBe(36000);
+    // three units get the bulk price each
+    expect(p.hardwareCost).toBe(UNIT_PRICE_BULK * 3);
+  });
+
+  it("counts a fractional unit count as whole units, and at least one", () => {
+    const fractional = projectLocation({ ...PROFITABLE, units: 2.9 });
+    const none = projectLocation({ ...PROFITABLE, units: 0 });
+    expect(fractional.platformFeesMonthly).toBe(PLATFORM_FEE_PER_UNIT_MONTHLY * 2);
+    expect(none.platformFeesMonthly).toBe(PLATFORM_FEE_PER_UNIT_MONTHLY);
+    expect(none.ordersPerMonth).toBe(300);
+  });
+
+  it("caps a conversion rate above 100% at everyone buying", () => {
+    const capped = projectLocation({ ...PROFITABLE, conversionRate: 250 });
+    // 100 people a day, all buying, 30 days
+    expect(capped.ordersPerMonth).toBe(3000);
+  });
+
+  it("treats negative traffic as no traffic", () => {
+    const p = projectLocation({ ...PROFITABLE, dailyFootTraffic: -50 });
+    expect(p.ordersPerMonth).toBe(0);
+    expect(p.grossRevenueMonthly).toBe(0);
   });
 
   it("caps a margin above 100% rather than inventing profit", () => {
@@ -162,12 +200,27 @@ describe("fleetBenchmarks", () => {
       buildSale({ quantity: 2, total: 10 }), // $5/item, 2 items
       buildSale({ quantity: 1, total: 3 }), //  $3/item, 1 item
     ];
-    const b = fleetBenchmarks(sales);
-    expect(b).not.toBeNull();
     // total revenue 13 over 3 items -> 4.33/item; 3 items over 2 orders -> 1.5
-    expect(b?.avgItemPrice).toBeCloseTo(4.33, 2);
-    expect(b?.itemsPerOrder).toBeCloseTo(1.5, 2);
-    expect(b?.sampleSize).toBe(2);
+    expect(fleetBenchmarks(sales)).toEqual({
+      avgItemPrice: 4.33,
+      itemsPerOrder: 1.5,
+      sampleSize: 2,
+    });
+  });
+
+  it("rounds items per order to one decimal", () => {
+    const sales = [
+      buildSale({ quantity: 1, total: 1 }),
+      buildSale({ quantity: 1, total: 1 }),
+      buildSale({ quantity: 2, total: 2 }),
+    ];
+    // 4 items over 3 orders is 1.333...
+    expect(fleetBenchmarks(sales)?.itemsPerOrder).toBe(1.3);
+  });
+
+  it("reports a zero price rather than NaN when no items were sold", () => {
+    const sales = [buildSale({ quantity: 0, total: 0 })];
+    expect(fleetBenchmarks(sales)?.avgItemPrice).toBe(0);
   });
 
   it("is null when there are no sales to learn from", () => {
@@ -193,6 +246,26 @@ describe("planner URL state", () => {
     const { inputs, hasQuery } = plannerInputsFromParams({});
     expect(hasQuery).toBe(false);
     expect(inputs).toEqual(DEFAULT_PLANNER_INPUTS);
+  });
+
+  it("reads the first value when a param is repeated", () => {
+    const { inputs } = plannerInputsFromParams({ un: ["4", "9"] });
+    expect(inputs.units).toBe(4);
+  });
+
+  it("reports a query when only one planner param is present", () => {
+    expect(plannerInputsFromParams({ mg: "30" }).hasQuery).toBe(true);
+  });
+
+  it("ignores params that are not planner state", () => {
+    expect(plannerInputsFromParams({ utm_source: "mail" }).hasQuery).toBe(false);
+  });
+
+  // Known bug: Number("") is 0, so a blank param quietly zeroes the input instead of
+  // falling back to the default like any other unparseable value does.
+  it.fails("falls back to the default for a blank param", () => {
+    const { inputs } = plannerInputsFromParams({ ft: "" });
+    expect(inputs.dailyFootTraffic).toBe(DEFAULT_PLANNER_INPUTS.dailyFootTraffic);
   });
 
   it("ignores an unparseable param and keeps the rest", () => {

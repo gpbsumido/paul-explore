@@ -89,6 +89,38 @@ describe("TradeAnalyzer", () => {
     );
   });
 
+  it("labels a schedule as hard, neutral or easy by how tough its rank is", async () => {
+    const user = userEvent.setup();
+    render(<TradeAnalyzer pool={pool} />);
+
+    await user.selectOptions(screen.getByLabelText("Team A"), "2");
+    expect(screen.getByRole("checkbox", { name: /Jahmyr Gibbs/ }).closest("li")).toHaveTextContent(/SOS 12 · hard/i);
+
+    await user.selectOptions(screen.getByLabelText("Team A"), "3");
+    expect(screen.getByRole("checkbox", { name: /Saquon Barkley/ }).closest("li")).toHaveTextContent(/SOS 16 · neutral/i);
+  });
+
+  it("calls an even swap too close to call instead of naming a winner", async () => {
+    const user = userEvent.setup();
+    const even: TradePool = {
+      ...pool,
+      players: [
+        player({ playerId: 1, name: "Derrick Henry", fantasyTeamId: 1, thisWeek: 15, perGame: 15 }),
+        player({ playerId: 2, name: "Jahmyr Gibbs", fantasyTeamId: 2, thisWeek: 15, perGame: 15 }),
+      ],
+    };
+    render(<TradeAnalyzer pool={even} />);
+
+    await user.selectOptions(screen.getByLabelText("Team A"), "1");
+    await user.selectOptions(screen.getByLabelText("Team B"), "2");
+    await user.click(screen.getByRole("checkbox", { name: /Derrick Henry/ }));
+    await user.click(screen.getByRole("checkbox", { name: /Jahmyr Gibbs/ }));
+
+    const verdict = screen.getByRole("status");
+    expect(verdict).toHaveTextContent(/too close to call/i);
+    expect(verdict).not.toHaveTextContent(/wins this trade/i);
+  });
+
   it("won't put the same team on both sides", async () => {
     const user = userEvent.setup();
     render(<TradeAnalyzer pool={pool} />);

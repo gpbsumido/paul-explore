@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   createReferral,
+  getReferral,
   getReferralStats,
   recordReferralClick,
 } from "./referrals";
@@ -45,6 +46,29 @@ describe("referrals client", () => {
     );
   });
 
+  it.each([
+    [400, /3-32 lowercase letters/i],
+    [404, /does not exist/i],
+    [500, /could not create the referral link/i],
+  ])("explains a %i from create in plain words", async (status, message) => {
+    mockFetch(status, {});
+    await expect(createReferral({ slug: "x" })).rejects.toThrow(message);
+  });
+
+  it("loads a link by slug, or says it doesn't exist", async () => {
+    const fetchMock = mockFetch(200, { slug: "abc123", clicks: 1 });
+    expect((await getReferral("abc123")).slug).toBe("abc123");
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/referrals\/abc123$/);
+
+    mockFetch(404, {});
+    await expect(getReferral("nope")).rejects.toThrow(/does not exist/i);
+  });
+
+  it("says the click wasn't recorded when the API errors", async () => {
+    mockFetch(500, {});
+    await expect(recordReferralClick("abc123")).rejects.toThrow(/could not record the click/i);
+  });
+
   it("records a click via POST to the clicks endpoint", async () => {
     const fetchMock = mockFetch(200, {
       slug: "abc123",
@@ -59,13 +83,14 @@ describe("referrals client", () => {
   });
 
   it("parses stats", async () => {
-    mockFetch(200, {
+    const fetchMock = mockFetch(200, {
       slug: "abc123",
       targetPath: "/",
       clicks: 2,
       recent: [{ at: "2026-07-20T01:00:00.000Z" }],
     });
     const stats = await getReferralStats("abc123");
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/referrals\/abc123\/stats$/);
     expect(stats.clicks).toBe(2);
     expect(stats.recent).toHaveLength(1);
   });

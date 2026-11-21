@@ -60,6 +60,24 @@ describe("parseEuropePmcSearch", () => {
     expect(pub.authors).toEqual([]);
     expect(pub.doi).toBeNull();
     expect(pub.pubDate).toBe("2026");
+    // The link follows the record's own source, not an assumed one.
+    expect(pub.url).toBe("https://europepmc.org/article/PPR/PPR9");
+  });
+
+  it("prefers the exact publication date to the bare year", () => {
+    const [pub] = parseEuropePmcSearch({
+      hitCount: 1,
+      resultList: { result: [record({ firstPublicationDate: "2026-02-11", pubYear: "2025" })] },
+    });
+    expect(pub.pubDate).toBe("2026-02-11");
+  });
+
+  it("unescapes ampersands in a title", () => {
+    const [pub] = parseEuropePmcSearch({
+      hitCount: 1,
+      resultList: { result: [record({ title: "Sex &amp; gender in AAA repair" })] },
+    });
+    expect(pub.title).toBe("Sex & gender in AAA repair");
   });
 
   it("rejects a payload that is not a Europe PMC search response", () => {
@@ -86,6 +104,37 @@ describe("mergePublications", () => {
     );
     expect(merged).toHaveLength(1);
     expect(merged[0].source).toBe("pubmed");
+  });
+
+  it("drops a duplicate by DOI even when the titles differ, ignoring DOI case", () => {
+    const merged = mergePublications(
+      [{ ...pubmed, doi: "10.1000/X.1" }],
+      parseEuropePmcSearch({
+        hitCount: 1,
+        resultList: { result: [record({ doi: "10.1000/x.1", title: "A completely different title" })] },
+      }),
+    );
+    expect(merged).toHaveLength(1);
+
+    const reversed = mergePublications(
+      [{ ...pubmed, doi: "10.1000/x.1" }],
+      parseEuropePmcSearch({
+        hitCount: 1,
+        resultList: { result: [record({ doi: "10.1000/X.1", title: "A completely different title" })] },
+      }),
+    );
+    expect(reversed).toHaveLength(1);
+  });
+
+  it("treats a trailing full stop on a title as no difference", () => {
+    const merged = mergePublications(
+      [{ ...pubmed, doi: null, title: "Endovascular repair in dialysis patients" }],
+      parseEuropePmcSearch({
+        hitCount: 1,
+        resultList: { result: [record({ doi: undefined })] },
+      }),
+    );
+    expect(merged).toHaveLength(1);
   });
 
   it("dedupes on title when neither record carries a DOI", () => {
@@ -122,6 +171,23 @@ describe("mergePublications", () => {
       "europepmc",
       "pubmed",
     ]);
+  });
+});
+
+describe("pubDateOrder", () => {
+  it("orders by day within a month, for both date shapes", () => {
+    expect(pubDateOrder("2026-06-23")).toBeGreaterThan(pubDateOrder("2026-06-02"));
+    expect(pubDateOrder("2026 Feb 20")).toBeGreaterThan(pubDateOrder("2026 Feb 3"));
+  });
+
+  it("orders a named month after the bare year and by month", () => {
+    expect(pubDateOrder("2026 Feb")).toBeGreaterThan(pubDateOrder("2026 Jan"));
+    expect(pubDateOrder("2026 Jan")).toBeGreaterThan(pubDateOrder("2026"));
+    expect(pubDateOrder("2026")).toBeGreaterThan(pubDateOrder("2025 Dec 31"));
+  });
+
+  it("puts something it can't read last", () => {
+    expect(pubDateOrder("sometime")).toBe(0);
   });
 });
 
@@ -194,6 +260,17 @@ describe("topic discovery from MeSH headings", () => {
     expect(topics.map((t) => t.name)).toEqual(["Sarcopenia"]);
   });
 
+  it("breaks ties between equally common headings alphabetically, and stops at the limit", () => {
+    const counts = new Map([["Zeta Thing", 3], ["Alpha Thing", 3], ["Mid Thing", 3]]);
+    expect(deriveTopics(counts).map((t) => t.name)).toEqual(["Alpha Thing", "Mid Thing", "Zeta Thing"]);
+    expect(deriveTopics(counts, { limit: 2 }).map((t) => t.name)).toEqual(["Alpha Thing", "Mid Thing"]);
+  });
+
+  it("makes a clean id out of a heading's punctuation", () => {
+    const [topic] = deriveTopics(new Map([["(Odd) Heading, Here!", 4]]));
+    expect(topic.id).toBe("mesh-odd-heading-here");
+  });
+
   it("skips headings a curated topic already covers", () => {
     const counts = new Map([["Frailty", 5]]);
     expect(deriveTopics(counts, { minCount: 1 })).toEqual([]);
@@ -230,6 +307,10 @@ describe("toEuropePmcQuery", () => {
 
   it("returns null when nothing survives translation", () => {
     expect(toEuropePmcQuery("2021:3000[dp]")).toBeNull();
+  });
+
+  it("drops a clause that is only a field tag, rather than searching for nothing", () => {
+    expect(toEuropePmcQuery('(aaa[tiab]) AND ([tiab])')).toBe('(TITLE:"aaa" OR ABSTRACT:"aaa")');
   });
 });
 

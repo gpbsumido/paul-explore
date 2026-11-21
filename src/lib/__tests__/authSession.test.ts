@@ -1,5 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { isSessionTimeout, isLogoutPath } from "@/lib/authSession";
+import {
+  isSessionTimeout,
+  isLogoutPath,
+  sessionConfig,
+  SESSION_ABSOLUTE_SECONDS,
+  SESSION_IDLE_SECONDS,
+} from "@/lib/authSession";
+
+describe("sessionConfig", () => {
+  it("signs you out after six idle hours, however recently you signed in", () => {
+    expect(sessionConfig.inactivityDuration).toBe(6 * 60 * 60);
+  });
+
+  it("slides the idle window forward on activity, capped at a week", () => {
+    expect(sessionConfig.rolling).toBe(true);
+    expect(sessionConfig.absoluteDuration).toBe(7 * 24 * 60 * 60);
+    expect(SESSION_IDLE_SECONDS).toBeLessThan(SESSION_ABSOLUTE_SECONDS);
+  });
+});
 
 describe("isLogoutPath", () => {
   it("recognises the SDK's logout route", () => {

@@ -61,6 +61,16 @@ describe("precipitationCount", () => {
     expect(precipitationCount("rain", 1)).toBeGreaterThan(precipitationCount("rain", 0));
   });
 
+  it("gives rain three quarters of the budget at full fidelity and about a third of that at the floor", () => {
+    expect(precipitationCount("rain", 1)).toBe(Math.round(MAX_PARTICLES * 0.75));
+    expect(precipitationCount("rain", 0)).toBe(Math.round(MAX_PARTICLES * 0.75 * 0.35));
+  });
+
+  it("treats a slider value outside 0..1 as the nearest end of the slider", () => {
+    expect(precipitationCount("rain", 7)).toBe(precipitationCount("rain", 1));
+    expect(precipitationCount("rain", -3)).toBe(precipitationCount("rain", 0));
+  });
+
   it("never exceeds the particle budget", () => {
     expect(precipitationCount("storm", 1)).toBeLessThanOrEqual(MAX_PARTICLES);
   });

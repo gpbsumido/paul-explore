@@ -23,6 +23,17 @@ describe("exposurePercent", () => {
     expect(exposurePercent(buildEnvironmentConfig({ fallthrough: fullRollout("on") }))).toBe(100);
     expect(exposurePercent(buildEnvironmentConfig({ fallthrough: fullRollout("off") }))).toBe(0);
   });
+
+  it("adds up every non-off variation of a multivariate rollout", () => {
+    const config = buildEnvironmentConfig({
+      fallthrough: [
+        { variation: "a", weight: 20 },
+        { variation: "b", weight: 30 },
+        { variation: "off", weight: 50 },
+      ],
+    });
+    expect(exposurePercent(config)).toBe(50);
+  });
 });
 
 describe("statusOf", () => {
@@ -43,6 +54,27 @@ describe("statusOf", () => {
     expect(statusOf(buildEnvironmentConfig({ fallthrough: percentRollout(30) })).tone).toBe(
       "partial",
     );
+  });
+
+  it("is Off to all when it is on but nobody is served the value", () => {
+    expect(statusOf(buildEnvironmentConfig({ fallthrough: fullRollout("off") }))).toEqual({
+      label: "Off to all",
+      tone: "off",
+    });
+  });
+
+  it("is only Partial when a rule exists, even if the fallthrough serves everyone", () => {
+    const status = statusOf(
+      buildEnvironmentConfig({ rules: [buildRule()], fallthrough: fullRollout("on") }),
+    );
+    expect(status).toEqual({ label: "Partial", tone: "partial" });
+  });
+
+  it("is Partial when rules sit on top of a percentage rollout", () => {
+    const status = statusOf(
+      buildEnvironmentConfig({ rules: [buildRule()], fallthrough: percentRollout(30) }),
+    );
+    expect(status).toEqual({ label: "Partial", tone: "partial" });
   });
 
   it("is Targeted when only rules serve the value", () => {
@@ -104,21 +136,56 @@ describe("describeReason", () => {
   });
 
   it("explains that the flag is switched off here", () => {
-    expect(describeReason(flag, "development", result({ reason: "OFF" }))).toMatch(
-      /switched off/i,
+    expect(describeReason(flag, "development", result({ reason: "OFF" }))).toBe(
+      "This flag is switched off here, so everyone gets the default.",
     );
   });
 
   it("names the matched rule", () => {
     expect(
       describeReason(flag, "development", result({ reason: "RULE_MATCH", ruleIndex: 0 })),
-    ).toContain("Enterprise plans");
+    ).toBe('Matched the rule "Enterprise plans".');
+  });
+
+  it("names the rule at the index it matched, not the first one", () => {
+    const twoRules = buildFlag({
+      environments: {
+        development: buildEnvironmentConfig({
+          rules: [
+            buildRule({ id: "r1", description: "Enterprise plans" }),
+            buildRule({ id: "r2", description: "Beta testers" }),
+          ],
+        }),
+        staging: buildEnvironmentConfig(),
+        production: buildEnvironmentConfig(),
+      },
+    });
+    expect(
+      describeReason(twoRules, "development", result({ reason: "RULE_MATCH", ruleIndex: 1 })),
+    ).toBe('Matched the rule "Beta testers".');
+  });
+
+  it("still says a rule matched when the index points at nothing", () => {
+    const explain = (over: Partial<EvaluationResult>) =>
+      describeReason(flag, "development", result({ reason: "RULE_MATCH", ...over }));
+    expect(explain({ ruleIndex: undefined })).toBe("Matched a targeting rule.");
+    expect(explain({ ruleIndex: 9 })).toBe("Matched a targeting rule.");
   });
 
   it("says everyone gets the same value on a plain fallthrough", () => {
-    expect(describeReason(flag, "development", result({ reason: "FALLTHROUGH" }))).toMatch(
-      /everyone/i,
+    expect(describeReason(flag, "development", result({ reason: "FALLTHROUGH" }))).toBe(
+      "No rules matched, so everyone here gets the same value.",
     );
+  });
+
+  it("still names the served value for a rollout when there is no bucket to show", () => {
+    expect(
+      describeReason(
+        flag,
+        "development",
+        result({ reason: "FALLTHROUGH_ROLLOUT", bucket: undefined, variationKey: "off" }),
+      ),
+    ).toBe("No rules matched, so the rollout decided: Disabled.");
   });
 
   it("explains a percentage rollout as a dice roll landing on the served value", () => {

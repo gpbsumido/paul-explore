@@ -1,19 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { typeStyle, toPlain, DEFAULT_TYPE_COLOR, TYPE_COLORS } from "../tcg";
+import { typeStyle, toPlain, DEFAULT_TYPE_COLOR, POKEMON_TYPES } from "../tcg";
 
 describe("typeStyle", () => {
-  it("returns the correct class for a known type", () => {
-    expect(typeStyle("Fire")).toBe(TYPE_COLORS["Fire"]);
+  it("gives a known type its own colour rather than the default", () => {
+    expect(typeStyle("Fire")).not.toBe(DEFAULT_TYPE_COLOR);
   });
 
   it("returns the default color for an unknown type", () => {
     expect(typeStyle("Unknown")).toBe(DEFAULT_TYPE_COLOR);
   });
 
-  it("returns the correct class for every defined type", () => {
-    for (const [type, expected] of Object.entries(TYPE_COLORS)) {
-      expect(typeStyle(type)).toBe(expected);
-    }
+  it("colours every type in the filter list, each differently", () => {
+    const styles = POKEMON_TYPES.map((type) => typeStyle(type));
+    expect(styles).not.toContain(DEFAULT_TYPE_COLOR);
+    expect(new Set(styles).size).toBe(POKEMON_TYPES.length);
+  });
+
+  // Known bug: TYPE_COLORS is a plain object, so a name that exists on Object.prototype
+  // finds a function there instead of falling back. Not reachable with real
+  // TCG types today; recorded as a finding.
+  it.fails("falls back to the default colour for a type named like an object method", () => {
+    expect(typeStyle("constructor")).toBe(DEFAULT_TYPE_COLOR);
   });
 
   it("is case-sensitive — lowercase type falls back to default", () => {
@@ -49,6 +56,19 @@ describe("toPlain", () => {
       card: { id: "a1", attacks: [{ name: "Scratch", damage: 10 }] },
     };
     expect(toPlain(input)).toEqual(input);
+  });
+
+  it("strips the circular references from nested models and list items too", () => {
+    const sdk: Record<string, unknown> = {};
+    sdk.self = sdk;
+    const input = {
+      set: { name: "Base", sdk },
+      cards: [{ id: "1", tcgdex: sdk }, { id: "2", sdk }],
+    };
+    expect(toPlain(input)).toEqual({
+      set: { name: "Base" },
+      cards: [{ id: "1" }, { id: "2" }],
+    });
   });
 
   it("handles arrays of objects", () => {

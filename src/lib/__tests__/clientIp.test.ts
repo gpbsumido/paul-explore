@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
+import { NextRequest } from "next/server";
 import { clientIp } from "@/lib/clientIp";
 
 const req = (headers: Record<string, string>) =>
-  ({ headers: new Headers(headers) }) as never;
+  new NextRequest("https://paulsumido.com/api/anything", { headers });
 
 describe("clientIp", () => {
   it("uses the address the trusted proxy observed, not the one the client sent", () => {
@@ -28,6 +29,22 @@ describe("clientIp", () => {
     expect(clientIp(req({ "x-forwarded-for": " 1.1.1.1 , , 203.0.113.9 " }))).toBe(
       "203.0.113.9",
     );
+  });
+
+  it("ignores a trailing comma rather than keying on an empty address", () => {
+    expect(clientIp(req({ "x-forwarded-for": "1.1.1.1, 203.0.113.9," }))).toBe("203.0.113.9");
+  });
+
+  it("falls back to x-real-ip when the forwarded list holds no addresses", () => {
+    expect(clientIp(req({ "x-forwarded-for": " , ", "x-real-ip": "198.51.100.4" }))).toBe(
+      "198.51.100.4",
+    );
+  });
+
+  it("prefers the forwarded chain over x-real-ip when both are present", () => {
+    expect(
+      clientIp(req({ "x-forwarded-for": "203.0.113.9", "x-real-ip": "198.51.100.4" })),
+    ).toBe("203.0.113.9");
   });
 
   it("falls back to x-real-ip", () => {

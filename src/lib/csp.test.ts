@@ -41,6 +41,24 @@ describe("buildCsp", () => {
     );
   });
 
+  it("lets the page fetch from the media origin too, not just render images from it", () => {
+    const csp = buildCsp("https://d123.cloudfront.net");
+    expect(directive(csp, "connect-src")).toContain("https://d123.cloudfront.net");
+  });
+
+  it("ignores a media value that is not a URL instead of writing it into the policy", () => {
+    expect(buildCsp("not a url")).toBe(buildCsp(undefined));
+  });
+
+  it("keeps fonts, forms and framing on the app's own origin", () => {
+    const csp = buildCsp(undefined);
+    expect(directive(csp, "font-src")).toBe("font-src 'self'");
+    expect(directive(csp, "form-action")).toBe("form-action 'self'");
+    expect(directive(csp, "frame-src")).toBe(
+      "frame-src 'self' https://vercel.live https://verify.walletconnect.org https://verify.walletconnect.com",
+    );
+  });
+
   it("still locks down the directives that are not media related", () => {
     const csp = buildCsp("https://d123.cloudfront.net");
     expect(csp).toContain("object-src 'none'");

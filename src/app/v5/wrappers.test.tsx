@@ -55,15 +55,6 @@ describe("the v5 landing", () => {
     ).toHaveAttribute("href", "/auth/logout");
   });
 
-  it("adds no second bar for a signed-in visitor", async () => {
-    server.use(
-      http.get("/api/me", () => HttpResponse.json({ sub: "auth0|paul" })),
-    );
-    withProviders(<LandingContentV5 />);
-    await screen.findByRole("link", { name: /log out/i });
-    expect(screen.queryByText(/Back again/)).not.toBeInTheDocument();
-  });
-
   it("passes the tagline choice through to the hero", () => {
     withProviders(<LandingContentV5 taglineIndex={1} />);
     expect(screen.getByText(HERO_TAGLINES[1])).toBeInTheDocument();

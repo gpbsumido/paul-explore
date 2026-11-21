@@ -35,6 +35,21 @@ describe("rankPatternsForText", () => {
     expect(hay.flatMap((m) => m.matchedPhrases)).not.toContain("stack");
   });
 
+  it("breaks a tie in score by roadmap order, not by whichever sorts first", () => {
+    const everyFirstPhrase = PATTERNS.map((p) => p.signals[0].phrase).join(". ");
+    const ranked = rankPatternsForText(everyFirstPhrase);
+    const roadmapOrder = PATTERNS.map((p) => p.id);
+
+    const tied = ranked.filter((m, i) => i > 0 && m.score === ranked[i - 1].score);
+    expect(tied.length).toBeGreaterThan(0);
+    ranked.forEach((m, i) => {
+      if (i === 0 || m.score !== ranked[i - 1].score) return;
+      expect(roadmapOrder.indexOf(m.patternId)).toBeGreaterThan(
+        roadmapOrder.indexOf(ranked[i - 1].patternId),
+      );
+    });
+  });
+
   it("returns nothing for text with no signals", () => {
     expect(rankPatternsForText("hello there")).toEqual([]);
     expect(rankPatternsForText("")).toEqual([]);
@@ -77,6 +92,28 @@ describe("findSignalSpans", () => {
     ]);
   });
 
+  it("highlights the longer phrase whole when two start at the same place", () => {
+    const text = "the longest substring wins";
+    const spans = findSignalSpans(text, ["longest", "longest substring"]);
+    expect(spans.map((s) => text.slice(s.start, s.end))).toEqual(["longest substring"]);
+  });
+
+  it("keeps two phrases that sit edge to edge", () => {
+    const text = "k-sum";
+    const spans = findSignalSpans(text, ["k-", "sum"]);
+    expect(spans.map((s) => text.slice(s.start, s.end))).toEqual(["k-", "sum"]);
+  });
+
+  it("matches the start of a word and lets it run on, but not the middle of one", () => {
+    expect(findSignalSpans("all subarrays", ["subarray"])).toHaveLength(1);
+    expect(findSignalSpans("needle in a haystack", ["stack"])).toEqual([]);
+  });
+
+  it("treats a phrase's punctuation literally", () => {
+    expect(findSignalSpans("a.b", ["a.b"])).toHaveLength(1);
+    expect(findSignalSpans("axb", ["a.b"])).toEqual([]);
+  });
+
   it("returns no spans when nothing matches", () => {
     expect(findSignalSpans("plain words", ["heap"])).toEqual([]);
   });
@@ -103,5 +140,6 @@ describe("complexityBudgetForInputSize", () => {
   it("refuses a size that is not a positive number", () => {
     expect(() => complexityBudgetForInputSize(0)).toThrow();
     expect(() => complexityBudgetForInputSize(Number.NaN)).toThrow();
+    expect(() => complexityBudgetForInputSize(Number.POSITIVE_INFINITY)).toThrow();
   });
 });

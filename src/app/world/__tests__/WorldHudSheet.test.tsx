@@ -84,11 +84,73 @@ describe("WorldHudSheet", () => {
     renderSheet();
 
     await user.click(screen.getByRole("button", { name: /world settings/i }));
+    // The click leaves focus on the toggle already, so move it away first or
+    // this would pass without the sheet doing anything.
+    screen.getByRole("button", { name: "Site menu" }).focus();
     await user.keyboard("{Escape}");
 
     const toggle = screen.getByRole("button", { name: /world settings/i });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(toggle).toHaveFocus();
+  });
+
+  it("ignores Escape while collapsed, leaving focus where it is", async () => {
+    const user = userEvent.setup();
+    renderSheet();
+    const menuButton = screen.getByRole("button", { name: "Site menu" });
+    menuButton.focus();
+
+    await user.keyboard("{Escape}");
+
+    expect(menuButton).toHaveFocus();
+  });
+
+  it("stops listening for Escape once it has closed", async () => {
+    const user = userEvent.setup();
+    renderSheet();
+    await user.click(screen.getByRole("button", { name: /world settings/i }));
+    await user.click(
+      screen.getByRole("button", { name: /close world settings/i }),
+    );
+    const menuButton = screen.getByRole("button", { name: "Site menu" });
+    menuButton.focus();
+
+    await user.keyboard("{Escape}");
+
+    expect(menuButton).toHaveFocus();
+  });
+
+  it("slides the panel away when collapsed and brings it back when open", async () => {
+    const user = userEvent.setup();
+    renderSheet();
+    const panel = document.getElementById("world-hud-panel") as HTMLElement;
+    expect(panel).toHaveClass("max-md:invisible");
+
+    await user.click(screen.getByRole("button", { name: /world settings/i }));
+
+    expect(panel).not.toHaveClass("max-md:invisible");
+  });
+
+  it("closes the sheet and its backdrop when photo mode switches on while it is open", async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderSheet();
+    await user.click(screen.getByRole("button", { name: /world settings/i }));
+    expect(screen.getByTestId("world-hud-backdrop")).toBeInTheDocument();
+
+    rerender(
+      <WorldHudSheet
+        summary="🪙 3/25 · 12%"
+        menu={<button type="button">Site menu</button>}
+        hidden
+      >
+        <p>rail contents</p>
+      </WorldHudSheet>,
+    );
+
+    expect(screen.queryByTestId("world-hud-backdrop")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /world settings/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("closes when the backdrop behind it is tapped", async () => {

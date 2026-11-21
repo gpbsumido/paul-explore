@@ -64,4 +64,26 @@ describe("SalesTab range toggle filters the whole tab", () => {
     );
     expect(view.getAllByText("FreshSeller").length).toBeGreaterThan(0);
   });
+
+  it("scopes the headline totals to the selected range as well", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<SalesTab storeId={STORE_ID} />, {
+      wrapper: makeWrapper(),
+    });
+    const view = within(container);
+
+    /** The value shown under a headline label such as "Revenue". */
+    const stat = (label: string) =>
+      view.getByText(label).nextElementSibling?.textContent;
+
+    await view.findAllByText("StaleSeller");
+    // Month holds both sales: $20 + $50
+    expect(stat("Revenue")).toBe("$70.00");
+    expect(stat("Transactions")).toBe("2");
+
+    await user.click(view.getByRole("button", { name: "Day" }));
+
+    await waitFor(() => expect(stat("Revenue")).toBe("$20.00"));
+    expect(stat("Transactions")).toBe("1");
+  });
 });

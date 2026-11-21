@@ -33,4 +33,44 @@ describe("AuditLog pagination", () => {
 
     expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
   });
+
+  it("says so when nothing has been changed yet", () => {
+    render(<AuditLog audit={[]} />);
+
+    expect(screen.getByText("No changes yet.")).toBeInTheDocument();
+    expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+  });
+
+  it("counts the visible range out of the total as the reader pages", () => {
+    render(<AuditLog audit={buildAuditEntries(15)} />);
+    expect(screen.getByText("1–6 of 15")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    expect(screen.getByText("7–12 of 15")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    expect(screen.getByText("13–15 of 15")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+  });
+
+  it("stops Next on the last page and lets Previous walk back", () => {
+    render(<AuditLog audit={buildAuditEntries(15)} />);
+    const next = screen.getByRole("button", { name: /next/i });
+    fireEvent.click(next);
+    fireEvent.click(next);
+    expect(next).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: /previous/i }));
+    expect(screen.getByText("Change number 9")).toBeInTheDocument();
+    expect(next).toBeEnabled();
+  });
+
+  it("keeps an exactly full page to one page with no pager", () => {
+    render(<AuditLog audit={buildAuditEntries(6)} />);
+
+    expect(screen.getAllByRole("listitem")).toHaveLength(6);
+    expect(
+      screen.queryByRole("button", { name: /previous/i }),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -104,9 +104,9 @@ describe("V5Content", () => {
     // collides with the proof figures the moment the page scrolls.
     renderPage();
     const banner = screen.getByRole("banner");
-    expect(banner.className).toContain("sticky");
-    expect(banner.className).toContain("top-0");
-    expect(banner.className).toContain("backdrop-blur");
+    // classList, not className: z-[var(--z-sticky)] would satisfy a substring
+    // match even with the bar no longer sticky.
+    expect(banner).toHaveClass("sticky", "top-0", "backdrop-blur-md");
   });
 
   it("shows the first tagline by default and the indexed one when told", () => {
@@ -116,6 +116,11 @@ describe("V5Content", () => {
 
     renderPage({ taglineIndex: 2 });
     expect(screen.getByText(HERO_TAGLINES[2])).toBeInTheDocument();
+  });
+
+  it("falls back to the first tagline when the index is out of range", () => {
+    renderPage({ taglineIndex: HERO_TAGLINES.length + 3 });
+    expect(screen.getByText(HERO_TAGLINES[0])).toBeInTheDocument();
   });
 
   it("argues the whole craft matrix, not a curated subset of it", () => {
@@ -223,6 +228,17 @@ describe("V5Content", () => {
       .map((a) => a.getAttribute("href"))
       .filter((href) => href?.startsWith("/thoughts/"));
     expect(rendered).toEqual(picks);
+  });
+
+  it("skips a pick that is not a registered write-up instead of rendering a broken row", () => {
+    const [valid] = WRITING_POOL;
+    renderPage({ writingPicks: ["/thoughts/not-a-real-note", valid.href] });
+    const writing = document.getElementById("writing");
+    const rendered = within(writing as HTMLElement)
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"))
+      .filter((href) => href?.startsWith("/thoughts/"));
+    expect(rendered).toEqual([valid.href]);
   });
 
   it("teases five pool write-ups when nobody picked, never a broken slug", () => {

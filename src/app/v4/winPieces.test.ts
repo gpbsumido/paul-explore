@@ -37,8 +37,23 @@ describe("confettiPieces", () => {
     expect(pieces.some((p) => p.drift > 0)).toBe(true);
   });
 
-  it("only uses colours from the palette it was given", () => {
+  it("only uses colours from the palette it was given, and spreads across all of them", () => {
     const used = new Set(confettiPieces(40, COLORS).map((p) => p.color));
     for (const c of used) expect(COLORS).toContain(c);
+    expect(used.size).toBe(COLORS.length);
+  });
+
+  it("makes exactly as many pieces as asked for, each with its own id", () => {
+    const pieces = confettiPieces(25, COLORS);
+    expect(pieces).toHaveLength(25);
+    expect(new Set(pieces.map((p) => p.id)).size).toBe(25);
+    expect(confettiPieces(0, COLORS)).toEqual([]);
+  });
+
+  it("spins pieces both clockwise and anticlockwise, never barely", () => {
+    const spins = confettiPieces(60, COLORS).map((p) => p.spin);
+    expect(spins.some((s) => s < 0)).toBe(true);
+    expect(spins.some((s) => s > 0)).toBe(true);
+    expect(spins.every((s) => Math.abs(s) >= 240)).toBe(true);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sortCards } from "../card-view";
+import { RARITY_ORDER, sortCards } from "../card-view";
 import type { Rarity } from "../fantasy-cards";
 
 const c = (playerName: string, points: number, rarity: Rarity) => ({ playerName, points, rarity });
@@ -18,6 +18,16 @@ describe("sortCards", () => {
 
   it("sorts by rarity, rarest first, ties broken by points", () => {
     expect(sortCards(cards, "rarity").map((x) => x.playerName)).toEqual(["Star", "Role", "Mid", "Bench"]);
+  });
+
+  it("breaks a rarity tie with the higher points first", () => {
+    const tied = [c("Low", 10, "rare"), c("High", 30, "rare"), c("Top", 5, "sir")];
+    expect(sortCards(tied, "rarity").map((x) => x.playerName)).toEqual(["Top", "High", "Low"]);
+  });
+
+  it("agrees with RARITY_ORDER about which rarity is rarest", () => {
+    const oneOfEach = [...RARITY_ORDER].reverse().map((rarity) => c(rarity, 1, rarity));
+    expect(sortCards(oneOfEach, "rarity").map((x) => x.rarity)).toEqual(RARITY_ORDER);
   });
 
   it("sorts by name, A to Z", () => {

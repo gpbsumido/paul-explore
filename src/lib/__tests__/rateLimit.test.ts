@@ -28,12 +28,18 @@ describe("checkRateLimit", () => {
       expect(result.remaining).toBe(9);
     });
 
-    it("allows requests up to the exact limit", () => {
-      for (let i = 0; i < 5; i++) {
-        checkRateLimit("1.1.1.1", "exact-limit", 5, 60_000);
-      }
-      const last = checkRateLimit("1.1.1.1", "exact-limit", 5, 60_000);
-      expect(last.allowed).toBe(false);
+    it("allows requests up to the exact limit, and blocks the one after", () => {
+      const results = Array.from({ length: 6 }, () =>
+        checkRateLimit("1.1.1.1", "exact-limit", 5, 60_000),
+      );
+      expect(results.map((r) => r.allowed)).toEqual([true, true, true, true, true, false]);
+    });
+
+    it("counts the remaining requests down one at a time", () => {
+      const remaining = Array.from({ length: 4 }, () =>
+        checkRateLimit("10.0.0.2", "countdown", 3, 60_000).remaining,
+      );
+      expect(remaining).toEqual([2, 1, 0, 0]);
     });
   });
 
@@ -54,12 +60,19 @@ describe("checkRateLimit", () => {
       expect(over.remaining).toBe(0);
     });
 
-    it("includes a resetAt timestamp in the future", () => {
+    it("reports when the window ends, one window after the first request", () => {
       for (let i = 0; i < 2; i++) {
         checkRateLimit("4.4.4.4", "reset-at", 2, 60_000);
       }
       const over = checkRateLimit("4.4.4.4", "reset-at", 2, 60_000);
-      expect(over.resetAt).toBeGreaterThan(Date.now());
+      expect(over.resetAt).toBe(Date.now() + 60_000);
+    });
+
+    it("keeps the window fixed instead of sliding it forward on every request", () => {
+      const first = checkRateLimit("4.4.4.5", "fixed-window", 2, 60_000);
+      vi.advanceTimersByTime(20_000);
+      const second = checkRateLimit("4.4.4.5", "fixed-window", 2, 60_000);
+      expect(second.resetAt).toBe(first.resetAt);
     });
   });
 
@@ -88,6 +101,30 @@ describe("checkRateLimit", () => {
         60_000,
       );
       expect(stillBlocked.allowed).toBe(false);
+    });
+  });
+
+  describe("window edges", () => {
+    // A short window, so the sweep that clears expired entries (at most once a
+    // minute) can't be what resets the count.
+    it("starts a fresh window the moment the old one ends", () => {
+      for (let i = 0; i < 3; i++) {
+        checkRateLimit("5.5.5.6", "edge-at-end", 3, 10_000);
+      }
+      vi.advanceTimersByTime(10_000);
+
+      const result = checkRateLimit("5.5.5.6", "edge-at-end", 3, 10_000);
+
+      expect(result).toMatchObject({ allowed: true, remaining: 2 });
+    });
+
+    it("is still blocked one millisecond before the window ends", () => {
+      for (let i = 0; i < 3; i++) {
+        checkRateLimit("5.5.5.7", "edge-before-end", 3, 10_000);
+      }
+      vi.advanceTimersByTime(9_999);
+
+      expect(checkRateLimit("5.5.5.7", "edge-before-end", 3, 10_000).allowed).toBe(false);
     });
   });
 

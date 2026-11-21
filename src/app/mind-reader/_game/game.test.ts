@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ROUND_MS,
+  clockAnnouncement,
   drawRole,
   formatClock,
   initialState,
@@ -36,6 +37,20 @@ describe("drawRole", () => {
 
   it("only deals from the chosen category", () => {
     const draw = drawRole({ category: "threat", seen: [], random: seeded([0.5]) });
+    expect(draw.role.category).toBe("threat");
+  });
+});
+
+describe("drawRole after a category runs dry", () => {
+  it("forgets only that category's roles, not the ones dealt from other categories", () => {
+    const threat = ROLES.filter((r) => r.category === "threat").map((r) => r.id);
+    const other = ROLES.find((r) => r.category !== "threat")!;
+    const draw = drawRole({
+      category: "threat",
+      seen: [other.id, ...threat],
+      random: () => 0,
+    });
+    expect(draw.seen).toEqual([other.id, draw.role.id]);
     expect(draw.role.category).toBe("threat");
   });
 });
@@ -81,6 +96,39 @@ describe("a round", () => {
     expect(s.phase).toBe("reveal");
   });
 
+  it("ignores moves that make no sense in the current phase", () => {
+    const random = seeded([0.1]);
+    const setup = initialState();
+    expect(reduce(setup, { type: "start", now: 0 })).toBe(setup);
+    expect(reduce(setup, { type: "redraw", random })).toBe(setup);
+    expect(reduce(setup, { type: "guessed" })).toBe(setup);
+    expect(reduce(setup, { type: "next", random })).toBe(setup);
+
+    const secret = reduce(setup, { type: "deal", random });
+    expect(reduce(secret, { type: "deal", random })).toBe(secret);
+    expect(reduce(secret, { type: "giveUp" })).toBe(secret);
+
+    const playing = reduce(secret, { type: "start", now: 0 });
+    expect(reduce(playing, { type: "next", random })).toBe(playing);
+    expect(reduce(playing, { type: "resume", now: 5 })).toBe(playing);
+    expect(reduce(playing, { type: "redraw", random })).toBe(playing);
+  });
+
+  it("scores a round once, however late a stray timeUp or guess arrives", () => {
+    const random = seeded([0.1]);
+    let s = reduce(initialState(), { type: "deal", random });
+    s = reduce(s, { type: "start", now: 0 });
+    s = reduce(s, { type: "guessed" });
+    s = reduce(s, { type: "timeUp" });
+    s = reduce(s, { type: "guessed" });
+    expect(s).toMatchObject({ guessed: 1, stumped: 0, lastOutcome: "guessed" });
+  });
+
+  it("lets the category change on the secret screen too", () => {
+    const s = reduce(initialState(), { type: "deal", random: seeded([0.1]) });
+    expect(reduce(s, { type: "setCategory", category: "threat" }).category).toBe("threat");
+  });
+
   it("only changes category from the setup or secret screens, never mid-round", () => {
     let s = reduce(initialState(), { type: "deal", random });
     s = reduce(s, { type: "start", now: 0 });
@@ -103,6 +151,32 @@ describe("the clock", () => {
     expect(remainingMs(s, ROUND_MS + 5_000)).toBe(0);
   });
 
+  it("reads a full round on the clock before play starts", () => {
+    const s = reduce(initialState(), { type: "deal", random: Math.random });
+    expect(remainingMs(s, 123_456)).toBe(ROUND_MS);
+  });
+
+  it("pausing twice keeps the time left from the first pause", () => {
+    let s = reduce(initialState(), { type: "deal", random: Math.random });
+    s = reduce(s, { type: "start", now: 0 });
+    s = reduce(s, { type: "pause", now: 100_000 });
+    s = reduce(s, { type: "pause", now: 200_000 });
+    expect(remainingMs(s, 300_000)).toBe(ROUND_MS - 100_000);
+  });
+
+  it("pausing after time has run out leaves nothing, never a negative", () => {
+    let s = reduce(initialState(), { type: "deal", random: Math.random });
+    s = reduce(s, { type: "start", now: 0 });
+    s = reduce(s, { type: "pause", now: ROUND_MS + 9_000 });
+    expect(remainingMs(s, ROUND_MS + 20_000)).toBe(0);
+  });
+
+  it("resuming a clock that is already running changes nothing", () => {
+    let s = reduce(initialState(), { type: "deal", random: Math.random });
+    s = reduce(s, { type: "start", now: 0 });
+    expect(reduce(s, { type: "resume", now: 50_000 })).toBe(s);
+  });
+
   it("freezes while paused and picks up where it left off", () => {
     let s = reduce(initialState(), { type: "deal", random: Math.random });
     s = reduce(s, { type: "start", now: 0 });
@@ -110,6 +184,22 @@ describe("the clock", () => {
     expect(remainingMs(s, 500_000)).toBe(ROUND_MS - 100_000);
     s = reduce(s, { type: "resume", now: 500_000 });
     expect(remainingMs(s, 530_000)).toBe(ROUND_MS - 130_000);
+  });
+});
+
+describe("clockAnnouncement", () => {
+  it("is silent until the last minute, and says nothing outside play", () => {
+    expect(clockAnnouncement("playing", ROUND_MS)).toBe("");
+    expect(clockAnnouncement("playing", 61_000)).toBe("");
+    expect(clockAnnouncement("setup", 5_000)).toBe("");
+    expect(clockAnnouncement("reveal", 5_000)).toBe("");
+  });
+
+  it("calls one minute at 60 seconds and ten seconds at 10", () => {
+    expect(clockAnnouncement("playing", 60_000)).toBe("One minute left");
+    expect(clockAnnouncement("playing", 11_000)).toBe("One minute left");
+    expect(clockAnnouncement("playing", 10_000)).toBe("Ten seconds left");
+    expect(clockAnnouncement("playing", 0)).toBe("Ten seconds left");
   });
 });
 

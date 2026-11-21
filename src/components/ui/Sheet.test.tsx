@@ -72,4 +72,72 @@ describe("Sheet", () => {
     );
     expect(input).toHaveFocus();
   });
+
+  it("moves focus into the panel when it opens", () => {
+    renderSheet();
+    expect(screen.getByRole("dialog")).toHaveFocus();
+  });
+
+  it("gives scroll and focus back when it closes", () => {
+    document.body.style.overflow = "auto";
+    const opener = document.createElement("button");
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} label="Test sheet">
+        <p>Sheet body</p>
+      </Sheet>,
+    );
+    expect(document.body.style.overflow).toBe("hidden");
+    rerender(
+      <Sheet open={false} onClose={() => {}} label="Test sheet">
+        <p>Sheet body</p>
+      </Sheet>,
+    );
+
+    expect(document.body.style.overflow).toBe("auto");
+    expect(opener).toHaveFocus();
+    opener.remove();
+  });
+
+  it("stops listening for Escape once it has closed", () => {
+    const onClose = vi.fn();
+    const { rerender } = render(
+      <Sheet open onClose={onClose} label="Test sheet">
+        <p>Sheet body</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open={false} onClose={onClose} label="Test sheet">
+        <p>Sheet body</p>
+      </Sheet>,
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("calls the latest onClose, not the one it opened with", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const { rerender } = render(
+      <Sheet open onClose={first} label="Test sheet">
+        <p>Sheet body</p>
+      </Sheet>,
+    );
+    rerender(
+      <Sheet open onClose={second} label="Test sheet">
+        <p>Sheet body</p>
+      </Sheet>,
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledOnce();
+  });
+
+  it("ignores keys other than Escape", () => {
+    const { onClose } = renderSheet();
+    fireEvent.keyDown(document, { key: "Enter" });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });

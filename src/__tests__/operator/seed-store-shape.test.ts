@@ -1,5 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+  type MockInstance,
+} from "vitest";
+import { http, HttpResponse } from "msw";
 
+import { server } from "@/test/server";
+import { API_URL } from "@/lib/apiUrl";
 import { getStores, openRestockSession, listPromotions } from "@/lib/operator-data";
 import {
   applyRestock,
@@ -7,6 +18,29 @@ import {
 } from "@/lib/operator-bff";
 
 const GLOBAL_KEY = "__operatorDataStore";
+
+/** Plants a cached seed store on globalThis, the way a hot reload leaves one. */
+function plantStore(shape: Record<string, unknown>): void {
+  (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY] = shape;
+}
+
+/** What is cached on globalThis right now. */
+function cachedStore(): unknown {
+  return (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
+}
+
+/** The old shape: every collection except the ones added later. */
+function staleStoreWithoutRestock(): Record<string, unknown> {
+  return {
+    stores: [{ id: "store-001" }],
+    inventoryByStore: new Map(),
+    alertsByStore: new Map(),
+    activityByStore: new Map(),
+    salesByStore: new Map(),
+    planogramByStore: new Map(),
+    allAlerts: new Map(),
+  };
+}
 
 /**
  * The seed lives on globalThis so every route handler in one dev server shares
@@ -22,46 +56,58 @@ describe("the seed store heals a stale shape", () => {
 
   it("re-initialises when a collection added later is missing", () => {
     // What a hot reload leaves behind: the old shape, no restock collections.
-    (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY] = {
-      stores: [{ id: "store-001" }],
-      inventoryByStore: new Map(),
-      alertsByStore: new Map(),
-      activityByStore: new Map(),
-      salesByStore: new Map(),
-      planogramByStore: new Map(),
-      allAlerts: new Map(),
-    };
+    plantStore(staleStoreWithoutRestock());
 
-    expect(() => openRestockSession("store-001")).not.toThrow();
-    expect(getStores().length).toBeGreaterThan(0);
+    const session = openRestockSession("store-001");
+
+    expect(session?.storeId).toBe("store-001");
+    // the stale store only knew one store, the healed seed has the whole fleet
+    expect(getStores().length).toBeGreaterThan(1);
   });
 
   it("re-initialises when the promotions collection is missing", () => {
-    (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY] = {
-      stores: [{ id: "store-001" }],
-      inventoryByStore: new Map(),
-      alertsByStore: new Map(),
-      activityByStore: new Map(),
-      salesByStore: new Map(),
-      planogramByStore: new Map(),
-      allAlerts: new Map(),
+    plantStore({
+      ...staleStoreWithoutRestock(),
       restockSessions: new Map(),
       restockLines: new Map(),
-    };
+    });
 
-    expect(() => listPromotions("store-001")).not.toThrow();
+    expect(Array.isArray(listPromotions("store-001"))).toBe(true);
+    expect(getStores().length).toBeGreaterThan(1);
+  });
+
+  it.each([
+    "stores",
+    "inventoryByStore",
+    "alertsByStore",
+    "activityByStore",
+    "salesByStore",
+    "planogramByStore",
+    "allAlerts",
+    "restockSessions",
+    "restockLines",
+    "promotions",
+  ])("re-initialises when only %s is missing", (collection) => {
+    getStores();
+    const healthy = cachedStore() as Record<string, unknown>;
+    const missingOne = { ...healthy };
+    delete missingOne[collection];
+    plantStore(missingOne);
+
+    getStores();
+
+    expect(cachedStore()).not.toBe(missingOne);
+    expect((cachedStore() as Record<string, unknown>)[collection]).toBeDefined();
   });
 
   it("keeps a healthy store rather than reseeding on every read", () => {
     getStores();
-    const store = (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
+    const store = cachedStore();
     getStores();
 
     // getStores maps to freshen last-ping, so the array is new each call by
     // design; what must not change is the underlying store.
-    expect(
-      (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY],
-    ).toBe(store);
+    expect(cachedStore()).toBe(store);
   });
 });
 
@@ -70,35 +116,47 @@ describe("the whole write path heals, not just the seed helper", () => {
     delete (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  /**
+   * The BFF only reaches the seed when the API call fails, so each test takes
+   * the API down first and checks the fallback notice was logged. Without that
+   * the MSW handler answers and the stale seed is never touched.
+   */
+  function takeApiDown(path: string): MockInstance {
+    server.use(http.post(`${API_URL}/api/operator${path}`, () => HttpResponse.error()));
+    return vi.spyOn(console, "warn").mockImplementation(() => {});
+  }
+
   /**
    * This is the path the failing button actually took: BFF route to
    * operator-bff to the seed, with the API unreachable. It returned a 500
    * because the cached store predated the restock collections.
    */
   it("opens a session through the BFF against a stale store", async () => {
-    (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY] = {
-      stores: [{ id: "store-001" }],
-      inventoryByStore: new Map(),
-      alertsByStore: new Map(),
-      activityByStore: new Map(),
-      salesByStore: new Map(),
-      planogramByStore: new Map(),
-      allAlerts: new Map(),
-    };
+    const warn = takeApiDown("/stores/:id/restock-sessions");
+    plantStore(staleStoreWithoutRestock());
 
-    const stores = getStores();
-    const session = await bffOpenSession(stores[0].id);
-    expect(session?.storeId).toBe(stores[0].id);
+    const session = await bffOpenSession("store-001");
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("openRestockSession fell back to seed data"),
+    );
+    expect(session?.storeId).toBe("store-001");
   });
 
   it("restocks to capacity through the BFF against a stale store", async () => {
-    (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY] = {
-      stores: [{ id: "store-001" }],
-      allAlerts: new Map(),
-    };
+    const warn = takeApiDown("/stores/:id/restock");
+    plantStore({ stores: [{ id: "store-001" }], allAlerts: new Map() });
 
-    const stores = getStores();
-    const result = await applyRestock(stores[0].id, []);
-    expect(result).toBeDefined();
+    const result = await applyRestock("store-001", []);
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("applyRestock fell back to seed data"),
+    );
+    expect(result?.activity.type).toBe("restock");
+    expect(result?.items).toEqual([]);
   });
 });

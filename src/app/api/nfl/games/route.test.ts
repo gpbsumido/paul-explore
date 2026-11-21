@@ -53,4 +53,49 @@ describe("NFL games proxy route", () => {
     expect((await call("week=19&season=2026")).status).toBe(400);
     expect((await call("week=4&season=26")).status).toBe(400);
   });
+
+  it("asks ESPN for the regular-season scoreboard of the week and season requested", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(scoreboardResponse());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await call("week=9&season=2025");
+
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain("/scoreboard?");
+    expect(url).toContain("week=9");
+    expect(url).toContain("seasontype=2");
+    expect(url).toContain("year=2025");
+  });
+
+  it("accepts the first and last weeks of the regular season", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => Promise.resolve(scoreboardResponse())),
+    );
+
+    expect((await call("week=1&season=2026")).status).toBe(200);
+    expect((await call("week=18&season=2026")).status).toBe(200);
+  });
+
+  it("rejects a missing, fractional or non-numeric week", async () => {
+    expect((await call("season=2026")).status).toBe(400);
+    expect((await call("week=2.5&season=2026")).status).toBe(400);
+    expect((await call("week=abc&season=2026")).status).toBe(400);
+  });
+
+  it("rejects a season with anything around the four digits", async () => {
+    expect((await call("week=4&season=2026x")).status).toBe(400);
+    expect((await call("week=4&season=x2026")).status).toBe(400);
+    expect((await call("week=4")).status).toBe(400);
+  });
+
+  it("answers 504 when ESPN times out", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValueOnce(
+        Object.assign(new Error("timed out"), { name: "TimeoutError" }),
+      ),
+    );
+    expect((await call("week=4&season=2026")).status).toBe(504);
+  });
 });

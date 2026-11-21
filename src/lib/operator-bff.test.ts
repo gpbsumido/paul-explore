@@ -51,7 +51,10 @@ import {
   patchEndPromotion,
 } from "./operator-client";
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.restoreAllMocks();
+});
 
 describe("loadStores", () => {
   it("returns the live API stores when the API answers", async () => {
@@ -68,7 +71,7 @@ describe("loadStores", () => {
 
     const stores = await loadStores();
 
-    expect(stores.length).toBeGreaterThan(0);
+    expect(stores.map((s) => s.id)).toEqual(seed.getStores().map((s) => s.id));
   });
 });
 
@@ -103,7 +106,9 @@ describe("loadFleetSummary", () => {
 
     const summary = await loadFleetSummary();
 
-    expect(summary.summaries.length).toBeGreaterThan(0);
+    expect(summary.summaries.map((row) => row.storeId)).toEqual(
+      seed.getStores().map((store) => store.id),
+    );
     expect(summary.alertTrend.length).toBeGreaterThan(0);
   });
 });
@@ -115,7 +120,9 @@ describe("loadSalesAnalytics", () => {
     const result = await loadSalesAnalytics("month", "America/Toronto");
 
     expect(result.granularity).toBe("month");
-    expect(result.byStore.length).toBeGreaterThan(0);
+    expect(result.byStore.map((row) => row.storeId).sort()).toEqual(
+      seed.getStores().map((store) => store.id).sort(),
+    );
   });
 });
 

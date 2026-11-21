@@ -144,6 +144,16 @@ describe("evaluateRegressions", () => {
     expect(regressions).toHaveLength(1);
   });
 
+  it("compares only the last two releases, not older history", () => {
+    const regressions = evaluateRegressions([
+      version("5.1.0", METRIC_CONFIGS.LCP.good - 100, 100),
+      version("5.2.0", METRIC_CONFIGS.LCP.poor + 500, 100),
+      version("5.3.0", METRIC_CONFIGS.LCP.poor + 600, 100),
+    ]);
+
+    expect(regressions).toEqual([]);
+  });
+
   it("returns nothing with fewer than two versions", () => {
     expect(evaluateRegressions([version("5.3.0", 9999, 100)])).toEqual([]);
     expect(evaluateRegressions([])).toEqual([]);
@@ -198,5 +208,31 @@ describe("alertIssueBody", () => {
 
     expect(body).toContain("5.3.0");
     expect(body.toLowerCase()).not.toContain("by page");
+  });
+
+  it("writes the regression line with the band names in from -> to order", () => {
+    const body = alertIssueBody(
+      { ...emptyReport, regressions: report.regressions },
+      { checkedAt: "2026-08-18" },
+    );
+
+    expect(body).toContain(
+      "- **CLS** (Cumulative Layout Shift): Good \u2192 Needs improvement, 0.080 on 5.2.1 \u2192 0.200 on 5.3.0",
+    );
+  });
+
+  it("opens with the site-wide section only when the site has a Poor metric", () => {
+    const siteBody = alertIssueBody(
+      { ...emptyReport, site: report.site },
+      { checkedAt: "2026-08-18" },
+    );
+    const regressionBody = alertIssueBody(
+      { ...emptyReport, regressions: report.regressions },
+      { checkedAt: "2026-08-18" },
+    );
+
+    expect(siteBody).toContain("**Site-wide, in the Poor band** (P75):");
+    expect(siteBody).toContain("- **LCP** (Largest Contentful Paint): 4.2s, past 4.0s");
+    expect(regressionBody).not.toContain("Site-wide");
   });
 });

@@ -29,6 +29,17 @@ describe("bucketFor", () => {
     );
   });
 
+  // These are the slots real visitors already hold. If the hash changes, every
+  // percentage rollout reshuffles who is in and who is out.
+  it.each([
+    ["new-checkout:user-42", 71.86199559364468],
+    ["pocket-tcg:visitor-1", 70.51317833829671],
+    ["dark-mode:abc", 91.74173644278198],
+    ["", 66.89221884589642],
+  ])("keeps %j in the slot it has always had", (seed, bucket) => {
+    expect(bucketFor(seed)).toBeCloseTo(bucket, 10);
+  });
+
   it("produces different buckets for different seeds", () => {
     expect(bucketFor("flag-a:user-1")).not.toBe(bucketFor("flag-b:user-1"));
   });
@@ -190,6 +201,58 @@ describe("evaluateFlag — targeting rules", () => {
   });
 });
 
+describe("evaluateFlag — fallbacks", () => {
+  const flagWith = (environments: Partial<Record<"development" | "staging" | "production", ReturnType<typeof buildEnvironmentConfig>>>) =>
+    buildFlag({
+      variations: [
+        { key: "first", name: "First", value: "one" },
+        { key: "second", name: "Second", value: "two" },
+      ],
+      environments: {
+        development: buildEnvironmentConfig(),
+        staging: buildEnvironmentConfig(),
+        production: buildEnvironmentConfig(),
+        ...environments,
+      },
+    });
+
+  it("serves the first variation when a rule or fallthrough names one that doesn't exist", () => {
+    const flag = flagWith({
+      development: buildEnvironmentConfig({ fallthrough: fullRollout("deleted-variation") }),
+    });
+    expect(evaluateFlag(flag, "development", buildContext())).toMatchObject({
+      reason: "FALLTHROUGH",
+      variationKey: "first",
+    });
+  });
+
+  it("reports the index of the rule that matched, not just the first", () => {
+    const flag = flagWith({
+      development: buildEnvironmentConfig({
+        rules: [
+          buildRule({ id: "r1", serve: "first", clauses: [buildClause({ attribute: "plan", op: "in", values: ["free"] })] }),
+          buildRule({ id: "r2", serve: "second", clauses: [buildClause({ attribute: "plan", op: "in", values: ["pro"] })] }),
+        ],
+        fallthrough: fullRollout("first"),
+      }),
+    });
+    const result = evaluateFlag(flag, "development", buildContext({ attributes: { plan: "pro" } }));
+    expect(result).toMatchObject({ reason: "RULE_MATCH", ruleIndex: 1, variationKey: "second", value: "two" });
+  });
+
+  it("serves a kill-switched flag's off variation even when a rule would match", () => {
+    const flag = flagWith({
+      development: buildEnvironmentConfig({
+        enabled: false,
+        offVariation: "second",
+        rules: [buildRule({ serve: "first", clauses: [buildClause({ attribute: "plan", op: "in", values: ["pro"] })] })],
+      }),
+    });
+    const result = evaluateFlag(flag, "development", buildContext({ attributes: { plan: "pro" } }));
+    expect(result).toMatchObject({ reason: "OFF", variationKey: "second" });
+  });
+});
+
 describe("evaluateFlag — clause operators", () => {
   const evalWith = (clause: ReturnType<typeof buildClause>, attributes: Record<string, string>) =>
     evaluateFlag(
@@ -236,6 +299,48 @@ describe("evaluateFlag — clause operators", () => {
         plan: "free",
       }),
     ).toBe("off");
+  });
+
+  it.each([
+    ["in", ["a", "b"], "b", "on"],
+    ["in", ["a", "b"], "c", "off"],
+    ["in", ["a"], undefined, "off"],
+    ["notIn", ["a", "b"], "c", "on"],
+    ["notIn", ["a", "b"], "b", "off"],
+    ["notIn", ["a"], undefined, "on"],
+    ["equals", ["pro"], "pro", "on"],
+    ["equals", ["pro"], "professional", "off"],
+    ["equals", ["pro"], undefined, "off"],
+    ["contains", ["@acme", "@beta"], "x@beta.io", "on"],
+    ["contains", ["@acme", "@beta"], "x@other.io", "off"],
+    ["contains", ["@acme"], undefined, "off"],
+    ["startsWith", ["beta-", "qa-"], "qa-tester", "on"],
+    ["startsWith", ["beta-", "qa-"], "my-beta-", "off"],
+    ["endsWith", [".com", ".io"], "sam@x.io", "on"],
+    ["endsWith", [".com", ".io"], "sam@x.org", "off"],
+  ] as const)("%s %j against %j serves %s", (op, values, actual, served) => {
+    const attributes: Record<string, string> = actual === undefined ? {} : { trait: actual };
+    expect(evalWith(buildClause({ attribute: "trait", op, values: [...values] }), attributes)).toBe(served);
+  });
+
+  it("compares a numeric attribute as text", () => {
+    const flag = buildFlag({
+      environments: {
+        development: buildEnvironmentConfig({
+          rules: [
+            buildRule({
+              serve: "on",
+              clauses: [buildClause({ attribute: "seats", op: "in", values: ["25"] })],
+            }),
+          ],
+          fallthrough: fullRollout("off"),
+        }),
+        staging: buildEnvironmentConfig(),
+        production: buildEnvironmentConfig(),
+      },
+    });
+    const result = evaluateFlag(flag, "development", buildContext({ attributes: { seats: 25 } }));
+    expect(result.variationKey).toBe("on");
   });
 
   it("reads the context key itself via the 'key' attribute", () => {
@@ -319,6 +424,76 @@ describe("evaluateFlag — percentage rollout", () => {
     expect(onCount).toBeLessThan(360);
   });
 
+  it("puts a bucket exactly on a slice boundary into the next slice", () => {
+    // 71.86... is the stored slot for this key, so a 71.86199559364468% "on" slice
+    // ends exactly where the bucket starts.
+    const flag = buildFlag({
+      key: "new-checkout",
+      environments: {
+        development: buildEnvironmentConfig({
+          fallthrough: [
+            { variation: "on", weight: 71.86199559364468 },
+            { variation: "off", weight: 100 - 71.86199559364468 },
+          ],
+        }),
+        staging: buildEnvironmentConfig(),
+        production: buildEnvironmentConfig(),
+      },
+    });
+    const result = evaluateFlag(flag, "development", buildContext({ key: "user-42" }));
+    expect(result.bucket).toBeCloseTo(71.86199559364468, 10);
+    expect(result.variationKey).toBe("off");
+  });
+
+  it("serves the last slice when the weights fall short of the bucket", () => {
+    // Weights that only add up to 10 can't reach a bucket of ~71.9; the last
+    // configured slice takes the overflow rather than serving nothing.
+    const flag = buildFlag({
+      key: "new-checkout",
+      environments: {
+        development: buildEnvironmentConfig({
+          fallthrough: [
+            { variation: "on", weight: 5 },
+            { variation: "off", weight: 5 },
+          ],
+        }),
+        staging: buildEnvironmentConfig(),
+        production: buildEnvironmentConfig(),
+      },
+    });
+    const result = evaluateFlag(flag, "development", buildContext({ key: "user-42" }));
+    expect(result.variationKey).toBe("off");
+  });
+
+  it("walks a three-way rollout in order, so each key lands in the slice holding its bucket", () => {
+    const flag = (key: string) =>
+      buildFlag({
+        key,
+        variations: [
+          { key: "a", name: "A", value: "a" },
+          { key: "b", name: "B", value: "b" },
+          { key: "c", name: "C", value: "c" },
+        ],
+        environments: {
+          development: buildEnvironmentConfig({
+            fallthrough: [
+              { variation: "a", weight: 50 },
+              { variation: "b", weight: 25 },
+              { variation: "c", weight: 25 },
+            ],
+          }),
+          staging: buildEnvironmentConfig(),
+          production: buildEnvironmentConfig(),
+        },
+      });
+    // new-checkout:user-42 holds slot 71.86, inside b's [50, 75); dark-mode:abc
+    // holds 91.74, inside c's [75, 100).
+    const served = (flagKey: string, userKey: string) =>
+      evaluateFlag(flag(flagKey), "development", buildContext({ key: userKey })).variationKey;
+    expect(served("new-checkout", "user-42")).toBe("b");
+    expect(served("dark-mode", "abc")).toBe("c");
+  });
+
   it("uses reason FALLTHROUGH (no bucket) for a single-variation fallthrough", () => {
     const flag = buildFlag({
       environments: {
@@ -372,5 +547,20 @@ describe("evaluateAllFlags", () => {
     ];
     const results = evaluateAllFlags(flags, "production", buildContext());
     expect(results.map((r) => r.flagKey)).toEqual(["flag-1", "flag-2"]);
+  });
+
+  it("evaluates in the environment it was asked for", () => {
+    const flag = buildFlag({
+      key: "env-flag",
+      environments: {
+        development: buildEnvironmentConfig({ enabled: false }),
+        staging: buildEnvironmentConfig(),
+        production: buildEnvironmentConfig({ fallthrough: fullRollout("on") }),
+      },
+    });
+    const [dev] = evaluateAllFlags([flag], "development", buildContext());
+    const [prod] = evaluateAllFlags([flag], "production", buildContext());
+    expect(dev.reason).toBe("OFF");
+    expect(prod).toMatchObject({ reason: "FALLTHROUGH", variationKey: "on" });
   });
 });

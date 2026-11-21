@@ -13,10 +13,13 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
 // Render as a returning visitor by default so the first-run tour doesn't
 // auto-open over assertions that aren't about it. The tour's own tests below
-// drive it explicitly.
-beforeEach(() =>
-  window.localStorage.setItem("design-system-tour-seen", "true"),
-);
+// drive it explicitly. The explorer writes its filters into the URL and reads
+// them back on mount, so every test also starts from a clean /design-system
+// address; otherwise a search left behind by one test hides cards in the next.
+beforeEach(() => {
+  window.localStorage.setItem("design-system-tour-seen", "true");
+  window.history.replaceState(null, "", "/design-system");
+});
 
 describe("DesignSystemShowcaseContent", () => {
   it("leads with a single design system heading", () => {
@@ -181,8 +184,6 @@ describe("DesignSystemShowcaseContent", () => {
   describe("Component explorer", () => {
     const grid = () => document.getElementById("components") as HTMLElement;
 
-    beforeEach(() => window.history.replaceState(null, "", "/design-system"));
-
     it("narrows the grid live as the visitor searches", async () => {
       const user = userEvent.setup();
       render(<DesignSystemShowcaseContent />);
@@ -197,7 +198,7 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
       ).not.toBeInTheDocument();
-      expect(within(grid()).getByText(/1 of 76/)).toBeInTheDocument();
+      expect(within(grid()).getByText(new RegExp(`1 of ${COMPONENTS.length}`))).toBeInTheDocument();
     });
 
     it("filters by category chip and marks it pressed", async () => {
@@ -213,7 +214,8 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
       ).not.toBeInTheDocument();
-      expect(within(grid()).getByText(/14 of 76/)).toBeInTheDocument();
+      const chartCount = COMPONENTS.filter((c) => c.category === "charts").length;
+      expect(within(grid()).getByText(new RegExp(`${chartCount} of ${COMPONENTS.length}`))).toBeInTheDocument();
     });
 
     it("offers to clear filters instead of a blank grid when nothing matches", async () => {
@@ -234,7 +236,9 @@ describe("DesignSystemShowcaseContent", () => {
       expect(
         within(grid()).getByRole("heading", { level: 3, name: "Avatar" }),
       ).toBeInTheDocument();
-      expect(within(grid()).getByText(/76 of 76/)).toBeInTheDocument();
+      expect(
+        within(grid()).getByText(new RegExp(`${COMPONENTS.length} of ${COMPONENTS.length}`)),
+      ).toBeInTheDocument();
     });
 
     it("sorts the grid alphabetically on request", async () => {
@@ -246,7 +250,23 @@ describe("DesignSystemShowcaseContent", () => {
         "name",
       );
       const headings = within(grid()).getAllByRole("heading", { level: 3 });
-      expect(headings[0]).toHaveTextContent("AgentDecisionCard");
+      const alphabetical = COMPONENTS.map((c) => c.name).sort((a, b) => a.localeCompare(b));
+      expect(headings.map((h) => h.textContent)).toEqual(alphabetical);
+    });
+
+    it("opens a shared link with its search already applied", async () => {
+      window.history.replaceState(null, "", "/design-system?q=gauge");
+      render(<DesignSystemShowcaseContent />);
+
+      expect(
+        await screen.findByRole("searchbox", { name: /search components/i }),
+      ).toHaveValue("gauge");
+      expect(
+        within(grid()).queryByRole("heading", { level: 3, name: "Avatar" }),
+      ).not.toBeInTheDocument();
+      expect(
+        within(grid()).getByRole("heading", { level: 3, name: "GaugeChart" }),
+      ).toBeInTheDocument();
     });
 
     it("lands the active filters in the URL so the view is shareable", async () => {
@@ -300,7 +320,13 @@ describe("DesignSystemShowcaseContent guided tour", () => {
       within(tour()).getByRole("button", { name: /^next$/i }),
     );
     expect(
-      within(tour()).getByText(/the design system, live/i),
+      within(tour()).getByText("The design system, live"),
     ).toBeInTheDocument();
+    expect(within(tour()).queryByText("Take a quick tour?")).not.toBeInTheDocument();
+  });
+
+  it("opens by itself on a first visit", () => {
+    render(<DesignSystemShowcaseContent />);
+    expect(screen.getByRole("dialog", { name: /tour/i })).toBeInTheDocument();
   });
 });

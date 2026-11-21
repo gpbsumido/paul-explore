@@ -26,14 +26,14 @@ describe("FinalsCard", () => {
       <FinalsCard
         matchupId="NBA_FINALS"
         topTeam={eastChamp}
-        bottomTeam={westChamp}
+        bottomTeam={{ ...westChamp, seed: 3 }}
         pick={undefined}
         onPick={vi.fn()}
       />,
     );
 
-    expect(screen.getByText("CLE")).toBeInTheDocument();
-    expect(screen.getByText("OKC")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /CLE/ })).toHaveTextContent(/1\s*CLE/);
+    expect(screen.getByRole("button", { name: /OKC/ })).toHaveTextContent(/3\s*OKC/);
   });
 
   it("calls onPick with clicked team as winner", async () => {
@@ -129,6 +129,66 @@ describe("FinalsCard", () => {
       "NBA_FINALS",
       expect.objectContaining({ lastGameCombinedScore: 215 }),
     );
+  });
+
+  it("sends no combined score once the field is cleared, rather than zero", async () => {
+    const onPick = vi.fn();
+    const user = userEvent.setup();
+    const pick: FinalsPick = {
+      winner: "OKC",
+      seriesScore: "4-2",
+      lastGameCombinedScore: 215,
+      mvp: "SGA",
+    };
+
+    render(
+      <FinalsCard
+        matchupId="NBA_FINALS"
+        topTeam={eastChamp}
+        bottomTeam={westChamp}
+        pick={pick}
+        onPick={onPick}
+      />,
+    );
+
+    await user.clear(screen.getByLabelText(/combined score, last game/i));
+
+    expect(onPick).toHaveBeenLastCalledWith("NBA_FINALS", {
+      winner: "OKC",
+      seriesScore: "4-2",
+      lastGameCombinedScore: null,
+      mvp: "SGA",
+    });
+  });
+
+  it("keeps the combined score and MVP already picked when the winner changes", async () => {
+    const onPick = vi.fn();
+    const user = userEvent.setup();
+    const pick: FinalsPick = {
+      winner: "OKC",
+      seriesScore: "4-2",
+      lastGameCombinedScore: 215,
+      mvp: "SGA",
+    };
+
+    render(
+      <FinalsCard
+        matchupId="NBA_FINALS"
+        topTeam={eastChamp}
+        bottomTeam={westChamp}
+        pick={pick}
+        onPick={onPick}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /CLE/ }));
+
+    expect(onPick).toHaveBeenCalledWith("NBA_FINALS", {
+      winner: "CLE",
+      seriesScore: "4-2",
+      lastGameCombinedScore: 215,
+      mvp: "SGA",
+    });
   });
 
   it("calls onPick with updated mvp when MVP input changes", async () => {

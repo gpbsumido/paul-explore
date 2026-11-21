@@ -267,6 +267,121 @@ describe("activityEventSchema", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Sale, and the fields the cases above leave alone
+// ---------------------------------------------------------------------------
+
+describe("saleSchema", () => {
+  const validSale = {
+    id: "sale-001",
+    storeId: "store-001",
+    productName: "Coca-Cola 355ml",
+    category: "beverages",
+    unitPrice: 2.5,
+    quantity: 2,
+    total: 5,
+    timestamp: "2026-06-29T12:00:00Z",
+  };
+
+  it("accepts a valid sale", () => {
+    expect(saleSchema.parse(validSale)).toEqual(validSale);
+  });
+
+  it.each([
+    ["zero quantity", { quantity: 0 }],
+    ["fractional quantity", { quantity: 1.5 }],
+    ["negative unit price", { unitPrice: -1 }],
+    ["negative total", { total: -5 }],
+    ["a timestamp that isn't a date", { timestamp: "yesterday" }],
+  ])("rejects %s", (_name, override) => {
+    expect(() => saleSchema.parse({ ...validSale, ...override })).toThrow();
+  });
+});
+
+describe("shapes the per-entity cases don't cover", () => {
+  const store = {
+    id: "store-001",
+    name: "Lobby Fridge",
+    location: "Building A",
+    province: "ON",
+    status: "online",
+    temperature: 3.2,
+    lastPing: "2026-06-29T10:30:00Z",
+    uptime: 99.8,
+    revenue24h: 142.5,
+  };
+
+  it("rejects a province that isn't a Canadian code", () => {
+    expect(() => storeSchema.parse({ ...store, province: "XX" })).toThrow();
+    expect(() => provinceCodeSchema.parse("NY")).toThrow();
+  });
+
+  it("takes a store with or without a timezone, so an older API deploy still validates", () => {
+    expect(storeSchema.parse(store)).not.toHaveProperty("timezone");
+    expect(storeSchema.parse({ ...store, timezone: "America/Toronto" }).timezone).toBe(
+      "America/Toronto",
+    );
+  });
+
+  it("rejects fractional stock", () => {
+    expect(() =>
+      inventoryItemSchema.parse({
+        id: "item-001",
+        storeId: "store-001",
+        productName: "Cola",
+        category: "beverages",
+        currentStock: 1.5,
+        capacity: 12,
+        price: 2.5,
+        lastRestocked: "2026-06-28T14:00:00Z",
+      }),
+    ).toThrow();
+  });
+
+  it.each([
+    [
+      "an inventory item's lastRestocked",
+      () =>
+        inventoryItemSchema.parse({
+          id: "item-001",
+          storeId: "store-001",
+          productName: "Cola",
+          category: "beverages",
+          currentStock: 1,
+          capacity: 12,
+          price: 2.5,
+          lastRestocked: "last week",
+        }),
+    ],
+    [
+      "an alert's timestamp",
+      () =>
+        alertSchema.parse({
+          id: "alert-001",
+          storeId: "store-001",
+          severity: "warning",
+          category: "low-stock",
+          message: "low",
+          timestamp: "last week",
+          acknowledged: false,
+        }),
+    ],
+    [
+      "an activity event's timestamp",
+      () =>
+        activityEventSchema.parse({
+          id: "activity-001",
+          storeId: "store-001",
+          type: "restock",
+          description: "restocked",
+          timestamp: "last week",
+        }),
+    ],
+  ])("rejects %s when it isn't an ISO date", (_name, parse) => {
+    expect(parse).toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Factory integration — generated data passes schema validation
 // ---------------------------------------------------------------------------
 

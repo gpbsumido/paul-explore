@@ -32,6 +32,20 @@ describe("lastNDaysTotal", () => {
     expect(lastNDaysTotal(expenses, NOW, 30)).toBe(3000);
   });
 
+  it("counts an item exactly N days old but not one a second older", () => {
+    const expenses = [
+      expense({ id: "edge", amountCents: 700, occurredAt: daysAgo(30) }),
+      expense({
+        id: "just-past",
+        amountCents: 5000,
+        occurredAt: new Date(
+          NOW.getTime() - 30 * 24 * 60 * 60 * 1000 - 1000,
+        ).toISOString(),
+      }),
+    ];
+    expect(lastNDaysTotal(expenses, NOW, 30)).toBe(700);
+  });
+
   it("is zero when nothing falls in the window", () => {
     expect(lastNDaysTotal([expense({ occurredAt: daysAgo(90) })], NOW, 30)).toBe(
       0,
@@ -61,7 +75,40 @@ describe("currentCycle", () => {
   });
 });
 
+describe("currentCycle start day", () => {
+  it("starts the cycle today when now is exactly the start day", () => {
+    const now = new Date("2026-09-15T08:00:00.000Z");
+    const expenses = [
+      expense({ id: "today", occurredAt: "2026-09-15T00:00:00.000Z" }),
+      expense({ id: "yesterday", occurredAt: "2026-09-14T23:59:59.000Z" }),
+    ];
+
+    const cycle = currentCycle(expenses, now, 15);
+
+    expect(cycle.start.toISOString()).toBe("2026-09-15T00:00:00.000Z");
+    expect(cycle.expenses.map((e) => e.id)).toEqual(["today"]);
+  });
+
+  it("reaches back into December when now is early January", () => {
+    const now = new Date("2027-01-05T12:00:00.000Z");
+    const expenses = [
+      expense({ id: "in", occurredAt: "2026-12-20T00:00:00.000Z" }),
+      expense({ id: "out", occurredAt: "2026-12-10T00:00:00.000Z" }),
+    ];
+
+    const cycle = currentCycle(expenses, now, 15);
+
+    expect(cycle.start.toISOString()).toBe("2026-12-15T00:00:00.000Z");
+    expect(cycle.expenses.map((e) => e.id)).toEqual(["in"]);
+    expect(cycle.totalCents).toBe(1000);
+  });
+});
+
 describe("categorySplits", () => {
+  it("is empty with no expenses", () => {
+    expect(categorySplits([])).toEqual([]);
+  });
+
   it("sums cents per category, largest first", () => {
     const expenses = [
       expense({ categoryId: "food", amountCents: 1000 }),
@@ -90,6 +137,36 @@ describe("personSplits", () => {
     expect(personSplits(expenses, people)).toEqual([
       { personId: "p-2", name: "Sam", totalCents: 2500 },
       { personId: "p-1", name: "Paul", totalCents: 1500 },
+    ]);
+  });
+
+  it("names an unknown person Unknown rather than dropping their spend", () => {
+    expect(
+      personSplits([expense({ personId: "p-gone", amountCents: 800 })], people),
+    ).toEqual([{ personId: "p-gone", name: "Unknown", totalCents: 800 }]);
+  });
+
+  it("attributes a split item by its shares, not to the owner", () => {
+    const expenses = [
+      expense({
+        personId: "p-1",
+        amountCents: 1000,
+        splits: [
+          { personId: "p-1", amountCents: 250 },
+          { personId: "p-2", amountCents: 750 },
+        ],
+      }),
+    ];
+    expect(personSplits(expenses, people)).toEqual([
+      { personId: "p-2", name: "Sam", totalCents: 750 },
+      { personId: "p-1", name: "Paul", totalCents: 250 },
+    ]);
+  });
+
+  it("falls back to the owner when the splits list is empty", () => {
+    const expenses = [expense({ personId: "p-2", amountCents: 600, splits: [] })];
+    expect(personSplits(expenses, people)).toEqual([
+      { personId: "p-2", name: "Sam", totalCents: 600 },
     ]);
   });
 });

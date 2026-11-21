@@ -68,6 +68,27 @@ describe("PackOpener", () => {
     expect(screen.getByRole("img", { name: /Wembanyama/ })).toBeInTheDocument();
   });
 
+  it("tears the pack open from the tab as well as the button", async () => {
+    stubReducedMotion(false);
+    render(<PackOpener cards={[card()]} onClose={() => {}} />);
+
+    await userEvent.click(screen.getAllByRole("button", { name: /open the .* pack/i })[0]);
+    expect(screen.queryByText("You pulled")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /rip the pack open/i }));
+
+    expect(screen.getByText("You pulled")).toBeInTheDocument();
+  });
+
+  it("closes from the Done button once the cards are revealed", async () => {
+    stubReducedMotion(true);
+    const onClose = vi.fn();
+    render(<PackOpener cards={[card()]} onClose={onClose} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /^Done$/i }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it("closes on the Close button and on Escape", async () => {
     const onClose = vi.fn();
     render(<PackOpener cards={[card()]} onClose={onClose} />);

@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { filterTodos, type TodoFilter } from "@/lib/todoFilter";
+import {
+  filterTodos,
+  TODO_FILTERS,
+  TODO_FILTER_LABEL,
+  type TodoFilter,
+} from "@/lib/todoFilter";
 
-const todo = (id: string, done: boolean) =>
-  ({ id, done }) as { id: string; done: boolean };
+const todo = (id: string, done: boolean): { id: string; done: boolean } => ({ id, done });
 
 const items = [
   todo("a", false),
@@ -19,6 +23,13 @@ describe("filterTodos", () => {
       "c",
       "d",
     ]);
+  });
+
+  it("hands back a copy, so sorting the result can't reorder the caller's list", () => {
+    const shown = filterTodos(items, "all");
+    expect(shown).not.toBe(items);
+    shown.reverse();
+    expect(items.map((t) => t.id)).toEqual(["a", "b", "c", "d"]);
   });
 
   it("shows only what is left", () => {
@@ -43,5 +54,14 @@ describe("filterTodos", () => {
     for (const f of ["all", "open", "done"] as TodoFilter[]) {
       expect(filterTodos([], f)).toEqual([]);
     }
+  });
+});
+
+describe("TODO_FILTERS", () => {
+  it("offers every filter once, each with its own button label", () => {
+    expect(TODO_FILTERS).toEqual(["all", "open", "done"]);
+    const labels = TODO_FILTERS.map((filter) => TODO_FILTER_LABEL[filter]);
+    expect(new Set(labels).size).toBe(TODO_FILTERS.length);
+    expect(labels.every((label) => label.length > 0)).toBe(true);
   });
 });

@@ -57,6 +57,12 @@ describe("resultingStock", () => {
   });
 });
 
+describe("resultingStock with a bad capacity", () => {
+  it("never reports negative stock when capacity is negative", () => {
+    expect(resultingStock(draft({ countedQty: 5 }), -3)).toBe(0);
+  });
+});
+
 describe("countStatusOf", () => {
   it("distinguishes not-counted, matches-expected and correction", () => {
     expect(countStatusOf(draft({ countedQty: null }))).toBe("not-counted");
@@ -131,6 +137,21 @@ describe("summarizeDraft", () => {
     expect(summarizeDraft(drafts).removedByReason).toEqual({ expired: 2 });
   });
 
+  it("counts a removal with no reason in the total but not in the reason breakdown", () => {
+    const summary = summarizeDraft([draft({ countedQty: 8, removed: 3 })]);
+    expect(summary.removed).toBe(3);
+    expect(summary.removedByReason).toEqual({});
+  });
+
+  it("adds up removals that share a reason", () => {
+    const summary = summarizeDraft([
+      draft({ itemId: "a", removed: 2, removalReason: "damaged" }),
+      draft({ itemId: "b", removed: 1, removalReason: "damaged" }),
+      draft({ itemId: "c", removed: 4, removalReason: "expired" }),
+    ]);
+    expect(summary.removedByReason).toEqual({ damaged: 3, expired: 4 });
+  });
+
   it("ignores untouched slots entirely", () => {
     const summary = summarizeDraft([draft(), draft({ itemId: "z" })]);
     expect(summary.itemsTouched).toBe(0);
@@ -145,12 +166,37 @@ describe("describeDraft", () => {
         draft({ itemId: "a", countedQty: 5, added: 4 }),
       ]),
     );
-    expect(text).toMatch(/2 items/);
-    expect(text).toMatch(/\+4/);
-    expect(text).toMatch(/2 expired/);
+    expect(text).toBe("Restocked 2 items, +4, -2 (2 expired), 2 corrections");
+  });
+
+  it("uses the singular for one item and one correction", () => {
+    const text = describeDraft(summarizeDraft([draft({ countedQty: 6 })]));
+    expect(text).toBe("Restocked 1 item, 1 correction");
+  });
+
+  it("lists every removal reason with its count", () => {
+    const text = describeDraft(
+      summarizeDraft([
+        draft({ itemId: "a", countedQty: 8, removed: 3, removalReason: "expired" }),
+        draft({ itemId: "b", countedQty: 8, removed: 2, removalReason: "damaged" }),
+      ]),
+    );
+    expect(text).toBe("Restocked 2 items, -5 (3 expired, 2 damaged)");
+  });
+
+  it("shows the removal total alone when no reason was given", () => {
+    const text = describeDraft(summarizeDraft([draft({ countedQty: 8, removed: 2 })]));
+    expect(text).toBe("Restocked 1 item, -2");
+  });
+
+  it("says how many slots were left uncounted", () => {
+    const text = describeDraft(summarizeDraft([draft({ added: 2 })]));
+    expect(text).toBe("Restocked 1 item, +2, 1 not counted");
   });
 
   it("reads sensibly when nothing moved", () => {
-    expect(describeDraft(summarizeDraft([]))).toMatch(/no changes/i);
+    expect(describeDraft(summarizeDraft([]))).toBe(
+      "Restock completed with no changes",
+    );
   });
 });

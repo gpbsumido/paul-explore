@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import { StreamingMarkdown } from "./StreamingMarkdown";
@@ -73,22 +73,45 @@ describe("StreamingMarkdown", () => {
     expect(li?.closest("ul")).toBeInTheDocument();
   });
 
-  it("memoizes: does not re-render when content has not changed", () => {
-    const renderSpy = vi.fn();
+  it("keeps the text around inline formatting", () => {
+    render(<StreamingMarkdown content="This is **bold** text, and `code` too" />);
 
-    function Wrapper({ content }: { content: string }) {
-      renderSpy();
-      return <StreamingMarkdown content={content} />;
-    }
+    expect(screen.getByText("bold").closest("p")).toHaveTextContent(
+      "This is bold text, and code too",
+    );
+  });
 
-    const { rerender } = render(<Wrapper content="Same text" />);
-    expect(renderSpy).toHaveBeenCalledTimes(1);
+  it("leaves an unclosed code fence alone when nothing is streaming", () => {
+    render(<StreamingMarkdown content={"```js\nconst x = 1;"} />);
 
-    // re-render parent with same content — StreamingMarkdown should be memoized
-    rerender(<Wrapper content="Same text" />);
-    // the wrapper re-renders but StreamingMarkdown's output should be memoized
-    // we verify by checking the component exists and rendered correctly
-    expect(screen.getByText("Same text")).toBeInTheDocument();
+    expect(document.querySelector("pre")).toBeNull();
+  });
+
+  it("does not add a second fence when a streaming code block is already closed", () => {
+    const { container } = render(
+      <StreamingMarkdown content={"```js\nconst x = 1;\n```\n\nDone."} isStreaming />,
+    );
+
+    expect(container.querySelectorAll("pre")).toHaveLength(1);
+    expect(screen.getByText("Done.").tagName).toBe("P");
+  });
+
+  it("formats inline markup inside bullets and drops only the dash marker", () => {
+    render(<StreamingMarkdown content={"- **Bold** item\n- plain item"} />);
+
+    const items = screen.getAllByRole("listitem");
+    expect(items.map((li) => li.textContent)).toEqual([
+      "Bold item",
+      "plain item",
+    ]);
+    expect(items[0].querySelector("strong")).toHaveTextContent("Bold");
+  });
+
+  it("treats a block as a paragraph unless every line is a bullet", () => {
+    render(<StreamingMarkdown content={"- first\nnot a bullet"} />);
+
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(document.querySelector("p")).toHaveTextContent("- first");
   });
 
   it("has no axe violations", async () => {

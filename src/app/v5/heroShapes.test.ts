@@ -36,6 +36,19 @@ describe("hero shapes", () => {
     }
   });
 
+  it("can reach every other shape, so none is starved", () => {
+    for (let current = 0; current < HERO_SHAPES.length; current++) {
+      const reached = new Set<number>();
+      for (let roll = 0; roll < 1; roll += 0.01) {
+        reached.add(pickNextShape(current, () => roll));
+      }
+      const everyOther = HERO_SHAPES.map((_, i) => i).filter(
+        (i) => i !== current,
+      );
+      expect([...reached].sort()).toEqual(everyOther);
+    }
+  });
+
   it("is deterministic for a fixed draw", () => {
     expect(pickNextShape(2, () => 0.6)).toBe(pickNextShape(2, () => 0.6));
   });

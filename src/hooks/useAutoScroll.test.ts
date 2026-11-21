@@ -28,11 +28,20 @@ function createMockElement(
         listenerOptions = options;
       },
     ),
-    removeEventListener: vi.fn(),
+    removeEventListener: vi.fn((_type: string, handler: EventListener) => {
+      if (scrollListener === handler) scrollListener = null;
+    }),
   };
 
   return {
     el: el as unknown as HTMLDivElement,
+    /** Move the viewport, the way the user scrolling would. */
+    scrollTo(scrollTop: number) {
+      el.scrollTop = scrollTop;
+    },
+    hasScrollListener() {
+      return scrollListener !== null;
+    },
     fireScroll() {
       scrollListener?.(new Event("scroll"));
     },
@@ -47,9 +56,12 @@ function createMockElement(
  * The ref assignment + re-render triggers the useEffect that attaches
  * the scroll listener.
  */
-function setupHook(geometry?: Parameters<typeof createMockElement>[0]) {
+function setupHook(
+  geometry?: Parameters<typeof createMockElement>[0],
+  threshold?: number,
+) {
   const mock = createMockElement(geometry);
-  const { result, rerender } = renderHook(() => useAutoScroll());
+  const { result, rerender, unmount } = renderHook(() => useAutoScroll(threshold));
 
   // Hand the element to the callback ref, the way React does on commit, so the
   // effect attaches the scroll listener.
@@ -57,7 +69,7 @@ function setupHook(geometry?: Parameters<typeof createMockElement>[0]) {
     result.current.containerRef(mock.el);
   });
 
-  return { result, mock, rerender };
+  return { result, mock, rerender, unmount };
 }
 
 describe("useAutoScroll", () => {
@@ -65,12 +77,16 @@ describe("useAutoScroll", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns containerRef and isAtBottom (initially true)", () => {
+  it("starts out at the bottom, before any scrolling", () => {
     const { result } = renderHook(() => useAutoScroll());
 
-    expect(result.current.containerRef).toBeDefined();
     expect(result.current.isAtBottom).toBe(true);
-    expect(typeof result.current.scrollToBottom).toBe("function");
+  });
+
+  it("scrollToBottom does nothing, and doesn't throw, before a container is attached", () => {
+    const { result } = renderHook(() => useAutoScroll());
+
+    expect(() => act(() => result.current.scrollToBottom())).not.toThrow();
   });
 
   it("scrollToBottom calls scrollTo on the container element", () => {
@@ -114,6 +130,84 @@ describe("useAutoScroll", () => {
     });
 
     expect(result.current.isAtBottom).toBe(false);
+  });
+
+  it("goes false when the user scrolls up and true again when they come back down", () => {
+    const { result, mock } = setupHook({ scrollTop: 600, scrollHeight: 1000, clientHeight: 400 });
+
+    act(() => {
+      mock.scrollTo(100);
+      mock.fireScroll();
+    });
+    expect(result.current.isAtBottom).toBe(false);
+
+    act(() => {
+      mock.scrollTo(600);
+      mock.fireScroll();
+    });
+    expect(result.current.isAtBottom).toBe(true);
+  });
+
+  it("counts exactly 100px from the bottom as at the bottom, and 101px as not", () => {
+    // 1000 - 500 - 400 = 100 from the bottom
+    const { result, mock } = setupHook({ scrollTop: 500, scrollHeight: 1000, clientHeight: 400 });
+
+    act(() => {
+      mock.fireScroll();
+    });
+    expect(result.current.isAtBottom).toBe(true);
+
+    act(() => {
+      mock.scrollTo(499);
+      mock.fireScroll();
+    });
+    expect(result.current.isAtBottom).toBe(false);
+  });
+
+  it("uses the threshold it is given instead of 100px", () => {
+    // 500px from the bottom, but the caller allows 600
+    const { result, mock } = setupHook(
+      { scrollTop: 100, scrollHeight: 1000, clientHeight: 400 },
+      600,
+    );
+
+    act(() => {
+      mock.fireScroll();
+    });
+
+    expect(result.current.isAtBottom).toBe(true);
+  });
+
+  it("applies a threshold that changes after the container is attached", () => {
+    // 500px from the bottom
+    const mock = createMockElement({ scrollTop: 100, scrollHeight: 1000, clientHeight: 400 });
+    const { result, rerender } = renderHook(
+      ({ threshold }) => useAutoScroll(threshold),
+      { initialProps: { threshold: 100 } },
+    );
+    act(() => {
+      result.current.containerRef(mock.el);
+    });
+    act(() => {
+      mock.fireScroll();
+    });
+    expect(result.current.isAtBottom).toBe(false);
+
+    rerender({ threshold: 600 });
+    act(() => {
+      mock.fireScroll();
+    });
+
+    expect(result.current.isAtBottom).toBe(true);
+  });
+
+  it("stops listening to the container when the component unmounts", () => {
+    const { mock, unmount } = setupHook();
+    expect(mock.hasScrollListener()).toBe(true);
+
+    unmount();
+
+    expect(mock.hasScrollListener()).toBe(false);
   });
 
   it("uses a passive scroll event listener", () => {

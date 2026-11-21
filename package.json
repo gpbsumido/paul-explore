@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "9.2.28",
+  "version": "9.2.29",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -12,7 +12,7 @@
     "prebuild": "node scripts/count-tests.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings 0",
     "test": "vitest run --project unit --project svelte",
     "test:watch": "vitest --project unit --project svelte",
     "test:integration": "vitest run --project integration",

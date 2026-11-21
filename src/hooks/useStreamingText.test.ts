@@ -5,10 +5,14 @@ import { useStreamingText } from "./useStreamingText";
 /** Create a controllable mock stream that emits SSE-formatted chunks. */
 function createTestStream() {
   let controller!: ReadableStreamDefaultController<string>;
+  let cancelled = false;
 
   const stream = new ReadableStream<string>({
     start(c) {
       controller = c;
+    },
+    cancel() {
+      cancelled = true;
     },
   });
 
@@ -20,6 +24,12 @@ function createTestStream() {
     close() {
       controller.close();
     },
+    fail() {
+      controller.error(new Error("connection dropped"));
+    },
+    wasCancelled() {
+      return cancelled;
+    },
   };
 }
 
@@ -29,6 +39,7 @@ describe("useStreamingText", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -113,26 +124,21 @@ describe("useStreamingText", () => {
     expect(result.current.isStreaming).toBe(false);
   });
 
-  it("cleans up the stream reader on unmount", async () => {
+  // Known bug: The hook has no unmount cleanup: the reader is left open and still
+  // appends to the buffer. Recorded as a finding; nothing calls this hook yet.
+  it.fails("cancels the stream when the component unmounts", async () => {
     const { result, unmount } = renderHook(() => useStreamingText());
     const mock = createTestStream();
 
     await act(async () => {
       result.current.start(mock.stream);
     });
-
+    unmount();
     await act(async () => {
-      mock.sendEvent("text_delta", { content: "partial" });
       await vi.advanceTimersByTimeAsync(50);
     });
 
-    // unmount should not throw and should cancel the reader
-    unmount();
-
-    // sending more events after unmount should not throw
-    expect(() => {
-      mock.sendEvent("text_delta", { content: " more" });
-    }).not.toThrow();
+    expect(mock.wasCancelled()).toBe(true);
   });
 
   it("ignores non-text_delta events for text accumulation", async () => {
@@ -150,5 +156,109 @@ describe("useStreamingText", () => {
     });
 
     expect(result.current.text).toBe("Answer");
+  });
+
+  it("start() begins from a blank page when a run had already produced text", async () => {
+    const { result } = renderHook(() => useStreamingText());
+    const first = createTestStream();
+    await act(async () => {
+      result.current.start(first.stream);
+    });
+    await act(async () => {
+      first.sendEvent("text_delta", { content: "first run" });
+      first.close();
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect(result.current.text).toBe("first run");
+
+    const second = createTestStream();
+    await act(async () => {
+      result.current.start(second.stream);
+    });
+    expect(result.current.text).toBe("");
+
+    await act(async () => {
+      second.sendEvent("text_delta", { content: "second run" });
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect(result.current.text).toBe("second run");
+  });
+
+  it("reset cancels the stream it was reading", async () => {
+    const { result } = renderHook(() => useStreamingText());
+    const mock = createTestStream();
+    await act(async () => {
+      result.current.start(mock.stream);
+    });
+
+    await act(async () => {
+      result.current.reset();
+    });
+
+    expect(mock.wasCancelled()).toBe(true);
+  });
+
+  it("a stream that errors out stops streaming and keeps what had arrived", async () => {
+    const { result } = renderHook(() => useStreamingText());
+    const mock = createTestStream();
+    await act(async () => {
+      result.current.start(mock.stream);
+    });
+    await act(async () => {
+      mock.sendEvent("text_delta", { content: "half an ans" });
+      await vi.advanceTimersByTimeAsync(50);
+    });
+
+    await act(async () => {
+      mock.fail();
+      await vi.advanceTimersByTimeAsync(50);
+    });
+
+    expect(result.current.isStreaming).toBe(false);
+    expect(result.current.text).toBe("half an ans");
+  });
+
+  it("batches a burst of tokens into one repaint per frame", async () => {
+    const scheduleFrame = vi.spyOn(globalThis, "requestAnimationFrame");
+    const { result } = renderHook(() => useStreamingText());
+    const mock = createTestStream();
+    await act(async () => {
+      result.current.start(mock.stream);
+    });
+
+    await act(async () => {
+      mock.sendEvent("text_delta", { content: "a" });
+      mock.sendEvent("text_delta", { content: "b" });
+      mock.sendEvent("text_delta", { content: "c" });
+      await Promise.resolve();
+    });
+    expect(scheduleFrame).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect(result.current.text).toBe("abc");
+  });
+
+  // Known bug: start() never cancels the reader it is replacing, so the old stream keeps
+  // writing into the new run's buffer. Recorded as a finding.
+  it.fails("a second start() ignores late tokens from the first stream", async () => {
+    const { result } = renderHook(() => useStreamingText());
+    const first = createTestStream();
+    const second = createTestStream();
+    await act(async () => {
+      result.current.start(first.stream);
+    });
+    await act(async () => {
+      result.current.start(second.stream);
+    });
+
+    await act(async () => {
+      first.sendEvent("text_delta", { content: "stale" });
+      second.sendEvent("text_delta", { content: "fresh" });
+      await vi.advanceTimersByTimeAsync(50);
+    });
+
+    expect(result.current.text).toBe("fresh");
   });
 });

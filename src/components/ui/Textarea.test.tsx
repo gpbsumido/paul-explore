@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { createRef } from "react";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
@@ -92,6 +93,58 @@ describe("Textarea accessibility", () => {
         "aria-live",
         "polite",
       );
+    });
+  });
+
+  describe("behaviour", () => {
+    it("shows no character count when there is no maxLength", () => {
+      render(<Textarea label="Bio" />);
+      expect(screen.queryByText(/\/ \d+/)).not.toBeInTheDocument();
+    });
+
+    it("stops the count at the limit by passing maxLength to the field", async () => {
+      const user = userEvent.setup();
+      render(<Textarea label="Bio" maxLength={3} />);
+      await user.type(screen.getByLabelText("Bio"), "Hello");
+      expect(screen.getByLabelText("Bio")).toHaveValue("Hel");
+      expect(screen.getByText("3 / 3")).toBeInTheDocument();
+    });
+
+    it("hands what is typed to onChange", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(<Textarea label="Bio" onChange={onChange} />);
+      await user.type(screen.getByLabelText("Bio"), "Hi");
+      expect(onChange).toHaveBeenCalledTimes(2);
+    });
+
+    it("links helper text via aria-describedby", () => {
+      render(<Textarea label="Bio" helperText="A sentence or two" />);
+      expect(screen.getByLabelText("Bio")).toHaveAttribute(
+        "aria-describedby",
+        screen.getByText("A sentence or two").id,
+      );
+    });
+
+    it("forwards its ref to the textarea element", () => {
+      const ref = createRef<HTMLTextAreaElement>();
+      render(<Textarea label="Bio" ref={ref} />);
+      expect(ref.current).toBe(screen.getByLabelText("Bio"));
+    });
+
+    it("keeps a hidden label out of sight but in the accessibility tree", () => {
+      const { container } = render(<Textarea label="Bio" hideLabel />);
+      expect(container.querySelector("label")).toHaveClass("sr-only");
+    });
+
+    it("shows the label normally unless asked to hide it", () => {
+      const { container } = render(<Textarea label="Bio" />);
+      expect(container.querySelector("label")).not.toHaveClass("sr-only");
+    });
+
+    it("puts a caller's class on the wrapper", () => {
+      const { container } = render(<Textarea label="Bio" className="w-64" />);
+      expect(container.firstElementChild).toHaveClass("w-64");
     });
   });
 });

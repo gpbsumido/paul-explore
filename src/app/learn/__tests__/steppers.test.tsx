@@ -86,6 +86,29 @@ describe("learn page steppers", () => {
       expect(firstCounter()).toEqual([start, den]);
     });
 
+    it("does not step past the last step", () => {
+      renderPage(Comp);
+      const [, den] = firstCounter();
+      for (let i = 0; i < den + 2; i += 1) clickFirst("Step");
+      expect(firstCounter()[0]).toBe(den);
+    });
+
+    it("stops playing when reset is pressed mid-run", () => {
+      vi.useFakeTimers();
+      renderPage(Comp);
+      const [start] = firstCounter();
+
+      clickFirst("Play");
+      act(() => vi.advanceTimersByTime(800));
+      clickFirst("Reset");
+      act(() => vi.advanceTimersByTime(5000));
+
+      expect(firstCounter()[0]).toBe(start);
+      expect(
+        screen.getAllByRole("button", { name: "Play" })[0],
+      ).toBeInTheDocument();
+    });
+
     it("plays to the last step and stops there", () => {
       vi.useFakeTimers();
       renderPage(Comp);

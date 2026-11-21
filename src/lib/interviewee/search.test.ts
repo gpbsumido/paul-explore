@@ -118,4 +118,61 @@ describe("searchInterviewTopics", () => {
     expect(hit.topic.id).toBe("testing");
     expect(hit.rank).toBe(0);
   });
+
+  it.each([
+    { query: "dashboard fast", rank: 1, why: "the topic summary" },
+    { query: "frontend systems", rank: 1, why: "the interview's own summary" },
+    { query: "acme onsite", rank: 1, why: "the interview title" },
+    { query: "slow page", rank: 2, why: "the question text" },
+    { query: "measure before", rank: 3, why: "an answer point" },
+    { query: "hardest", rank: 3, why: "an expandable detail" },
+  ])("ranks a match found in $why at tier $rank", ({ query, rank }) => {
+    const [hit] = searchInterviewTopics(interviews, query);
+    expect(hit.topic.id).toBe("perf");
+    expect(hit.rank).toBe(rank);
+  });
+
+  it("puts a shallower match ahead of a deeper one even when the deeper topic comes first in the deck", () => {
+    const deckOrder: Interview[] = [
+      {
+        id: "first",
+        title: "First",
+        summary: "One.",
+        topics: [
+          {
+            id: "buried",
+            title: "Caching",
+            summary: "Keys.",
+            entries: [{ question: "Why?", points: ["Because the cdn is cold."] }],
+            related: [],
+          },
+          {
+            id: "headline",
+            title: "CDN strategy",
+            summary: "Edge.",
+            entries: [{ question: "How?", points: ["Origin shield."] }],
+            related: [],
+          },
+        ],
+      },
+    ];
+
+    const hits = searchInterviewTopics(deckOrder, "cdn");
+
+    expect(hits.map((h) => h.topic.id)).toEqual(["headline", "buried"]);
+  });
+
+  it("keeps deck order for topics that match at the same depth", () => {
+    const hits = searchInterviewTopics(interviews, "frontend");
+    expect(hits.map((h) => `${h.interviewId}/${h.topic.id}`)).toEqual([
+      "acme/perf",
+      "acme/testing",
+    ]);
+  });
+
+  it("splits the query on any whitespace, not just single spaces", () => {
+    expect(
+      searchInterviewTopics(interviews, "profile\t INP").map((h) => h.topic.id),
+    ).toEqual(["perf"]);
+  });
 });

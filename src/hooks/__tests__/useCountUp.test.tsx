@@ -38,6 +38,104 @@ afterEach(() => {
 });
 
 describe("useCountUp", () => {
+  it("holds at zero until it is in view, then eases up to the target", async () => {
+    vi.useFakeTimers();
+    try {
+      stubPreference(false);
+      const useCountUp = await freshHook();
+      const { result, rerender } = renderHook(
+        ({ inView }) => useCountUp(100, 200, inView),
+        { initialProps: { inView: false } },
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(result.current).toBe(0);
+
+      rerender({ inView: true });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      // Halfway through the time an ease-out has covered most of the distance
+      // (a linear count would sit near 50), but it is not there yet.
+      expect(result.current).toBeGreaterThan(70);
+      expect(result.current).toBeLessThan(100);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+      expect(result.current).toBe(100);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops asking for frames once the component leaves", async () => {
+    vi.useFakeTimers();
+    try {
+      stubPreference(false);
+      const frames = vi.fn((tick: FrameRequestCallback) =>
+        setTimeout(() => tick(performance.now()), 16),
+      );
+      vi.stubGlobal("requestAnimationFrame", frames);
+      vi.stubGlobal("cancelAnimationFrame", (id: number) => clearTimeout(id));
+      const useCountUp = await freshHook();
+      const { unmount } = renderHook(() => useCountUp(100, 200));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+      unmount();
+      const framesAtUnmount = frames.mock.calls.length;
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+
+      expect(framesAtUnmount).toBeGreaterThan(0);
+      expect(frames).toHaveBeenCalledTimes(framesAtUnmount);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("carries on from where it had got to when the target changes mid-count", async () => {
+    vi.useFakeTimers();
+    try {
+      stubPreference(false);
+      const useCountUp = await freshHook();
+      const { result, rerender } = renderHook(
+        ({ target }) => useCountUp(target, 200),
+        { initialProps: { target: 100 } },
+      );
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(result.current).toBe(100);
+
+      rerender({ target: 200 });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(20);
+      });
+
+      // Starting over from zero would drop below where it already was.
+      expect(result.current).toBeGreaterThanOrEqual(100);
+      expect(result.current).toBeLessThan(200);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // Known bug: Found while auditing: a zero duration returns early and the hook then
+  // returns its state, which is still 0, so the figure never shows the target.
+  it.fails("lands on the target straight away when the duration is zero", async () => {
+    stubPreference(false);
+    const useCountUp = await freshHook();
+    const { result } = renderHook(() => useCountUp(42, 0));
+
+    expect(result.current).toBe(42);
+  });
+
   it("counts up to a new target after the first one has landed", async () => {
     // A refetch or a filter change hands the hook a new number. It used to
     // return early once it had animated, and stayed on the old one.

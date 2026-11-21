@@ -50,6 +50,27 @@ describe("loadBudget", () => {
     expect(loadBudget(storage).expenses).toEqual([]);
   });
 
+  it("falls back to the starter budget when the stored JSON is the wrong shape", () => {
+    const storage = makeStorage();
+    storage.setItem(
+      BUDGET_KEY,
+      JSON.stringify({ people: [], activePersonId: "p-1", cycleStartDay: 99, expenses: [] }),
+    );
+    const budget = loadBudget(storage);
+    expect(budget.people).toHaveLength(1);
+    expect(budget.cycleStartDay).toBe(1);
+  });
+
+  it("falls back to the starter budget when reading storage throws", () => {
+    const blocked = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {},
+    };
+    expect(loadBudget(blocked).expenses).toEqual([]);
+  });
+
   it("starts private with no pending join requests", () => {
     const budget = loadBudget(makeStorage());
     expect(budget.visibility).toBe("private");
@@ -73,6 +94,22 @@ describe("loadBudget", () => {
   });
 });
 
+describe("when storage refuses writes", () => {
+  it("still hands back the updated budget for this session", () => {
+    const full = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error("QuotaExceededError");
+      },
+    };
+    const after = addExpense({ categoryId: "food", amountCents: 500 }, full, {
+      id: "e-1",
+      now: NOW,
+    });
+    expect(after.expenses.map((e) => e.id)).toEqual(["e-1"]);
+  });
+});
+
 describe("sharing", () => {
   it("makes a budget public and records the owner email others request with", () => {
     const storage = makeStorage();
@@ -80,6 +117,38 @@ describe("sharing", () => {
     expect(after.visibility).toBe("public");
     expect(after.ownerEmail).toBe("me@example.com");
     expect(loadBudget(storage).visibility).toBe("public");
+  });
+
+  it("keeps the owner email when the budget goes private again without one", () => {
+    const storage = makeStorage();
+    setVisibility("public", storage, { ownerEmail: "me@example.com" });
+    const after = setVisibility("private", storage);
+    expect(after.visibility).toBe("private");
+    expect(after.ownerEmail).toBe("me@example.com");
+  });
+
+  it("trims the name and email on a request to join", () => {
+    const after = requestToJoin(
+      { name: "  Sam ", email: " sam@example.com " },
+      makeStorage(),
+      { id: "r-1", now: NOW },
+    );
+    expect(after.joinRequests[0]).toMatchObject({ name: "Sam", email: "sam@example.com" });
+  });
+
+  it("approving an unknown request changes nothing", () => {
+    const storage = makeStorage();
+    requestToJoin({ name: "Sam", email: "sam@example.com" }, storage, { id: "r-1", now: NOW });
+    const before = loadBudget(storage);
+    expect(approveJoinRequest("r-missing", storage, { id: "p-x" })).toEqual(before);
+  });
+
+  it("denying one request leaves the others waiting", () => {
+    const storage = makeStorage();
+    requestToJoin({ name: "Sam", email: "sam@example.com" }, storage, { id: "r-1", now: NOW });
+    requestToJoin({ name: "Alex", email: "alex@example.com" }, storage, { id: "r-2", now: NOW });
+    const after = denyJoinRequest("r-1", storage);
+    expect(after.joinRequests.map((r) => r.id)).toEqual(["r-2"]);
   });
 
   it("records a request to join", () => {
@@ -172,6 +241,26 @@ describe("addExpense", () => {
     expect(after.expenses[0]).toMatchObject({ note: "team lunch", vendor: "Cafe" });
   });
 
+  it("puts the newest item first", () => {
+    const storage = makeStorage();
+    addExpense({ categoryId: "food", amountCents: 100 }, storage, { id: "e-1", now: NOW });
+    const after = addExpense({ categoryId: "rent", amountCents: 200 }, storage, {
+      id: "e-2",
+      now: NOW,
+    });
+    expect(after.expenses.map((e) => e.id)).toEqual(["e-2", "e-1"]);
+  });
+
+  it("leaves note and vendor off the stored item when they are blank", () => {
+    const after = addExpense(
+      { categoryId: "food", amountCents: 500, note: "", vendor: "" },
+      makeStorage(),
+      { id: "e-1", now: NOW },
+    );
+    expect(after.expenses[0]).not.toHaveProperty("note");
+    expect(after.expenses[0]).not.toHaveProperty("vendor");
+  });
+
   it("persists across a reload", () => {
     const storage = makeStorage();
     addExpense({ categoryId: "food", amountCents: 700 }, storage, {
@@ -189,6 +278,17 @@ describe("people", () => {
     const after = addPerson("Sam", storage, { id: "p-sam" });
     expect(after.people).toHaveLength(2);
     expect(after.activePersonId).toBe(start.activePersonId);
+  });
+
+  it("trims the name of a new person", () => {
+    const after = addPerson("  Sam  ", makeStorage(), { id: "p-sam" });
+    expect(after.people[1]).toEqual({ id: "p-sam", name: "Sam" });
+  });
+
+  it("ignores a switch to someone who is not on the budget", () => {
+    const storage = makeStorage();
+    const before = loadBudget(storage);
+    expect(setActivePerson("p-ghost", storage).activePersonId).toBe(before.activePersonId);
   });
 
   it("switches the active person so new items are attributed to them", () => {
@@ -210,6 +310,15 @@ describe("setCycleStartDay", () => {
     const after = setCycleStartDay(15, storage);
     expect(after.cycleStartDay).toBe(15);
     expect(loadBudget(storage).cycleStartDay).toBe(15);
+  });
+
+  it.each([
+    { given: 0, stored: 1 },
+    { given: -5, stored: 1 },
+    { given: 31, stored: 28 },
+    { given: 14.6, stored: 15 },
+  ])("stores $given as $stored", ({ given, stored }) => {
+    expect(setCycleStartDay(given, makeStorage()).cycleStartDay).toBe(stored);
   });
 });
 
@@ -241,6 +350,18 @@ describe("joinBudget", () => {
     expect(after.people.map((p) => p.name)).toEqual(["Paul", "Sam"]);
     expect(after.activePersonId).toBe("p-sam");
     expect(loadBudget(storage).activePersonId).toBe("p-sam");
+  });
+
+  it("joins without adding a duplicate when the name is already on the budget", () => {
+    const after = joinBudget(encodeInvite(shared), "Paul", makeStorage(), { id: "p-new" });
+    expect(after.people.map((p) => p.id)).toEqual(["p-owner"]);
+    expect(after.activePersonId).toBe("p-owner");
+  });
+
+  it("imports the budget without adding anyone for a blank name", () => {
+    const after = joinBudget(encodeInvite(shared), "   ", makeStorage(), { id: "p-new" });
+    expect(after.people).toHaveLength(1);
+    expect(after.expenses).toHaveLength(1);
   });
 
   it("leaves the current budget untouched for a junk token", () => {

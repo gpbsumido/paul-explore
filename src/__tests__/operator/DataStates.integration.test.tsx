@@ -102,8 +102,13 @@ describe("a failed load says so and offers a way out", () => {
     render(<DataLoadError what="inventory" detail="503 from the API" />);
 
     const contact = screen.getByRole("link", { name: /tell me about it/i });
-    expect(contact.getAttribute("href")).toMatch(/^mailto:/);
-    // The report carries what failed, so it does not arrive as "it's broken".
-    expect(contact.getAttribute("href")).toContain("inventory");
+    const href = contact.getAttribute("href") ?? "";
+    expect(href).toMatch(/^mailto:/);
+    // The report carries what failed and what the server said, so it does not
+    // arrive as "it's broken".
+    const { searchParams } = new URL(href);
+    expect(searchParams.get("subject")).toContain("inventory");
+    expect(searchParams.get("body")).toContain("What failed: inventory");
+    expect(searchParams.get("body")).toContain("Detail: 503 from the API");
   });
 });

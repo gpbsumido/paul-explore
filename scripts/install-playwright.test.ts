@@ -20,9 +20,13 @@ const stub = (dir: string, name: string, exitCode = 0) => {
   chmodSync(file, 0o755);
 };
 
-const attempt = (n: string | undefined, { launches = true } = {}) => {
+const attempt = (n: string | undefined, { launches = true, nothingToKill = false } = {}) => {
   const dir = mkdtempSync(join(tmpdir(), "install-playwright-"));
   stub(dir, "sudo");
+  if (nothingToKill) {
+    // pkill exits 1 when it finds no process to kill, which is the usual case.
+    writeFileSync(join(dir, "sudo"), `#!/bin/sh\necho "sudo $*" >> "$CALLS"\n[ "$1" = pkill ] && exit 1\nexit 0\n`);
+  }
   stub(dir, "pnpm");
   stub(dir, "node", launches ? 0 : 1);
   const calls = join(dir, "calls");
@@ -60,5 +64,13 @@ describe("install-playwright", () => {
     expect(calls).toContain("sudo pkill -KILL -x dpkg");
     expect(calls.indexOf("sudo dpkg --configure -a")).toBeGreaterThan(calls.indexOf("sudo pkill -KILL -x dpkg"));
     expect(calls.indexOf("sudo dpkg --configure -a")).toBeLessThan(calls.indexOf(BROWSER));
+  });
+
+  it("carries on when there is no leftover apt or dpkg process to kill", () => {
+    const { status, calls } = attempt("2", { launches: false, nothingToKill: true });
+
+    expect(status).toBe(0);
+    expect(calls).toContain("sudo dpkg --configure -a");
+    expect(calls.at(-1)).toBe(SYSTEM_PACKAGES);
   });
 });

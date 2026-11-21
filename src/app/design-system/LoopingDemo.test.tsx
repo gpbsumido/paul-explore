@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import LoopingDemo from "./LoopingDemo";
 
-const mocks = vi.hoisted(() => ({ reduced: false }));
+const mocks = vi.hoisted(() => ({ reduced: false, inView: true }));
 vi.mock("@/app/providers", () => ({
   useHubReducedMotion: () => mocks.reduced,
 }));
@@ -15,7 +15,7 @@ vi.mock("@/app/providers", () => ({
 // visible, which is the state the looping behaviour is about.
 vi.mock("framer-motion", async (importOriginal) => ({
   ...(await importOriginal<typeof import("framer-motion")>()),
-  useInView: () => true,
+  useInView: () => mocks.inView,
 }));
 
 let mounts = 0;
@@ -32,6 +32,7 @@ function CountsMounts() {
 beforeEach(() => {
   mounts = 0;
   mocks.reduced = false;
+  mocks.inView = true;
   vi.useFakeTimers({ shouldAdvanceTime: true });
 });
 
@@ -81,6 +82,20 @@ describe("LoopingDemo", () => {
 
   it("holds still under reduced motion, showing the finished state", () => {
     mocks.reduced = true;
+    render(
+      <LoopingDemo label="Text reveal" intervalMs={3000}>
+        <CountsMounts />
+      </LoopingDemo>,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(9000);
+    });
+    expect(mounts).toBe(1);
+  });
+
+  it("does not tick while the card is off screen", () => {
+    mocks.inView = false;
     render(
       <LoopingDemo label="Text reveal" intervalMs={3000}>
         <CountsMounts />

@@ -22,7 +22,32 @@ describe("pickAnchor", () => {
   });
 
   it("counts a period sitting just below the edge as the one in view", () => {
-    expect(pickAnchor([{ key: "jan", top: 8 }])?.key).toBe("jan");
+    // With a single period the fallback would answer "jan" whatever the
+    // threshold did, so a second one has to be the correct answer.
+    expect(
+      pickAnchor([
+        { key: "jan", top: -300 },
+        { key: "feb", top: 8 },
+      ])?.key,
+    ).toBe("feb");
+  });
+
+  it("stops counting a period once it is more than the threshold below the edge", () => {
+    const periods = [
+      { key: "jan", top: -300 },
+      { key: "feb", top: 10 },
+      { key: "mar", top: 11 },
+    ];
+    expect(pickAnchor(periods)?.key).toBe("feb");
+  });
+
+  it("takes a different threshold when asked", () => {
+    const periods = [
+      { key: "jan", top: -300 },
+      { key: "feb", top: 40 },
+    ];
+    expect(pickAnchor(periods, 50)?.key).toBe("feb");
+    expect(pickAnchor(periods)?.key).toBe("jan");
   });
 
   it("has nothing to anchor to when there are no periods", () => {
@@ -47,5 +72,10 @@ describe("anchorCorrection", () => {
 
   it("still corrects once the drift is real", () => {
     expect(anchorCorrection(10, 12)).toBe(2);
+  });
+
+  it("corrects a drift of exactly one pixel, the smallest it chases", () => {
+    expect(anchorCorrection(10, 11)).toBe(1);
+    expect(anchorCorrection(10, 9)).toBe(-1);
   });
 });
