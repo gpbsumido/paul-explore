@@ -12,7 +12,7 @@ describe("the shared MSW server", () => {
     const response = await fetch("/api/me");
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ name: null, email: null, sub: null });
+    expect(await response.json()).toEqual({ name: null, email: null, sub: null, isFlagAdmin: false });
   });
 
   it("answers the geo lookup with a Toronto visitor", async () => {

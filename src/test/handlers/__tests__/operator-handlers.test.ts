@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { API_URL } from "@/lib/apiUrl";
 import type { InventoryItem, RestockLine, RestockSession } from "@/types/operator";
 import { operatorHandlers, resetOperatorWriteState } from "../operator";
@@ -16,14 +16,8 @@ import { operatorHandlers, resetOperatorWriteState } from "../operator";
  * when called the way the app calls them.
  */
 
-// The handlers add a 100-300ms random delay to feel like a network. Pin the
-// dice so the suite does not wait on them.
 beforeEach(() => {
-  vi.spyOn(Math, "random").mockReturnValue(0);
   resetOperatorWriteState();
-});
-afterEach(() => {
-  vi.restoreAllMocks();
 });
 
 const asJson = async (response: Response) => response.json();
@@ -256,5 +250,49 @@ describe("operator MSW handlers: alerts", () => {
     );
 
     expect(dismissed.alert).toMatchObject({ id: alerts[0].id, acknowledged: true });
+  });
+});
+
+describe("operator MSW handlers: resetting between tests", () => {
+  it("brings back an alert a previous test dismissed", async () => {
+    const { storeId } = await firstStoreWithItem(API_URL);
+    const alertsUrl = `${API_URL}/api/operator/stores/${storeId}/alerts`;
+    const { alerts } = await asJson(await fetch(alertsUrl));
+    await fetch(`${API_URL}/api/operator/alerts/${alerts[0].id}/dismiss`, { method: "PATCH" });
+
+    resetOperatorWriteState();
+
+    const after = await asJson(await fetch(alertsUrl));
+    expect(after.alerts[0]).toMatchObject({ id: alerts[0].id, acknowledged: false });
+  });
+
+  it("puts back the stock a previous test restocked", async () => {
+    const { storeId } = await firstStoreWithItem(API_URL);
+    const inventoryUrl = `${API_URL}/api/operator/stores/${storeId}/inventory`;
+    const { items } = await asJson(await fetch(inventoryUrl));
+    const understocked = items.find((item: InventoryItem) => item.currentStock < item.capacity);
+    expect(understocked).toBeDefined();
+    await post(`${API_URL}/api/operator/stores/${storeId}/restock`, { itemIds: [understocked.id] });
+
+    resetOperatorWriteState();
+
+    const after = await asJson(await fetch(inventoryUrl));
+    const restored = after.items.find((item: InventoryItem) => item.id === understocked.id);
+    expect(restored.currentStock).toBe(understocked.currentStock);
+  });
+
+  it("puts back the planogram a previous test rearranged", async () => {
+    const { storeId } = await firstStoreWithItem(API_URL);
+    const planogramUrl = `${API_URL}/api/operator/stores/${storeId}/planogram`;
+    const before = await asJson(await fetch(planogramUrl));
+    await fetch(planogramUrl, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ boxes: [...before.slots].reverse() }),
+    });
+
+    resetOperatorWriteState();
+
+    expect(await asJson(await fetch(planogramUrl))).toEqual(before);
   });
 });
