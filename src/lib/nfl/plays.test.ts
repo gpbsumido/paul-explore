@@ -76,6 +76,25 @@ describe("parseScoringPlays", () => {
     ]);
   });
 
+  it("fills in blanks, not guesses, for a play ESPN sent with only its id and text", () => {
+    const [play] = parseScoringPlays({ scoringPlays: [{ id: "p1", text: "Field goal" }] });
+    expect(play).toEqual({
+      id: "p1",
+      text: "Field goal",
+      teamAbbrev: "",
+      period: 0,
+      clock: "",
+      scoringType: "",
+      awayScore: 0,
+      homeScore: 0,
+    });
+  });
+
+  it("degrades to an empty list on a summary whose plays aren't a list", () => {
+    expect(parseScoringPlays({ scoringPlays: "oops" })).toEqual([]);
+    expect(parseScoringPlays(null)).toEqual([]);
+  });
+
   it("degrades to an empty list on a payload with no scoringPlays", () => {
     expect(parseScoringPlays({ nope: true })).toEqual([]);
   });
@@ -188,6 +207,18 @@ describe("filterPlays", () => {
     // Lawrence is the QB but plays for team 1; Brown plays for team 2 but is a WR.
     expect(ids({ positionId: 1, fantasyTeamId: 2 })).toEqual([]);
     expect(ids({ positionId: 1, fantasyTeamId: 1 })).toEqual(["td"]);
+  });
+
+  it("sorts position ids as numbers, and leaves out plays with no team or score type", () => {
+    const bare = {
+      play: { ...td.play, id: "bare", teamAbbrev: "", scoringType: "" },
+      mentions: [{ ...td.mentions[0], positionId: 10 }, { ...td.mentions[0], positionId: 2 }],
+    };
+    expect(playFilterOptions([bare])).toEqual({
+      positionIds: [2, 10],
+      scoringTypes: [],
+      nflTeams: [],
+    });
   });
 
   it("offers only the options that appear in the plays, sorted", () => {

@@ -23,6 +23,28 @@ describe("hostServices().referrals", () => {
     expect(init.method).toBe("POST");
   });
 
+  it("reads stats from the stats endpoint with a GET", async () => {
+    const fetchMock = vi.fn().mockReturnValue(json(200, { slug: "abc", clicks: 3 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await hostServices().referrals.stats("abc");
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toMatch(/\/api\/referrals\/abc\/stats$/);
+    expect(init?.method ?? "GET").toBe("GET");
+  });
+
+  it("records a click by posting to the clicks endpoint", async () => {
+    const fetchMock = vi.fn().mockReturnValue(json(200, { slug: "abc", clicks: 4 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await hostServices().referrals.recordClick("abc");
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toMatch(/\/api\/referrals\/abc\/clicks$/);
+    expect(init.method).toBe("POST");
+  });
+
   it("passes an API refusal through as a readable message", async () => {
     vi.stubGlobal("fetch", vi.fn().mockReturnValue(json(409, {})));
     await expect(hostServices().referrals.create({ slug: "taken" })).rejects.toThrow(

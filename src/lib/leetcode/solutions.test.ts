@@ -42,4 +42,19 @@ describe("the solution catalogue", () => {
     const pattern = PATTERNS[0];
     expect(Object.keys(solutionsForPattern(pattern)).sort()).toEqual(pattern.problems.map((p) => p.slug).sort());
   });
+
+  it("refuses a pattern whose ladder has a problem with no solution, naming it", () => {
+    const [pattern] = PATTERNS;
+    const withUnknownProblem = {
+      ...pattern,
+      problems: [{ ...pattern.problems[0], slug: "not-a-real-problem" }],
+    };
+    expect(() => solutionsForPattern(withUnknownProblem)).toThrow(/not-a-real-problem/);
+  });
+
+  it("hands each solution back unchanged, under the slug of its problem", () => {
+    const [pattern] = PATTERNS;
+    const [first] = pattern.problems;
+    expect(solutionsForPattern(pattern)[first.slug]).toBe(SOLUTIONS[first.slug]);
+  });
 });

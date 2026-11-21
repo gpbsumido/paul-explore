@@ -169,6 +169,27 @@ function isOffPalette(hex: string, tokens: Set<string>): boolean {
  * off-palette were exactly the ones no registry covered.
  */
 describe("live surfaces carry the palette", () => {
+  // A sweep that walks nothing passes every check below, so prove it sees the app.
+  it("is looking at the app's source and at a real token palette", () => {
+    expect(liveSourceFiles().length).toBeGreaterThan(100);
+    expect(tokenHexes().size).toBeGreaterThan(10);
+  });
+
+  it("knows a stock Tailwind utility from the app's own neutral", () => {
+    expect(STOCK_UTILITY.test("className=\"text-blue-500\"")).toBe(true);
+    expect(STOCK_UTILITY.test("className=\"bg-red-50 p-2\"")).toBe(true);
+    expect(STOCK_UTILITY.test("className=\"text-neutral-500\"")).toBe(false);
+  });
+
+  it("calls a saturated off-band hex off-palette but lets black, white and a token through", () => {
+    const tokens = tokenHexes();
+    const [aToken] = [...tokens];
+    expect(isOffPalette("#ff0000", tokens)).toBe(true);
+    expect(isOffPalette("#000000", tokens)).toBe(false);
+    expect(isOffPalette("#FFFFFF", tokens)).toBe(false);
+    expect(isOffPalette(aToken, tokens)).toBe(false);
+  });
+
   it("uses no stock Tailwind colour utilities", () => {
     const offenders = liveSourceFiles().flatMap((file) =>
       readFileSync(join(process.cwd(), file), "utf8")

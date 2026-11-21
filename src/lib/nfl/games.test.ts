@@ -5,7 +5,7 @@ import { parseGameProgress } from "./games";
 function game(opts: {
   away: string;
   home: string;
-  state: "pre" | "in" | "post";
+  state: string;
   period?: number;
   clock?: number;
 }) {
@@ -54,6 +54,30 @@ describe("parseGameProgress", () => {
       events: [game({ away: "NE", home: "BUF", state: "in", period: 4, clock: 450 })],
     });
     expect(late.BUF).toBeCloseTo(0.125);
+  });
+
+  it("counts a game in a state it doesn't know as over rather than still to play", () => {
+    const progress = parseGameProgress({
+      events: [game({ away: "NE", home: "BUF", state: "canceled" })],
+    });
+    expect(progress).toEqual({ NE: 0, BUF: 0 });
+  });
+
+  it("never reports more than a whole game left, whatever the clock claims", () => {
+    const progress = parseGameProgress({
+      events: [game({ away: "NE", home: "BUF", state: "in", period: 1, clock: 1200 })],
+    });
+    expect(progress.NE).toBe(1);
+  });
+
+  it("reads a live game that hasn't reported a period or a clock yet as a whole game left", () => {
+    const noClock = {
+      competitions: [
+        { competitors: [{ team: { abbreviation: "NE" } }, { team: { abbreviation: "BUF" } }] },
+      ],
+      status: { type: { state: "in" } },
+    };
+    expect(parseGameProgress({ events: [noClock] })).toEqual({ NE: 1, BUF: 1 });
   });
 
   it("treats overtime as effectively over", () => {

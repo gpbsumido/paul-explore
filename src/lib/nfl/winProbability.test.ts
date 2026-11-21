@@ -67,4 +67,21 @@ describe("winProbability", () => {
     });
     expect(a.home).toBeCloseTo(swapped.away, 5);
   });
+
+  // Anchors the curve itself. Direction alone would pass with any steepness.
+  it("puts a settled 2-point lead at about 85% for the leader", () => {
+    const p = winProbability({ awayActual: 98, awayRemaining: 0, homeActual: 100, homeRemaining: 0 });
+    expect(p.home).toBeCloseTo(0.846, 3);
+  });
+
+  it("widens the spread with the points still unplayed", () => {
+    const p = winProbability({ awayActual: 0, awayRemaining: 16, homeActual: 10, homeRemaining: 16 });
+    expect(p.home).toBeCloseTo(0.782, 3);
+  });
+
+  it("copes with a projection that dips below zero rather than returning NaN", () => {
+    const p = winProbability({ awayActual: 0, awayRemaining: -4, homeActual: 0, homeRemaining: 0 });
+    expect(Number.isNaN(p.home)).toBe(false);
+    expect(p.home).toBeGreaterThan(0.5);
+  });
 });

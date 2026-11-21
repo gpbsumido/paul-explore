@@ -24,6 +24,17 @@ describe("serveTcg", () => {
     expect(await res.json()).toEqual({ error: "Failed to fetch sets" });
   });
 
+  it("maps an undefined result to a 502 too", async () => {
+    const res = await serveTcg("Failed to fetch series", async () => undefined);
+    expect(res.status).toBe(502);
+  });
+
+  it("serves a falsy-but-present result rather than calling it a miss", async () => {
+    const res = await serveTcg("x", async () => []);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([]);
+  });
+
   it("maps a null result to a 502 with the label", async () => {
     const res = await serveTcg("Failed to fetch series", async () => null);
     expect(res.status).toBe(502);

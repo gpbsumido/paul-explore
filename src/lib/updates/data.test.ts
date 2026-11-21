@@ -7,9 +7,11 @@ import { SEED_TICKETS } from "./tickets.data";
 
 describe("update entries data", () => {
   it("every entry parses against the schema", () => {
-    for (const entry of UPDATE_ENTRIES) {
-      expect(() => updateEntrySchema.parse(entry)).not.toThrow();
-    }
+    const failures = UPDATE_ENTRIES.flatMap((entry) => {
+      const result = updateEntrySchema.safeParse(entry);
+      return result.success ? [] : [`${entry.id}: ${result.error.message}`];
+    });
+    expect(failures).toEqual([]);
   });
 
   it("has unique ids", () => {
@@ -44,9 +46,11 @@ describe("the public feed keeps pace with releases", () => {
 
 describe("seed tickets data", () => {
   it("every ticket parses against the schema", () => {
-    for (const ticket of SEED_TICKETS) {
-      expect(() => ticketSchema.parse(ticket)).not.toThrow();
-    }
+    const failures = SEED_TICKETS.flatMap((ticket) => {
+      const result = ticketSchema.safeParse(ticket);
+      return result.success ? [] : [`${ticket.id}: ${result.error.message}`];
+    });
+    expect(failures).toEqual([]);
   });
 
   it("has unique ids", () => {
