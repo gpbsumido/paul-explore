@@ -128,10 +128,7 @@ describe("POST /api/operator/stores/:storeId/restock-sessions", () => {
     expect(sessionCalls()).toEqual([]);
   });
 
-  // Known bug: writeWithFallback catches InvalidSegmentError along with real
-  // outages, so withOperatorErrors never gets to answer 400 for it. The caller
-  // gets the seed's 404 "Store not found" for a malformed id instead.
-  it.fails("answers 400 Invalid identifier for a path-climbing store id", async () => {
+  it("answers 400 Invalid identifier for a path-climbing store id", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const res = await POST(request("POST"), ctx("../secret"));
