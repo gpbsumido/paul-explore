@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
-import { FlagsApiError } from "@/lib/flags-client";
+import { FlagsApiError, FlagsContractError } from "@/lib/flags-client";
+import { getFlag } from "@/lib/flags-data";
+import type { Flag } from "@/types/flags";
 
 vi.mock("@/lib/flags-client", async () => {
   const actual =
@@ -60,8 +62,16 @@ beforeEach(() => {
   vi.stubEnv("FLAG_ADMIN_ALLOWED_EMAILS", "admin@example.com");
 });
 
+/** A copy of a seeded flag, so a test can bend it without touching the shared store. */
+function seedFlagCopy(flagKey: string): Flag {
+  const seeded = getFlag(flagKey);
+  if (!seeded) throw new Error(`${flagKey} is not in the seed`);
+  return structuredClone(seeded);
+}
+
 afterEach(() => {
-  vi.clearAllMocks();
+  // reset, not just clear, so a mocked rejection from one test cannot leak into the next
+  vi.resetAllMocks();
   vi.unstubAllEnvs();
 });
 
@@ -101,8 +111,51 @@ describe("GET /api/flags/audit", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(body.audit)).toBe(true);
+    expect(body.audit.length).toBeGreaterThan(0);
     expect(body.source).toBe("seed");
+  });
+
+  it("never publishes an actor's email address", async () => {
+    vi.mocked(fetchAuditFromApi).mockResolvedValue({
+      audit: [
+        {
+          id: "audit-1",
+          flagKey: "dark-mode",
+          environment: "production",
+          action: "disabled",
+          summary: "Disabled in production",
+          actor: "admin@example.com",
+          timestamp: "2026-01-08T10:05:00.000Z",
+        },
+        {
+          id: "audit-2",
+          flagKey: "dark-mode",
+          environment: "production",
+          action: "enabled",
+          summary: "Enabled in production",
+          actor: "flags-service",
+          timestamp: "2026-01-08T10:06:00.000Z",
+        },
+      ],
+    });
+    const { GET } = await import("@/app/api/flags/audit/route");
+
+    const body = await (await GET()).json();
+
+    expect(body.source).toBe("api");
+    expect(body.audit[0].actor).toMatch(/^user-[0-9a-f]{8}$/);
+    expect(JSON.stringify(body)).not.toContain("admin@example.com");
+    // a non-address actor is a service name, nothing to hide
+    expect(body.audit[1].actor).toBe("flags-service");
+  });
+
+  it("masks the seeded actors too", async () => {
+    vi.mocked(fetchAuditFromApi).mockRejectedValue(new Error("down"));
+    const { GET } = await import("@/app/api/flags/audit/route");
+
+    const body = await (await GET()).json();
+
+    expect(JSON.stringify(body)).not.toContain("@");
   });
 });
 
@@ -124,6 +177,55 @@ describe("POST /api/flags/evaluate", () => {
 
     expect(res.status).toBe(200);
     expect(body.results.length).toBeGreaterThan(0);
+  });
+
+  it("evaluates the API's fleet in the environment the request names", async () => {
+    const killedInProduction = seedFlagCopy("dark-mode");
+    killedInProduction.environments.production.enabled = false;
+    vi.mocked(fetchFlagsFromApi).mockResolvedValue({
+      flags: [killedInProduction],
+      environments: ["development", "staging", "production"],
+    });
+    const { POST } = await import("@/app/api/flags/evaluate/route");
+    const evaluateIn = async (environment: string) => {
+      const res = await POST(
+        new NextRequest("http://localhost:3000/api/flags/evaluate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            environment,
+            context: { key: "user-1", attributes: {} },
+          }),
+        }),
+      );
+      return (await res.json()).results;
+    };
+
+    expect(await evaluateIn("production")).toEqual([
+      expect.objectContaining({ flagKey: "dark-mode", reason: "OFF", value: false }),
+    ]);
+    expect(await evaluateIn("staging")).toEqual([
+      expect.objectContaining({
+        flagKey: "dark-mode",
+        reason: "FALLTHROUGH",
+        value: true,
+      }),
+    ]);
+  });
+
+  it("rejects a body with no evaluation context with 400", async () => {
+    const { POST } = await import("@/app/api/flags/evaluate/route");
+
+    const res = await POST(
+      new NextRequest("http://localhost:3000/api/flags/evaluate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ environment: "production" }),
+      }),
+    );
+
+    expect(res.status).toBe(400);
+    expect(fetchFlagsFromApi).not.toHaveBeenCalled();
   });
 });
 
@@ -521,5 +623,113 @@ describe("PATCH /api/flags/:flagKey", () => {
     const res = await PATCH(request, params("pocket-tcg"));
 
     expect(res.status).toBe(200);
+  });
+
+  it("returns the flag the API wrote when the API answers", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "server-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    const written = seedFlagCopy("new-checkout");
+    written.environments.production.enabled = false;
+    vi.mocked(patchFlagOnApi).mockResolvedValue({ flag: written });
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("new-checkout"),
+    );
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).flag).toEqual(written);
+  });
+
+  it("applies the change to the seed store when the API is unreachable", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "server-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new Error("ECONNREFUSED"));
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "staging", enabled: false }),
+      params("new-checkout"),
+    );
+
+    expect((await res.json()).flag.environments.staging.enabled).toBe(false);
+  });
+
+  it("answers 404 when the API says the flag does not exist", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "server-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsApiError(404));
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("new-checkout"),
+    );
+
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe("Flag not found");
+  });
+
+  it("answers 502 instead of faking success when the API's reply is unreadable", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "server-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(
+      new FlagsContractError(new Error("bad shape")),
+    );
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("new-checkout"),
+    );
+
+    expect(res.status).toBe(502);
+  });
+
+  it("says why when a signed-out visitor changes an open flag only the API knows about", async () => {
+    vi.stubEnv("FLAGS_SERVICE_TOKEN", "");
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    // open by the tier map, but absent from the seed, so there is nothing to write to
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("ai-search"),
+    );
+
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/FLAGS_SERVICE_TOKEN/);
+    expect(patchFlagOnApi).not.toHaveBeenCalled();
+  });
+
+  it("treats a flag nobody has classified as admin-only, not open", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("brand-new-api-flag"),
+    );
+
+    expect(res.status).toBe(403);
+    expect(patchFlagOnApi).not.toHaveBeenCalled();
   });
 });

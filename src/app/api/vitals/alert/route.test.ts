@@ -21,6 +21,7 @@ import {
   updateIssue,
   closeIssue,
 } from "@/lib/githubIssues";
+import { VITALS_ALERT_LABEL, VITALS_ALERT_TITLE } from "@/lib/vitalsAlert";
 
 const SECRET = "cron-s3cret";
 
@@ -75,7 +76,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
-  vi.clearAllMocks();
+  // reset, not just clear, so one test's mocked GitHub answers cannot reach the next
+  vi.resetAllMocks();
 });
 
 describe("GET /api/vitals/alert", () => {
@@ -87,6 +89,23 @@ describe("GET /api/vitals/alert", () => {
     expect(res.status).toBe(401);
     expect(fetchUpstream).not.toHaveBeenCalled();
     expect(findOpenIssue).not.toHaveBeenCalled();
+  });
+
+  it("rejects the wrong secret", async () => {
+    const { GET } = await import("./route");
+
+    const res = await GET(alertRequest("Bearer not-the-secret"));
+
+    expect(res.status).toBe(401);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("rejects everyone when no secret is configured, even one that spells 'undefined'", async () => {
+    vi.stubEnv("CRON_SECRET", undefined);
+    const { GET } = await import("./route");
+
+    expect((await GET(alertRequest("Bearer undefined"))).status).toBe(401);
+    expect(fetchUpstream).not.toHaveBeenCalled();
   });
 
   it("opens an issue for a site-wide Poor metric", async () => {
@@ -102,6 +121,42 @@ describe("GET /api/vitals/alert", () => {
     expect(body).toMatchObject({ dispatched: true });
     expect(body.findings.site).toBe(1);
     expect(createIssue).toHaveBeenCalledTimes(1);
+    const issue = vi.mocked(createIssue).mock.calls[0][0];
+    expect(issue).toMatchObject({
+      repo: "gpbsumido/paul-explore",
+      token: "ghp_test",
+      label: VITALS_ALERT_LABEL,
+      title: VITALS_ALERT_TITLE,
+    });
+    expect(issue.body).toContain("LCP");
+  });
+
+  it("looks for the open alert by its label in the configured repo", async () => {
+    vi.stubEnv("GITHUB_REPOSITORY", "someone/else");
+    upstream();
+    vi.mocked(findOpenIssue).mockResolvedValue(null);
+    const { GET } = await import("./route");
+
+    await GET(alertRequest(`Bearer ${SECRET}`));
+
+    expect(findOpenIssue).toHaveBeenCalledWith({
+      repo: "someone/else",
+      token: "ghp_test",
+      label: VITALS_ALERT_LABEL,
+    });
+  });
+
+  it("falls back to this repo when GITHUB_REPOSITORY is not set", async () => {
+    vi.stubEnv("GITHUB_REPOSITORY", "");
+    upstream();
+    vi.mocked(findOpenIssue).mockResolvedValue(null);
+    const { GET } = await import("./route");
+
+    await GET(alertRequest(`Bearer ${SECRET}`));
+
+    expect(vi.mocked(findOpenIssue).mock.calls[0][0].repo).toBe(
+      "gpbsumido/paul-explore",
+    );
   });
 
   it("updates the existing issue instead of opening a duplicate", async () => {
@@ -114,6 +169,7 @@ describe("GET /api/vitals/alert", () => {
     expect(res.status).toBe(200);
     expect(updateIssue).toHaveBeenCalledTimes(1);
     expect(vi.mocked(updateIssue).mock.calls[0][0]).toMatchObject({ number: 7 });
+    expect(vi.mocked(updateIssue).mock.calls[0][0].body).toContain("LCP");
     expect(createIssue).not.toHaveBeenCalled();
   });
 
@@ -163,8 +219,65 @@ describe("GET /api/vitals/alert", () => {
 
     const res = await GET(alertRequest(`Bearer ${SECRET}`));
 
+    const body = await res.json();
+
     expect(res.status).toBe(200);
+    expect(body).toMatchObject({ dispatched: true, recovered: true });
     expect(closeIssue).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(closeIssue).mock.calls[0][0]).toMatchObject({
+      number: 7,
+      comment: "All vitals are back within thresholds. Closing.",
+    });
+  });
+
+  it("keeps the issue open while only one of the three checks has recovered", async () => {
+    upstream({
+      summary: { LCP: { p75: 1500 } },
+      byPage: [
+        { page: "/projects", total: 80, metrics: { LCP: { p75: 4300, count: 80 } } },
+      ],
+    });
+    vi.mocked(findOpenIssue).mockResolvedValue({ number: 7 });
+    const { GET } = await import("./route");
+
+    await GET(alertRequest(`Bearer ${SECRET}`));
+
+    expect(closeIssue).not.toHaveBeenCalled();
+    expect(updateIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it("still dispatches on a site breach when the by-page fetch fails", async () => {
+    vi.mocked(fetchUpstream).mockImplementation(async (url: string) => {
+      if (url.includes("/by-page")) return unreachable;
+      if (url.includes("/by-version")) return ok({ byVersion: [] });
+      return ok({ summary: poorLcp });
+    });
+    vi.mocked(findOpenIssue).mockResolvedValue(null);
+    vi.mocked(createIssue).mockResolvedValue({ number: 5 });
+    const { GET } = await import("./route");
+
+    const res = await GET(alertRequest(`Bearer ${SECRET}`));
+    const body = await res.json();
+
+    expect(body.findings).toEqual({ site: 1, pages: 0, regressions: 0 });
+    expect(createIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 502 when the summary comes back with an error status", async () => {
+    vi.mocked(fetchUpstream).mockImplementation(async (url: string) =>
+      url.includes("/summary")
+        ? ({
+            ok: true,
+            response: new Response(JSON.stringify({ summary: {} }), { status: 500 }),
+          } as Awaited<ReturnType<typeof fetchUpstream>>)
+        : ok({ byPage: [] }),
+    );
+    const { GET } = await import("./route");
+
+    const res = await GET(alertRequest(`Bearer ${SECRET}`));
+
+    expect(res.status).toBe(502);
+    expect(createIssue).not.toHaveBeenCalled();
   });
 
   it("writes nothing when everything is clean and no issue is open", async () => {

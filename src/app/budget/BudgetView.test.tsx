@@ -6,7 +6,7 @@ import { server } from "@/test/server";
 import { axe } from "@/test/a11y";
 import BudgetView from "./BudgetView";
 
-const renderView = (me: () => Response) => {
+const renderView = (me: () => Response | Promise<Response>) => {
   server.use(
     http.get("/api/me", () => me()),
     // Signed-in path talks to the budget BFF; keep it from erroring the test.
@@ -52,6 +52,15 @@ describe("BudgetView — auth gate", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t check/i);
     expect(screen.queryByText(/one-tap even split/i)).toBeNull();
+  });
+
+  it("shows neither the pitch nor the tracker while the session is still loading", async () => {
+    renderView(() => new Promise<Response>(() => {}));
+    // give a wrongly-eager render a chance to appear
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(screen.queryByRole("link", { name: /sign in/i })).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("the signed-out gate has no axe violations", async () => {

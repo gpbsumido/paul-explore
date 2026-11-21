@@ -92,6 +92,62 @@ describe("NFL trade pool route", () => {
     expect(leagueCall?.[0]).toContain("view=mRoster");
   });
 
+  it("still answers 200 without free agents when that one request fails", async () => {
+    const fetchMock = vi.fn((input: string, init?: RequestInit) => {
+      const isFreeAgentCall = new Headers(init?.headers)
+        .get("X-Fantasy-Filter")
+        ?.includes("FREEAGENT");
+      return Promise.resolve(
+        isFreeAgentCall ? new Response("down", { status: 500 }) : respond(input),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await call("2026");
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.players.map((p: { name: string }) => p.name)).toEqual(["Jahmyr Gibbs"]);
+    expect(body.freeAgents ?? []).toEqual([]);
+  });
+
+  it("passes the schedule request's failure status through, not just the league's", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: string) =>
+        Promise.resolve(
+          input.includes("proTeamSchedules")
+            ? new Response("nope", { status: 429 })
+            : respond(input),
+        ),
+      ),
+    );
+
+    const res = await call("2026");
+
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: "Failed to fetch NFL trade data" });
+  });
+
+  it.each([
+    ["the league", "mTeam"],
+    ["the NFL schedule", "proTeamSchedules"],
+  ])("answers 502 when ESPN cannot be reached for %s", async (_which, urlPart) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: string) =>
+        input.includes(urlPart)
+          ? Promise.reject(new TypeError("fetch failed"))
+          : Promise.resolve(respond(input)),
+      ),
+    );
+
+    const res = await call("2026");
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ cause: "unreachable" });
+  });
+
   it("passes an upstream failure status through", async () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("nope", { status: 503 }))));
     expect((await call("2026")).status).toBe(503);

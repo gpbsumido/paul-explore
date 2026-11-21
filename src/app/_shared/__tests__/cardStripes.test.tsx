@@ -30,7 +30,7 @@ describe("card left-border stripe is retired", () => {
       const offenders = src
         .split("\n")
         .map((line, i) => ({ line: line.trim(), n: i + 1 }))
-        .filter(({ line }) => /border-?left/i.test(line));
+        .filter(({ line }) => /border-?left|\bborder-[ls]\b/i.test(line));
       expect(offenders).toEqual([]);
     },
   );
@@ -42,9 +42,9 @@ describe("thought card keeps its color as a dot", () => {
       <ThoughtCard thought={THOUGHTS[0]} delayMs={0} visible />,
     );
     expect(container.querySelector('[style*="border-left"]')).toBeNull();
-    expect(
-      container.querySelector('[style*="background-color"]'),
-    ).not.toBeNull();
+    expect(container.querySelector("[style*='background-color']")).toHaveStyle({
+      backgroundColor: THOUGHTS[0].color,
+    });
   });
 });
 
@@ -62,8 +62,8 @@ describe("countdown card keeps its color as a dot", () => {
       <CountdownCard countdown={countdown} onClick={() => {}} />,
     );
     expect(container.querySelector('[style*="border-left"]')).toBeNull();
-    expect(
-      container.querySelector('[style*="background-color"]'),
-    ).not.toBeNull();
+    expect(container.querySelector("[style*='background-color']")).toHaveStyle({
+      backgroundColor: countdown.color,
+    });
   });
 });

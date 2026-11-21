@@ -81,4 +81,78 @@ describe("practice proxy", () => {
     expect(res.status).toBe(401);
     expect(fetchUpstream).not.toHaveBeenCalled();
   });
+
+  it("sends the caller's token, and a JSON content type only when there is a body", async () => {
+    upstreamReturns({ reviews: [] });
+
+    await GET(new NextRequest("http://localhost/x"), params("reviews"));
+    await PUT(
+      new NextRequest("http://localhost/x", { method: "PUT", body: "{}" }),
+      params("reviews", "problem", "two-sum"),
+    );
+
+    const [, getInit] = vi.mocked(fetchUpstream).mock.calls[0];
+    const [, putInit] = vi.mocked(fetchUpstream).mock.calls[1];
+    expect(getInit?.headers).toEqual({ Authorization: "Bearer t" });
+    expect(getInit?.body).toBeUndefined();
+    expect(putInit?.headers).toEqual({
+      Authorization: "Bearer t",
+      "Content-Type": "application/json",
+    });
+  });
+
+  it("reaches the practice root when no path is given", async () => {
+    upstreamReturns({});
+
+    await GET(new NextRequest("http://localhost/x"), { params: Promise.resolve({}) });
+
+    expect(vi.mocked(fetchUpstream).mock.calls[0][0]).toMatch(/\/api\/practice$/);
+  });
+
+  it.each(["a/b", "two sum", "two_sum", "%2e%2e", "a.b"])(
+    "rejects the segment %j without calling the backend",
+    async (segment) => {
+      const res = await GET(new NextRequest("http://localhost/x"), params("reviews", segment));
+
+      expect(res.status).toBe(400);
+      expect(fetchUpstream).not.toHaveBeenCalled();
+    },
+  );
+
+  it("passes a backend error through with its status and body", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: true,
+      response: new Response(JSON.stringify({ error: "Not found" }), { status: 404 }),
+    });
+
+    const res = await GET(new NextRequest("http://localhost/x"), params("reviews", "problem", "nope"));
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "Not found" });
+  });
+
+  it("answers with an empty object when the backend sends no JSON", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: true,
+      response: new Response(null, { status: 200 }),
+    });
+
+    const res = await GET(new NextRequest("http://localhost/x"), params("reviews"));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({});
+  });
+
+  it("answers 502 when the backend cannot be reached", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: false,
+      cause: "unreachable",
+      message: "ECONNREFUSED",
+    });
+
+    const res = await GET(new NextRequest("http://localhost/x"), params("reviews"));
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ cause: "unreachable" });
+  });
 });

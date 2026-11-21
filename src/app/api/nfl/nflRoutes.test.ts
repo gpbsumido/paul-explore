@@ -46,6 +46,18 @@ describe("NFL scoreboard proxy route", () => {
     expect(res.status).toBe(400);
   });
 
+  it("accepts the first and last weeks of the regular season", async () => {
+    stubFetch(() => new Response("{}", { status: 200 }));
+    expect((await call("2026", "1")).status).toBe(200);
+    expect((await call("2026", "18")).status).toBe(200);
+    expect((await call("2026", "19")).status).toBe(400);
+  });
+
+  it("rejects a season with anything around the four digits", async () => {
+    expect((await call("2026x")).status).toBe(400);
+    expect((await call("x2026")).status).toBe(400);
+  });
+
   it("rejects an out-of-range or malformed week", async () => {
     expect((await call("2026", "0")).status).toBe(400);
     expect((await call("2026", "99")).status).toBe(400);
