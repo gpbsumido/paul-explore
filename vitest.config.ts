@@ -31,6 +31,12 @@ const sharedTest = {
   // failure means an empty or half-written test cannot sit in the suite looking
   // green.
   expect: { requireAssertions: true },
+  // The 5s default is tuned for an idle machine. A test that renders a whole
+  // page (the updates list, the design-system gallery) takes under a second
+  // idle and ten to twenty times that on a loaded CI runner, so it failed with
+  // "Test timed out" on a run where nothing was wrong. 15s covers that without
+  // hiding a hang for long.
+  testTimeout: 15_000,
   // Tests run in a random order on CI. Three files only passed in the order
   // they were written, because an earlier test left a counter or a cache
   // behind. The seed is printed below, so a red run replays with
