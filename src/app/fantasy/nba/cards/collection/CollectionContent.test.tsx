@@ -107,16 +107,20 @@ describe("CollectionContent", () => {
     expect(screen.queryByRole("article")).not.toBeInTheDocument();
   });
 
-  // Known bug: a failed request lands in the same branch as a guest, so a signed-in
-  // user whose collection fails to load is told to sign in. Marked it.fails until
-  // the page tells the two apart.
-  it.fails("does not tell a signed-in user to sign in when the collection request fails", async () => {
+  it("does not tell a signed-in user to sign in when the collection request fails", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => res(500, { error: "boom" })));
     renderWithClient(<CollectionContent />);
 
     await screen.findByRole("heading", { name: /my collection/i });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it("says the collection could not be loaded when the request fails", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => res(500, { error: "boom" })));
+    renderWithClient(<CollectionContent />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/could not load your collection/i);
   });
 
   it("groups duplicate pulls into one card with a count", async () => {
