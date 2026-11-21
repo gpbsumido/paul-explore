@@ -111,8 +111,7 @@ describe("CollectionContent", () => {
     vi.stubGlobal("fetch", vi.fn(async () => res(500, { error: "boom" })));
     renderWithClient(<CollectionContent />);
 
-    await screen.findByRole("heading", { name: /my collection/i });
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await screen.findByRole("alert");
     expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
   });
 

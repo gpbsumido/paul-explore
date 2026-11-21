@@ -6,7 +6,7 @@ import {
   fireEvent,
   waitFor,
 } from "@testing-library/react";
-import { axe } from "vitest-axe";
+import { axe } from "@/test/a11y";
 import type { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";

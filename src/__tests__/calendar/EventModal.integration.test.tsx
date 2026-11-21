@@ -92,6 +92,7 @@ function renderModal(props: Partial<React.ComponentProps<typeof EventModal>> = {
 beforeEach(() => {
   server.use(
     http.get("/api/calendar/calendars", () => HttpResponse.json({ calendars: [] })),
+    http.get("/api/calendar/events/:eventId/cards", () => HttpResponse.json({ cards: [] })),
   );
 });
 
