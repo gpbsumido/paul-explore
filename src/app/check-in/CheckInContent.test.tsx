@@ -103,6 +103,23 @@ describe("CheckInContent", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/too many/i);
   });
 
+  it("doesn't blame the code when the server fails", async () => {
+    server.use(
+      http.post("/api/check-in/arrivals", () =>
+        HttpResponse.json({ error: "Internal error" }, { status: 500 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(await screen.findByLabelText(/code/i), "123456");
+    await user.click(screen.getByRole("button", { name: /confirm arrival/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).not.toHaveTextContent(/wrong or has expired/i);
+    expect(alert).toHaveTextContent(/try again/i);
+  });
+
   it("tells someone already checked in that they are, without recording again", async () => {
     server.use(
       http.post("/api/check-in/arrivals", () =>

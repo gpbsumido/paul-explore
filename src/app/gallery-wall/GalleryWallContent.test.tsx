@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  render,
+  render as rtlRender,
   screen,
   within,
   fireEvent,
   waitFor,
 } from "@testing-library/react";
 import { axe } from "vitest-axe";
+import type { ReactElement, ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import GalleryWallContent from "./GalleryWallContent";
 import type { GalleryState, FramedImage, Position } from "./_lib/state";
 
@@ -86,7 +90,29 @@ const setViewportWide = (wide: boolean) => {
   }));
 };
 
+/** The walls panel asks who's signed in, so every render needs a query client. */
+const render = (ui: ReactElement) => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return rtlRender(ui, {
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+};
+
 beforeEach(() => {
+  server.use(
+    http.get("/api/me", () =>
+      HttpResponse.json({
+        name: null,
+        email: null,
+        sub: "auth0|me",
+        isFlagAdmin: false,
+      }),
+    ),
+  );
   window.localStorage.clear();
   window.print = vi.fn();
   setViewportWide(true);

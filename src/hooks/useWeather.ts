@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 export type WeatherCondition =
   | "clear" // WMO 0,1
@@ -94,7 +95,7 @@ export function useWeather(): WeatherInfo {
           ...prev,
           condition: "unknown",
           loading: false,
-          error: err instanceof Error ? err.message : String(err),
+          error: userFacingErrorMessage(err, "Couldn't load the weather."),
         }));
       }
     }

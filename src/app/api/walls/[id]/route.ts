@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { withBackend, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -12,7 +13,7 @@ export const GET = withBackend<RouteCtx>(
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/walls/${encodeURIComponent(id)}`,
+      `${API_URL}/api/walls/${safeSegment(id)}`,
       {
         headers: buildHeaders(token, email),
         cache: "no-store",
@@ -35,7 +36,7 @@ export const PUT = withBackend<RouteCtx>(
     const { id } = await params;
     const body = await request.arrayBuffer();
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/walls/${encodeURIComponent(id)}`,
+      `${API_URL}/api/walls/${safeSegment(id)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, email, {
@@ -60,7 +61,7 @@ export const DELETE = withBackend<RouteCtx>(
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/walls/${encodeURIComponent(id)}`,
+      `${API_URL}/api/walls/${safeSegment(id)}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

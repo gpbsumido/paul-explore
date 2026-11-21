@@ -5,7 +5,7 @@ import type { Calendar, CalendarMember } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   calendarsResponseSchema,
-  calendarResponseSchema,
+  calendarWriteResponseSchema,
   membersResponseSchema,
   memberResponseSchema,
 } from "@/lib/schemas";
@@ -28,7 +28,7 @@ async function apiCreateCalendar(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to create calendar");
-  const json = calendarResponseSchema.parse(await res.json());
+  const json = calendarWriteResponseSchema.parse(await res.json());
   return json.calendar;
 }
 
@@ -42,7 +42,7 @@ async function apiUpdateCalendar(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to update calendar");
-  const json = calendarResponseSchema.parse(await res.json());
+  const json = calendarWriteResponseSchema.parse(await res.json());
   return json.calendar;
 }
 
@@ -123,7 +123,7 @@ async function apiLeaveCalendar(calendarId: string): Promise<{ googleAclRemoved:
 export function useCalendars() {
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.calendar.calendars(),
     queryFn: fetchCalendars,
     staleTime: 60_000,
@@ -209,6 +209,7 @@ export function useCalendars() {
   return {
     calendars,
     isLoading,
+    isError,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
@@ -235,12 +236,12 @@ export function useCalendars() {
  * Enabled only when calendarId is non-null.
  */
 export function useCalendarMembers(calendarId: string | null) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.calendar.calendarMembers(calendarId ?? ""),
     queryFn: () => apiFetchMembers(calendarId!),
     enabled: !!calendarId,
     staleTime: 30_000,
   });
 
-  return { members: data ?? [], isLoading };
+  return { members: data ?? [], isLoading, isError };
 }

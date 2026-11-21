@@ -98,9 +98,19 @@ describe("set detail page with incomplete upstream data", () => {
   });
 
   it("still 404s a set that genuinely is not there", async () => {
-    setGet.mockRejectedValue(new Error("upstream 404"));
+    // The SDK resolves null for an unknown id; it only throws for a 5xx or a
+    // failed request.
+    setGet.mockResolvedValue(null);
     await renderPage().catch(() => undefined);
     expect(notFound).toHaveBeenCalled();
+  });
+
+  it("doesn't 404 a real set because tcgdex is down", async () => {
+    // With a day's revalidate, a 404 here would tell everyone a real set
+    // doesn't exist until the next rebuild. An error isn't cached as the page.
+    setGet.mockRejectedValue(new Error("TCGdex Server responded with an invalid error :("));
+    await expect(renderPage()).rejects.toThrow(/TCGdex/);
+    expect(notFound).not.toHaveBeenCalled();
   });
 });
 

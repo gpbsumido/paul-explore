@@ -4,16 +4,12 @@ import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 import { parseBody } from "@/lib/parseBody";
 import { playoffPicksBodySchema } from "@/lib/schemas";
-
-function currentSeasonYear(): number {
-  const now = new Date();
-  return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
-}
+import { currentNbaSeason } from "@/lib/nbaSeason";
 
 // GET /api/nba/playoffs/picks
 // Returns the authenticated user's bracket picks for the current season.
 export const GET = withBackend("playoffs picks GET", async ({ token }) => {
-  const season = currentSeasonYear();
+  const season = currentNbaSeason();
 
   const upstreamResult = await fetchUpstream(
     `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,
@@ -50,7 +46,7 @@ export const PUT = withBackend(
     if (!parsed.ok) return parsed.response;
     const { picks } = parsed.data;
 
-    const season = currentSeasonYear();
+    const season = currentNbaSeason();
 
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,

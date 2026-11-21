@@ -76,6 +76,19 @@ describe("GET /api/flags", () => {
     expect(res.status).toBe(200);
     expect(body.flags.length).toBeGreaterThan(0);
     expect(body.environments).toContain("production");
+    expect(body.source).toBe("seed");
+  });
+
+  it("says the fleet is live when the API answers", async () => {
+    vi.mocked(fetchFlagsFromApi).mockResolvedValue({
+      flags: [],
+      environments: ["production"],
+    });
+    const { GET } = await import("@/app/api/flags/route");
+
+    const body = await (await GET()).json();
+
+    expect(body.source).toBe("api");
   });
 });
 
@@ -89,6 +102,7 @@ describe("GET /api/flags/audit", () => {
 
     expect(res.status).toBe(200);
     expect(Array.isArray(body.audit)).toBe(true);
+    expect(body.source).toBe("seed");
   });
 });
 

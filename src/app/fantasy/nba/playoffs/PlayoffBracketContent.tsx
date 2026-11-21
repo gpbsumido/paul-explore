@@ -25,6 +25,8 @@ import FantasyNav from "../FantasyNav";
 import SeriesPickCard from "./SeriesPickCard";
 import FinalsCard from "./FinalsCard";
 import PlayoffLeaderboard from "./PlayoffLeaderboard";
+import { useMe } from "@/hooks/useMe";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- TBD resolution ----
 
@@ -196,10 +198,20 @@ function BracketSkeleton() {
 
 // ---- Save indicator ----
 
-type SaveStatus = "idle" | "saving" | "saved";
+type SaveStatus = "idle" | "saving" | "saved" | "failed";
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === "idle") return null;
+
+  // Its own branch rather than a third colour: a failed save has to be read
+  // out, not just look different.
+  if (status === "failed") {
+    return (
+      <span role="alert" className="text-[12px] font-medium text-error-600 dark:text-error-400">
+        Couldn&apos;t save. Your picks are still here.
+      </span>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -221,7 +233,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 
 // ---- Submit button ----
 
-type SubmitStatus = "idle" | "submitting" | "submitted";
+type SubmitStatus = "idle" | "submitting" | "submitted" | "failed";
 
 function SubmitButton({
   status,
@@ -575,15 +587,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
   const [autoSave, setAutoSave] = useState(false);
   const userHasPickedRef = useRef(false);
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null; name: string | null }> =>
-      fetch("/api/me").then((r) => {
-        if (!r.ok) throw new Error("Failed to load user");
-        return r.json();
-      }),
-    staleTime: 5 * 60_000,
-  });
+  const meQuery = useMe();
 
   const currentUserSub = meQuery.data?.sub ?? null;
 
@@ -605,7 +609,8 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
       return res.json();
     },
     staleTime: 5 * 60_000,
-    enabled: !isViewMode,
+    // Picks are per account, so there's nothing to ask for without one.
+    enabled: !isViewMode && currentUserSub !== null,
   });
 
   // Public picks for view mode
@@ -670,15 +675,17 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
       signal: controller.signal,
     })
       .then((res) => {
-        if (res.ok) {
-          setSaveStatus("saved");
-          idleTimer = setTimeout(() => setSaveStatus("idle"), 2000);
+        if (!res.ok) {
+          setSaveStatus("failed");
+          return;
         }
+        setSaveStatus("saved");
+        idleTimer = setTimeout(() => setSaveStatus("idle"), 2000);
       })
       .catch((err: unknown) => {
         const aborted =
           err instanceof DOMException && err.name === "AbortError";
-        if (!aborted) setSaveStatus("idle");
+        if (!aborted) setSaveStatus("failed");
       });
 
     // Cancel the in-flight save and the reset timer if this re-runs or unmounts,
@@ -726,10 +733,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
         setSubmitStatus("submitted");
         setSaveStatus("idle");
       } else {
-        setSubmitStatus("idle");
+        setSubmitStatus("failed");
       }
     } catch {
-      setSubmitStatus("idle");
+      setSubmitStatus("failed");
     }
   }
 
@@ -819,6 +826,11 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
               onClick={handleSubmit}
               disabled={autoSave}
             />
+            {submitStatus === "failed" && (
+              <span role="alert" className="text-[12px] font-medium text-error-600 dark:text-error-400">
+                Couldn&apos;t submit. Try again.
+              </span>
+            )}
           </div>
         )}
 
@@ -826,9 +838,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {bracketQuery.isError && (
           <div className="flex items-center justify-center py-20 text-muted text-[15px]">
-            {bracketQuery.error instanceof Error
-              ? bracketQuery.error.message
-              : "Something went wrong"}
+            {userFacingErrorMessage(bracketQuery.error, "Something went wrong")}
           </div>
         )}
 

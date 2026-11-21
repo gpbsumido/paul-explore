@@ -8,6 +8,7 @@ import type { CalendarEvent } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
 import EventRow from "./EventRow";
 import EventListSkeleton from "./EventListSkeleton";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 export default function EventsContent() {
   const [titleQuery, setTitleQuery] = useState("");
@@ -131,7 +132,7 @@ export default function EventsContent() {
         <EventListSkeleton />
       ) : eventsQuery.isError ? (
         <p className="text-sm text-error-600 dark:text-error-400 py-8 text-center">
-          {eventsQuery.error?.message ?? "Couldn't load events."}
+          {userFacingErrorMessage(eventsQuery.error, "Couldn't load events.")}
         </p>
       ) : displayed.length === 0 ? (
         <p className="text-sm text-muted py-16 text-center">

@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-rip-pool", date: "Nov 18, 2026", title: "A pack from a slate you weren't looking at" },
   { id: "update-scarcity", date: "Aug 24, 2026", title: "Making a night feel scarce" },
   { id: "update-living-cards", date: "Aug 24, 2026", title: "Cards that come alive" },
   { id: "update-fantasy-playoffs", date: "Aug 24, 2026", title: "Playoff teams, the reliable half" },
@@ -374,11 +375,62 @@ export default function FantasyTcgContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-rip-pool"
+        date="November 18, 2026"
+        title="A pack from a slate you weren't looking at"
+      >
+        <p>
+          Ripping a pack rebuilds the pool on the server so the client
+          can&rsquo;t pick its own cards. A codebase audit found it rebuilding
+          the wrong one.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The page and the rip disagreed about which season it was
+        </h3>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const DEFAULT_SEASON = "2025";
+
+async function loadPool(
+  sport: Sport,
+  mode: "nightly" | "season" | undefined,
+  date: string | undefined,
+  week: number | undefined,
+): Promise<GeneratedCard[]> {
+  if (sport === "nfl") {
+    if (mode === "season") return (await loadNflSeason({ season: DEFAULT_SEASON })).cards;
+    return (await loadNflWeek({ season: DEFAULT_SEASON, week })).cards;
+  }
+  return (await loadNightlySlate({ sport, season: DEFAULT_SEASON, date })).cards;
+}`}
+        </pre>
+        <p>
+          The page honours <C>?season=</C>, but the rip always used 2025. The
+          NBA season view is built from the fantasy league&rsquo;s season
+          totals, yet for NBA the rip only ever built a nightly slate. So in
+          either case the pack came from a pool you couldn&rsquo;t see. The
+          trust boundary was right. It was just guarding a different slate from
+          the one on screen.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One module both sides load the pool from
+        </h3>
+        <p>
+          The rip now takes the season from the page, validated as a four-digit
+          year. The NBA season pool and the default season moved into{" "}
+          <C>card-lab-pool.ts</C>, which the page and the rip both import, so the
+          two can&rsquo;t drift apart again. The route test opens packs for
+          a season other than the default and in NBA season mode, and checks
+          that a season that isn&rsquo;t a year is turned away.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A pure, relative-rarity engine with a boost layer and a weighted pack draw, fully tested against synthetic pools.",
           "Real cards across three leagues: NBA and WNBA nightly from box scores, NFL weekly from fantasy scoring, with previous-season history and a season view.",
           "An economy — coin wallet, daily claim, server-drawn pack ripping, and a collection — front end and API both built.",
+          "A ripped pack comes from the season and mode on screen, with the pool loaded from one module the page and the rip share.",
         ]}
         couldImprove={[
           "Basketball gets a season-level playoff-team boost from the final seeding; the finer per-week win/finals signal still needs a date-to-matchup mapping this league's data doesn't cleanly give.",

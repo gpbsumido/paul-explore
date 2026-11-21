@@ -32,6 +32,26 @@ describe("Textarea accessibility", () => {
       render(<Textarea label="Description" />);
       expect(screen.getByLabelText("Description")).toBeInTheDocument();
     });
+
+    it("points a hidden label at the textarea, not at an id nothing has", () => {
+      // The wrapper drew its own sr-only label with its own useId, while the
+      // package gave the textarea a different one.
+      const { container } = render(<Textarea label="Description" hideLabel />);
+      const label = container.querySelector("label");
+      expect(label).not.toBeNull();
+      expect(document.getElementById(label!.htmlFor)).toBe(
+        screen.getByRole("textbox"),
+      );
+    });
+  });
+
+  describe("required", () => {
+    it("marks a required field once", () => {
+      // The package adds its own " *", and the wrapper added another.
+      const { container } = render(<Textarea label="Notes" required />);
+      expect(container.textContent?.match(/\*/g)).toHaveLength(1);
+      expect(screen.getByRole("textbox")).toBeRequired();
+    });
   });
 
   describe("error state", () => {

@@ -98,7 +98,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load, aggregated into P75 scores by metric and by page, and watched by a daily cron that files a GitHub issue when one crosses into the Poor band.",
     href: "/vitals",
-    color: "#2d8f66",
+    color: "#7b68ce",
     thoughtsHref: "/thoughts/vitals",
   },
   {
@@ -107,7 +107,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
     href: "/learn",
-    color: "#718d2d",
+    color: "#218c62",
     thoughtsHref: "/thoughts/learn",
   },
   {
@@ -134,7 +134,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Everything NBA in one place: a playoff bracket picker with a public leaderboard, live player stats, head-to-head matchups with predictions, an SVG shot chart, and ESPN league history.",
     href: "/fantasy/nba",
-    color: "#be5d68",
+    color: "#937322",
     thoughtsHref: "/thoughts/playoffs",
   },
   {
@@ -161,7 +161,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Four-view personal calendar backed by Postgres. Multi-day events, overlap layout engine, and Pokémon card attachments.",
     href: "/calendar",
-    color: "#9f7d27",
+    color: "#218c6a",
     thoughtsHref: "/thoughts/calendar",
   },
   {
@@ -206,7 +206,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A no-loss sportsbook: lock a deposit, bet real lines, get the deposit back at term end, and keep the record forever. A read-only lobby over a real double-entry ledger — the dollars are simulated on purpose.",
     href: "/zeroproof",
-    color: "#6451ba",
+    color: "#7b6bc4",
     thoughtsHref: "/thoughts/zeroproof",
   },
   {
@@ -224,7 +224,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A two-player party game written in Svelte: one of you is dealt a secret role or relationship (a bodyguard, a spy after your wallet, a time traveller), drops hints in normal conversation, and the other has five minutes to work out what it is. Over 200 roles.",
     href: "/mind-reader",
-    color: "#7c4fa3",
+    color: "#9065b5",
     thoughtsHref: "/thoughts/mind-reader",
   },
 ];
@@ -568,6 +568,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#3aaea1",
   },
   {
+    title: "Thirteen Bugs That Looked Fine",
+    href: "/thoughts/codebase-audit",
+    preview:
+      "An audit-only pass turned up thirteen bugs that were each a failure dressed up as a plausible result, and I fixed them as one stack of red-first PRs",
+    color: "#5a7fa8",
+  },
+  {
     title: "Taking the Database Off the Public Internet",
     href: "/thoughts/database-networking",
     preview:
@@ -728,6 +735,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Catching every failed write at one layer: a React Query MutationCache onError that raises a toast app-wide, an imperative toast() built in the design system so it works outside React, an SSR-safe portal, and an accessible live region",
     color: "#c0563f",
+  },
+  {
+    title: "Errors People Can Read",
+    href: "/thoughts/error-messages",
+    preview:
+      "A calendar create that failed after it worked and a toast that dumped a validation error: what an error is allowed to say, one function that decides it, and what to check when an AI wrote the error handling",
+    color: "#b8553f",
   },
   {
     title: "Command Palette",

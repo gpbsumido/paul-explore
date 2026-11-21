@@ -8,6 +8,92 @@ export function OperatorUpdatesEarly() {
   return (
     <>
       <section
+        id="update-2026-11-18-writes-and-resume"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; November 18, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          The fallback that turned refusals into successes
+        </h2>
+        <p className="text-muted">
+          A{" "}
+          <Link
+            href="/thoughts/codebase-audit"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            codebase audit
+          </Link>{" "}
+          found two operator bugs, and both came from the same good instinct
+          applied too widely: when something goes wrong, keep the demo working.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          &ldquo;The API is down&rdquo; and &ldquo;the API said no&rdquo; took
+          the same path
+        </h3>
+        <p className="text-muted">
+          Every write looked like this, eight times over:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`try {
+  return await api.postRestock(storeId, itemIds);
+} catch (err) {
+  rethrowIfMisconfigured(err);
+  return seed.restockItems(storeId, itemIds);
+}`}
+        </pre>
+        <p className="text-muted">
+          <code className={code}>rethrowIfMisconfigured</code> only rethrew 401
+          and 403. Everything else went to the seed, including real answers from
+          the API. A 409 or a 500 was replayed against in-memory data and
+          reported as a success that nothing persisted. Worse, a 2xx whose body
+          didn&rsquo;t parse also landed in the catch, so the write was applied
+          twice, once upstream and once in the seed. That is the exact fiction
+          the 401 fix above was written to prevent, just reached by a different
+          status code.
+        </p>
+        <p className="text-muted">
+          The fallback is for a request that never got an answer. Now that is
+          the only thing that uses it. A 404 comes back as not found, any other
+          status reaches the browser (4xx as is, 5xx as a 502), and an
+          unreadable 2xx is a 502 that says the change may have been saved. The
+          eight copies became one{" "}
+          <code className={code}>writeWithFallback</code>, which also logs its
+          fallbacks the way the reads already did.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One dropped connection threw away a whole restock
+        </h3>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`try {
+  const res = await fetch(\`/api/operator/restock-sessions/\${sessionId}\`);
+  if (!res.ok) throw new Error("gone");
+  ...
+} catch {
+  storeSessionId(storeId, null);
+  return null;
+}`}
+        </pre>
+        <p className="text-muted">
+          Any failure on resume, a 502 or a phone losing signal in a back room,
+          deleted the stored session id. The restocker was told the restock was
+          no longer open, and the next tap started a new, empty one. The counts
+          were still on the server, just unreachable from the phone. Now only a
+          404 or a completed session drops the id. Anything else shows an error
+          and leaves the Resume button there.
+        </p>
+        <p className="text-muted">
+          Writing the test for that turned up a second bug. Resume also ignored
+          the lines the server sent back, so even a successful resume showed
+          every slot as uncounted. Those lines now seed the drafts, so saved
+          slots show as done and are part of the review.
+        </p>
+      </section>
+
+      <section
         id="update-2026-08-05-maintainability"
         className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
       >

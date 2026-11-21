@@ -45,6 +45,17 @@ describe("loadFleet", () => {
     expect(result.flags.length).toBeGreaterThan(0);
     expect(result.environments.length).toBeGreaterThan(0);
   });
+
+  it("says why it fell back, so a rejected read isn't mistaken for an outage", async () => {
+    const warned = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(fetchFlagsFromApi).mockRejectedValue(new FlagsApiError(500));
+
+    const result = await loadFleet();
+
+    expect(result.source).toBe("seed");
+    expect(warned.mock.calls[0][0]).toMatch(/responded 500/);
+    warned.mockRestore();
+  });
 });
 
 describe("loadAuditLog", () => {

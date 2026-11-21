@@ -6,22 +6,32 @@ import { ripPackBodySchema } from "@/lib/schemas";
 import { loadNightlySlate } from "@/lib/espn-nightly";
 import { loadNflWeek, loadNflSeason } from "@/lib/espn-nfl";
 import { drawPack, type GeneratedCard, type Sport } from "@/lib/fantasy-cards";
+import { CARD_LAB_DEFAULT_SEASON, loadNbaSeasonCards } from "@/lib/card-lab-pool";
 
-const DEFAULT_SEASON = "2025";
 const PACK_SIZE = 5;
 
-/** Regenerate the slate the user is looking at, so the draw pool is trusted. */
+/**
+ * Regenerate the slate the user is looking at, so the draw pool is trusted.
+ * Same branches as the page: NFL by season or week, NBA season from the
+ * fantasy league, everything else from the nightly slate.
+ */
 async function loadPool(
   sport: Sport,
   mode: "nightly" | "season" | undefined,
+  season: string,
   date: string | undefined,
   week: number | undefined,
 ): Promise<GeneratedCard[]> {
   if (sport === "nfl") {
-    if (mode === "season") return (await loadNflSeason({ season: DEFAULT_SEASON })).cards;
-    return (await loadNflWeek({ season: DEFAULT_SEASON, week })).cards;
+    if (mode === "season") return (await loadNflSeason({ season })).cards;
+    return (await loadNflWeek({ season, week })).cards;
   }
-  return (await loadNightlySlate({ sport, season: DEFAULT_SEASON, date })).cards;
+  if (sport === "nba" && mode === "season") {
+    const { cards, error } = await loadNbaSeasonCards(season);
+    if (error) throw new Error(`NBA ${season} season cards unavailable`);
+    return cards;
+  }
+  return (await loadNightlySlate({ sport, season, date })).cards;
 }
 
 // POST /api/card-lab/packs/open — draw a weighted pack from the current slate,
@@ -31,12 +41,13 @@ export const POST = withBackend("card-lab open", async ({ token }, request) => {
   const parsed = await parseBody(request, ripPackBodySchema);
   if (!parsed.ok) return parsed.response;
   const { sport, mode, date, week } = parsed.data;
+  const season = parsed.data.season ?? CARD_LAB_DEFAULT_SEASON;
 
   let pool: GeneratedCard[];
   try {
-    pool = await loadPool(sport, mode, date, week);
+    pool = await loadPool(sport, mode, season, date, week);
   } catch (err) {
-    console.error("[card-lab open] pool regeneration failed", { sport, mode, date, week }, err);
+    console.error("[card-lab open] pool regeneration failed", { sport, mode, season, date, week }, err);
     return NextResponse.json(
       { error: "Couldn't rebuild this slate to draw from" },
       { status: 503 },
@@ -45,7 +56,7 @@ export const POST = withBackend("card-lab open", async ({ token }, request) => {
 
   const drawn = drawPack(pool, { size: PACK_SIZE });
   if (drawn.length === 0) {
-    console.error("[card-lab open] empty pool", { sport, mode, date, week });
+    console.error("[card-lab open] empty pool", { sport, mode, season, date, week });
     return NextResponse.json({ error: "No cards to rip from this slate" }, { status: 409 });
   }
 

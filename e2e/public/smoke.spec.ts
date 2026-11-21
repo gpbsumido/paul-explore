@@ -32,6 +32,23 @@ test(
   },
 );
 
+// Metadata merges shallowly down the tree, so a canonical on the root layout
+// leaks into every page that doesn't set its own. The unit test pins each
+// segment's metadata; this checks what Next actually merged into the HTML.
+test(
+  "pages declare their own canonical URL, not the homepage's",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    const canonical = page.locator('link[rel="canonical"]');
+
+    await page.goto("/");
+    await expect(canonical).toHaveAttribute("href", /^https?:\/\/[^/]+\/?$/);
+
+    await page.goto("/thoughts/perf");
+    await expect(canonical).toHaveAttribute("href", /\/thoughts\/perf$/);
+  },
+);
+
 // The version switcher used to live at /?version=, so the redirect is the only
 // thing keeping those links alive. Checked through the proxy for real, since a
 // unit test can only prove the rule, not that it is wired up.

@@ -13,6 +13,17 @@ export function OperatorTimelineOverview() {
         <ol className="mt-3 space-y-2 text-sm">
           <li className="flex items-baseline gap-3">
             <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+              Nov 18, 2026
+            </span>
+            <a
+              href="#update-2026-11-18-writes-and-resume"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              The fallback that turned refusals into successes
+            </a>
+          </li>
+          <li className="flex items-baseline gap-3">
+            <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
               Aug 5, 2026
             </span>
             <a

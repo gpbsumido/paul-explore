@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -156,6 +156,47 @@ export default function ErrorToastsContent() {
         </p>
       </Section>
 
+      <Update
+        id="update-2026-11-20-readable-errors"
+        date="November 20, 2026"
+        title="The handler caught every failure, and some of what it said was unreadable"
+      >
+        <p>
+          I created a calendar on the live site and the toast above caught the
+          failure exactly as designed. What it showed was the JSON of a
+          validation error. The handler did its job; I had never decided what
+          the job&rsquo;s output should look like.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I said no failure would be silent. A validation dump isn&apos;t silent either.
+        </h3>
+        <p className="text-muted">
+          The handler read <C>error.message</C> whenever there was one. A{" "}
+          <C>ZodError</C> is an <C>Error</C> and its message is every issue it
+          found, so that is what a person was shown. The check I wrote asked
+          whether there was a message, not whether it was written for them.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`toast.error(
+  userFacingErrorMessage(error, "Something went wrong. Please try again."),
+);`}
+        </pre>
+        <p className="mt-3 text-muted">
+          Messages somebody wrote still show. A schema failure, a parse error
+          or a rejected fetch goes to the console with the original error and
+          the person reads a plain line instead. The full story, including
+          what an AI missed and what I check for now, is in{" "}
+          <Link
+            href="/thoughts/error-messages"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            Errors people can read
+          </Link>
+          .
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "One mutation-cache handler above every caller, so a failed write can't be silent no matter which screen made it.",
@@ -165,6 +206,7 @@ export default function ErrorToastsContent() {
         couldImprove={[
           "It only covers writes. A failed background query (a list that won't load) still needs its own inline, retryable state — the toast layer deliberately doesn't touch reads.",
           "Every error is one flat toast. A validation failure with several field errors collapses to a single line rather than pointing at each field.",
+          "The toast hides diagnostics now, but the API's own validation messages are still a path and a library string; those should become sentences at the source.",
           "There's no dedupe yet, so a burst of failures from one action can stack several near-identical toasts.",
         ]}
         upcoming={[

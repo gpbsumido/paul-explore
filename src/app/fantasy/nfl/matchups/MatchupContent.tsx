@@ -19,6 +19,7 @@ import {
 } from "@/types/espn-nfl";
 import FantasyNflNav from "../FantasyNflNav";
 import PlaysTicker, { type PlaySelection } from "./PlaysTicker";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- Constants ----
 
@@ -420,7 +421,7 @@ export default function MatchupContent() {
         {query.isError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>
-              {query.error instanceof Error ? query.error.message : "Something went wrong"}
+              {userFacingErrorMessage(query.error, "Something went wrong")}
             </span>
             <Button variant="outline" size="sm" onClick={() => query.refetch()}>
               Retry

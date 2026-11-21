@@ -3,23 +3,37 @@
 import { type MouseEvent } from "react";
 import { Chip as PaulChip } from "@paul-portfolio/react";
 
-interface ChipProps {
+type BaseChipProps = {
   label: string;
-  /** Hex/CSS background color. The DS measures a readable label colour for it. */
-  color?: string;
   /** sm = compact (calendar cells), md = display (type badges) */
   size?: "sm" | "md";
+  className?: string;
+  title?: string;
+};
+
+type SpanChipProps = BaseChipProps & {
+  /** Hex/CSS background color. The DS measures a readable label colour for it. */
+  color?: string;
   /** Renders full-width as a block — useful inside calendar cells */
   fullWidth?: boolean;
   /** When provided the chip renders as a <button>. */
   onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   /** When provided, renders a remove button with an accessible name. */
   onRemove?: () => void;
-  /** When provided, the chip renders as a link. External URLs open in a new tab. */
-  href?: string;
-  className?: string;
-  title?: string;
-}
+  href?: undefined;
+};
+
+/**
+ * A chip that links somewhere. It takes no click or remove handler, because
+ * both would be a control nested inside a link, and it used to accept them and
+ * then drop them without a word.
+ */
+type LinkChipProps = BaseChipProps & {
+  /** External URLs open in a new tab. */
+  href: string;
+};
+
+type ChipProps = SpanChipProps | LinkChipProps;
 
 /**
  * App-level Chip backed by @paul-portfolio/react. Preserves the existing API so
@@ -30,8 +44,9 @@ interface ChipProps {
  * that links to a PR) is rendered here as an anchor carrying the DS `.chip`
  * class — DS styling, link semantics. Everything else delegates to the DS Chip.
  */
-export default function Chip({ href, size, className, title, label, ...rest }: ChipProps) {
-  if (href) {
+export default function Chip(props: ChipProps) {
+  if (props.href !== undefined) {
+    const { href, size, className, title, label } = props;
     const external = /^https?:\/\//.test(href);
     const classes = ["chip", size === "sm" && "chip--sm", "underline underline-offset-2", className]
       .filter(Boolean)
@@ -47,5 +62,6 @@ export default function Chip({ href, size, className, title, label, ...rest }: C
       </a>
     );
   }
-  return <PaulChip label={label} size={size} className={className} title={title} {...rest} />;
+  const { href: _href, ...rest } = props;
+  return <PaulChip {...rest} />;
 }

@@ -580,13 +580,8 @@ function Slate({
   const filterBarRef = useRef<HTMLDivElement | null>(null);
 
   // The caller's bets, so a fixture they've already bet on is flagged on the
-  // board — and always shown, even past the horizon. Reuses the profile's query
-  // and returns [] when signed out.
-  const betsQuery = useQuery({
-    queryKey: queryKeys.zeroproof.bets(),
-    queryFn: fetchBets,
-    staleTime: 30 * 1000,
-  });
+  // board — and always shown, even past the horizon. Empty when signed out.
+  const betsQuery = useMyBets();
   const betsByEvent = new Map<string, ZeroproofBet[]>();
   for (const bet of betsQuery.data ?? []) {
     const forEvent = betsByEvent.get(bet.eventId) ?? [];
@@ -1469,15 +1464,32 @@ async function fetchBets(): Promise<ZeroproofBet[]> {
   return betsResponseSchema.parse(await res.json()).bets;
 }
 
-function BetHistory() {
-  const betsQuery = useQuery({
+/**
+ * The caller's bets, shared by the board, the profile, the record trend, the
+ * bet history and compare through one cache key. It waits for the profile to
+ * say there's a session. Before, each of those had its own copy of this query
+ * and only some of them waited, and because they share a key, the board's
+ * copy fired on every signed-out visit for a request that could only 401.
+ */
+function useMyBets(options: { refetchInterval?: number } = {}) {
+  const profileQuery = useQuery({
+    queryKey: queryKeys.zeroproof.me(),
+    queryFn: fetchProfile,
+    staleTime: 60 * 1000,
+  });
+  const signedIn = Boolean(profileQuery.data && !profileQuery.data.signedOut);
+  return useQuery({
     queryKey: queryKeys.zeroproof.bets(),
     queryFn: fetchBets,
     staleTime: 30 * 1000,
-    // Only mounts inside the signed-in profile, so a plain interval is safe:
-    // a bet that grades server-side shows up here on the next poll.
-    refetchInterval: 30_000,
+    enabled: signedIn,
+    refetchInterval: options.refetchInterval,
   });
+}
+
+function BetHistory() {
+  // A bet that grades server-side shows up here on the next poll.
+  const betsQuery = useMyBets({ refetchInterval: 30_000 });
 
   if (!betsQuery.data || betsQuery.data.length === 0) return null;
 
@@ -1524,11 +1536,7 @@ function BetHistory() {
 }
 
 function RecordTrend({ wallets }: { wallets: ZeroproofWallet[] }) {
-  const betsQuery = useQuery({
-    queryKey: queryKeys.zeroproof.bets(),
-    queryFn: fetchBets,
-    staleTime: 30 * 1000,
-  });
+  const betsQuery = useMyBets();
   const { overall, season } = bankrollTrend(betsQuery.data ?? [], wallets);
   // A line needs at least two points; skip until there's a trend to show.
   if (overall.length < 2) return null;
@@ -1579,17 +1587,7 @@ function Profile() {
       query.state.data && !query.state.data.signedOut ? 30_000 : false,
   });
 
-  const signedIn = Boolean(
-    profileQuery.data && !profileQuery.data.signedOut,
-  );
-  // Shares the bets cache with RecordTrend below (same query key); only fetches
-  // once signed in, so a signed-out visitor never hits the 401.
-  const betsQuery = useQuery({
-    queryKey: queryKeys.zeroproof.bets(),
-    queryFn: fetchBets,
-    staleTime: 30 * 1000,
-    enabled: signedIn,
-  });
+  const betsQuery = useMyBets();
   const bets = betsQuery.data ?? [];
 
   return (
@@ -1738,12 +1736,7 @@ function CompareTab() {
     staleTime: 5 * 60 * 1000,
     enabled: signedIn,
   });
-  const betsQuery = useQuery({
-    queryKey: queryKeys.zeroproof.bets(),
-    queryFn: fetchBets,
-    staleTime: 30 * 1000,
-    enabled: signedIn,
-  });
+  const betsQuery = useMyBets();
 
   if (profileQuery.isLoading) {
     return (

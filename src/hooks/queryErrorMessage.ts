@@ -1,8 +1,11 @@
+import { userFacingErrorMessage } from "@/lib/userFacingError";
+
 /**
  * Turns a React Query error state into a display string. Returns the error's
- * own message when it's a real Error, the fallback when it's some other thrown
- * value, and null when the query isn't in an error state at all. Every read
- * hook repeated this exact ternary, so it lives here once.
+ * own message when somebody wrote it for people, the fallback when it's a
+ * diagnostic or some other thrown value, and null when the query isn't in an
+ * error state at all. Every read hook repeated this exact ternary, so it lives
+ * here once.
  */
 export function queryErrorMessage(
   isError: boolean,
@@ -10,5 +13,5 @@ export function queryErrorMessage(
   fallback: string,
 ): string | null {
   if (!isError) return null;
-  return error instanceof Error ? error.message : fallback;
+  return userFacingErrorMessage(error, fallback);
 }

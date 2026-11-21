@@ -168,7 +168,14 @@ export const updateCountdownBodySchema = z.object({
 export const eventsResponseSchema = z.object({ events: z.array(calendarEventSchema) });
 export const eventResponseSchema = z.object({ event: calendarEventSchema });
 export const calendarsResponseSchema = z.object({ calendars: z.array(calendarSchema) });
-export const calendarResponseSchema = z.object({ calendar: calendarSchema });
+/**
+ * The answer to creating or updating a calendar. The API sends back the row it
+ * wrote, which has no role (only the list query joins one in), and only the
+ * owner can make either call, so a missing role means the caller owns it.
+ */
+export const calendarWriteResponseSchema = z.object({
+  calendar: calendarSchema.extend({ role: calendarRoleSchema.default("owner") }),
+});
 export const membersResponseSchema = z.object({ members: z.array(calendarMemberSchema) });
 export const memberResponseSchema = z.object({ member: calendarMemberSchema });
 export const cardResponseSchema = z.object({ card: eventCardSchema });
@@ -334,6 +341,10 @@ export const todoCommentBodySchema = z.object({
 export const ripPackBodySchema = z.object({
   sport: z.enum(["nba", "wnba", "nfl"]),
   mode: z.enum(["nightly", "season"]).optional(),
+  season: z
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)

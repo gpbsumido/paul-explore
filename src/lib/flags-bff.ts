@@ -1,7 +1,8 @@
 // The BFF layer for the flags console. It prefers the live portfolio_api
 // feature-flags service and falls back to the in-memory seed store when the
-// service is unreachable, so the console keeps working (and looks identical)
-// whether or not the backend is deployed.
+// service doesn't answer, so the console keeps working whether or not the
+// backend is deployed. Reads report which one they came from, and the console
+// says when it's showing the seed.
 
 import {
   fetchFlagsFromApi,
@@ -35,12 +36,24 @@ export type Fleet = {
   source: Source;
 };
 
-/** The fleet from the live API, falling back to the seed when it is down. */
+/**
+ * Logs why a read fell back. The fallback stays for every error, not just an
+ * outage, because the pocket gate in flags-gate.ts reads through here and a
+ * flags-API 500 mustn't take the page it gates down with it. The log is what
+ * tells a rejected read apart from a backend that isn't there.
+ */
+function noteFallback(what: string, err: unknown): void {
+  const reason = err instanceof Error ? err.message : String(err);
+  console.warn(`[flags] ${what} fell back to the seed: ${reason}`);
+}
+
+/** The fleet from the live API, falling back to the seed when it fails. */
 export async function loadFleet(): Promise<Fleet> {
   try {
     const { flags, environments } = await fetchFlagsFromApi();
     return { flags, environments, source: "api" };
-  } catch {
+  } catch (err) {
+    noteFallback("loadFleet", err);
     return {
       flags: [...getFlags()],
       environments: [...ENVIRONMENTS],
@@ -54,12 +67,13 @@ export type AuditLog = {
   source: Source;
 };
 
-/** The audit log from the live API, falling back to the seed when it is down. */
+/** The audit log from the live API, falling back to the seed when it fails. */
 export async function loadAuditLog(): Promise<AuditLog> {
   try {
     const { audit } = await fetchAuditFromApi();
     return { audit, source: "api" };
-  } catch {
+  } catch (err) {
+    noteFallback("loadAuditLog", err);
     return { audit: [...getAudit()], source: "seed" };
   }
 }

@@ -1,5 +1,6 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextRequest, NextResponse } from "next/server";
+import { currentNbaSeason } from "@/lib/nbaSeason";
 
 /**
  * Returns top free agents for the fantasy league sorted by season total.
@@ -10,7 +11,8 @@ const SEASON_RE = /^\d{4}$/;
 const CACHE_CONTROL = "public, s-maxage=3600";
 
 export async function GET(request: NextRequest) {
-  const season = request.nextUrl.searchParams.get("season") ?? "2026";
+  const season = request.nextUrl.searchParams.get("season") ??
+    String(currentNbaSeason());
   const limit = Math.min(
     Number(request.nextUrl.searchParams.get("limit") ?? "10"),
     25,

@@ -10,6 +10,7 @@ import type {
   LeaderboardRoundBreakdown,
   PlayoffLeaderboardResponse,
 } from "@/types/nba";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 
 // ---- Constants ----
 
@@ -189,9 +190,7 @@ export default function PlayoffLeaderboard({
   if (query.isError) {
     return (
       <p className="py-6 text-center text-[13px] text-muted">
-        {query.error instanceof Error
-          ? query.error.message
-          : "Could not load leaderboard"}
+        {userFacingErrorMessage(query.error, "Could not load leaderboard")}
       </p>
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
@@ -113,9 +113,61 @@ export default function SettingsContent({ version }: { version: string }) {
     }
   }, []);
 
+  // Back from Google with a one-time code. The API only redeems it for the
+  // account that started the connect, so a link someone else sent can't attach
+  // their Google calendar to this account. The ref keeps StrictMode's second
+  // effect run from spending the code twice.
+  const confirmStartedRef = useRef(false);
+  const confirmCode = gcalParam === "confirm" ? searchParams.get("code") : null;
+  const confirmState = gcalParam === "confirm" ? searchParams.get("state") : null;
+
   useEffect(() => {
+    if (!confirmCode || !confirmState || confirmStartedRef.current) return;
+    confirmStartedRef.current = true;
+    // the code works once and shouldn't sit in the address bar or history
+    window.history.replaceState(null, "", "/settings");
+
+    async function confirmConnect() {
+      try {
+        const res = await fetch("/api/google/auth/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: confirmCode, state: confirmState }),
+        });
+        if (res.ok) {
+          setBanner({ type: "success", message: "Google Calendar connected." });
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.google.authStatus(),
+          });
+        } else if (res.status === 403) {
+          setBanner({
+            type: "error",
+            message:
+              "That Google connection was started from a different account. Connect again from here.",
+          });
+        } else {
+          setBanner({
+            type: "error",
+            message: "Something went wrong connecting Google Calendar. Try again.",
+          });
+        }
+      } catch {
+        setBanner({
+          type: "error",
+          message: "Something went wrong connecting Google Calendar. Try again.",
+        });
+      }
+      await fetchStatus();
+    }
+
+    confirmConnect();
+  }, [confirmCode, confirmState, fetchStatus, queryClient]);
+
+  useEffect(() => {
+    // while a code is being redeemed, status is fetched once that settles
+    if (confirmCode) return;
     fetchStatus(); // eslint-disable-line react-hooks/set-state-in-effect -- async fetch sets state in the callback, not synchronously
-  }, [fetchStatus]);
+  }, [confirmCode, fetchStatus]);
 
   // when returning from the Google OAuth flow with ?gcal=connected, invalidate
   // the status cache so the CalendarHeader sync indicator lights up immediately
