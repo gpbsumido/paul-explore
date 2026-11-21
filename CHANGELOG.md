@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-21 - version 9.2.29
+
+- A test that asserts nothing, a skipped or `.only` test, an expected failure that doesn't say which bug it waits on, and a BFF route no test imports now all fail the build. Vitest runs tests in a random order on CI and prints the seed, so a red run replays with `VITEST_SEED=<n>`. Lint fails on any warning.
+- Every test file was run alone with its tests shuffled, and every test was judged on whether it would fail if the code broke. About one in seven was weak, tautological, leaky, misnamed or redundant and was strengthened or replaced. The suite went from 4,561 tests to more than 7,400, including tests for the BFF routes and logic files nothing had touched.
+- Three files only passed in the order they were written and no longer depend on it: `ResearchContent` leaked a module-level cache between tests, `MindReaderContent` never cleared its mocks, and `DesignSystemShowcaseContent` carried a filter in the page URL from one test to the next.
+- Twenty bugs the audit found are held as expected failures with a note on each, not fixed here. The accessibility scan's route list moved to a helper with a guard against the real public routes, and `/toolkit` and the interview-prep plan page are now scanned.
+- The e2e log names every test with its time, each Playwright step keeps its own HTML report, and the empty quarantine step no longer ends in a red "No tests found". The six lint warnings in production code are cleared.
+- New write-up at `/thoughts/tests-that-cant-fail`, and a dated update on the Green Checks write-up linking to it.
+
 ## 2026-11-20 - version 9.2.28
 
 - The codebase-audit write-up has a dated update on the API half: calendar sync that had been off since July, database tests CI never ran, a bet check that two requests could both pass, a Google connect anyone could finish for someone else, a cast that hid a missing field, and the card update that knex refused to bind.
