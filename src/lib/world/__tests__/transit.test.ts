@@ -58,6 +58,28 @@ describe("streetcarAt", () => {
     const moving = streetcarAt(0.5);
     expect(moving.dwelling).toBe(false);
   });
+
+  it("arrives at the first stop and stops there", () => {
+    // The west terminus is at -72 and the first stop at -60, so it pulls in
+    // 12 units later.
+    const arrivalSeconds = 12 / STREETCAR_SPEED;
+    const justIn = streetcarAt(arrivalSeconds + 0.1);
+    expect(justIn.x).toBeCloseTo(STREETCAR_STOPS[0].x);
+    expect(justIn.dwelling).toBe(true);
+    expect(streetcarAt(arrivalSeconds - 0.1).dwelling).toBe(false);
+  });
+
+  it("stays put for a few seconds at each stop", () => {
+    const arrivalSeconds = 12 / STREETCAR_SPEED;
+    const early = streetcarAt(arrivalSeconds + 0.2);
+    const late = streetcarAt(arrivalSeconds + 3);
+    expect(late.dwelling).toBe(true);
+    expect(late.x).toBeCloseTo(early.x);
+  });
+
+  it("runs the clock backwards the same way it runs forwards", () => {
+    expect(streetcarAt(-5)).toEqual(streetcarAt(ROUTE_CYCLE - 5));
+  });
 });
 
 describe("stops", () => {
@@ -77,6 +99,20 @@ describe("stops", () => {
   it("finds the stop you're standing at", () => {
     const stop = STREETCAR_STOPS[1];
     expect(nearestStop({ x: stop.x, z: STREETCAR_ROUTE.z + 2 })).toBe(stop);
+  });
+
+  it("finds a stop from the edge of boarding range but not from beyond it", () => {
+    const stop = STREETCAR_STOPS[2];
+    const z = STREETCAR_ROUTE.z;
+    expect(nearestStop({ x: stop.x + BOARD_RADIUS * 0.9, z })).toBe(stop);
+    expect(nearestStop({ x: stop.x + BOARD_RADIUS * 1.5, z })).toBeNull();
+  });
+
+  it("only counts the car as at a stop when it is within boarding range", () => {
+    const stop = STREETCAR_STOPS[0];
+    const car = { x: stop.x, z: STREETCAR_ROUTE.z, direction: 1, dwelling: true } as const;
+    expect(carIsAtStop(car, stop)).toBe(true);
+    expect(carIsAtStop({ ...car, x: stop.x + BOARD_RADIUS * 3 }, stop)).toBe(false);
   });
 
   it("finds nothing when you're nowhere near the tracks", () => {

@@ -31,6 +31,13 @@ describe("presenceMessageSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("rejects an empty peer id and coordinates that are not finite numbers", () => {
+    expect(presenceMessageSchema.safeParse({ peerId: "", snap: snap() }).success).toBe(false);
+    expect(
+      presenceMessageSchema.safeParse({ peerId: "abc", snap: snap({ x: Infinity }) }).success,
+    ).toBe(false);
+  });
+
   it("rejects junk from the wire", () => {
     expect(presenceMessageSchema.safeParse({ peerId: "abc" }).success).toBe(false);
     expect(
@@ -70,6 +77,20 @@ describe("shouldPublish", () => {
     expect(shouldPublish(last, snap(), 1000 + HEARTBEAT_MS + 1)).toBe(true);
   });
 
+  it("publishes a turn on the spot", () => {
+    const last = timed(snap(), 1000);
+    expect(
+      shouldPublish(last, snap({ heading: 1 }), 1000 + PUBLISH_MIN_INTERVAL_MS + 1),
+    ).toBe(true);
+  });
+
+  it("publishes a name change even without moving", () => {
+    const last = timed(snap(), 1000);
+    expect(
+      shouldPublish(last, snap({ name: "Polite Moose" }), 1000 + PUBLISH_MIN_INTERVAL_MS + 1),
+    ).toBe(true);
+  });
+
   it("publishes an outfit change even without moving", () => {
     const last = timed(snap(), 1000);
     expect(
@@ -90,6 +111,18 @@ describe("peerPoseAt", () => {
     // renderAt = 1100 → halfway between the two snapshots.
     const pose = peerPoseAt(prev, latest, 1100 + RENDER_DELAY_MS);
     expect(pose.x).toBeCloseTo(5);
+  });
+
+  it("holds at the older snapshot until the render delay has caught up to it", () => {
+    const prev = timed(snap({ x: 0 }), 1000);
+    const latest = timed(snap({ x: 10 }), 1200);
+    expect(peerPoseAt(prev, latest, 1000).x).toBe(0);
+  });
+
+  it("falls back to the latest snapshot when the two arrive out of order", () => {
+    const prev = timed(snap({ x: 0 }), 1200);
+    const latest = timed(snap({ x: 10 }), 1000);
+    expect(peerPoseAt(prev, latest, 1500).x).toBe(10);
   });
 
   it("only extrapolates a little past the latest snapshot", () => {
@@ -120,6 +153,11 @@ describe("explorerName", () => {
     expect(explorerName(0)).toBe(EXPLORER_NAMES[0]);
     expect(explorerName(0.999)).toBe(EXPLORER_NAMES[EXPLORER_NAMES.length - 1]);
     expect(EXPLORER_NAMES).toContain(explorerName(0.5));
+  });
+
+  it("clamps a seed outside [0, 1) to the ends of the list", () => {
+    expect(explorerName(-0.5)).toBe(EXPLORER_NAMES[0]);
+    expect(explorerName(1.5)).toBe(EXPLORER_NAMES[EXPLORER_NAMES.length - 1]);
   });
 
   it("never produces free text", () => {

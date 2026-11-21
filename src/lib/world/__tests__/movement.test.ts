@@ -65,6 +65,34 @@ describe("stepPlayer", () => {
     expect(speedOf(stopped)).toBeLessThan(0.05);
   });
 
+  it("eases into motion instead of jumping straight to top speed", () => {
+    const inputs: MoveInput[] = [FORWARD, { x: 1, z: 0, running: false, jump: false }];
+    for (const input of inputs) {
+      const first = step(REST, { input });
+      // One frame at full speed would cover WALK_SPEED / 60. The player is still
+      // accelerating, so it covers well under half of that, at its current velocity.
+      expect(Math.hypot(first.position.x, first.position.z)).toBeGreaterThan(0);
+      expect(Math.hypot(first.position.x, first.position.z)).toBeLessThan(WALK_SPEED / 60 / 2);
+      expect(first.position.x).toBeCloseTo(first.velocity.x / 60);
+      expect(first.position.z).toBeCloseTo(first.velocity.z / 60);
+    }
+  });
+
+  it("turns camera-relative input when the camera is rotated a quarter turn", () => {
+    // Camera yaw of +90 degrees looks west: forward is -x, and right is -z.
+    const forward = simulate(REST, { input: FORWARD, cameraYaw: Math.PI / 2 }, 30);
+    expect(forward.position.x).toBeLessThan(-1);
+    expect(Math.abs(forward.position.z)).toBeLessThan(1e-6);
+
+    const right = simulate(
+      REST,
+      { input: { x: 1, z: 0, running: false, jump: false }, cameraYaw: Math.PI / 2 },
+      30,
+    );
+    expect(right.position.z).toBeLessThan(-1);
+    expect(Math.abs(right.position.x)).toBeLessThan(1e-6);
+  });
+
   it("moves relative to the camera yaw", () => {
     // Camera spun 180° — pressing forward should now move +z.
     const moved = simulate(REST, { input: FORWARD, cameraYaw: Math.PI }, 30);
@@ -83,6 +111,17 @@ describe("stepPlayer", () => {
     // Target heading is just past π on the negative side; a shortest-arc turn
     // keeps the heading magnitude near π instead of unwinding through 0.
     expect(Math.abs(after.heading)).toBeGreaterThan(Math.PI - 0.2);
+  });
+
+  it("takes the shortest arc the other way across the seam too", () => {
+    const facingSouthish: PlayerState = { ...REST, heading: -Math.PI + 0.1 };
+    const after = step(facingSouthish, { input: { x: 0.05, z: -0.999, running: false, jump: false } });
+    expect(Math.abs(after.heading)).toBeGreaterThan(Math.PI - 0.2);
+  });
+
+  it("keeps its heading while it has no meaningful velocity", () => {
+    const facingEast: PlayerState = { ...REST, heading: 1 };
+    expect(step(facingEast).heading).toBe(1);
   });
 
   it("clamps the player inside the world bounds", () => {

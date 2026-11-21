@@ -60,6 +60,15 @@ describe("directionFromKeys", () => {
     expect(directionFromKeys(keys("KeyW")).running).toBe(false);
   });
 
+  it("flags running even while standing still", () => {
+    expect(directionFromKeys(keys("ShiftLeft"))).toEqual({
+      x: 0,
+      z: 0,
+      running: true,
+      jump: false,
+    });
+  });
+
   it("ignores unrelated keys", () => {
     expect(directionFromKeys(keys("KeyQ", "KeyZ", "Enter"))).toEqual({
       x: 0,

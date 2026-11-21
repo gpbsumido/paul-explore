@@ -71,6 +71,23 @@ describe("biggestUnderdog", () => {
     expect(pick?.event.id).toBe("live");
   });
 
+  it("only reads the moneyline, not a spread priced at plus money", () => {
+    const spreadOnly = ev("spread", "Nets", "Celtics", [+500, -700], {
+      markets: [
+        {
+          market: "spread",
+          fetchedAt: "2026-10-19T00:00:00Z",
+          outcomes: [
+            { name: "Nets", priceAmerican: +500 },
+            { name: "Celtics", priceAmerican: -700 },
+          ],
+        },
+      ],
+    });
+    const events = [spreadOnly, ev("ml", "Heat", "Knicks", [+130, -150])];
+    expect(biggestUnderdog(events, NOW)?.event.id).toBe("ml");
+  });
+
   it("returns null when nothing on the board is an underdog", () => {
     const events = [ev("a", "Nets", "Celtics", [-110, -110])];
     expect(biggestUnderdog(events, NOW)).toBeNull();
@@ -100,6 +117,24 @@ describe("closestGame", () => {
     ];
     const pick = closestGame(events, NOW);
     expect(pick?.event.id).toBe("live");
+  });
+
+  it("skips a three-way moneyline, where a draw leaves no head-to-head spread", () => {
+    const threeWay = ev("soccer", "Leeds", "Spurs", [+250, -110], {
+      markets: [
+        {
+          market: "h2h",
+          fetchedAt: "2026-10-19T00:00:00Z",
+          outcomes: [
+            { name: "Leeds", priceAmerican: +250 },
+            { name: "Spurs", priceAmerican: +250 },
+            { name: "Draw", priceAmerican: +250 },
+          ],
+        },
+      ],
+    });
+    const events = [threeWay, ev("two-way", "Bulls", "Bucks", [+140, -160])];
+    expect(closestGame(events, NOW)?.event.id).toBe("two-way");
   });
 
   it("returns null when the board has no bettable two-way games", () => {

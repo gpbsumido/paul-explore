@@ -10,6 +10,7 @@ import {
 import { SPAWN } from "../cityLayout";
 import { EXHIBITS } from "../exhibits";
 import { INTERACT_RADIUS } from "../proximity";
+import { WALK_SPEED } from "../movement";
 import type { GhostPoint } from "../ghost";
 
 const walkEast = (count: number): GhostPoint[] =>
@@ -64,6 +65,18 @@ describe("ghostPoseAt", () => {
     expect(pose?.heading).toBeCloseTo(Math.PI / 2);
   });
 
+  it("starts on the first sample, facing the way it walks off", () => {
+    const pose = ghostPoseAt(path, 0);
+    expect(pose?.x).toBeCloseTo(0);
+    expect(pose?.heading).toBeCloseTo(Math.PI / 2);
+  });
+
+  it("treats time before the haunt starts as time from the end of the previous loop", () => {
+    // Half a second before the end of the last loop's pause is 14s into the walk.
+    const pose = ghostPoseAt(path, -(LOOP_PAUSE + 0.5));
+    expect(pose?.x).toBeCloseTo(28);
+  });
+
   it("hides in the pause between loops", () => {
     expect(ghostPoseAt(path, duration + LOOP_PAUSE / 2)).toBeNull();
   });
@@ -89,6 +102,15 @@ describe("tourPath", () => {
   it("keeps time strictly moving forward", () => {
     for (let i = 1; i < tour.points.length; i += 1) {
       expect(tour.points[i].t).toBeGreaterThan(tour.points[i - 1].t);
+    }
+  });
+
+  it("never moves faster than a player can walk", () => {
+    for (let i = 1; i < tour.points.length; i += 1) {
+      const a = tour.points[i - 1];
+      const b = tour.points[i];
+      const speed = Math.hypot(b.x - a.x, b.z - a.z) / (b.t - a.t);
+      expect(speed).toBeLessThanOrEqual(WALK_SPEED);
     }
   });
 

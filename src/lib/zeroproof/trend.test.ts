@@ -42,6 +42,13 @@ describe("netProfitCents", () => {
   });
 });
 
+describe("netProfitCents rounding", () => {
+  it("settles to whole cents on a -110 line", () => {
+    // 1000 * 100/110 = 909.09..., and a ledger of cents has no fractions.
+    expect(netProfitCents(bet({ status: "won", oddsAmerican: -110, stakeCents: 1000 }))).toBe(909);
+  });
+});
+
 describe("bankrollTrend", () => {
   it("builds cumulative overall and season curves in dollars, ordered by settle time", () => {
     const wallets = [wallet("w-season", "season"), wallet("w-chal", "challenge")];
@@ -55,6 +62,12 @@ describe("bankrollTrend", () => {
     // sorted: b1(+10 season), b2(+20 chal), b3(-10 season)
     expect(overall).toEqual([10, 30, 20]);
     expect(season).toEqual([10, 10, 0]);
+  });
+
+  it("leaves an open bet out even when it carries a settle time", () => {
+    const wallets = [wallet("w-season", "season")];
+    const bets = [bet({ id: "o", status: "open", settledAt: "2026-09-05T00:00:00.000Z" })];
+    expect(bankrollTrend(bets, wallets)).toEqual({ overall: [], season: [] });
   });
 
   it("ignores open and unsettled bets", () => {

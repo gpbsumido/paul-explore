@@ -33,6 +33,11 @@ describe("routeWaypoints", () => {
     }
   });
 
+  it("does not repeat a waypoint when the start is already on the route", () => {
+    const onYongeAndQueen = { x: 18, z: -12 };
+    expect(routeWaypoints(onYongeAndQueen, onYongeAndQueen)).toEqual([onYongeAndQueen]);
+  });
+
   it("routes across town along the avenue nearest the target", () => {
     const route = routeWaypoints({ x: 18.5, z: -70 }, { x: 17, z: 40 });
     // Hugging Yonge (x=18) is the long leg here.

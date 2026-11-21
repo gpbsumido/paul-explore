@@ -14,8 +14,11 @@ describe("visibleFraction", () => {
 
   it("zooms in past a tower standing between camera and player", () => {
     const fraction = visibleFraction(anchor, desired, [tower(6, 30)]);
-    expect(fraction).toBeLessThan(0.7);
-    expect(fraction).toBeGreaterThanOrEqual(MIN_CAMERA_FRACTION);
+    // The first blocked sample sits a third of the way along the boom, and the
+    // camera pulls in a little short of it so the wall face never clips.
+    expect(fraction).toBeGreaterThan(MIN_CAMERA_FRACTION);
+    expect(fraction).toBeLessThan(1 / 3);
+    expect(fraction).toBeGreaterThan(1 / 3 - 0.1);
   });
 
   it("sails over low buildings", () => {

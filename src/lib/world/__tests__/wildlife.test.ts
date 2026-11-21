@@ -39,6 +39,33 @@ describe("raccoonStep", () => {
     expect(after.fleeing).toBe(false);
   });
 
+  it("walks the patrol at a waddle, toward the next point and facing it", () => {
+    const state = start(home.patrol[0].x, home.patrol[0].z);
+    const after = raccoonStep(state, home, far, 0.5);
+    // The second patrol point is three units due north of the first.
+    expect(after.leg).toBe(1);
+    expect(Math.hypot(after.x - state.x, after.z - state.z)).toBeCloseTo(0.8);
+    expect(Math.hypot(after.x - home.patrol[1].x, after.z - home.patrol[1].z)).toBeCloseTo(2.2);
+    expect(after.heading).toBeCloseTo(Math.PI);
+  });
+
+  it("stops on a waypoint instead of overshooting it", () => {
+    const nearTheSecondPoint = { ...start(home.patrol[1].x, home.patrol[1].z + 0.7), leg: 1 };
+    const after = raccoonStep(nearTheSecondPoint, home, far, 5);
+    expect(after.x).toBeCloseTo(home.patrol[1].x);
+    expect(after.z).toBeCloseTo(home.patrol[1].z);
+  });
+
+  it("bolts at a sprint, directly away from the player, and keeps its place on the patrol", () => {
+    const state = { ...start(home.patrol[0].x, home.patrol[0].z), leg: 2 };
+    const player = { x: state.x + 2, z: state.z };
+    const after = raccoonStep(state, home, player, 0.2);
+    expect(Math.hypot(after.x - state.x, after.z - state.z)).toBeCloseTo(1.4);
+    expect(after.x).toBeLessThan(state.x);
+    expect(after.z).toBeCloseTo(state.z);
+    expect(after.leg).toBe(2);
+  });
+
   it("bolts when you get close", () => {
     const state = start(home.patrol[0].x, home.patrol[0].z);
     const player = { x: state.x + 1, z: state.z };

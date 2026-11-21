@@ -46,6 +46,14 @@ describe("trailStrength", () => {
     expect(trailStrength(at(0, 0, 10), 10 + TRAIL_LIFETIME)).toBe(0);
   });
 
+  it("fades with the square of the remaining life", () => {
+    expect(trailStrength(at(0, 0, 10), 10 + TRAIL_LIFETIME / 2)).toBeCloseTo(0.25);
+  });
+
+  it("stays at zero for a point well past its lifetime", () => {
+    expect(trailStrength(at(0, 0, 10), 10 + TRAIL_LIFETIME * 2)).toBe(0);
+  });
+
   it("fades monotonically with age", () => {
     const young = trailStrength(at(0, 0, 10), 11);
     const old = trailStrength(at(0, 0, 10), 13);

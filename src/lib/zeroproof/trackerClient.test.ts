@@ -14,6 +14,16 @@ describe("trackZeroProofEvent", () => {
     expect(() => trackZeroProofEvent("cta_click")).not.toThrow();
   });
 
+  it("stops forwarding once the tracker is cleared (the component unmounted)", () => {
+    const { tracker, track } = fakeTracker();
+    setActiveTracker(tracker);
+    setActiveTracker(null);
+
+    trackZeroProofEvent("cta_click");
+
+    expect(track).not.toHaveBeenCalled();
+  });
+
   it("forwards to the active tracker against the current page", () => {
     const { tracker, track } = fakeTracker();
     setActiveTracker(tracker);

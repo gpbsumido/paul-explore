@@ -25,6 +25,13 @@ describe("getAnonId", () => {
     expect(await getAnonId()).toBeNull();
   });
 
+  it("goes silent again if consent is withdrawn after an id was stored", async () => {
+    document.cookie = "cookie_consent=accepted; path=/";
+    expect(await getAnonId()).not.toBeNull();
+    clearConsent();
+    expect(await getAnonId()).toBeNull();
+  });
+
   it("returns a stable 64-char hex hash once consent is accepted", async () => {
     document.cookie = "cookie_consent=accepted; path=/";
 

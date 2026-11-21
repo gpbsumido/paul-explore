@@ -6,6 +6,7 @@ import {
   DEFAULT_BOARD_FILTERS,
   fantasyLabel,
   filterBoardEvents,
+  hasActiveFilters,
   hasMoreBeyondHorizon,
   inDateRange,
   isEventBettable,
@@ -99,6 +100,12 @@ describe("matchesOdds", () => {
     expect(matchesOdds(ev({ prices: [] }), "even")).toBe(false);
   });
 
+  it("even keeps a price just inside the favourite and longshot lines, and drops one exactly on them", () => {
+    expect(matchesOdds(ev({ prices: [-199, 199] }), "even")).toBe(true);
+    expect(matchesOdds(ev({ prices: [-200, 150] }), "even")).toBe(false);
+    expect(matchesOdds(ev({ prices: [-150, 200] }), "even")).toBe(false);
+  });
+
   it("considers outcomes across every market", () => {
     const event = ev({
       markets: [
@@ -135,16 +142,48 @@ describe("localDayKey", () => {
   it("returns null for an unparseable date", () => {
     expect(localDayKey("not-a-date")).toBeNull();
   });
-  it("maps the same instant to the same key and distant days to different keys", () => {
-    const a = ev({ commenceTime: "2026-10-20T18:00:00Z" });
-    const b = ev({ commenceTime: "2026-10-20T20:30:00Z" });
-    const c = ev({ commenceTime: "2026-10-23T18:00:00Z" });
-    expect(localDayKey(a.commenceTime)).toBe(localDayKey(b.commenceTime));
-    expect(localDayKey(a.commenceTime)).not.toBe(localDayKey(c.commenceTime));
+  it("keys a time by its local calendar day, zero-padded", () => {
+    // Built from local parts so the answer does not depend on the machine's timezone.
+    expect(localDayKey(new Date(2026, 9, 5, 0, 30).toISOString())).toBe("2026-10-05");
+    expect(localDayKey(new Date(2026, 9, 5, 23, 30).toISOString())).toBe("2026-10-05");
+    expect(localDayKey(new Date(2026, 11, 31, 12, 0).toISOString())).toBe("2026-12-31");
+  });
+  it("maps two times on one local day to one key and a later day to a different key", () => {
+    const morning = new Date(2026, 9, 20, 9, 0).toISOString();
+    const evening = new Date(2026, 9, 20, 21, 30).toISOString();
+    const threeDaysLater = new Date(2026, 9, 23, 9, 0).toISOString();
+    expect(localDayKey(morning)).toBe(localDayKey(evening));
+    expect(localDayKey(morning)).not.toBe(localDayKey(threeDaysLater));
+  });
+});
+
+describe("hasActiveFilters", () => {
+  it("is false for the defaults", () => {
+    expect(hasActiveFilters(DEFAULT_BOARD_FILTERS)).toBe(false);
+  });
+
+  it.each([
+    ["type", filters({ type: "fantasy" })],
+    ["sport", filters({ sport: "basketball_nba" })],
+    ["a from date", filters({ from: "2026-10-20" })],
+    ["a to date", filters({ to: "2026-10-25" })],
+    ["odds", filters({ odds: "even" })],
+  ])("is true when %s is set", (_label, active) => {
+    expect(hasActiveFilters(active)).toBe(true);
   });
 });
 
 describe("availableSports", () => {
+  it("lists each sport once and orders same-kind sports by label", () => {
+    const sports = availableSports([
+      ev({ sport: "americanfootball_nfl" }),
+      ev({ sport: "basketball_nba" }),
+      ev({ sport: "baseball_mlb" }),
+      ev({ sport: "americanfootball_nfl" }),
+    ]);
+    expect(sports.map((s) => s.label)).toEqual(["MLB", "NBA", "NFL"]);
+  });
+
   it("lists distinct sports present, labeled, real before fantasy", () => {
     const events = [
       ev({ sport: "basketball_nba" }),
@@ -228,6 +267,11 @@ describe("filterBoardEvents", () => {
     expect(out.map((e) => e.id)).toEqual(["a", "b"]);
   });
 
+  it("includes an event exactly on the edge of the horizon", () => {
+    const onTheEdge = ev({ id: "edge", commenceTime: new Date(now + 3 * DAY_MS).toISOString() });
+    expect(filterBoardEvents([onTheEdge], filters(), ctx()).map((e) => e.id)).toEqual(["edge"]);
+  });
+
   it("never lets an unparseable date leak into a range or the horizon", () => {
     const bad = ev({ id: "bad", commenceTime: "nonsense" });
     expect(filterBoardEvents([bad], filters(), ctx())).toEqual([]);
@@ -249,6 +293,19 @@ describe("hasMoreBeyondHorizon", () => {
     expect(hasMoreBeyondHorizon([laterNfl], filters({ sport: "basketball_nba" }), base)).toBe(false);
   });
 
+  it("does not count an event the viewer already bet on as more to load", () => {
+    const later = ev({ id: "bet", commenceTime: "2026-10-30T18:00:00Z" });
+    expect(hasMoreBeyondHorizon([later], filters(), { ...base, betEventIds: new Set(["bet"]) })).toBe(false);
+  });
+
+  it("does not count an event with a date that will not parse", () => {
+    expect(hasMoreBeyondHorizon([ev({ commenceTime: "nonsense" })], filters(), base)).toBe(false);
+  });
+
+  it("does not count an event inside the horizon", () => {
+    expect(hasMoreBeyondHorizon([ev({ commenceTime: "2026-10-21T18:00:00Z" })], filters(), base)).toBe(false);
+  });
+
   it("is false when a date range is active", () => {
     const later = ev({ id: "later", commenceTime: "2026-10-30T18:00:00Z" });
     expect(hasMoreBeyondHorizon([later], filters({ from: "2026-10-30", to: "" }), base)).toBe(false);
@@ -268,6 +325,14 @@ describe("isPastFixture", () => {
     expect(isPastFixture(ev({ commenceTime: "2026-10-19T00:00:00Z" }), NOW)).toBe(true);
   });
 
+  it("is false for a kickoff exactly now, which has not passed yet", () => {
+    expect(isPastFixture(ev({ commenceTime: new Date(NOW).toISOString() }), NOW)).toBe(false);
+  });
+
+  it("is false for an upcoming event with a date that will not parse", () => {
+    expect(isPastFixture(ev({ commenceTime: "nonsense" }), NOW)).toBe(false);
+  });
+
   it("is false for an upcoming event still ahead of now", () => {
     expect(isPastFixture(ev({ commenceTime: "2026-10-21T00:00:00Z" }), NOW)).toBe(false);
   });
@@ -280,6 +345,11 @@ describe("isEventBettable", () => {
     expect(
       isEventBettable(ev({ status: "upcoming", commenceTime: "2026-10-21T00:00:00Z" }), NOW),
     ).toBe(true);
+  });
+
+  it("is false at the exact kickoff instant and for a date that will not parse", () => {
+    expect(isEventBettable(ev({ commenceTime: new Date(NOW).toISOString() }), NOW)).toBe(false);
+    expect(isEventBettable(ev({ commenceTime: "nonsense" }), NOW)).toBe(false);
   });
 
   it("is false once a matchup has started, even with a future synthetic commence time", () => {
@@ -342,6 +412,11 @@ describe("revealEvent", () => {
     expect(revealEvent(ev({ commenceTime: at(6) }), filters(), ctx(3), 3).daysAhead).toBe(6);
   });
 
+  it("leaves the horizon alone for an event whose date will not parse", () => {
+    const event = ev({ commenceTime: "nonsense" });
+    expect(revealEvent(event, filters(), ctx(3), 3).daysAhead).toBe(3);
+  });
+
   it("never narrows a horizon that's already wider", () => {
     const event = ev({ commenceTime: at(4) });
     expect(revealEvent(event, filters(), ctx(12), 3).daysAhead).toBe(12);
@@ -382,6 +457,11 @@ describe("withinFutureCap", () => {
       "soon",
       "edge",
     ]);
+  });
+
+  it("keeps an event whose date will not parse, rather than silently dropping it", () => {
+    const unparseable = ev({ id: "odd", commenceTime: "nonsense" });
+    expect(withinFutureCap([unparseable], { now: NOW, maxDays: 30, dayMs: DAY_MS })).toEqual([unparseable]);
   });
 
   it("leaves past fixtures alone", () => {

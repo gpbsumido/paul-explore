@@ -26,6 +26,11 @@ describe("nearestExhibit", () => {
     expect(nearestExhibit(between, [cnTower, cityHall], 6)).toBe(cityHall);
   });
 
+  it("picks the closest whichever order the catalog lists them in", () => {
+    const between = { x: 5.4, z: 0 };
+    expect(nearestExhibit(between, [cityHall, cnTower], 6)).toBe(cityHall);
+  });
+
   it("includes an exhibit exactly at the interaction radius", () => {
     const player = { x: INTERACT_RADIUS, z: 0 };
     expect(nearestExhibit(player, [cnTower])).toBe(cnTower);
