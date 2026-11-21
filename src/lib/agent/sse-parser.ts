@@ -7,24 +7,24 @@ import type { SSEEvent } from "./types";
  * data across chunk boundaries in an internal buffer.
  */
 export function createSSEParser() {
+  // Only the unfinished last line waits here between chunks.
   let buffer = "";
+  // The event being assembled lives across chunks too, so a chunk that ends
+  // between two lines of one event does not drop what came before.
+  let eventType = "message";
+  let dataLines: string[] = [];
+  let id: string | undefined;
+  let retry: number | undefined;
 
   function feed(chunk: string): readonly SSEEvent[] {
     buffer += chunk;
     const events: SSEEvent[] = [];
 
-    // split on newlines but keep processing — a blank line (\n\n) ends an event
+    // The text after the last newline is a line that has not finished arriving.
     const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
 
-    let eventType = "message";
-    let dataLines: string[] = [];
-    let id: string | undefined;
-    let retry: number | undefined;
-    let lastEventEnd = -1;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
+    for (const line of lines) {
       // blank line signals end of an event
       if (line === "") {
         if (dataLines.length > 0) {
@@ -44,7 +44,6 @@ export function createSSEParser() {
         dataLines = [];
         id = undefined;
         retry = undefined;
-        lastEventEnd = i;
         continue;
       }
 
@@ -73,11 +72,6 @@ export function createSSEParser() {
           retry = parseInt(value, 10);
           break;
       }
-    }
-
-    // keep unconsumed data in the buffer for the next chunk
-    if (lastEventEnd >= 0) {
-      buffer = lines.slice(lastEventEnd + 1).join("\n");
     }
 
     return events;
