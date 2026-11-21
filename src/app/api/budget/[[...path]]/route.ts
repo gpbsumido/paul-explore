@@ -47,6 +47,8 @@ async function forward(
   if (!upstream.ok) return upstreamErrorResponse(upstream);
 
   const res = upstream.response;
+  // A 204 cannot carry a body, and building one with a body throws.
+  if (res.status === 204) return new NextResponse(null, { status: 204 });
   const json = await res.json().catch(() => null);
   return NextResponse.json(json ?? {}, { status: res.status });
 }
