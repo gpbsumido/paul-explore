@@ -2,10 +2,17 @@ import "@testing-library/jest-dom";
 import "vitest-axe/extend-expect";
 import * as axeMatchers from "vitest-axe/matchers";
 import "./pinFactories";
+import { recordUnexpectedRequest } from "./unexpectedOutput";
 import { server } from "./server";
 import { beforeAll, afterEach, afterAll, expect, vi } from "vitest";
 
 expect.extend(axeMatchers);
+
+// React only accepts act() when the environment says it is a test. Testing
+// Library sets this for the files that import it; a test that drives
+// hydrateRoot and React's own act directly does not, and logged "not configured
+// to support act" for every call. Setting it here covers all of them.
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 // jsdom gaps that component tests rely on. Individual tests can still override
 // matchMedia (e.g. to emulate reduced motion) with vi.stubGlobal.
@@ -71,6 +78,13 @@ if (typeof HTMLCanvasElement !== "undefined") {
   HTMLCanvasElement.prototype.getContext = () => null;
 }
 
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() =>
+  server.listen({
+    onUnhandledRequest(request, print) {
+      recordUnexpectedRequest(request.method, request.url);
+      print.error();
+    },
+  }),
+);
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
