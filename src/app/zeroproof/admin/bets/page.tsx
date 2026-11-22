@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { isAllowedEmail } from "@/lib/emailAllowlist";
+import { isSiteAdmin } from "@/lib/emailAllowlist";
 import AdminBetsContent from "./AdminBetsContent";
 
 export const metadata: Metadata = {
@@ -21,11 +21,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function AdminBetsPage() {
   const session = await auth0.getSession();
-  const isAdmin = isAllowedEmail({
-    email: session?.user?.email,
-    emailVerified: session?.user?.email_verified === true,
-    allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,
-  });
+  const isAdmin = isSiteAdmin(session);
   if (!isAdmin) notFound();
 
   return <AdminBetsContent />;

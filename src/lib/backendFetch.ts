@@ -3,7 +3,7 @@ import { AccessTokenError, AccessTokenErrorCode } from "@auth0/nextjs-auth0/erro
 import { auth0 } from "@/lib/auth0";
 import { API_URL } from "@/lib/apiUrl";
 import { InvalidSegmentError } from "@/lib/safeSegment";
-import { isAllowedEmail } from "@/lib/emailAllowlist";
+import { isSiteAdmin } from "@/lib/emailAllowlist";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 
 /** The auth context handed to a wrapped BFF handler. */
@@ -81,11 +81,7 @@ export function withAdminBackend<Ctx = unknown>(
 ) {
   return async (request: NextRequest, routeCtx: Ctx): Promise<NextResponse> => {
     const session = await auth0.getSession();
-    const allowed = isAllowedEmail({
-      email: session?.user?.email,
-      emailVerified: session?.user?.email_verified === true,
-      allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,
-    });
+    const allowed = isSiteAdmin(session);
     if (!allowed) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
