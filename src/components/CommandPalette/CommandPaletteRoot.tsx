@@ -51,8 +51,17 @@ export default function CommandPaletteRoot() {
   const handleSelect = useCallback(
     (command: Command) => {
       if (command.kind === "action") {
-        setPreference(theme === "dark" ? "light" : "dark");
-        return;
+        switch (command.action) {
+          case "toggle-theme":
+            setPreference(theme === "dark" ? "light" : "dark");
+            return;
+          default: {
+            // A new action without a case here stops compiling, and if one
+            // still gets through it throws rather than quietly toggling the theme.
+            const unhandledAction: never = command.action;
+            throw new Error(`No handler for palette action "${String(unhandledAction)}"`);
+          }
+        }
       }
       if (command.external) {
         window.open(command.href, "_blank", "noopener,noreferrer");
