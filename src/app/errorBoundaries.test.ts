@@ -43,3 +43,41 @@ describe("error boundaries", () => {
     expect(existsSync(path.join(APP, "global-error.tsx"))).toBe(true);
   });
 });
+
+/**
+ * The first boundary out from a segment: its nearest ancestor with an
+ * error.tsx, or the app root, which always has one.
+ */
+function enclosingBoundary(dir: string): string {
+  const parent = path.dirname(dir);
+  if (parent === APP || existsSync(path.join(parent, "error.tsx"))) return parent;
+  return enclosingBoundary(parent);
+}
+
+/** Whether a layout.tsx sits in `dir` or any segment above it, up to but not including `boundary`. */
+function layoutBetween(dir: string, boundary: string): boolean {
+  if (dir === boundary) return false;
+  return existsSync(path.join(dir, "layout.tsx")) || layoutBetween(path.dirname(dir), boundary);
+}
+
+/**
+ * A boundary renders inside every layout above it. With the root boundary in
+ * place, a nested one only changes anything when a layout sits between the two,
+ * because that layout stays on screen around the error instead of being
+ * thrown away. Thirty identical copies of the root boundary had piled up on
+ * feature routes with no layout of their own, each one a file to keep in step
+ * for no visible difference.
+ */
+describe("nested error boundaries", () => {
+  const nested = boundaries(APP)
+    .map((file) => path.dirname(file))
+    .filter((dir) => dir !== APP);
+
+  it.each(nested.map((dir) => path.relative(process.cwd(), dir)))(
+    "%s keeps a layout on screen that the next boundary out would drop",
+    (relativeDir) => {
+      const dir = path.join(process.cwd(), relativeDir);
+      expect(layoutBetween(dir, enclosingBoundary(dir))).toBe(true);
+    },
+  );
+});
