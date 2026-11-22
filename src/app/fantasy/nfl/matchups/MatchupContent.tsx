@@ -20,11 +20,12 @@ import {
 import FantasyNflNav from "../FantasyNflNav";
 import PlaysTicker, { type PlaySelection } from "./PlaysTicker";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
+import { currentNflSeason } from "@/lib/nflSeason";
 
 // ---- Constants ----
 
 const FIRST_YEAR = 2025;
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = currentNflSeason();
 
 const SEASONS = (() => {
   const out: number[] = [];
