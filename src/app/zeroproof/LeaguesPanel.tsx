@@ -84,11 +84,13 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
     mutationFn: async () => {
       const startingBankrollCents = centsFromDollars(bankroll);
       if (startingBankrollCents == null) throw new Error("Enter a starting bankroll");
+      const maxMembersCount = Number.parseInt(maxMembers, 10);
+      if (Number.isNaN(maxMembersCount) || maxMembersCount < 2) throw new Error("Max members must be at least 2");
       const body: Record<string, unknown> = {
         name: name.trim(),
         visibility,
         startingBankrollCents,
-        maxMembers: Number.parseInt(maxMembers, 10),
+        maxMembers: maxMembersCount,
         winCondition,
       };
       if (winCondition === "threshold") {
@@ -179,7 +181,11 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
           </label>
           <input
             id="lg-max"
+            type="number"
             inputMode="numeric"
+            required
+            min={2}
+            step={1}
             value={maxMembers}
             onChange={(event) => setMaxMembers(event.target.value)}
             className={`${controlClass} w-24`}

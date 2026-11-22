@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -269,8 +269,6 @@ describe("LeaguesPanel create form", () => {
     ["Starting bankroll ($)", "-5", "Enter a starting bankroll"],
     ["Target ($)", "", "Enter a target amount"],
     ["Target ($)", "0", "Enter a target amount"],
-    ["Max members", "", "Max members must be at least 2"],
-    ["Max members", "1", "Max members must be at least 2"],
   ])("refuses %s of %j without calling the server", async (label, value, message) => {
     const bodies = recordCreates();
     renderSignedIn();
@@ -291,6 +289,24 @@ describe("LeaguesPanel create form", () => {
     const maxMembers = screen.getByLabelText("Max members");
     expect(maxMembers).toBeRequired();
     expect(maxMembers).toHaveAttribute("min", "2");
+  });
+
+  // required and min stop the submit in a browser (jsdom too), so submit the
+  // form directly to reach the check behind them.
+  it.each(["", "1"])("refuses a Max members of %j even if the browser lets the form through", async (value) => {
+    const bodies = recordCreates();
+    renderSignedIn();
+    const user = await openForm();
+    const maxMembers = screen.getByLabelText("Max members");
+    await user.clear(maxMembers);
+    if (value) await user.type(maxMembers, value);
+    const form = maxMembers.closest("form");
+    if (!form) throw new Error("Max members sits outside the create form");
+
+    fireEvent.submit(form);
+
+    expect(await screen.findByText("Max members must be at least 2")).toBeInTheDocument();
+    expect(bodies).toHaveLength(0);
   });
 
   it("asks for an end date on a timeline league instead of sending none", async () => {
