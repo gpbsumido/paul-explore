@@ -12,7 +12,7 @@ import EspnLeagueForm from "../../EspnLeagueForm";
 
 async function fetchEspnLeagues(): Promise<EspnLeague[]> {
   const res = await fetch("/api/zeroproof/espn-leagues");
-  if (!res.ok) throw new Error(`Couldn't load ESPN leagues (${res.status})`);
+  if (!res.ok) throw await responseError(res, `Couldn't load ESPN leagues (${res.status})`);
   return espnLeaguesResponseSchema.parse(await res.json()).leagues;
 }
 
