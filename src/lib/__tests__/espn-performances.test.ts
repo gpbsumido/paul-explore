@@ -126,6 +126,22 @@ describe("fantasyLeagueUrl", () => {
     expect(url).toContain("/games/wfba/seasons/2026/");
     expect(url).toContain("/leagues/886603882");
   });
+
+  it("asks for teams, rosters and settings by default", () => {
+    expect(new URL(fantasyLeagueUrl("nba", "2026")).searchParams.getAll("view")).toEqual([
+      "mTeam",
+      "mRoster",
+      "mSettings",
+    ]);
+  });
+
+  it("asks for other views and one scoring period when the caller needs a week", () => {
+    const url = new URL(
+      fantasyLeagueUrl("nfl", "2026", { views: ["mRoster", "mMatchup"], scoringPeriodId: 7 }),
+    );
+    expect(url.searchParams.getAll("view")).toEqual(["mRoster", "mMatchup"]);
+    expect(url.searchParams.get("scoringPeriodId")).toBe("7");
+  });
 });
 
 describe("fantasyLeagueUrl views", () => {
