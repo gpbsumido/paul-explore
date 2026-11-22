@@ -773,7 +773,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
 
 // Mini changelog feed for the hub card: a category dot, a title, and a version
 // badge, echoing the real /updates entries.
-const UPDATES_PREVIEW = [
+export const UPDATES_PREVIEW = [
   {
     title: "Sets load from our catalog",
     tone: "var(--color-update-fix)",
