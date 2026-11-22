@@ -6,7 +6,7 @@
  */
 import { z } from "zod";
 import { fetchUpstream } from "./upstream";
-import { FANTASY_LEAGUES } from "./espn-performances";
+import { fantasyLeagueUrl } from "./espn-performances";
 import { generateCards, type GeneratedCard, type PlayerPerformance } from "./fantasy-cards";
 import { sortCards } from "./card-view";
 
@@ -135,9 +135,10 @@ export function performancesFromWeek(
 const MAX_WEEK_STEPS = 6;
 
 function weekUrl(season: string, week: number): string {
-  const { game, leagueId } = FANTASY_LEAGUES.nfl;
-  const views = ["mRoster", "mSettings", "mTeam", "mMatchup"].map((v) => `view=${v}`).join("&");
-  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?${views}&scoringPeriodId=${week}`;
+  return fantasyLeagueUrl("nfl", season, {
+    views: ["mRoster", "mSettings", "mTeam", "mMatchup"],
+    scoringPeriodId: week,
+  });
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {
