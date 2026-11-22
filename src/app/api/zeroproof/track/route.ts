@@ -16,19 +16,14 @@ export async function POST(request: NextRequest) {
   const result = await parseBody(request, zeroproofTrackBatchSchema, MAX_BYTES);
   if (!result.ok) return result.response;
 
-  try {
-    const upstream = await fetchUpstream(`${API_URL}/api/zeroproof/track`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(result.data),
-    });
-    if (!upstream.ok) return upstreamErrorResponse(upstream);
+  const upstream = await fetchUpstream(`${API_URL}/api/zeroproof/track`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(result.data),
+  });
+  if (!upstream.ok) return upstreamErrorResponse(upstream);
 
-    const res = upstream.response;
-    const data = await res.json().catch(() => null);
-    return NextResponse.json(data ?? {}, { status: res.status });
-  } catch (err) {
-    console.error("[zeroproof track BFF] POST — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
+  const res = upstream.response;
+  const data = await res.json().catch(() => null);
+  return NextResponse.json(data ?? {}, { status: res.status });
 }
