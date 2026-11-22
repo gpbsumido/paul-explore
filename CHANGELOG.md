@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.35
+
+- Every rate limit is enforced by the proxy from the one rule table. The proxy ran its own copy of the matching loop, so the rule tests checked `matchRateLimit`, a function the proxy never called, and the one-minute window lived in proxy.ts apart from the rules. It calls `matchRateLimit` now, and a new test floods the proxy itself.
+- ZeroProof telemetry had a second limiter inside its route, which ran after the proxy had already counted the batch against the general API cap. Its 60-a-minute cap is a rule in the table now, so a flood is refused before the body is read and the 429 carries the same `Retry-After` header as the rest.
+
 ## 2026-11-22 - version 9.2.34
 
 - robots.txt reads its login-gated paths from the list the proxy enforces. The hand-kept copy named `/settings` and `/calendar` and missed the five added since, `/to-do`, `/interviewee`, `/zeroproof/admin`, `/check-in/sites` and `/check-in/display`, so crawlers spent their budget on login redirects. `/check-in` itself stays crawlable, since a volunteer arriving from a poster should find it.
