@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import type { ReviewState } from "@/lib/interviewee/reviewState";
+import { createLocalStorageStore } from "@/lib/localStorageStore";
 
 const STORAGE_KEY = "interviewee-answered";
 
@@ -9,19 +10,6 @@ const STORAGE_KEY = "interviewee-answered";
 type Answered = { reviewed: ReviewState };
 
 const EMPTY: Answered = { reviewed: {} };
-
-/**
- * A tiny external store over localStorage, same pattern as useSourcePrefs.
- *
- * The snapshot has to be referentially stable between reads or
- * useSyncExternalStore loops forever, so the parsed value is cached against the
- * raw string and only rebuilt when the stored string actually changes. Keying
- * on the raw string (rather than a private mutable flag) means clearing
- * localStorage — which a test does between cases — resets the store too.
- */
-let cachedRaw: string | null | undefined;
-let cachedValue: Answered = EMPTY;
-const listeners = new Set<() => void>();
 
 /** Keep only string keys with finite-number values, from either storage shape. */
 function toReviewState(source: Record<string, unknown>): ReviewState {
@@ -54,36 +42,7 @@ function parse(raw: string | null): Answered {
   return EMPTY;
 }
 
-function getSnapshot(): Answered {
-  const raw =
-    typeof window === "undefined" ? null : window.localStorage.getItem(STORAGE_KEY);
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    cachedValue = parse(raw);
-  }
-  return cachedValue;
-}
-
-const getServerSnapshot = (): Answered => EMPTY;
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-}
-
-function write(next: Answered): void {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // A full or blocked storage shouldn't break the deck.
-  }
-  cachedRaw =
-    typeof window === "undefined" ? null : window.localStorage.getItem(STORAGE_KEY);
-  cachedValue = next;
-  listeners.forEach((listener) => listener());
-}
+const store = createLocalStorageStore({ key: STORAGE_KEY, parse, empty: EMPTY });
 
 /** Now, in epoch ms, or 0 on the server so a snapshot is never time-dependent. */
 const nowMs = (): number => (typeof window === "undefined" ? 0 : Date.now());
@@ -95,7 +54,7 @@ const nowMs = (): number => (typeof window === "undefined" ? 0 : Date.now());
  * whole map to another machine without a server.
  */
 export function useAnswered() {
-  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
 
   const isAnswered = useCallback(
     (id: string): boolean => id in state.reviewed,
@@ -115,14 +74,14 @@ export function useAnswered() {
       } else {
         next[id] = nowMs();
       }
-      write({ reviewed: next });
+      store.write({ reviewed: next });
     },
     [state.reviewed],
   );
 
   const importReviewed = useCallback(
     (incoming: ReviewState): void =>
-      write({ reviewed: { ...state.reviewed, ...incoming } }),
+      store.write({ reviewed: { ...state.reviewed, ...incoming } }),
     [state.reviewed],
   );
 
