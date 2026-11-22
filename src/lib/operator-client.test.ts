@@ -10,6 +10,8 @@ import {
   OperatorWriteTimeoutError,
 } from "@/lib/operator-client";
 import { buildStore } from "@/test/factories/operator";
+import { hangEveryFetchUntilItsDeadline, watchSettling } from "@/test/hungUpstream";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import { InvalidSegmentError } from "@/lib/safeSegment";
 
 // These calls carry OPERATOR_SERVICE_TOKEN and are reachable unauthenticated,
@@ -239,16 +241,22 @@ describe("operator-client unreadable write responses", () => {
  * the seed could answer.
  */
 describe("operator-client write timeout", () => {
-  it("bounds a write with an abort signal", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
-    await patchDismiss("alert-1").catch(() => {
-      // the body shape isn't the point; only that the write carries a deadline
-    });
+  it("gives up on a hung write at UPSTREAM_TIMEOUT_MS and not before", async () => {
+    hangEveryFetchUntilItsDeadline();
 
-    const init = fetchMock.mock.calls[0][1] as RequestInit;
-    expect(init.signal).toBeInstanceOf(AbortSignal);
+    const write = patchDismiss("alert-1");
+    const watch = watchSettling(write);
+
+    await vi.advanceTimersByTimeAsync(UPSTREAM_TIMEOUT_MS - 1);
+    expect(watch.settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(write).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
   });
 
   it("names a write that ran out of time as its own error", async () => {
