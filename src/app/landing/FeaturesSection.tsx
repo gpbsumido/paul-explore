@@ -13,6 +13,7 @@ import {
   headingWipe,
   fadeUp,
 } from "@/lib/animations";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 const HOVER_ANIMATION = { y: -4, transition: { ...spring.snappy } };
 
@@ -183,11 +184,11 @@ function FeatureCard({
   );
 
   if (href) {
-    const needsFullNav = href.startsWith("http") || href.startsWith("/auth/");
+    const needsFullNav = isExternalHref(href) || href.startsWith("/auth/");
     return needsFullNav ? (
       <a
         href={href}
-        {...(href.startsWith("http")
+        {...(isExternalHref(href)
           ? { target: "_blank", rel: "noopener noreferrer" }
           : {})}
         className="block h-full"

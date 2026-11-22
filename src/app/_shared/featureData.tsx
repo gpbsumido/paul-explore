@@ -22,6 +22,7 @@ export {
 } from "./featureData.data";
 // Only what the preview components below actually render.
 import { PLAYOFF_ROWS, TCG_CARDS, POCKET_EXPANSIONS } from "./featureData.data";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 // ---------------------------------------------------------------------------
 // Feature & thought data
@@ -971,7 +972,7 @@ export function FeatureCard({
           ) : (
             <div />
           )}
-          {feature.href.startsWith("http") ? (
+          {isExternalHref(feature.href) ? (
             <a
               href={feature.href}
               target="_blank"

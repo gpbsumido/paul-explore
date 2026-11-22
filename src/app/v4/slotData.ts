@@ -1,6 +1,7 @@
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 /** A reel-3 item: the write-up behind whatever is selected in reel 2. */
 export type SlotThought = {
@@ -105,7 +106,7 @@ export function buildSlots(): SlotCategory[] {
         id: `feat:${feature.id}`,
         label: feature.title,
         href: feature.href,
-        external: feature.href.startsWith("http"),
+        external: isExternalHref(feature.href),
         color: feature.color,
         blurb: feature.description,
         thoughts: note ? [toSlotThought(note)] : [],
