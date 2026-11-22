@@ -2,8 +2,8 @@
 
 ## 2026-11-22 - version 9.2.46
 
-- Court Vision and Player Stats load teams and rosters through one `useNbaRoster` module instead of two hand-copied queries. Both read the body with `json.data?.data ?? json.data ?? []` because portfolio_api wraps the two lists differently, and that guess also turned any other body into an empty team picker with no error. The module parses each route's real shape and fails loudly when it doesn't match.
-- A failed teams or roster load shows the route's own reason rather than a fixed "Failed to load teams".
+- Court Vision and Player Stats load teams and rosters through one `useNbaRoster` module instead of two hand-copied queries. Both read the body with `json.data?.data ?? json.data ?? []` because portfolio_api wraps the two lists differently, and that guess also turned any other body into an empty team picker with no error. The module parses each route's real shape and fails loudly when it doesn't match, with a test for each list that fails if the old guess comes back.
+- On Player Stats, a failed teams or roster load shows the route's own reason rather than a fixed "Failed to load teams". Court Vision still shows its fixed "Failed to load teams" and "Failed to load players".
 
 ## 2026-11-22 - version 9.2.45
 
