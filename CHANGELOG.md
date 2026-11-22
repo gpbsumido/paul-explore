@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.45
+
+- A failed operator write says why it failed, once. Dismiss, restock, reorder and re-sync threw a fixed string, so the server's reason never reached the screen, including the new "the change may have been saved, so reload" sentence on a timeout. They throw the route's own message now. The tabs also showed a second, local toast next to the app-wide one, which is gone.
+- Restock All and Acknowledge All don't claim success when the write failed, and neither they nor a single dismissal leave the rejection unhandled. Callers that have nothing to add pass `failureAlreadyToasted`, which says out loud that the app-wide handler already covered it.
+- A restock refreshes the activity feed it just wrote to, and finishing a restock session refreshes restock history. Both had stayed stale until something else refetched them.
+
 ## 2026-11-22 - version 9.2.44
 
 - Operator writes and flag writes give up after eight seconds. They had no deadline, so a hung portfolio_api held the route open until the platform killed it. The flags audit read had none either.
