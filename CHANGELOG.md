@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.51
 
-- The landing names what the site is built on. Under the figures in "Under the surface" there's now a row of the frameworks and testing tools behind it, from Next.js and TanStack Query through Vitest, Playwright and Stryker. It's a plain list rather than a scrolling ticker, because a strip that moves on its own needs a pause control and the ticker only stops on hover. Every label is backed by a test that the package it names is actually installed, so the list can't outlive a dependency.
+- The landing names what the site is built on. Under the figures in "Under the surface" there's now a phone-framed rail of the runtime and testing tools behind it, from Next.js and TanStack Query through Vitest, Playwright and Stryker. It looks like a ticker but only moves when the visitor scrolls, swipes or presses its buttons, because a strip that moves on its own needs a pause control and the design system's ticker only stops on hover. The vitals link above it also gets its dark-mode colour back; the package was colouring the inner link itself, which axe had been unable to see until the rail moved the layout. Every label is backed by a test that the package it names is actually installed, so the list can't outlive a dependency.
 
 ## 2026-11-22 - version 9.2.50
 
