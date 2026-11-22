@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildGraphData, buildLayeredLayout } from "./graphData";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 describe("buildGraphData", () => {
   const data = buildGraphData();
@@ -90,7 +91,7 @@ describe("buildGraphData", () => {
     for (const feature of FEATURES) {
       const node = byId.get(`feat:${feature.id}`);
       expect(node?.href, feature.title).toBe(feature.href);
-      expect(node?.external, feature.title).toBe(feature.href.startsWith("http"));
+      expect(node?.external, feature.title).toBe(isExternalHref(feature.href));
     }
     expect(data.nodes.some((n) => n.external)).toBe(true);
   });

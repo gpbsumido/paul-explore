@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildCommandRegistry } from "../registry";
 import type { Command } from "../types";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 describe("buildCommandRegistry", () => {
   const registry = buildCommandRegistry();
@@ -43,14 +44,14 @@ describe("buildCommandRegistry", () => {
   it("marks external feature links", () => {
     const external = registry.filter((c) => c.kind === "link" && c.external);
     expect(external.length).toBeGreaterThan(0);
-    expect(external.every((c) => hrefOf(c)?.startsWith("http"))).toBe(true);
+    expect(external.every((c) => isExternalHref(hrefOf(c) ?? ""))).toBe(true);
   });
 
   it("makes every command either a link with a target or a known action", () => {
     for (const command of registry) {
       if (command.kind === "link") {
         expect(command.href, command.id).toMatch(/^(\/|https:\/\/)/);
-        expect(command.external, command.id).toBe(command.href.startsWith("http"));
+        expect(command.external, command.id).toBe(isExternalHref(command.href));
       } else {
         expect(command.kind, command.id).toBe("action");
         expect(command.action, command.id).toBe("toggle-theme");
