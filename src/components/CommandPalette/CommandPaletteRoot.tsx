@@ -50,11 +50,10 @@ export default function CommandPaletteRoot() {
 
   const handleSelect = useCallback(
     (command: Command) => {
-      if (command.actionId === "toggle-theme") {
+      if (command.kind === "action") {
         setPreference(theme === "dark" ? "light" : "dark");
         return;
       }
-      if (!command.href) return;
       if (command.external) {
         window.open(command.href, "_blank", "noopener,noreferrer");
         return;

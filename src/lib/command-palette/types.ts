@@ -15,11 +15,11 @@ export type MatchRange = {
 /** Section a command is displayed under. */
 export type CommandGroup = "Pages" | "Actions" | "Dev Notes";
 
-/**
- * A single searchable command. Either a navigation target (`href`) or an
- * in-app action (`actionId`) the React shell knows how to run.
- */
-export type Command = {
+/** The in-app actions the React shell knows how to run. */
+export type CommandAction = "toggle-theme";
+
+/** What every command has, whatever choosing it does. */
+type CommandBase = {
   /** Stable unique id, also used to build the option element id. */
   id: string;
   title: string;
@@ -28,15 +28,23 @@ export type Command = {
   group: CommandGroup;
   /** Extra terms matched when the title itself misses. */
   keywords: string[];
-  /** Route or URL to navigate to when selected. */
-  href?: string;
-  /** Identifier for a non-navigation action (e.g. "toggle-theme"). */
-  actionId?: string;
-  /** True when `href` points to an external site. */
-  external?: boolean;
   /** Accent color for the leading dot. */
   color?: string;
 };
+
+/**
+ * A single searchable command: a link to a route or another site, or an in-app
+ * action. One or the other, so a command can't be built that does nothing.
+ */
+export type Command =
+  | (CommandBase & {
+      kind: "link";
+      /** Route or URL to navigate to when selected. */
+      href: string;
+      /** True when `href` points to another site, which opens in a new tab. */
+      external: boolean;
+    })
+  | (CommandBase & { kind: "action"; action: CommandAction });
 
 /** A command paired with its match score and highlight ranges for a query. */
 export type RankedCommand = {
