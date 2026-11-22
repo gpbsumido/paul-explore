@@ -29,19 +29,19 @@ const leagueParams = { params: Promise.resolve({ id: "lg-1" }) };
 const ROUTES = [
   {
     name: "place bet",
-    call: async (body: unknown) => (await import("./bets/route")).POST(post("/api/zeroproof/bets", body)),
+    call: async (body: unknown) => (await import("./bets/route")).POST(post("/api/zeroproof/bets", body), {}),
     valid: { walletId: "w1", eventId: "e1", market: "h2h", selection: "Raptors", stakeCents: 500 },
     invalid: { walletId: "w1", eventId: "e1", market: "moneyline", selection: "Raptors", stakeCents: 500 },
   },
   {
     name: "open wallet",
-    call: async (body: unknown) => (await import("./wallets/route")).POST(post("/api/zeroproof/wallets", body)),
+    call: async (body: unknown) => (await import("./wallets/route")).POST(post("/api/zeroproof/wallets", body), {}),
     valid: { mode: "season", depositCents: 2000 },
     invalid: { mode: "season", depositCents: 20.5 },
   },
   {
     name: "create league",
-    call: async (body: unknown) => (await import("./leagues/route")).POST(post("/api/zeroproof/leagues", body)),
+    call: async (body: unknown) => (await import("./leagues/route")).POST(post("/api/zeroproof/leagues", body), {}),
     valid: { name: "Friday", visibility: "public", startingBankrollCents: 10000, maxMembers: 8, winCondition: "threshold", thresholdCents: 20000 },
     invalid: { name: "", visibility: "public", startingBankrollCents: 10000, maxMembers: 8, winCondition: "threshold" },
   },
