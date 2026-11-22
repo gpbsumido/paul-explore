@@ -763,7 +763,7 @@ if (isSessionTimeout(false, marker)) {               // always false`}
           <C>false</C> is gone.
         </p>
 
-        <h3 className={beat}>Three tests that passed whatever the code did</h3>
+        <h3 className={beat}>Two tests that passed whatever the code did</h3>
         <pre className={pre}>
           {`expect(
   !needsEntry || shipped.has(version),
@@ -797,7 +797,7 @@ if (isSessionTimeout(false, marker)) {               // always false`}
           "A second pass over the fixes, which found seven more of the same shapes one level up: fallbacks that hid which data was showing, failures shown as empty states, eleven session queries, two season rules, a setup step that skipped instead of failing, an inherited og:url and a count-up that froze.",
           "The API half: calendar sync wired back up, the database tests running in CI, bets that can't overdraw or pay twice, a Google connect bound to the person finishing it, typed reads of the signed-in user, 4xx for caller mistakes, and card updates that bind.",
           "The first redesign stack: one way to read a failed response in the browser, one rate-limit table the proxy actually uses, a Try again that refetches, root error boundaries, one signed-in catch-all proxy with a body cap, robots.txt and the admin check reading the lists they used to copy, and a dead-code pass.",
-          "The second stack: a test count that regenerates on every build, one error boundary where twenty-nine said the same thing, write timeouts that never replay against the seed, NBA queries that parse what the API sends, a proxy whose exits share two helpers, and guards that can fail.",
+          "The second stack: a test count that regenerates on every build, three error boundaries where thirty-one said the same thing, write timeouts that never replay against the seed, NBA queries that parse what the API sends, a proxy whose exits share two helpers, and guards that can fail.",
         ]}
         couldImprove={[
           "Client fetches read a failure one way now, but the server side is only half done. The ZeroProof routes still forward request bodies without a schema, and the operator reads (on purpose, they sit on the render path) and the risk route still keep their own five-second timeouts.",
