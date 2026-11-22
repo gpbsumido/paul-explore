@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.39
+
+- The NFL matchups and trade pages default to the season ESPN is actually running. They used the calendar year, but ESPN names a football season by the year it kicks off, so from New Year's (mid fantasy playoffs) until September they asked for a season with no games in it. `currentNflSeason()` rolls over at kickoff, next to the NBA one that already rolls over in October.
+
 ## 2026-11-22 - version 9.2.38
 
 - The codebase-audit write-up has a dated update on the first redesign stack: why failures now carry the server's reason, why the rate-limit tests were checking a function the proxy never called, why "Try again" didn't, and how two copies of one proxy had drifted apart before either broke: the test that failed first shows a 204 that would have come back as a 502.
