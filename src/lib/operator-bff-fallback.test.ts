@@ -51,6 +51,7 @@ import * as seed from "@/lib/operator-data";
 import { buildAlert, buildInventoryItem, buildStore } from "@/test/factories/operator";
 import type { Alert, InventoryItem } from "@/types/operator";
 import { FEE_MODEL } from "@/lib/operator-finance";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 import {
   applyPlanogramUpdate,
   applyRestockSession,
@@ -89,11 +90,33 @@ beforeEach(() => {
 
 afterEach(() => vi.restoreAllMocks());
 
+// Every call in this file runs with the backend down, so nearly every test makes
+// the BFF announce that it fell back to the seed. That announcement is the
+// behaviour, and it is pinned by the test below; here it is allowed, and
+// anything else the BFF logs still fails the test that caused it.
+afterEach(() => {
+  const announcedFallback = /^\[operator\] \w+ fell back to seed data: /;
+  const somethingElse = forgiveUnexpectedOutput().filter(
+    (line) => !announcedFallback.test(line),
+  );
+  expect(somethingElse).toEqual([]);
+});
+
 async function firstStoreId(): Promise<string> {
   const stores = await loadStores();
   expect(stores.length).toBeGreaterThan(0);
   return stores[0].id;
 }
+
+describe("a fallback says it happened", () => {
+  it("names the call that fell back and why, so the page is not mistaken for live data", async () => {
+    await loadStores();
+
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[operator] loadStores fell back to seed data: portfolio_api unreachable. The page will render, but it is not showing what the API holds.",
+    ]);
+  });
+});
 
 describe("restock sessions with the API down", () => {
   it("runs a whole session end to end against the seed", async () => {
@@ -412,6 +435,10 @@ describe("a rejected write is a misconfiguration, not an outage", () => {
     await expect(openRestockSession(storeId)).rejects.toMatchObject({
       status: 401,
     });
+    const tokenWarnings = forgiveUnexpectedOutput().filter((line) =>
+      line.includes("OPERATOR_SERVICE_TOKEN"),
+    );
+    expect(tokenWarnings).toHaveLength(1);
   });
 
   it("says what to check rather than failing silently", async () => {

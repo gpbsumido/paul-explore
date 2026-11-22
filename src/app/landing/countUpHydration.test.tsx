@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { act, type ComponentType } from "react";
 import { renderToString } from "react-dom/server";
 import { hydrateRoot } from "react-dom/client";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 /**
  * The landing's stat count-ups rendered a plain span with "—" for a
@@ -67,6 +68,13 @@ describe.each(["./VitalsSection", "./NbaSection"] as const)(
       });
 
       expect(onRecoverableError).not.toHaveBeenCalled();
+      // The animation library tells a developer when it sees reduced motion
+      // switched on, which is the state this test sets up on purpose. Nothing
+      // else may be logged.
+      const otherOutput = forgiveUnexpectedOutput().filter(
+        (line) => !line.includes("You have Reduced Motion enabled on your device"),
+      );
+      expect(otherOutput).toEqual([]);
     });
   },
 );

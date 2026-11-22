@@ -37,6 +37,18 @@ const sharedTest = {
   // "Test timed out" on a run where nothing was wrong. 15s covers that without
   // hiding a hang for long.
   testTimeout: 15_000,
+  // Importing the real Auth0 client with no config makes the SDK print a
+  // "Not all required options were provided" warning for each test file that
+  // touches it (twelve files in a full run). These are the same placeholders
+  // the CI build jobs use; no test talks to Auth0, so any well-formed value
+  // does.
+  env: {
+    AUTH0_SECRET: "ci-placeholder-secret-32-characters!!",
+    AUTH0_DOMAIN: "placeholder.auth0.com",
+    AUTH0_CLIENT_ID: "ci-placeholder-client-id",
+    AUTH0_CLIENT_SECRET: "ci-placeholder-client-secret",
+    APP_BASE_URL: "http://localhost:3000",
+  },
   // Tests run in a random order on CI. Three files only passed in the order
   // they were written, because an earlier test left a counter or a cache
   // behind. The seed is printed below, so a red run replays with

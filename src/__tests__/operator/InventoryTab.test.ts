@@ -10,6 +10,11 @@ import InventoryRow from "@/components/operator/InventoryRow";
 import { buildInventoryItem } from "@/test/factories/operator";
 import type { InventoryItem } from "@/types/operator";
 
+vi.mock("recharts", async (importOriginal) => {
+  const { withFixedChartSize } = await import("@/test/chartSize");
+  return withFixedChartSize(await importOriginal<typeof import("recharts")>());
+});
+
 // ---------------------------------------------------------------------------
 // These tests verify the behavior the InventoryTab rows rely on: which items
 // qualify for restocking, which get visual urgency treatment, and how summary

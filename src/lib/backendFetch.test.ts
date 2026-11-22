@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { NextResponse, type NextRequest } from "next/server";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 vi.mock("@/lib/auth0", () => ({
   auth0: { getAccessToken: vi.fn(), getSession: vi.fn() },
@@ -35,6 +36,7 @@ describe("withBackend", () => {
     const res = await route(req(), undefined);
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "Not authenticated" });
+    expect(forgiveUnexpectedOutput()).toEqual(["[x] auth failed: Error: no session"]);
   });
 
   it("never runs the handler when there is no token", async () => {
@@ -45,6 +47,7 @@ describe("withBackend", () => {
     await route(req(), undefined);
 
     expect(handler).not.toHaveBeenCalled();
+    expect(forgiveUnexpectedOutput()).toEqual(["[x] auth failed: Error: no session"]);
   });
 
   it("turns a thrown backend/network error into a clean 502", async () => {
@@ -55,6 +58,7 @@ describe("withBackend", () => {
     const res = await route(req(), undefined);
     expect(res.status).toBe(502);
     expect(await res.json()).toEqual({ error: "Backend unavailable" });
+    expect(forgiveUnexpectedOutput()).toEqual(["[x] backend unavailable: Error: ECONNREFUSED"]);
   });
 
   it("passes the auth context through and returns the handler's response", async () => {

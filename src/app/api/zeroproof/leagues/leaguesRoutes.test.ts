@@ -12,6 +12,7 @@ vi.mock("@/lib/auth0", () => ({
 import { NextRequest } from "next/server";
 import { fetchUpstream } from "@/lib/upstream";
 import { auth0 } from "@/lib/auth0";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const upstream = (body: unknown, status = 200) =>
   ({
@@ -70,7 +71,10 @@ describe("GET /api/zeroproof/leagues", () => {
   });
 
   it("sends a signed-in visitor's token, and nothing for a signed-out one", async () => {
-    vi.mocked(fetchUpstream).mockResolvedValue(upstream({ leagues: [] }));
+    // A fresh Response per call: a body can be read once, so handing the same
+    // one to both requests made the second throw "Body has already been read"
+    // and the route quietly answered 502, which this test never looked at.
+    vi.mocked(fetchUpstream).mockImplementation(async () => upstream({ leagues: [] }));
     const { GET } = await import("./route");
 
     signedIn();
@@ -159,6 +163,9 @@ describe("POST /api/zeroproof/leagues", () => {
     );
     expect(res.status).toBe(401);
     expect(fetchUpstream).not.toHaveBeenCalled();
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[zeroproof create league] auth failed: Error: no session",
+    ]);
   });
 });
 
@@ -268,6 +275,9 @@ describe("POST /api/zeroproof/leagues/:id/join", () => {
     );
     expect(res.status).toBe(401);
     expect(fetchUpstream).not.toHaveBeenCalled();
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[zeroproof join league] auth failed: Error: no session",
+    ]);
   });
 });
 
@@ -289,6 +299,9 @@ describe("GET /api/zeroproof/leagues/mine", () => {
     const res = await GET(new NextRequest("http://localhost/api/zeroproof/leagues/mine"), {});
     expect(res.status).toBe(401);
     expect(fetchUpstream).not.toHaveBeenCalled();
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[zeroproof my leagues] auth failed: Error: no session",
+    ]);
   });
 
   it("sends the caller's token and passes a failure through as a labelled error", async () => {

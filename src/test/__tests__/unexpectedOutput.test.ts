@@ -18,4 +18,19 @@ describe("unexpected console output", () => {
 
     expect(forgiveUnexpectedOutput()).toHaveLength(1);
   });
+
+  it("records a warning as well as an error, and only the first line of a long one", () => {
+    console.warn("Encountered two children with the same key, `5`.\n    at Grid");
+
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "Encountered two children with the same key, `5`.",
+    ]);
+  });
+
+  it("hands the output over once, so the next test starts clean", () => {
+    console.error("first");
+    forgiveUnexpectedOutput();
+
+    expect(forgiveUnexpectedOutput()).toEqual([]);
+  });
 });

@@ -18,6 +18,7 @@ import { loadNflWeek, loadNflSeason } from "@/lib/espn-nfl";
 import { nbaFantasyLeagueUrl } from "@/lib/espn-performances";
 import type { GeneratedCard } from "@/lib/fantasy-cards";
 import { POST } from "./route";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 /**
  * The rip regenerates the slate on the server so the client can't choose its
@@ -55,12 +56,17 @@ function buildCard(playerId: number): GeneratedCard {
   };
 }
 
+// The default slate has cards in it. The tests that only check which loader ran
+// used to hand back an empty one, so each of them also ran the route's "empty
+// pool" branch and logged an error nobody was reading.
+const slateWithCards = { ...emptySlate, cards: [1, 2, 3, 4, 5, 6, 7, 8].map(buildCard) };
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(auth0.getAccessToken).mockResolvedValue({ token: "t", expiresAt: 0 });
-  vi.mocked(loadNightlySlate).mockResolvedValue(emptySlate);
-  vi.mocked(loadNflWeek).mockResolvedValue(emptySlate);
-  vi.mocked(loadNflSeason).mockResolvedValue(emptySlate);
+  vi.mocked(loadNightlySlate).mockResolvedValue(slateWithCards);
+  vi.mocked(loadNflWeek).mockResolvedValue(slateWithCards);
+  vi.mocked(loadNflSeason).mockResolvedValue(slateWithCards);
   vi.mocked(fetchUpstream).mockResolvedValue({
     ok: true,
     response: new Response(JSON.stringify({}), { status: 200 }),
@@ -73,6 +79,11 @@ describe("POST /api/card-lab/packs/open draws from the slate on screen", () => {
 
     expect(loadNightlySlate).not.toHaveBeenCalled();
     expect(vi.mocked(fetchUpstream).mock.calls[0][0]).toBe(nbaFantasyLeagueUrl("2024"));
+    // This one reads the fantasy league through the real loader, and the mocked
+    // answer is an empty object, so the pool really is empty and the route says so.
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("[card-lab open] empty pool"),
+    ]);
   });
 
   it("rips a nightly slate from the season asked for", async () => {

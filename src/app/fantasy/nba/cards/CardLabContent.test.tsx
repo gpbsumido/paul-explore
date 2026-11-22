@@ -8,8 +8,11 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/fantasy/nba/cards" }));
 vi.mock("./PackBar", () => ({ default: () => null }));
 
+// The id is built the way the app builds it (sport, player, period), so two
+// players are two cards. A fixed id here made every card in a test share one,
+// and React warned about two children with the same key.
 const card = (o: Partial<GeneratedCard> = {}): GeneratedCard => ({
-  id: "nba-1-2026-04-17",
+  id: `nba-${o.playerId ?? 1}-${o.periodId ?? "2026-04-17"}`,
   playerId: 1,
   playerName: "Test Player",
   points: 20,

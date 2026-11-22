@@ -2,19 +2,21 @@ import { format } from "node:util";
 import { afterEach } from "vitest";
 
 /**
- * Turns two kinds of console noise into test failures.
+ * Turns console noise into test failures.
  *
- * A full CI run printed 94 "not wrapped in act()" warnings and 25 unmatched
- * mock requests while the changelog called the run clean. Both are a test
- * observing the app mid-update or the app calling an endpoint nothing answers,
- * and neither fails anything on its own, so the output just grew until nobody
- * read it. Failing the test that caused each one is what keeps it at zero.
+ * A full CI run printed 94 "not wrapped in act()" warnings, 25 unmatched mock
+ * requests and about a hundred error and warning blocks while the changelog
+ * called the run clean. Each is either a test observing the app mid-update, the
+ * app calling an endpoint nothing answers, or the app logging a failure a test
+ * provoked on purpose. None of them fails anything on its own, so the output
+ * just grew until nobody read it, and a real warning (two cards sharing a key,
+ * a response body read twice) sat in it unnoticed. Failing the test that caused
+ * each one is what keeps it at zero.
  *
- * A test that provokes one on purpose calls `forgiveUnexpectedOutput()` and
- * asserts on what it returns.
+ * Every `console.error` and `console.warn` is recorded instead of printed. A
+ * test that provokes one on purpose calls `forgiveUnexpectedOutput()` and
+ * asserts on what it returns, so the log line is checked, not just hidden.
  */
-const ACT_WARNING = /was not wrapped in act\(|not configured to support act\(/;
-
 const unexpected: string[] = [];
 
 export function recordUnexpectedRequest(method: string, url: string): void {
@@ -26,16 +28,12 @@ export function forgiveUnexpectedOutput(): string[] {
   return unexpected.splice(0);
 }
 
-const printError = console.error;
-console.error = (...args: unknown[]) => {
-  const text = format(...args);
-  if (ACT_WARNING.test(text)) {
-    // Not printed: it reaches the output once, in the failure it causes.
-    unexpected.push(text.split("\n")[0]);
-    return;
-  }
-  printError(...args);
-};
+for (const method of ["error", "warn"] as const) {
+  // Not printed: it reaches the output once, in the failure it causes.
+  console[method] = (...args: unknown[]) => {
+    unexpected.push(format(...args).split("\n")[0]);
+  };
+}
 
 afterEach(() => {
   const found = forgiveUnexpectedOutput();

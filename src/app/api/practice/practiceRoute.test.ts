@@ -13,6 +13,7 @@ vi.mock("@/lib/upstream", async () => {
 import { auth0 } from "@/lib/auth0";
 import { fetchUpstream } from "@/lib/upstream";
 import { GET, PUT, POST } from "./[[...path]]/route";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const params = (...path: string[]) => ({ params: Promise.resolve({ path }) });
 
@@ -80,6 +81,7 @@ describe("practice proxy", () => {
 
     expect(res.status).toBe(401);
     expect(fetchUpstream).not.toHaveBeenCalled();
+    expect(forgiveUnexpectedOutput()).toEqual(["[practice GET] auth failed: Error: no session"]);
   });
 
   it("sends the caller's token, and a JSON content type only when there is a body", async () => {

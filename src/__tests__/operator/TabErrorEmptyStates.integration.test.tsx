@@ -40,7 +40,7 @@ describe("tab error states", () => {
         HttpResponse.json({ error: "Server error" }, { status: 500 }),
       ),
       http.get("/api/operator/stores/:id", () =>
-        HttpResponse.json({ store: null }),
+        HttpResponse.json({ store: buildStore({ id: STORE_ID }) }),
       ),
     );
 
@@ -150,7 +150,7 @@ describe("tab empty states", () => {
         HttpResponse.json({ items: [] }),
       ),
       http.get("/api/operator/stores/:id", () =>
-        HttpResponse.json({ store: null }),
+        HttpResponse.json({ store: buildStore({ id: STORE_ID }) }),
       ),
     );
 
