@@ -786,6 +786,7 @@ that components maintain their identity across updates.`}
           "The untested BFF routes and the logic files nothing touched got real tests.",
           "The operator factories and the test clock are pinned, the handlers wait a constant tick, and the reset restores the seed. The default test timeout is fifteen seconds, so a page-sized render survives a loaded machine.",
           "An act() warning, an unmatched mock request, or any console error or warning fails the test that caused it. The run printed 94 act warnings, 25 unmatched requests and 120 blocks of stderr before, and prints none now. A test that logs on purpose asserts the line.",
+          "The per-push smoke and axe job runs on two workers. Playwright named the accessibility file at 9.0 minutes of a 10.2 minute run, and the same 141 tests now take 6.2 minutes with no retries.",
           "A card with two blobs of the same shape no longer shares a key or a gradient with itself, and charts draw in tests instead of an empty box.",
         ]}
         couldImprove={[

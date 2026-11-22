@@ -13,6 +13,7 @@
 - The shared charts test helper gives Recharts a real size, so the operator charts are drawn in the tests and the accessibility scans look at them.
 - The two background blobs on a fantasy card can land on the same shape number, about one card in six. They shared a React key and a gradient id, so React warned and the second colour never showed. The key is the position now and the gradient id is unique per card.
 - Tests that passed for the wrong reason now check what they say: the leagues route test reused one response body for two requests, four card-pack tests ran the empty-pool path by accident, two inventory tests answered the store request with a payload that fails the schema, one card-lab fixture gave every card the same id, and a loss-report test reused an existing store id.
+- The per-push smoke and accessibility job runs on two workers instead of one. Playwright's slow-file warning had named `a11y-routes.spec.ts` at 9.0 minutes of a 10.2 minute run. The same 141 tests now take 6.2 minutes, with no retries. The flag is on that one CI command, so the authenticated and operator write specs keep their single worker.
 - Dated updates on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said, the helper and timeout work that was first left alone, and the console noise.
 
 ## 2026-11-21 - version 9.2.29
