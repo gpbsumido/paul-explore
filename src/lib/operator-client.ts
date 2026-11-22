@@ -27,7 +27,7 @@ import type {
   PlanogramSlot,
   FleetSummaryResponse,
 } from "@/types/operator";
-import { API_URL } from "@/lib/backendFetch";
+import { API_URL } from "@/lib/apiUrl";
 import { safeSegment } from "@/lib/safeSegment";
 import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
