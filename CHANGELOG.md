@@ -4,7 +4,7 @@
 
 - A shared bracket link no longer says "This bracket isn't publicly available yet" when the backend is down. The public picks route treated any failure as a missing bracket, so an outage looked like a private one; now only a 404 means missing, anything else answers 502 with "Couldn't load these picks right now", and the view shows that instead. A 404 also isn't retried any more, so a private bracket says so straight away instead of after about seven seconds of retries that could never succeed. An outage still gets its three.
 - The admin ESPN leagues list shows the server's reason when loading fails, the same way the add and remove buttons already did.
-- Server plumbing, no visible change: the "token if signed in" lookup that three public routes and the vitals proxy each copied now lives once in `getOptionalToken`, the operator client reads the API URL from `apiUrl` instead of a module that pulls in auth0, the risk demo's 5 second timeout has a name, and the ZeroProof track route loses a catch that `fetchUpstream` made unreachable.
+- Server plumbing, no visible change: the "token if signed in" lookup that three public routes, the vitals proxy and the vitals page each copied now lives once in `getOptionalToken`, the operator client reads the API URL from `apiUrl` instead of a module that pulls in auth0, the risk demo's 5 second timeout has a name, and the ZeroProof track route loses a catch that `fetchUpstream` made unreachable.
 
 ## 2026-11-22 - version 9.3.1
 
