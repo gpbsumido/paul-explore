@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.43
+
+- A copy button says when the copy didn't happen. The review-progress Copy on /interviewee showed "Copied to clipboard." before the write settled, even when the browser refused it, and the bracket's Share and Copy Link buttons dropped a refused write without saying anything. They all go through `copyText()` now, which reports whether the text actually reached the clipboard. On failure they say "Copy failed", or ask for a manual copy.
+- "Copied!", the event-delegation demo's row flashes and the calendar's removal warning share one `useTransientValue` hook. Each had started its own timer and never cleared it, so a second click inside the window got cut short by the first click's timer, and closing the view left the timer running.
+
 ## 2026-11-22 - version 9.2.42
 
 - A command palette entry is a link or an action, never both and never neither. The command type allowed `href`, `actionId` and `external` together, and any combination of them could be missing too. A command with no `href` and an unrecognised action did nothing when chosen, without any error. The type is a union now, so that command can't be written, and the select handler has a branch for each kind instead of falling through. Inside the action branch it switches on the action itself, so a second action added without its own case fails the type check instead of toggling the theme.
