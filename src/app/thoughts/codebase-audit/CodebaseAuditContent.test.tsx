@@ -91,4 +91,21 @@ describe("CodebaseAuditContent", () => {
       true,
     );
   });
+
+  it("tells the proxy drift as a risk caught by a test, not a bug that shipped", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: "Two copies of the same proxy had already drifted apart",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/drifted into a bug/)).toBeNull();
+    const log = Array.from(document.querySelectorAll("pre")).find((pre) =>
+      pre.textContent?.includes("Invalid response status code 204"),
+    );
+    expect(log?.previousElementSibling?.textContent).toMatch(
+      /^The test that failed first/,
+    );
+  });
 });
