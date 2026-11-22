@@ -697,6 +697,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
     },
     enabled: isViewMode,
     staleTime: 5 * 60_000,
+    // A 404 means the bracket is private or doesn't exist, and asking again
+    // won't change that. Retrying it only made the private line wait ~7s.
+    retry: (failureCount, error) =>
+      !(error instanceof ResponseError && error.status === 404) && failureCount < 3,
   });
 
   // Leaderboard — always loaded so we can resolve viewName
