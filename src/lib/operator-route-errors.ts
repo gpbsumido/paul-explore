@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { InvalidSegmentError } from "@/lib/safeSegment";
-import { OperatorApiError, OperatorContractError } from "@/lib/operator-client";
+import {
+  OperatorApiError,
+  OperatorContractError,
+  OperatorWriteTimeoutError,
+} from "@/lib/operator-client";
 
 /**
  * The operator API rejected us rather than being unavailable.
@@ -80,6 +84,16 @@ export function withOperatorErrors<T extends unknown[]>(
               "The operator API answered with something unreadable. The change may have been saved, so reload before trying again.",
           },
           { status: 502 },
+        );
+      }
+      if (err instanceof OperatorWriteTimeoutError) {
+        console.error("[operator]", err.message);
+        return NextResponse.json(
+          {
+            error:
+              "The operator API didn't answer in time. The change may have been saved, so reload before trying again.",
+          },
+          { status: 504 },
         );
       }
       if (err instanceof InvalidSegmentError) {

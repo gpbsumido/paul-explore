@@ -347,6 +347,9 @@ export async function loadFinance(): Promise<FinanceResponse> {
  * both go back to the route rather than being replayed against in-memory data
  * that would report a success nothing persisted.
  *
+ * A write that ran out of time may have applied too, so it goes back to the
+ * route the same way.
+ *
  * A 401 or 403 is called out on its own: it means OPERATOR_SERVICE_TOKEN is
  * missing here or different from portfolio_api's, a misconfiguration rather
  * than a rejected write, so it gets a diagnosis instead of a bare status.
@@ -371,6 +374,7 @@ async function writeWithFallback<T>(
       throw err;
     }
     if (err instanceof api.OperatorContractError) throw err;
+    if (err instanceof api.OperatorWriteTimeoutError) throw err;
     noteFallback(label, err);
     return fallback();
   }
