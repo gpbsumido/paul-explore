@@ -91,6 +91,16 @@
   .about > p, .typedHeadline { grid-column:1 / -1; }
   .photoStack { margin:2rem 0; }
 }
+.experience { display:grid; gap:1.25rem; padding:clamp(1rem,3vw,1.75rem); border:1px solid var(--paul-color-border); border-radius:1.25rem; background:var(--paul-color-surface); }
+.experienceSwitch { justify-self:start; }
+.experienceTimeline { margin:0; }
+/* Date above the role, as on a résumé, rather than trailing a two-line title. */
+.experienceTimeline :global(.timeline__head) { flex-direction:column-reverse; align-items:flex-start; gap:.25rem; }
+.experienceTimeline :global(.timeline__time) { font-size:.75rem; letter-spacing:.04em; }
+.experienceRole { display:block; font-weight:600; }
+.experiencePlace { display:block; color:var(--paul-color-muted); font-size:.88rem; font-weight:400; }
+.experiencePoints { display:grid; gap:.4rem; max-width:70ch; margin:.6rem 0 0; padding-left:1.1rem; list-style:disc; color:var(--paul-color-muted); font-size:.9rem; line-height:1.55; }
+@media (min-width: 900px) { .experience { grid-column:1 / -1; } }
 .proof { margin:0 clamp(1.25rem,4vw,4.5rem); padding:3rem 0 1rem; }
 .proof > h2 { margin-bottom:3rem; }
 .proof > section { border-bottom:0; }

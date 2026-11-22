@@ -3,6 +3,7 @@ import Link from "next/link";
 import { previewSrc } from "../v5/featured";
 import { featureFor, PHOTO_STACK_IDS } from "./picks";
 import TypedHeadline from "./TypedHeadline";
+import ExperienceCard from "./ExperienceCard";
 import styles from "./playground.module.css";
 
 /**
@@ -10,7 +11,8 @@ import styles from "./playground.module.css";
  *
  * The photo stack is lifted from a reference site, but where that one shows
  * holiday photos these are screens from this site. Each card opens its app,
- * and the stack fans out on hover or when a card takes focus.
+ * and the stack fans out on hover or when a card takes focus. The experience
+ * card under it is my résumé's timeline.
  */
 export default function AboutBand() {
   return (
@@ -34,6 +36,7 @@ export default function AboutBand() {
         <p>I&rsquo;m a front-end lead in Toronto. Most of my work has been dashboards and analytics products in React and TypeScript, with Node.js and Python behind them: charting libraries, drag-and-drop designers, and an AI assistant that answers with live charts.</p>
         <p>What I care about shows up on this page as numbers you can check: tests written first, accessibility treated as a requirement, and Core Web Vitals measured from real visits.</p>
       </div>
+      <ExperienceCard />
     </section>
   );
 }
