@@ -14,8 +14,39 @@ import { auth0 } from "@/lib/auth0";
 import { fetchUpstream } from "@/lib/upstream";
 import { GET, PUT, POST } from "./[[...path]]/route";
 import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
+import { importPracticeReviews, type ReviewStatesByKind } from "@/lib/leetcode/practiceApi";
+import { PATTERNS } from "@/lib/leetcode/patterns";
 
 const params = (...path: string[]) => ({ params: Promise.resolve({ path }) });
+
+/**
+ * The heaviest real visitor: every playbook problem re-solved many times and
+ * drilled many times, so every number in the review is at its widest.
+ */
+const everyProblemReviewedInBothModes = (): ReviewStatesByKind => {
+  const reviewed = Object.fromEntries(
+    PATTERNS.flatMap((pattern) => pattern.problems).map((problem) => [
+      problem.slug,
+      { step: 5, due: Date.parse("2027-01-21T13:45:12.345Z"), lastReviewed: Date.parse("2026-11-22T13:45:12.345Z"), reviews: 120 },
+    ]),
+  );
+  return { problem: reviewed, drill: reviewed };
+};
+
+/**
+ * Captures the exact body the browser's importer would POST, so the size
+ * check runs against the real shape rather than a guess at it.
+ */
+const importBodyFor = async (local: ReviewStatesByKind): Promise<string> => {
+  const browserFetch = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(new Response(JSON.stringify({ reviews: [] }), { status: 200 }));
+  await importPracticeReviews(local);
+  const body = browserFetch.mock.calls[0][1]?.body;
+  browserFetch.mockRestore();
+  if (typeof body !== "string") throw new Error("the importer sent no string body");
+  return body;
+};
 
 const upstreamReturns = (body: unknown) =>
   vi.mocked(fetchUpstream).mockResolvedValue({
@@ -177,6 +208,21 @@ describe("practice proxy", () => {
 
     expect(res.status).toBe(413);
     expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("forwards an import of every problem reviewed in both modes, which is over 64 KB", async () => {
+    upstreamReturns({ reviews: [] });
+    const body = await importBodyFor(everyProblemReviewedInBothModes());
+
+    const res = await POST(
+      new NextRequest("http://localhost/x", { method: "POST", body }),
+      params("reviews", "import"),
+    );
+
+    expect(JSON.parse(body).reviews).toHaveLength(446);
+    expect(new TextEncoder().encode(body).length).toBeGreaterThan(65_536);
+    expect(res.status).toBe(200);
+    expect(vi.mocked(fetchUpstream).mock.calls[0][1]).toMatchObject({ method: "POST", body });
   });
 
   it("answers 502 when the backend cannot be reached", async () => {
