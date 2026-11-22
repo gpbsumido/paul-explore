@@ -35,4 +35,9 @@ describe("the site description", () => {
     expect(OG_IMAGE.alt).not.toMatch(/playground/i);
     expect(OG_IMAGE.alt).toMatch(/front-end/i);
   });
+
+  it("is the alt the share image itself exports, so the two can't drift", async () => {
+    const { alt } = await import("@/app/opengraph-image");
+    expect(alt).toBe(OG_IMAGE.alt);
+  });
 });
