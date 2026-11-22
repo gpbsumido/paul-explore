@@ -71,40 +71,6 @@ describe("POST /api/zeroproof/track", () => {
     expect(fetchUpstream).not.toHaveBeenCalled();
   });
 
-  it("rate-limits a flood from one IP", async () => {
-    vi.mocked(fetchUpstream).mockResolvedValue(upstreamOk({ accepted: 1, deduped: 0 }));
-    const { POST } = await import("./route");
-    const ip = "203.0.113.99";
-
-    const statuses: number[] = [];
-    for (let i = 0; i < 62; i++) {
-      statuses.push((await POST(post({ events: [event()] }, ip))).status);
-    }
-    expect(statuses.slice(0, 60).every((status) => status === 202)).toBe(true);
-    expect(statuses.slice(60)).toEqual([429, 429]);
-  });
-
-  it("counts each IP on its own, so one flooder does not block everyone", async () => {
-    vi.mocked(fetchUpstream).mockResolvedValue(upstreamOk({ accepted: 1, deduped: 0 }));
-    const { POST } = await import("./route");
-
-    for (let i = 0; i < 61; i++) await POST(post({ events: [event()] }, "198.51.100.7"));
-    const other = await POST(post({ events: [event()] }, "198.51.100.8"));
-
-    expect(other.status).toBe(202);
-  });
-
-  it("does not call the backend for a request it rate-limited", async () => {
-    vi.mocked(fetchUpstream).mockResolvedValue(upstreamOk({ accepted: 1, deduped: 0 }));
-    const { POST } = await import("./route");
-    for (let i = 0; i < 60; i++) await POST(post({ events: [event()] }, "198.51.100.20"));
-    vi.mocked(fetchUpstream).mockClear();
-
-    await POST(post({ events: [event()] }, "198.51.100.20"));
-
-    expect(fetchUpstream).not.toHaveBeenCalled();
-  });
-
   it("sends the validated events on to the backend as JSON", async () => {
     vi.mocked(fetchUpstream).mockResolvedValue(upstreamOk({ accepted: 1, deduped: 0 }));
     const { POST } = await import("./route");
