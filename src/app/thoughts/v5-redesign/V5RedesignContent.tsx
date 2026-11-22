@@ -37,6 +37,11 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-11-22-about",
+            date: "November 22, 2026",
+            title: "The landing finally said who built it, with its own screens for photos",
+          },
+          {
             id: "update-2026-11-22-stack",
             date: "November 22, 2026",
             title: "The landing named its tools, and kept still while doing it",
@@ -684,6 +689,87 @@ strip removed  violations []  incomplete [ "Element's background color could
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-11-22-about"
+        date="November 22, 2026"
+        title="The landing finally said who built it, with its own screens for photos"
+      >
+        <p>
+          The landing made a case for the work all the way down and never said
+          who was behind it. A hiring manager got projects, figures and a tool
+          list, and had to open the r&eacute;sum&eacute; to find out I&rsquo;m a
+          front-end lead in Toronto. So there&rsquo;s an About band after the
+          projects now: a headline, two short paragraphs drawn from the
+          r&eacute;sum&eacute;, and a stack of three cards beside them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The photos are screens, because a portrait wouldn&rsquo;t prove anything.
+        </h3>
+        <p className="text-muted">
+          The stacked-photo idea came from the same evening of looking at other
+          portfolios, where the stack is holiday pictures. Mine would have been
+          decoration. The cards are the Operator Dashboard, the Design System
+          and Explore Toronto instead, each in light and dark, and each one is a
+          link that opens the app it shows. A test pins that every card opens
+          a real hub feature, labelled with its name.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`export const PHOTO_STACK_IDS = ["operator", "design-system", "world"];
+
+<Link href={feature.href} aria-label={\`Open \${feature.title}\`}>`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The card meant to be in front was painted behind.
+        </h3>
+        <p className="text-muted">
+          All three cards share one grid cell, and grid items that overlap
+          paint in source order. So the untilted middle card, the one that
+          reads as the front of the pile, sat under the right-hand card, and
+          the overlap belonged to the wrong link. Hover already lifted a card
+          above the rest, but at rest nothing put the middle one on top. The
+          fix gives the middle card a floor and the hovered or focused card the
+          step above it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- .photoStack li:has(a:hover), .photoStack li:has(a:focus-visible) { z-index:1; }
++ .photoStack li:nth-child(2) { z-index:1; }
++ .photoStack li:has(a:hover), .photoStack li:has(a:focus-visible) { z-index:2; }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The fan pushed the side cards off a phone screen.
+        </h3>
+        <p className="text-muted">
+          On hover or focus the side cards swing out six rem each way. At 375
+          wide a card is 70vw, about 262px, so the right one&rsquo;s edge lands
+          near 414px, well past the screen. The list clips its own overflow
+          now, with a rem of clip margin, and I checked it at 320, 375, 768 and
+          1440 for horizontal scroll.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`.photoStack { display:grid; justify-items:center; overflow-x:clip; overflow-clip-margin:1rem; /* … */ }
+.photoStack:hover li:nth-child(3), .photoStack:focus-within li:nth-child(3) { --tilt:11deg; --shift:6rem; }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The keyboard and reduced-motion parts are CSS, and no test watches them.
+        </h3>
+        <p className="text-muted">
+          The stack fans on <code className={code}>:focus-within</code> as
+          well as hover, so tabbing to a card spreads the pile the same way a
+          mouse does, and the transition only exists for visitors who
+          haven&rsquo;t asked for reduced motion. Both are rules in a
+          stylesheet that jsdom doesn&rsquo;t lay out. I moved the transition
+          out of its media query and the landing&rsquo;s tests stayed green,
+          so what covers these today is me looking at the page, not a test.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`@media (prefers-reduced-motion: no-preference) { .photoStack li { transition:translate .45s cubic-bezier(.2,.8,.2,1), rotate .45s cubic-bezier(.2,.8,.2,1); } }`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Three touch-first mobile heroes: a scrubbed Reel, a rotary Orbit and a draggable Lens. They replace the tunnel scenes on a phone, each with a tap and keyboard path, and they are documented on /design-system.",
@@ -692,10 +778,12 @@ strip removed  violations []  incomplete [ "Element's background color could
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
           "Project showcase rows that scroll like the rest of the page, each with a large light and dark screenshot and its own Open and Write-up links, cycling left, right and full-width. A field-notes bloom sits over a drifting wall of app tiles.",
           "A phone-framed rail of the tools the site is built on, under the figures. It moves only when the visitor moves it, and every label is checked against package.json.",
+          "An About band after the projects, with a fanned stack of three of the site's own screens. Each card opens the app it shows.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
           "There is no way to tell whether this page actually converts better than the slot machine did, because nothing measures where visitors go from the root.",
+          "The photo stack's keyboard fan and its reduced-motion gate are CSS that no test checks. A Playwright run that tabs into the stack and emulates reduced motion would cover both.",
         ]}
         upcoming={[
           "Real field data on the new landing, since the whole hero is built around an LCP rule and the only honest check on that is the number /vitals collects from real loads.",
