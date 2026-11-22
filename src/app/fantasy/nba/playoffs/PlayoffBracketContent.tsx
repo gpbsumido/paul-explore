@@ -25,6 +25,8 @@ import FantasyNav from "../FantasyNav";
 import SeriesPickCard from "./SeriesPickCard";
 import FinalsCard from "./FinalsCard";
 import PlayoffLeaderboard from "./PlayoffLeaderboard";
+import { copyText } from "@/lib/clipboard";
+import { useTransientValue } from "@/hooks/useTransientValue";
 import { useMe } from "@/hooks/useMe";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
 
@@ -270,17 +272,14 @@ function SubmitButton({
 
 // ---- Share button ----
 
+/** What a copy-link button says for a couple of seconds after a click. */
+const COPY_LABEL = { copied: "Copied!", failed: "Copy failed" } as const;
+
 function ShareButton({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copyResult, showCopyResult] = useTransientValue<keyof typeof COPY_LABEL>(2000);
 
   function handleCopy() {
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {});
+    void copyText(url).then((ok) => showCopyResult(ok ? "copied" : "failed"));
   }
 
   return (
@@ -305,13 +304,13 @@ function ShareButton({ url }: { url: string }) {
       </svg>
       <AnimatePresence mode="wait">
         <m.span
-          key={copied ? "copied" : "share"}
+          key={copyResult ?? "share"}
           initial={{ opacity: 0, y: -3 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 3 }}
           transition={{ duration: 0.15 }}
         >
-          {copied ? "Copied!" : "Share"}
+          {copyResult ? COPY_LABEL[copyResult] : "Share"}
         </m.span>
       </AnimatePresence>
     </button>
@@ -453,16 +452,12 @@ function ViewModeBanner({
   viewName: string;
   currentUserSub: string | null;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copyResult, showCopyResult] = useTransientValue<keyof typeof COPY_LABEL>(2000);
 
   function handleCopyLink() {
-    navigator.clipboard
-      .writeText(window.location.href)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {});
+    void copyText(window.location.href).then((ok) =>
+      showCopyResult(ok ? "copied" : "failed"),
+    );
   }
 
   return (
@@ -497,7 +492,7 @@ function ViewModeBanner({
           onClick={handleCopyLink}
           className="rounded-md px-2.5 py-1 text-[11px] font-medium text-primary-400/80 hover:text-primary-300 hover:bg-primary-500/15 transition-colors"
         >
-          {copied ? "Copied!" : "Copy Link"}
+          {copyResult ? COPY_LABEL[copyResult] : "Copy Link"}
         </button>
 
         {currentUserSub && (
