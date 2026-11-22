@@ -72,4 +72,23 @@ describe("CodebaseAuditContent", () => {
       pasted.some((text) => text.includes("Expected 5 bindings, saw 0")),
     ).toBe(true);
   });
+
+  it("carries the first redesign stack as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-22-one-way-in"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes('throw new Error("Failed to create event")')),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("Invalid response status code 204")),
+    ).toBe(true);
+    expect(pasted.some((text) => text.includes("this.context?.refresh()"))).toBe(
+      true,
+    );
+  });
 });
