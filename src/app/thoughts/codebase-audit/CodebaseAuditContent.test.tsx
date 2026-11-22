@@ -124,4 +124,20 @@ describe("CodebaseAuditContent", () => {
       pasted.some((text) => text.includes("OperatorWriteTimeoutError")),
     ).toBe(true);
   });
+
+  it("carries the third redesign stack as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-22-third-stack"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes("This bracket isn’t publicly available yet.")),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("expected [ 'timeline' ] to deeply equal []")),
+    ).toBe(true);
+  });
 });
