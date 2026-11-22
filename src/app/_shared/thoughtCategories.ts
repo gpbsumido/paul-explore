@@ -14,6 +14,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "updates",
       "research-explorer",
       "evar-sizing",
+      "volunteer-check-in",
       "learn",
       "particles",
       "world",
