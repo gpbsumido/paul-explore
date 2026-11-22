@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.4
+
+- A saved theme that isn't light, dark or system now falls back to system. The provider cast whatever was in localStorage to a theme, and the pre-paint script wrote it straight onto `data-theme`, so a stray value left the page in no theme at all. The storage key also lives in one module now, read by both the provider and the script in layout.tsx, with a test that fails if the script goes back to a typed-out copy.
+- The memoization and hash-map demos flash with `useTransientValue` instead of a bare `setTimeout`. Clicking twice inside the flash used to let the first click's timer end the second flash early, and leaving the page left the timer running. The hook gains a `clear` for the demos' reset buttons. The 3D world's "token found" toast moves onto it too.
+- A `?w=` link on /world is checked against the weather dressing table instead of a list of six conditions typed out beside it.
+
 ## 2026-11-22 - version 9.3.3
 
 - The Updates card on the hub showed three entries from version 5, so it advertised a site two majors old. It now shows the three newest public updates. The list is still typed out by hand, because reading the changelog file from a client module would ship all 75 KB of it with the hub, so a test fails when a new entry lands and the card falls behind.
