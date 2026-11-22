@@ -36,6 +36,10 @@ export const TILE_IDS = [
   "calendar",
 ];
 
+// The about band's photo stack: three screens that between them show the range,
+// a dense operator dashboard, the design system and a 3D world.
+export const PHOTO_STACK_IDS = ["operator", "design-system", "world"];
+
 export const PROJECT_PICKS = [
   { id: "work-portfolio", category: "Interfaces", note: "From shipped product to hands-on demo.", caption: "Product work", number: "01" },
   { id: "design-system", category: "Systems", note: "The building blocks behind everything here.", caption: "Design × engineering", number: "02" },
