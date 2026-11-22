@@ -687,6 +687,97 @@ unmatched requests    25`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-21-stderr-blocks"
+        date="November 21, 2026"
+        title="The hundred error lines I called a different class were hiding three bugs"
+      >
+        <p>
+          After the act() work I wrote that about a hundred blocks of error
+          output were &quot;a different class&quot;, the app logging on paths a
+          test provokes on purpose, and left them. I was wrong about the word
+          &quot;mostly&quot;. I widened the guard to every{" "}
+          <C>console.error</C> and <C>console.warn</C> and the first run told me
+          what they were.
+        </p>
+        <pre className={pre}>
+          {`120 blocks of stderr, in 33 files
+ 52  operator fallback: "fell back to seed data"
+ 15  Auth0 client with no config
+ 14  chart "width(-1) and height(-1)"
+ 11  two children with the same key
+  1  Body has already been read
+ 27  a failure the test caused on purpose`}
+        </pre>
+
+        <h3 className={beat}>
+          Eleven duplicate-key warnings were one bug in the app, not in a test.
+        </h3>
+        <p className="text-muted">
+          Card tests, collection tests and pack tests all warned about two
+          children with the key <C>5</C>. It was not the fixtures. A card draws
+          two background blobs from a hash, each a number from 1 to 6, and
+          the blob component used that number as its React key. About one card
+          in six gets the same number twice. The same number was also used for
+          the gradient id, so two cards on one page shared a gradient and the
+          second colour never showed. Keys are the position now, and the
+          gradient id comes from <C>useId</C>.
+        </p>
+        <pre className={pre}>
+          {`Encountered two children with the same key, \`5\`. Keys should be unique so
+that components maintain their identity across updates.`}
+        </pre>
+
+        <h3 className={beat}>
+          A test passed for a reason it never looked at.
+        </h3>
+        <p className="text-muted">
+          The leagues route test called the route twice with one mocked{" "}
+          <C>Response</C>. A body can be read once, so the second call threw and
+          the route quietly answered 502. The test only checked the request
+          headers, so it stayed green. Each call gets its own response now.
+        </p>
+        <pre className={pre}>
+          {`[BFF] GET /zeroproof/leagues — fetch threw: TypeError: Body is unusable: Body has already been read`}
+        </pre>
+        <p className="text-muted">
+          Four card-pack tests did the same thing in a smaller way. They only
+          wanted to know which loader the route called, and they handed back an
+          empty slate, so each one also ran the &quot;empty pool&quot; branch.
+          Two inventory tests answered the store request with{" "}
+          <C>{"{ store: null }"}</C>, which fails the schema, so the component
+          logged a ZodError while the test was about something else.
+        </p>
+
+        <h3 className={beat}>
+          Stubbing the observer did not fix the charts, and I only learned why
+          from the library&apos;s source.
+        </h3>
+        <p className="text-muted">
+          jsdom measures every element as 0 by 0, so Recharts printed that the
+          chart had no size and drew nothing. My first try was a{" "}
+          <C>ResizeObserver</C> that answers with 800 by 400. The warning stayed.
+          Recharts renders once at a default of -1, then reads{" "}
+          <C>getBoundingClientRect()</C>, which is 0, and warns on both before
+          the observer matters. What works is replacing the container with one
+          that hands its chart a width and height. The charts now draw, so the
+          accessibility scans look at a real chart instead of an empty box.
+        </p>
+
+        <h3 className={beat}>
+          The rest became assertions, not mutes.
+        </h3>
+        <p className="text-muted">
+          Where the app logs on purpose, the test now says what it expects. A
+          401 test asserts the line <C>[zeroproof join league] auth failed</C>,
+          and the operator fallback file allows exactly one sentence,{" "}
+          <C>fell back to seed data</C>, and fails on any other. A missing
+          log is a failure too, and a mute button cannot do that. The Auth0
+          warning went away by giving the tests the same placeholder config the
+          CI build uses.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Every test file has been run alone, shuffled, under two seeds, and every test has a verdict. About one in seven was weak, tautological, leaky, misnamed or redundant, and those were strengthened or replaced.",
@@ -694,11 +785,12 @@ unmatched requests    25`}
           "Lint fails on a warning. The e2e log names every test and each step keeps a report.",
           "The untested BFF routes and the logic files nothing touched got real tests.",
           "The operator factories and the test clock are pinned, the handlers wait a constant tick, and the reset restores the seed. The default test timeout is fifteen seconds, so a page-sized render survives a loaded machine.",
-          "An act() warning or an unmatched mock request fails the test that caused it. The run printed 94 and 25 of them before.",
+          "An act() warning, an unmatched mock request, or any console error or warning fails the test that caused it. The run printed 94 act warnings, 25 unmatched requests and 120 blocks of stderr before, and prints none now. A test that logs on purpose asserts the line.",
+          "A card with two blobs of the same shape no longer shares a key or a gradient with itself, and charts draw in tests instead of an empty box.",
         ]}
         couldImprove={[
           "Run mutation testing in CI on the code that handles money and auth. It only runs on the NFL projection math today.",
-          "About a hundred blocks of stderr remain, mostly the app logging errors on paths a test provokes on purpose. Mute them in the test that causes them, then fail on any console error.",
+          "Fail on console.log and console.info too. The guard covers error and warn, and the one stdout line left was an e2e setup message that now has an assertion.",
           "Decide what to do about tests that pin exact prose. Rewording a write-up should not break a build.",
           "A coverage floor for logic files, so a new one cannot arrive without a test.",
         ]}
