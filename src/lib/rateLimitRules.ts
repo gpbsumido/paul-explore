@@ -5,10 +5,14 @@
  * imported by both the middleware and its test — the test used to re-declare a
  * copy of these rules, which could silently drift from the real ones.
  *
- * All windows are 60 seconds (see RATE_WINDOW_MS in proxy.ts). Tighter caps on
+ * All windows are RATE_WINDOW_MS, one minute. Tighter caps on
  * the unauthenticated open routes; a generous backstop for the auth-gated rest,
  * where the auth check itself is the primary protection.
  */
+
+/** The window every rule counts over. */
+export const RATE_WINDOW_MS = 60_000;
+
 export type RateLimitRule = {
   match: (pathname: string, method: string) => boolean;
   bucket: string;
@@ -34,6 +38,14 @@ export const RATE_LIMITS: RateLimitRule[] = [
     bucket: "graphql",
     limit: 60,
   },
+  // ZeroProof telemetry -- open, sent by signed-out visitors too. A client
+  // batches about 20 events every 5s, so a real visitor sends about 12 batches
+  // a minute; 60 leaves headroom and still caps a flood.
+  {
+    match: (p, m) => p === "/api/zeroproof/track" && m === "POST",
+    bucket: "zeroproof-track",
+    limit: 60,
+  },
   // Operator dashboard writes — a public demo over synthetic data that is
   // reseeded daily, so the writes take no login by design. Cap them per IP so
   // the shared demo can't be spam-mutated: tighter than the generic backstop,
@@ -48,7 +60,7 @@ export const RATE_LIMITS: RateLimitRule[] = [
   { match: (p) => p.startsWith("/api/"), bucket: "api", limit: 300 },
 ];
 
-/** The first rule matching this request, or null. Mirrors proxy.ts's loop. */
+/** The first rule matching this request, or null. The proxy enforces it. */
 export function matchRateLimit(
   pathname: string,
   method: string,
