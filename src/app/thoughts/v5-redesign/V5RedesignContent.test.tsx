@@ -40,6 +40,17 @@ describe("V5RedesignContent", () => {
     );
   });
 
+  it("records the stack strip, and why it doesn't scroll, as a dated update", () => {
+    render(<V5RedesignContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /named its tools, and kept still/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /named its tools, and kept still/i })).toHaveAttribute(
+      "href",
+      "#update-2026-11-22-stack",
+    );
+  });
+
   it("closes with the standing what-next block every write-up carries", () => {
     render(<V5RedesignContent />);
     expect(
