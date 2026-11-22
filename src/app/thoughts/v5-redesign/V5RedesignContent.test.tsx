@@ -51,6 +51,17 @@ describe("V5RedesignContent", () => {
     );
   });
 
+  it("records the about band and its photo stack as a dated update", () => {
+    render(<V5RedesignContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /said who built it/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /said who built it/i })).toHaveAttribute(
+      "href",
+      "#update-2026-11-22-about",
+    );
+  });
+
   it("closes with the standing what-next block every write-up carries", () => {
     render(<V5RedesignContent />);
     expect(
