@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.3
+
+- The Updates card on the hub showed three entries from version 5, so it advertised a site two majors old. It now shows the three newest public updates. The list is still typed out by hand, because reading the changelog file from a client module would ship all 75 KB of it with the hub, so a test fails when a new entry lands and the card falls behind.
+- Four write-ups had a timeline at the top that missed updates further down: TCG listed one of its four, vitals three of six, the work portfolio two of four, deployment two of three. They list them all now, newest first, and a test checks every page with a timeline in both directions.
+- The budget card picks up its colour token like the other hub cards. The token was defined in tokens.css but nothing mapped the card to it; a test now checks every feature with a token is mapped, and every mapping points at a token that exists.
+
 ## 2026-11-22 - version 9.3.2
 
 - A shared bracket link no longer says "This bracket isn't publicly available yet" when the backend is down. The public picks route treated any failure as a missing bracket, so an outage looked like a private one; now only a 404 means missing, anything else answers 502 with "Couldn't load these picks right now", and the view shows that instead. A 404 also isn't retried any more, so a private bracket says so straight away instead of after about seven seconds of retries that could never succeed. An outage still gets its three.
