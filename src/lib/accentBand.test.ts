@@ -35,6 +35,20 @@ describe("the shared accent band", () => {
     expect([...BAND_VALUES]).not.toContain("#7f7869");
   });
 
+  it("draws the lightness edges where the band says, not further out", () => {
+    const sameBlueAtLightness = {
+      "0.31": "#285c77",
+      "0.35": "#2d6886",
+      "0.60": "#66aacc",
+      "0.64": "#75b2d1",
+    };
+
+    expect(outOfBand(sameBlueAtLightness["0.31"])).toBe(true);
+    expect(outOfBand(sameBlueAtLightness["0.35"])).toBe(false);
+    expect(outOfBand(sameBlueAtLightness["0.60"])).toBe(false);
+    expect(outOfBand(sameBlueAtLightness["0.64"])).toBe(true);
+  });
+
   it("rejects the stock pastels this release exists to remove", () => {
     expect(outOfBand("#818cf8")).toBe(true);
     expect(outOfBand("#38bdf8")).toBe(true);
