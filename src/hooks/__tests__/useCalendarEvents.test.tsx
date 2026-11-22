@@ -7,6 +7,7 @@ import { useCalendarEvents } from "../useCalendarEvents";
 import type { CalendarEvent } from "@/types/calendar";
 import type { ReactNode } from "react";
 import { CONNECTION_ERROR_MESSAGE } from "@/lib/userFacingError";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -131,6 +132,9 @@ describe("useCalendarEvents — read", () => {
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
     expect(result.current.events).toEqual([]);
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("[unexpected response] ZodError"),
+    ]);
   });
 
   it("says it couldn't reach the server when the fetch fails", async () => {
@@ -142,6 +146,7 @@ describe("useCalendarEvents — read", () => {
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
     expect(result.current.error).toBe(CONNECTION_ERROR_MESSAGE);
+    expect(forgiveUnexpectedOutput()).toEqual(["[request failed] TypeError: Failed to fetch"]);
   });
 });
 
@@ -277,11 +282,7 @@ describe("useCalendarEvents — createEvent", () => {
 });
 
 describe("useCalendarEvents — a write before the first fetch lands", () => {
-  // Known bug: Found while auditing: the SSR seed is placeholderData, which is not in the
-  // cache, so the optimistic write starts from an empty list. A create made
-  // before the first fetch resolves shows only the new event and the seeded
-  // ones vanish until the refetch; an update or delete matches nothing at all.
-  it.fails("keeps the seeded events on screen when one is created straight away", async () => {
+  it("keeps the seeded events on screen when one is created straight away", async () => {
     const existing = makeEvent({ title: "Existing" });
     const release = gate();
     server.use(

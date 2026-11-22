@@ -49,5 +49,6 @@ export function useCountUp(
     return () => cancelAnimationFrame(rafRef.current);
   }, [target, duration, inView, prefersReduced]);
 
-  return prefersReduced ? target : value;
+  // With nothing to animate, the effect returns early and state stays at 0.
+  return prefersReduced || duration <= 0 ? target : value;
 }

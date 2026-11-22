@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
@@ -212,7 +212,9 @@ describe("PredictionPanel", () => {
     serve({ scheduleStatus: 500 });
     const { container } = renderPanel([team(USER_TEAM_ID, [entry(10, "Ann Ames", 20)], 1)]);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
     expect(screen.queryByText("Ann Ames")).not.toBeInTheDocument();
     expect(container).toBeEmptyDOMElement();
   });

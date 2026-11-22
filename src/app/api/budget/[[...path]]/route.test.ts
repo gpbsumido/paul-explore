@@ -164,10 +164,7 @@ describe("/api/budget proxy", () => {
     expect(await res.json()).toEqual({});
   });
 
-  // Known bug: NextResponse.json({}, { status: 204 }) throws, because a 204 can't carry a
-  // body, so a backend that answers a delete with 204 reaches the page as a 502
-  // "Backend unavailable". Recorded as a finding, not fixed here.
-  it.fails("passes a 204 from the backend through as a 204", async () => {
+  it("passes a 204 from the backend through as a 204", async () => {
     upstreamAnswers(null, 204);
 
     const res = await DELETE(

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 import {
   loadStores,
   loadFleetSummary,
@@ -72,6 +73,9 @@ describe("loadStores", () => {
     const stores = await loadStores();
 
     expect(stores.map((s) => s.id)).toEqual(seed.getStores().map((s) => s.id));
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("loadStores fell back to seed data: ECONNREFUSED"),
+    ]);
   });
 });
 
@@ -110,6 +114,9 @@ describe("loadFleetSummary", () => {
       seed.getStores().map((store) => store.id),
     );
     expect(summary.alertTrend.length).toBeGreaterThan(0);
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("loadFleetSummary fell back to seed data: down"),
+    ]);
   });
 });
 
@@ -123,6 +130,9 @@ describe("loadSalesAnalytics", () => {
     expect(result.byStore.map((row) => row.storeId).sort()).toEqual(
       seed.getStores().map((store) => store.id).sort(),
     );
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("loadSalesAnalytics fell back to seed data: down"),
+    ]);
   });
 });
 

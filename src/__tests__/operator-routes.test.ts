@@ -797,11 +797,7 @@ describe("when the operator API misbehaves", () => {
     expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("loadStores fell back to seed data"));
   });
 
-  // Known bug, kept visible with it.fails: the InvalidSegmentError mapped to a
-  // 400 in withOperatorErrors never gets there for reads, because
-  // readWithFallback treats the throw as an outage, warns that it fell back to
-  // the seed, and the seed has no such store, so the answer is a 503.
-  it.fails("refuses a store id that tries to climb out of the path with a 400", async () => {
+  it("refuses a store id that tries to climb out of the path with a 400", async () => {
     expectSeedFallback();
     const { GET } = await import("@/app/api/operator/stores/[storeId]/inventory/route");
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -227,9 +227,11 @@ describe("OpenWalletActions", () => {
     );
 
     expect(await screen.findByText(/deposit too small/i)).toBeInTheDocument();
-    document
-      .querySelectorAll(".toast__dismiss")
-      .forEach((button) => (button as HTMLElement).click());
+    act(() => {
+      document
+        .querySelectorAll(".toast__dismiss")
+        .forEach((button) => (button as HTMLElement).click());
+    });
   });
 
   it("has no a11y violations", async () => {

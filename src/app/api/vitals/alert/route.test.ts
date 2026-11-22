@@ -22,6 +22,7 @@ import {
   closeIssue,
 } from "@/lib/githubIssues";
 import { VITALS_ALERT_LABEL, VITALS_ALERT_TITLE } from "@/lib/vitalsAlert";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const SECRET = "cron-s3cret";
 
@@ -261,6 +262,9 @@ describe("GET /api/vitals/alert", () => {
 
     expect(body.findings).toEqual({ site: 1, pages: 0, regressions: 0 });
     expect(createIssue).toHaveBeenCalledTimes(1);
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[vitals alert] by-page unavailable; skipping that section",
+    ]);
   });
 
   it("returns 502 when the summary comes back with an error status", async () => {
@@ -310,6 +314,9 @@ describe("GET /api/vitals/alert", () => {
     expect(body.findings.site).toBe(1);
     expect(body.findings.regressions).toBe(0);
     expect(createIssue).toHaveBeenCalledTimes(1);
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[vitals alert] by-version unavailable; skipping that section",
+    ]);
   });
 
   it("returns 502 and dispatches nothing when the summary fetch fails", async () => {
@@ -337,6 +344,9 @@ describe("GET /api/vitals/alert", () => {
     expect(res.status).toBe(200);
     expect(body).toMatchObject({ dispatched: false });
     expect(findOpenIssue).not.toHaveBeenCalled();
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[vitals alert] VITALS_ALERT_GITHUB_TOKEN unset; not dispatching",
+    ]);
   });
 
   it("degrades to dispatched:false when a GitHub call throws", async () => {
@@ -349,5 +359,8 @@ describe("GET /api/vitals/alert", () => {
 
     expect(res.status).toBe(200);
     expect(body).toMatchObject({ dispatched: false });
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[vitals alert] GitHub dispatch failed: Error: GitHub down",
+    ]);
   });
 });

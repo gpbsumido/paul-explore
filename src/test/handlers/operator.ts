@@ -38,6 +38,7 @@ import {
   buildActivityList,
   buildActivityEvent,
   buildSalesList,
+  factoryNow,
   resetFactoryCounter,
 } from "@/test/factories/operator";
 
@@ -122,9 +123,32 @@ const planogramByStore = new Map<string, PlanogramSlot[]>(
 );
 
 const allAlerts = new Map<string, Alert>();
-for (const alerts of alertsByStore.values()) {
-  for (const alert of alerts) {
-    allAlerts.set(alert.id, alert);
+function indexAlertsById(): void {
+  allAlerts.clear();
+  for (const alerts of alertsByStore.values()) {
+    for (const alert of alerts) {
+      allAlerts.set(alert.id, alert);
+    }
+  }
+}
+indexAlertsById();
+
+// The handlers mutate the seed in place: dismissing an alert, restocking an
+// item and rearranging a planogram all write to it. The copy taken here is
+// what resetOperatorWriteState puts back.
+const seedSnapshot = {
+  inventory: structuredClone([...inventoryByStore]),
+  alerts: structuredClone([...alertsByStore]),
+  planogram: structuredClone([...planogramByStore]),
+};
+
+function restoreFromSnapshot<Value>(
+  target: Map<string, Value>,
+  snapshot: [string, Value][],
+): void {
+  target.clear();
+  for (const [key, value] of structuredClone(snapshot)) {
+    target.set(key, value);
   }
 }
 
@@ -141,8 +165,16 @@ const promotions = new Map<string, Promotion>();
 let sessionCounter = 0;
 let promotionCounter = 0;
 
-/** Clears the write state these handlers accumulate. Call it in beforeEach. */
+/**
+ * Puts the handlers back to the seed they started from: no sessions or
+ * promotions, and every alert, stock level and planogram as first generated.
+ * Call it in beforeEach.
+ */
 export function resetOperatorWriteState(): void {
+  restoreFromSnapshot(inventoryByStore, seedSnapshot.inventory);
+  restoreFromSnapshot(alertsByStore, seedSnapshot.alerts);
+  restoreFromSnapshot(planogramByStore, seedSnapshot.planogram);
+  indexAlertsById();
   sessions.clear();
   sessionLines.clear();
   promotions.clear();
@@ -150,8 +182,10 @@ export function resetOperatorWriteState(): void {
   promotionCounter = 0;
 }
 
-function randomDelay(): Promise<void> {
-  return delay(100 + Math.floor(Math.random() * 200));
+// A request still takes a tick, so loading states render before the answer.
+// It does not wait for real time: a random 100-300ms made tests race the delay.
+function simulateLatency(): Promise<void> {
+  return delay(0);
 }
 
 // ---------------------------------------------------------------------------
@@ -163,7 +197,7 @@ const LOW_STOCK_THRESHOLD = 0.2;
 const handlersFor = (API_BASE: string) => [
   // GET /api/operator/fleet-summary — aggregated dashboard data
   http.get(`${API_BASE}/api/operator/fleet-summary`, async () => {
-    await randomDelay();
+    await simulateLatency();
 
     const allAlertsFlat: Alert[] = [];
     let criticalAlerts = 0;
@@ -223,7 +257,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/sales-analytics — fleet-wide sales rollup
   http.get(`${API_BASE}/api/operator/sales-analytics`, async ({ request }) => {
-    await randomDelay();
+    await simulateLatency();
     const url = new URL(request.url);
     const granularities: SalesGranularity[] = ["day", "week", "month", "year"];
     const param = url.searchParams.get("granularity");
@@ -243,7 +277,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/planner/benchmarks — fleet basket price + items/order
   http.get(`${API_BASE}/api/operator/planner/benchmarks`, async () => {
-    await randomDelay();
+    await simulateLatency();
     const sales = stores.flatMap((s) => salesByStore.get(s.id) ?? []);
     return HttpResponse.json({ benchmarks: fleetBenchmarks(sales) });
   }),
@@ -252,7 +286,7 @@ const handlersFor = (API_BASE: string) => [
   http.get(
     `${API_BASE}/api/operator/product-performance`,
     async ({ request }) => {
-      await randomDelay();
+      await simulateLatency();
       const rangeId = new URL(request.url).searchParams.get("range") ?? "30d";
       const days = daysForRange(rangeId);
       const sales = stores.flatMap((s) => salesByStore.get(s.id) ?? []);
@@ -267,7 +301,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/shrink-summary — unexplained vs reasoned loss per store
   http.get(`${API_BASE}/api/operator/shrink-summary`, async () => {
-    await randomDelay();
+    await simulateLatency();
     const inputs = stores.map((store, storeIndex) => {
       const items = inventoryByStore.get(store.id) ?? [];
       const priceByItemId: Record<string, number> = {};
@@ -293,7 +327,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/search-index — stores + distinct fleet products
   http.get(`${API_BASE}/api/operator/search-index`, async () => {
-    await randomDelay();
+    await simulateLatency();
     const seen = new Set<string>();
     const products: { name: string; category: string }[] = [];
     for (const store of stores) {
@@ -311,21 +345,21 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/finance — weekly payouts reconciled from sales
   http.get(`${API_BASE}/api/operator/finance`, async () => {
-    await randomDelay();
+    await simulateLatency();
     const sales = stores.flatMap((s) => salesByStore.get(s.id) ?? []);
-    const { weeks, totals } = summarizeFinance(sales, stores.length, new Date());
+    const { weeks, totals } = summarizeFinance(sales, stores.length, factoryNow());
     return HttpResponse.json({ weeks, totals, fees: FEE_MODEL });
   }),
 
   // GET /api/operator/stores — fleet list
   http.get(`${API_BASE}/api/operator/stores`, async () => {
-    await randomDelay();
+    await simulateLatency();
     return HttpResponse.json({ stores });
   }),
 
   // GET /api/operator/stores/:id — store detail
   http.get(`${API_BASE}/api/operator/stores/:id`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const store = stores.find((s) => s.id === params.id);
     if (!store) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -335,7 +369,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/stores/:id/inventory — inventory list
   http.get(`${API_BASE}/api/operator/stores/:id/inventory`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const items = inventoryByStore.get(params.id as string);
     if (!items) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -345,7 +379,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/stores/:id/alerts — alerts for a store
   http.get(`${API_BASE}/api/operator/stores/:id/alerts`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const alerts = alertsByStore.get(params.id as string);
     if (!alerts) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -355,7 +389,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/stores/:id/activity — activity events
   http.get(`${API_BASE}/api/operator/stores/:id/activity`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const events = activityByStore.get(params.id as string);
     if (!events) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -365,7 +399,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/stores/:id/sales — sales history
   http.get(`${API_BASE}/api/operator/stores/:id/sales`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const sales = salesByStore.get(params.id as string);
     if (!sales) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -375,7 +409,7 @@ const handlersFor = (API_BASE: string) => [
 
   // GET /api/operator/stores/:id/planogram — persisted shelf layout
   http.get(`${API_BASE}/api/operator/stores/:id/planogram`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const slots = planogramByStore.get(params.id as string);
     if (!slots) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -387,7 +421,7 @@ const handlersFor = (API_BASE: string) => [
   http.patch(
     `${API_BASE}/api/operator/stores/:id/planogram`,
     async ({ params, request }) => {
-      await randomDelay();
+      await simulateLatency();
       const storeId = params.id as string;
       const slots = planogramByStore.get(storeId);
       if (!slots) {
@@ -419,7 +453,7 @@ const handlersFor = (API_BASE: string) => [
 
   // PATCH /api/operator/alerts/:id/dismiss — dismiss an alert
   http.patch(`${API_BASE}/api/operator/alerts/:id/dismiss`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const alert = allAlerts.get(params.id as string);
     if (!alert) {
       return HttpResponse.json({ error: "Alert not found" }, { status: 404 });
@@ -430,7 +464,7 @@ const handlersFor = (API_BASE: string) => [
 
   // POST /api/operator/stores/:id/restock — mark items restocked
   http.post(`${API_BASE}/api/operator/stores/:id/restock`, async ({ params, request }) => {
-    await randomDelay();
+    await simulateLatency();
     const storeId = params.id as string;
     const items = inventoryByStore.get(storeId);
     if (!items) {
@@ -464,7 +498,7 @@ const handlersFor = (API_BASE: string) => [
   // -------------------------------------------------------------------------
 
   http.post(`${API_BASE}/api/operator/stores/:id/restock-sessions`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const storeId = params.id as string;
     if (!inventoryByStore.has(storeId)) {
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -474,7 +508,7 @@ const handlersFor = (API_BASE: string) => [
     const session: RestockSession = {
       id: `session-${String(sessionCounter).padStart(3, "0")}`,
       storeId,
-      startedAt: new Date().toISOString(),
+      startedAt: factoryNow().toISOString(),
       completedAt: null,
       actor: "operator@smartstore.example",
       notes: null,
@@ -486,7 +520,7 @@ const handlersFor = (API_BASE: string) => [
   }),
 
   http.get(`${API_BASE}/api/operator/stores/:id/restock-sessions`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const storeId = params.id as string;
     return HttpResponse.json({
       sessions: [...sessions.values()].filter((s) => s.storeId === storeId),
@@ -494,7 +528,7 @@ const handlersFor = (API_BASE: string) => [
   }),
 
   http.get(`${API_BASE}/api/operator/restock-sessions/:sessionId`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const id = params.sessionId as string;
     const session = sessions.get(id);
     if (!session) {
@@ -509,7 +543,7 @@ const handlersFor = (API_BASE: string) => [
   http.put(
     `${API_BASE}/api/operator/restock-sessions/:sessionId/lines/:itemId`,
     async ({ params, request }) => {
-      await randomDelay();
+      await simulateLatency();
       const sessionId = params.sessionId as string;
       const session = sessions.get(sessionId);
       if (!session) {
@@ -562,7 +596,7 @@ const handlersFor = (API_BASE: string) => [
   http.post(
     `${API_BASE}/api/operator/restock-sessions/:sessionId/complete`,
     async ({ params, request }) => {
-      await randomDelay();
+      await simulateLatency();
       const sessionId = params.sessionId as string;
       const session = sessions.get(sessionId);
       if (!session) {
@@ -595,7 +629,7 @@ const handlersFor = (API_BASE: string) => [
 
       const closed: RestockSession = {
         ...session,
-        completedAt: new Date().toISOString(),
+        completedAt: factoryNow().toISOString(),
         notes: body.notes,
       };
       sessions.set(sessionId, closed);
@@ -619,7 +653,7 @@ const handlersFor = (API_BASE: string) => [
   // -------------------------------------------------------------------------
 
   http.get(`${API_BASE}/api/operator/stores/:id/promotions`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const storeId = params.id as string;
     return HttpResponse.json({
       promotions: [...promotions.values()]
@@ -631,7 +665,7 @@ const handlersFor = (API_BASE: string) => [
   http.post(
     `${API_BASE}/api/operator/stores/:id/promotions`,
     async ({ params, request }) => {
-      await randomDelay();
+      await simulateLatency();
       const storeId = params.id as string;
       if (!inventoryByStore.has(storeId)) {
         return HttpResponse.json({ error: "Store not found" }, { status: 404 });
@@ -661,7 +695,7 @@ const handlersFor = (API_BASE: string) => [
   ),
 
   http.patch(`${API_BASE}/api/operator/promotions/:id/end`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const found = promotions.get(params.id as string);
     if (!found) {
       return HttpResponse.json(
@@ -670,7 +704,7 @@ const handlersFor = (API_BASE: string) => [
       );
     }
 
-    const ended: Promotion = { ...found, endsAt: new Date().toISOString() };
+    const ended: Promotion = { ...found, endsAt: factoryNow().toISOString() };
     promotions.set(ended.id, ended);
     return HttpResponse.json({
       promotion: { ...ended, status: promotionStatus(ended) },
@@ -678,7 +712,7 @@ const handlersFor = (API_BASE: string) => [
   }),
 
   http.get(`${API_BASE}/api/operator/promotions/:id/performance`, async ({ params }) => {
-    await randomDelay();
+    await simulateLatency();
     const promo = promotions.get(params.id as string);
     if (!promo) {
       return HttpResponse.json(
@@ -689,7 +723,7 @@ const handlersFor = (API_BASE: string) => [
 
     const win = measurementWindow(
       new Date(promo.startsAt),
-      promo.endsAt ? new Date(promo.endsAt) : new Date(),
+      promo.endsAt ? new Date(promo.endsAt) : factoryNow(),
     );
     const sales = salesByStore.get(promo.storeId) ?? [];
     const comparison = comparePerformance(promo, sales, win.start, win.end);

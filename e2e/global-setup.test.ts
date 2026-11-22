@@ -41,6 +41,7 @@ describe("createTestCalendar", () => {
 
   it("records the calendar id for the specs when the create works", async () => {
     const written = vi.spyOn(fs, "writeFileSync").mockImplementation(() => {});
+    const progress = vi.spyOn(console, "log").mockImplementation(() => {});
 
     await createTestCalendar(requestReturning(201, { calendar: { id: "cal-1" } }));
 
@@ -48,6 +49,7 @@ describe("createTestCalendar", () => {
       STATE_FILE,
       JSON.stringify({ calendarId: "cal-1" }),
     );
+    expect(progress).toHaveBeenCalledWith("[E2E] Created test calendar cal-1");
   });
 });
 

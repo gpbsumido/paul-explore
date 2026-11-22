@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import SitesContent from "./SitesContent";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const SITE = "11111111-1111-4111-8111-111111111111";
 
@@ -180,5 +181,6 @@ describe("SitesContent", () => {
     await user.click(screen.getByRole("button", { name: /add site/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.t reach the server/i);
+    expect(forgiveUnexpectedOutput()).toEqual(["[request failed] TypeError: Failed to fetch"]);
   });
 });

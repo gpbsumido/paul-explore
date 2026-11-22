@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { createSSEParser } from "@/lib/agent/sse-parser";
 
 type StreamingTextResult = {
@@ -34,6 +34,9 @@ export function useStreamingText(): StreamingTextResult {
 
   const start = useCallback(
     (stream: ReadableStream<string>) => {
+      // The run being replaced must stop writing into this one.
+      readerRef.current?.cancel().catch(() => {});
+
       bufferRef.current = "";
       setText("");
       setIsStreaming(true);
@@ -46,6 +49,7 @@ export function useStreamingText(): StreamingTextResult {
         try {
           while (true) {
             const { done, value } = await reader.read();
+            if (readerRef.current !== reader) return;
             if (done) break;
 
             const events = parser.feed(value);
@@ -61,6 +65,7 @@ export function useStreamingText(): StreamingTextResult {
           // reader was cancelled
         }
 
+        if (readerRef.current !== reader) return;
         setIsStreaming(false);
         flush();
       };
@@ -68,6 +73,15 @@ export function useStreamingText(): StreamingTextResult {
       void read();
     },
     [flush, scheduleFlush],
+  );
+
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      readerRef.current?.cancel().catch(() => {});
+      readerRef.current = null;
+    },
+    [],
   );
 
   const reset = useCallback(() => {

@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { http, HttpResponse } from "msw";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { server } from "@/test/server";
 import ZeroProofContent from "./ZeroProofContent";
 
 const TOUR_KEY = "zeroproof-tour-seen";
@@ -19,7 +21,17 @@ function renderLobby(ui: ReactNode) {
 }
 
 describe("ZeroProof guided tour", () => {
-  beforeEach(() => window.localStorage.clear());
+  // The lobby behind the tour loads the board, the leaderboard and the leagues.
+  // A signed-out visitor with nothing on any of them is all the tour needs.
+  beforeEach(() => {
+    window.localStorage.clear();
+    server.use(
+      http.get("/api/zeroproof/events", () => HttpResponse.json({ events: [] })),
+      http.get("/api/zeroproof/leaderboard", () => HttpResponse.json({ entries: [] })),
+      http.get("/api/zeroproof/me", () => new HttpResponse(null, { status: 401 })),
+      http.get("/api/zeroproof/leagues", () => HttpResponse.json({ leagues: [] })),
+    );
+  });
 
   it("auto-opens the consent step on a first visit and asks before touring", () => {
     renderLobby(<ZeroProofContent />);

@@ -19,6 +19,8 @@ function createTestStream() {
   return {
     stream,
     sendEvent(event: string, data: unknown) {
+      // A real source has nothing to send into a stream that was cancelled.
+      if (cancelled) return;
       controller.enqueue(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     },
     close() {
@@ -124,9 +126,7 @@ describe("useStreamingText", () => {
     expect(result.current.isStreaming).toBe(false);
   });
 
-  // Known bug: The hook has no unmount cleanup: the reader is left open and still
-  // appends to the buffer. Recorded as a finding; nothing calls this hook yet.
-  it.fails("cancels the stream when the component unmounts", async () => {
+  it("cancels the stream when the component unmounts", async () => {
     const { result, unmount } = renderHook(() => useStreamingText());
     const mock = createTestStream();
 
@@ -240,9 +240,7 @@ describe("useStreamingText", () => {
     expect(result.current.text).toBe("abc");
   });
 
-  // Known bug: start() never cancels the reader it is replacing, so the old stream keeps
-  // writing into the new run's buffer. Recorded as a finding.
-  it.fails("a second start() ignores late tokens from the first stream", async () => {
+  it("a second start() ignores late tokens from the first stream", async () => {
     const { result } = renderHook(() => useStreamingText());
     const first = createTestStream();
     const second = createTestStream();

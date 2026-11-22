@@ -137,11 +137,7 @@ describe("EventsContent", () => {
       else process.env.TZ = originalZone;
     });
 
-    // Known bug, not fixed here: the date inputs give "2026-11-30", which
-    // `new Date()` reads as midnight UTC. In Toronto that is the evening of
-    // Nov 29, so "end of the selected day" becomes the end of Nov 29 and every
-    // event on the 30th is left out. Flip to a plain `it` once the parse is local.
-    it.fails("ends the range at the last moment of the day chosen, in the viewer's zone", async () => {
+    it("ends the range at the last moment of the day chosen, in the viewer's zone", async () => {
       process.env.TZ = "America/Toronto";
       const user = userEvent.setup();
       const requests = serveEvents([buildEvent()]);
@@ -155,8 +151,7 @@ describe("EventsContent", () => {
       expect([end.getMonth(), end.getDate(), end.getHours(), end.getMinutes()]).toEqual([10, 30, 23, 59]);
     });
 
-    // Known bug, kept red on purpose: starts the range at local midnight of the day chosen. Drop .fails when it is fixed.
-    it.fails("starts the range at local midnight of the day chosen", async () => {
+    it("starts the range at local midnight of the day chosen", async () => {
       process.env.TZ = "America/Toronto";
       const user = userEvent.setup();
       const requests = serveEvents([buildEvent()]);

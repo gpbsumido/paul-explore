@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { FlagsApiError, FlagsContractError } from "@/lib/flags-client";
 import { getFlag } from "@/lib/flags-data";
 import type { Flag } from "@/types/flags";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 vi.mock("@/lib/flags-client", async () => {
   const actual =
@@ -87,6 +88,7 @@ describe("GET /api/flags", () => {
     expect(body.flags.length).toBeGreaterThan(0);
     expect(body.environments).toContain("production");
     expect(body.source).toBe("seed");
+    expect(forgiveUnexpectedOutput()).toEqual(["[flags] loadFleet fell back to the seed: down"]);
   });
 
   it("says the fleet is live when the API answers", async () => {
@@ -113,6 +115,7 @@ describe("GET /api/flags/audit", () => {
     expect(res.status).toBe(200);
     expect(body.audit.length).toBeGreaterThan(0);
     expect(body.source).toBe("seed");
+    expect(forgiveUnexpectedOutput()).toEqual(["[flags] loadAuditLog fell back to the seed: down"]);
   });
 
   it("never publishes an actor's email address", async () => {
@@ -156,6 +159,7 @@ describe("GET /api/flags/audit", () => {
     const body = await (await GET()).json();
 
     expect(JSON.stringify(body)).not.toContain("@");
+    expect(forgiveUnexpectedOutput()).toEqual(["[flags] loadAuditLog fell back to the seed: down"]);
   });
 });
 
@@ -177,6 +181,7 @@ describe("POST /api/flags/evaluate", () => {
 
     expect(res.status).toBe(200);
     expect(body.results.length).toBeGreaterThan(0);
+    expect(forgiveUnexpectedOutput()).toEqual(["[flags] loadFleet fell back to the seed: down"]);
   });
 
   it("evaluates the API's fleet in the environment the request names", async () => {

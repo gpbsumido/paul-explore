@@ -28,10 +28,12 @@ export function loginReturnToFromReferer(
   }
 
   if (url.origin !== appOrigin) return null;
-  if (url.pathname.startsWith("/auth/")) return null;
-  if (url.pathname === "/") return null;
+  // "//host/x" reads as another site to a browser, so keep one leading slash.
+  const pathname = url.pathname.replace(/^\/+/, "/");
+  if (pathname.startsWith("/auth/")) return null;
+  if (pathname === "/") return null;
 
-  return `${url.pathname}${url.search}`;
+  return `${pathname}${url.search}`;
 }
 
 /**

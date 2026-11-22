@@ -6,6 +6,7 @@
 import * as api from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
+import { InvalidSegmentError } from "@/lib/safeSegment";
 import {
   OperatorServiceTokenError,
   OperatorUnavailableError,
@@ -103,6 +104,8 @@ async function readWithFallback<T>(
   try {
     return await read();
   } catch (err) {
+    // A malformed id is the caller's mistake, not an outage the seed can cover.
+    if (err instanceof InvalidSegmentError) throw err;
     noteFallback(label, err);
     return fallback();
   }
@@ -356,6 +359,7 @@ async function writeWithFallback<T>(
   try {
     return await write();
   } catch (err) {
+    if (err instanceof InvalidSegmentError) throw err;
     if (err instanceof api.OperatorApiError) {
       if (err.status === 401 || err.status === 403) {
         console.error(

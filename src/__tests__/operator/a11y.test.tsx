@@ -14,6 +14,11 @@ import InventoryComparisonChart from "@/components/operator/InventoryComparisonC
 import type { FleetStats } from "@/lib/operator-utils";
 import type { AlertTrendBucket } from "@/types/operator";
 
+vi.mock("recharts", async (importOriginal) => {
+  const { withFixedChartSize } = await import("@/test/chartSize");
+  return withFixedChartSize(await importOriginal<typeof import("recharts")>());
+});
+
 // ---------------------------------------------------------------------------
 // Mocks — operator components pull from react-query / next/navigation
 // ---------------------------------------------------------------------------

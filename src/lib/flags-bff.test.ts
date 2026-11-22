@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 import { loadFleet, loadAuditLog, applyFlagPatch, patchSeedStore } from "./flags-bff";
 import { FlagsApiError, FlagsContractError } from "./flags-client";
 import { getAudit, getFlag, getFlags } from "./flags-data";
@@ -49,6 +50,9 @@ describe("loadFleet", () => {
     expect(result.source).toBe("seed");
     expect(result.flags.map((f) => f.key)).toEqual(getFlags().map((f) => f.key));
     expect(result.environments).toEqual([...ENVIRONMENTS]);
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[flags] loadFleet fell back to the seed: ECONNREFUSED",
+    ]);
   });
 
   it("hands back a copy of the seed, so a caller cannot reorder the store", async () => {

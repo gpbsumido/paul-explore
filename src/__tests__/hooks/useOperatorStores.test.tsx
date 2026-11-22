@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { advanceTimersWithinAct } from "@/test/advanceTimersWithinAct";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
@@ -29,14 +30,18 @@ async function countPolls({
   vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
   try {
     const { result } = renderHook(usePolledHook, { wrapper: makeWrapper() });
-    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => {
+      await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    });
     expect(requests()).toBe(1);
 
-    await vi.advanceTimersByTimeAsync(everyMs - 1_000);
+    await advanceTimersWithinAct(everyMs - 1_000);
     expect(requests()).toBe(1);
 
-    await vi.advanceTimersByTimeAsync(1_000);
-    await vi.waitFor(() => expect(requests()).toBe(2));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+      await vi.waitFor(() => expect(requests()).toBe(2));
+    });
   } finally {
     vi.useRealTimers();
   }

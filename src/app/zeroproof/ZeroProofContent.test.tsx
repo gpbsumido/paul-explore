@@ -17,6 +17,7 @@ import { server } from "@/test/server";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { notifyMutationError } from "@/lib/mutationErrorToast";
 import { axe } from "@/test/a11y";
+import { advanceTimersWithinAct } from "@/test/advanceTimersWithinAct";
 import ZeroProofContent from "./ZeroProofContent";
 import { localDayKey } from "@/lib/zeroproof/boardFilters";
 import { playerHandle } from "@/lib/zeroproof/format";
@@ -1255,7 +1256,7 @@ describe("ZeroProofContent — live updates", () => {
       },
     );
     expect(await screen.findByText("open")).toBeInTheDocument();
-    await vi.advanceTimersByTimeAsync(31_000);
+    await advanceTimersWithinAct(31_000);
     // Grades on both the recent-bets list and the board card for the fixture.
     expect((await screen.findAllByText("won")).length).toBeGreaterThan(0);
   });

@@ -6,6 +6,7 @@ import { server } from "@/test/server";
 import { z } from "zod";
 import { useOperatorResource } from "../useOperatorResource";
 import type { ReactNode } from "react";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const widgetSchema = z.object({ id: z.string() });
 type Widget = z.infer<typeof widgetSchema>;
@@ -67,6 +68,9 @@ describe("useOperatorResource", () => {
     await waitFor(() => expect(result.current.error).not.toBeNull());
     expect(result.current.error).toBe("Failed to load widgets.");
     expect(result.current.data).toBeUndefined();
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("[unexpected response] ZodError"),
+    ]);
   });
 
   it("keeps re-reading the endpoint when a polling interval is given", async () => {

@@ -134,9 +134,7 @@ describe("createSSEParser", () => {
     ]);
   });
 
-  // Known bug: a chunk that ends on a single newline looks like it ends on a
-  // blank line, so the event: field is reset before its data arrives.
-  it.fails("keeps the event type when a chunk ends right after the event: line", () => {
+  it("keeps the event type when a chunk ends right after the event: line", () => {
     const parser = createSSEParser();
 
     parser.feed("event: text_delta\n");
@@ -145,9 +143,7 @@ describe("createSSEParser", () => {
     expect(events).toEqual([{ event: "text_delta", data: '{"content":"hi"}' }]);
   });
 
-  // Known bug: Real bug, same cause: the trailing empty string after "\n" is read as the
-  // blank line that ends the event, so multi-line data is cut in two.
-  it.fails("joins data lines that arrive in separate chunks", () => {
+  it("joins data lines that arrive in separate chunks", () => {
     const parser = createSSEParser();
 
     const first = parser.feed("data: line one\n");

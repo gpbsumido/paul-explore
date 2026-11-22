@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-11-21 - version 9.2.30
+
+- The twenty bugs the test audit held as expected failures are fixed, and each test is an ordinary passing test again. A malformed id on the operator and NBA routes answers 400 instead of a 404, 503 or unhandled 500, a budget delete the backend answers with 204 gets through, a mid-hour alert is counted in its own hour, a blank planner param falls back to the default, and the events date filters read the day in the viewer's zone instead of UTC.
+- `useCalendarEvents` keeps the seeded events when a write lands before the first fetch, `useCountUp` shows the target when the duration is zero, and `useStreamingText` closes the stream it replaces and the one it is unmounted with. The SSE parser carries an unfinished line and its event across chunks, which also fixes multi-line data split over two chunks.
+- The login return path can no longer start with `//`, pull request links refuse a `.` or `..` repo, a type named like an object method gets the default colour, and the ZeroProof tracker sends a full batch that piled up behind the one in flight as soon as it lands.
+- The card collection page says it could not load your collection when the request fails, rather than asking a signed-in user to sign in.
+- The shared test helpers are repeatable: the operator factories and the test clock are pinned in setup, the mock handlers wait a constant tick instead of a random 100 to 300ms, `resetOperatorWriteState` restores dismissed alerts, restocked items and rearranged planograms, and the mock `/api/me` returns `isFlagAdmin`. The production demo seed still uses the real dice and clock.
+- The `UpdatesContent` tests failed once under shuffle seed 1234 on a loaded machine. That was a 5 second timeout on a list that renders every update, reproduced with heavy CPU load, and the file now has a timeout that survives it.
+- The test run printed 94 `act()` warnings, 25 unmatched mock requests and 120 blocks of error and warning output, which the changelog had called clean. All three are fixed at the source and the run prints none. The shared `axe` helper runs inside `act()`, fake-timer jumps go through `advanceTimersWithinAct`, `IS_REACT_ACT_ENVIRONMENT` is set once in setup, the tests get the same placeholder Auth0 config the CI build uses, and the default test timeout is 15 seconds so a page-sized render survives a loaded machine.
+- The setup now records every `console.error` and `console.warn` and fails the test that caused it, as it does for an unmatched request. A test that logs on purpose asserts the exact line, so a missing log fails too. The operator fallback tests allow only the "fell back to seed data" line.
+- The shared charts test helper gives Recharts a real size, so the operator charts are drawn in the tests and the accessibility scans look at them.
+- The two background blobs on a fantasy card can land on the same shape number, about one card in six. They shared a React key and a gradient id, so React warned and the second colour never showed. The key is the position now and the gradient id is unique per card.
+- Tests that passed for the wrong reason now check what they say: the leagues route test reused one response body for two requests, four card-pack tests ran the empty-pool path by accident, two inventory tests answered the store request with a payload that fails the schema, one card-lab fixture gave every card the same id, and a loss-report test reused an existing store id.
+- The per-push smoke and accessibility job runs on two workers instead of one. Playwright's slow-file warning had named `a11y-routes.spec.ts` at 9.0 minutes of a 10.2 minute run. The same 141 tests now take 6.2 minutes, with no retries. The flag is on that one CI command, so the authenticated and operator write specs keep their single worker.
+- Dated updates on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said, the helper and timeout work that was first left alone, and the console noise.
+
 ## 2026-11-21 - version 9.2.29
 
 - A test that asserts nothing, a skipped or `.only` test, an expected failure that doesn't say which bug it waits on, and a BFF route no test imports now all fail the build. Vitest runs tests in a random order on CI and prints the seed, so a red run replays with `VITEST_SEED=<n>`. Lint fails on any warning.

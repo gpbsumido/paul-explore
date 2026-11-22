@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline code chip, matching the rest of the write-ups. */
 const C = ({ children }: { children: React.ReactNode }) => (
@@ -385,17 +385,413 @@ expected '//evil.example/x' not to match /^\\/\\//
         </ul>
       </section>
 
+      <Update
+        id="update-2026-11-21-twenty-fixed"
+        date="November 21, 2026"
+        title="The twenty bugs, fixed, and the three I got wrong on the way"
+      >
+        <p>
+          All twenty expected failures are ordinary tests now and the suite
+          exits 0. Fifteen root causes, one commit each. Most were a line or
+          two. Three of them were not what the note on the test said.
+        </p>
+
+        <h3 className={beat}>
+          The SSE bug was not about the trailing newline. It was about state.
+        </h3>
+        <p className="text-muted">
+          The note blamed the empty string after a final <C>\n</C> being read
+          as a blank line. True, but fixing only that would have left the
+          other half: <C>eventType</C> and <C>dataLines</C> were declared
+          inside <C>feed()</C>, so a chunk that ended between two lines of one
+          event started the next call with a fresh event. The fix moved them
+          up beside the buffer and kept only the unfinished last line in it.
+        </p>
+
+        <h3 className={beat}>
+          I returned null from the login path check. The test wanted a string.
+        </h3>
+        <p className="text-muted">
+          My first fix rejected a <C>{"//evil.example/x"}</C> pathname outright. It
+          looked right and failed the test, because the assertion is{" "}
+          <C>expect(result).not.toMatch(...)</C> and that matcher throws on a
+          null:
+        </p>
+        <pre className={pre}>
+          {`Tests  1 failed | 45 passed (46)
+ FAIL  never hands back a protocol-relative path`}
+        </pre>
+        <p className="text-muted">
+          So I collapsed the leading slashes to one instead, which keeps the
+          result on this origin. Then I noticed I had done that after the{" "}
+          <C>/auth/</C> check, so <C>{"//auth/login"}</C> would have come back as{" "}
+          <C>/auth/login</C> and looped into the auth routes. The collapse now
+          runs before both checks.
+        </p>
+
+        <h3 className={beat}>
+          The stream test helper was lying about what a cancelled source does.
+        </h3>
+        <p className="text-muted">
+          Cancelling the old reader in <C>start()</C> is the fix, but the test
+          then calls <C>sendEvent</C> on the first stream after it was
+          cancelled, and a real source cannot do that:
+        </p>
+        <pre className={pre}>
+          {`throws Invalid state: Controller is already closed`}
+        </pre>
+        <p className="text-muted">
+          I made the helper skip the enqueue once cancelled. The assertion did
+          not change, and it still fails without the fix because the stale
+          token only arrives if the first reader is left open. The read loop
+          also leaves state alone once it is no longer the current reader,
+          otherwise the old loop finishing would have switched{" "}
+          <C>isStreaming</C> off in the middle of the new run.
+        </p>
+
+        <h3 className={beat}>What I left alone</h3>
+        <p className="text-muted">
+          The shared test helpers are unchanged: the operator seed and
+          factories still use <C>Math.random</C> and the real clock, and the
+          reset between tests leaves some state behind. One file failed once
+          under shuffle seed 1234 on a loaded machine and passed nine reruns. I
+          could not reproduce it, so I have not written a fix for it.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-11-21-left-alone"
+        date="November 21, 2026"
+        title="The thing I could not reproduce was a timeout, and the helpers were less random than I thought"
+      >
+        <p>
+          The update above ends with a list of things I left alone. Leaving them
+          was the wrong call, since each one was a way for a green run to lie.
+          So I went back for them: the shared helpers, and the one file that
+          failed once under shuffle seed 1234.
+        </p>
+
+        <h3 className={beat}>
+          I said I could not reproduce it. I had been running it on an idle
+          machine.
+        </h3>
+        <p className="text-muted">
+          The failure was reported on a loaded machine and passed nine reruns on
+          a quiet one. Seed 1234 on its own passes. Running the whole suite
+          under it passes too, all 7,207 tests. What changed it was putting load
+          under the file: eight busy processes per core, and the same seed.
+        </p>
+        <pre className={pre}>
+          {` × has no axe violations 7663ms
+   → Test timed out in 5000ms.
+ × lists the newest update first, and the oldest first once the order is flipped 6608ms
+   → Test timed out in 5000ms.`}
+        </pre>
+        <p className="text-muted">
+          It was never about order. Each test in <C>UpdatesContent</C> renders
+          or re-renders every update card, about 76 of them and one more every
+          release, and idle that takes a few hundred milliseconds. Under load it
+          is ten to twenty times that.
+        </p>
+
+        <h3 className={beat}>
+          My first fix covered the two tests that failed. Four more were at 4.7
+          seconds.
+        </h3>
+        <p className="text-muted">
+          I put a longer timeout on the axe test and the sort test, reran under
+          the same load, and it went green. Then I read the other durations in
+          that run: the category chip, the expand toggle and the tag filter were
+          all above four seconds. Fixing the two that happened to cross the line
+          would have moved the flake to whichever test lost the next toss, so
+          the timeout is on the whole <C>describe</C> instead.
+        </p>
+
+        <h3 className={beat}>
+          Pinning the factories was easy. Pinning them without the clock would
+          have been a trap.
+        </h3>
+        <p className="text-muted">
+          The operator factories now take a random function and a clock, and the
+          test setup pins both before the mock server loads, since loading it is
+          what builds the seed. Everything else is the default it was: the demo
+          seed that serves the app when the backend is asleep still uses the
+          real dice and the real time. I pinned the factories first and ran the
+          suite:
+        </p>
+        <pre className={pre}>
+          {`FAIL  operator aggregation parity > product performance category index and dead SKU
+AssertionError: expected [ [ 'Kombucha', +0, false ] ] to deeply equal [ [ 'Cola', 200, true ], …(2) ]`}
+        </pre>
+        <p className="text-muted">
+          The seed was dated June 17 and the code under test windows{" "}
+          <C>the last 7 days</C> against the real clock, so every sale fell
+          outside it. A seed fixed at one instant and read against another is
+          empty by the next day, which is the real-clock bug turned inside out.
+          The setup now pins <C>Date</C> to the same instant, and the failures
+          went away without touching the code that does the windowing.
+        </p>
+
+        <h3 className={beat}>
+          One test only passed because it was already past July.
+        </h3>
+        <p className="text-muted">
+          With the clock pinned, a bff fallback test failed on a promotion it
+          created with a start date of July 1, 2026 and expected to be active:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected { id: 'promo-001', …(6) } to match object { percent: 15, status: 'active' }
+-   "status": "active",
++   "status": "scheduled",`}
+        </pre>
+        <p className="text-muted">
+          It had been written when July was behind us. It would have gone red
+          the other way for anyone who ran it earlier in the year. The dates are
+          now June 1, in the past of the pinned instant, and they stay there.
+        </p>
+
+        <h3 className={beat}>
+          The delay test I wrote first could not fail for the right reason.
+        </h3>
+        <p className="text-muted">
+          The handlers waited a random 100 to 300 milliseconds, and the handler
+          tests worked around it by mocking <C>Math.random</C> to 0. I replaced
+          the delay with a constant tick and asserted that a request never rolls
+          the dice. That failed after the fix:
+        </p>
+        <pre className={pre}>
+          {`AssertionError: expected "random" to not be called at all, but actually been called 2 times`}
+        </pre>
+        <p className="text-muted">
+          MSW rolls <C>Math.random</C> itself to id each request, once per
+          fetch. My first attempt to mock the <C>delay</C> export did nothing
+          either, because the setup had already loaded the module. The test now
+          records only the rolls whose stack starts in the handler file, and I
+          ran it against the old handlers to see it fail before trusting it.
+        </p>
+
+        <h3 className={beat}>The reset did not reset.</h3>
+        <p className="text-muted">
+          <C>resetOperatorWriteState</C> cleared sessions and promotions and
+          nothing else, but the handlers also mutate the seed in place:
+          dismissing an alert, restocking an item, rearranging a planogram. A
+          test that did any of those left it for the next test in the file. It
+          now restores a copy of the seed taken at load, and there is a test per
+          mutation. The shared <C>/api/me</C> handler was also missing{" "}
+          <C>isFlagAdmin</C>, which the real route has always returned.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-11-21-act-noise"
+        date="November 21, 2026"
+        title="The run I had called clean printed 94 act warnings and 25 unmatched requests"
+      >
+        <p>
+          A changelog entry from weeks ago says the test run is clean: zero
+          unmatched requests, zero <C>act()</C> warnings. I compared this PR&apos;s CI
+          log with develop&apos;s to check I had not made the output worse, and
+          neither was clean. Both had the same noise.
+        </p>
+
+        <h3 className={beat}>
+          I replayed the CI seed locally and saw nothing, and almost concluded
+          it was a CI-only timing problem.
+        </h3>
+        <p className="text-muted">
+          I ran <C>VITEST_SEED=1795280842425 pnpm test</C>, the seed from the CI
+          log, and got a green run with no warnings. I then ran it under heavy
+          CPU load and got the same. The log it wrote was 18 lines long, which I
+          should have read as the clue: when it detects an agent, Vitest swaps to
+          a reporter that hides the output of passing tests. My local runs had
+          never shown a console line. With the default reporter named, the
+          replay matched CI to the count:
+        </p>
+        <pre className={pre}>
+          {`$ VITEST_SEED=1795280842425 vitest run --reporter=default
+act warnings          94
+unmatched requests    25`}
+        </pre>
+
+        <h3 className={beat}>
+          Noise nobody reads is a failure that has not been written yet.
+        </h3>
+        <p className="text-muted">
+          Cleaning 94 warnings by hand would last until the next test. So the
+          setup now records every <C>act()</C> warning and every unmatched
+          request and fails the test that caused it. I wrote that first, so I
+          had the list instead of an estimate:
+        </p>
+        <pre className={pre}>
+          {` Test Files  19 failed | 560 passed (579)
+      Tests  31 failed | 7200 passed (7231)`}
+        </pre>
+
+        <h3 className={beat}>
+          Fifty-seven of the warnings were one count-up in one test.
+        </h3>
+        <p className="text-muted">
+          The ZeroProof live-update test jumps fake timers forward 31 seconds,
+          and the win celebration&apos;s count-up sets state on every frame of
+          it. Each frame logged its own warning. Advancing the timers inside{" "}
+          <C>act()</C> fixed that test, and the same one-line helper fixed the
+          polling hook tests and the calendar banner. The axe scans needed the
+          same treatment, since a page with a timer updates while axe waits, so
+          the shared <C>axe</C> helper runs the scan inside <C>act()</C>.
+        </p>
+
+        <h3 className={beat}>
+          Two files still warned after I fixed the helper, because they never
+          used it.
+        </h3>
+        <p className="text-muted">
+          The gallery wall and the slot machine imported <C>axe</C> straight
+          from <C>vitest-axe</C>, so my wrapper did nothing for them. They
+          import the shared one now. The remaining fixes were smaller: four
+          ZeroProof endpoints the tour tests never mocked, a card endpoint the
+          event modal asks for, toast dismissals done with a bare{" "}
+          <C>.click()</C>, and three sleeps used to assert that something never
+          appears. One of those was my own collection test from earlier in this
+          PR. It now waits for the error message instead of for fifty
+          milliseconds.
+        </p>
+
+        <h3 className={beat}>
+          I waited for the lazy import before it had started.
+        </h3>
+        <p className="text-muted">
+          The reduced-motion hydration test warned about{" "}
+          <C>LazyMotion</C> on some orderings and not others. LazyMotion starts
+          its import in an effect, and effects flush when the hydrating{" "}
+          <C>act()</C> ends. I put <C>vi.dynamicImportSettled()</C> inside that
+          same act, where there was no import yet to wait for, and the failure
+          stayed:
+        </p>
+        <pre className={pre}>
+          {`An update to LazyMotion inside a test was not wrapped in act(...).`}
+        </pre>
+        <p className="text-muted">
+          The wait belongs in a second act, after the first has started the
+          import. Setting <C>IS_REACT_ACT_ENVIRONMENT</C> once in the setup
+          also ended the &quot;not configured to support act&quot; warnings from
+          the two hydration files that call React&apos;s act without Testing
+          Library.
+        </p>
+
+        <h3 className={beat}>The test timeout is now a default, not a patch.</h3>
+        <p className="text-muted">
+          While running these under load, a plain render in the design-system
+          gallery timed out at five seconds, the same failure as the updates
+          list. I had patched that one file. The default is fifteen seconds now,
+          and the per-file patch is gone.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-11-21-stderr-blocks"
+        date="November 21, 2026"
+        title="The hundred error lines I called a different class were hiding three bugs"
+      >
+        <p>
+          After the act() work I wrote that about a hundred blocks of error
+          output were &quot;a different class&quot;, the app logging on paths a
+          test provokes on purpose, and left them. I was wrong about the word
+          &quot;mostly&quot;. I widened the guard to every{" "}
+          <C>console.error</C> and <C>console.warn</C> and the first run told me
+          what they were.
+        </p>
+        <pre className={pre}>
+          {`120 blocks of stderr, in 33 files
+ 52  operator fallback: "fell back to seed data"
+ 15  Auth0 client with no config
+ 14  chart "width(-1) and height(-1)"
+ 11  two children with the same key
+  1  Body has already been read
+ 27  a failure the test caused on purpose`}
+        </pre>
+
+        <h3 className={beat}>
+          Eleven duplicate-key warnings were one bug in the app, not in a test.
+        </h3>
+        <p className="text-muted">
+          Card tests, collection tests and pack tests all warned about two
+          children with the key <C>5</C>. It was not the fixtures. A card draws
+          two background blobs from a hash, each a number from 1 to 6, and
+          the blob component used that number as its React key. About one card
+          in six gets the same number twice. The same number was also used for
+          the gradient id, so two cards on one page shared a gradient and the
+          second colour never showed. Keys are the position now, and the
+          gradient id comes from <C>useId</C>.
+        </p>
+        <pre className={pre}>
+          {`Encountered two children with the same key, \`5\`. Keys should be unique so
+that components maintain their identity across updates.`}
+        </pre>
+
+        <h3 className={beat}>
+          A test passed for a reason it never looked at.
+        </h3>
+        <p className="text-muted">
+          The leagues route test called the route twice with one mocked{" "}
+          <C>Response</C>. A body can be read once, so the second call threw and
+          the route quietly answered 502. The test only checked the request
+          headers, so it stayed green. Each call gets its own response now.
+        </p>
+        <pre className={pre}>
+          {`[BFF] GET /zeroproof/leagues — fetch threw: TypeError: Body is unusable: Body has already been read`}
+        </pre>
+        <p className="text-muted">
+          Four card-pack tests did the same thing in a smaller way. They only
+          wanted to know which loader the route called, and they handed back an
+          empty slate, so each one also ran the &quot;empty pool&quot; branch.
+          Two inventory tests answered the store request with{" "}
+          <C>{"{ store: null }"}</C>, which fails the schema, so the component
+          logged a ZodError while the test was about something else.
+        </p>
+
+        <h3 className={beat}>
+          Stubbing the observer did not fix the charts, and I only learned why
+          from the library&apos;s source.
+        </h3>
+        <p className="text-muted">
+          jsdom measures every element as 0 by 0, so Recharts printed that the
+          chart had no size and drew nothing. My first try was a{" "}
+          <C>ResizeObserver</C> that answers with 800 by 400. The warning stayed.
+          Recharts renders once at a default of -1, then reads{" "}
+          <C>getBoundingClientRect()</C>, which is 0, and warns on both before
+          the observer matters. What works is replacing the container with one
+          that hands its chart a width and height. The charts now draw, so the
+          accessibility scans look at a real chart instead of an empty box.
+        </p>
+
+        <h3 className={beat}>
+          The rest became assertions, not mutes.
+        </h3>
+        <p className="text-muted">
+          Where the app logs on purpose, the test now says what it expects. A
+          401 test asserts the line <C>[zeroproof join league] auth failed</C>,
+          and the operator fallback file allows exactly one sentence,{" "}
+          <C>fell back to seed data</C>, and fails on any other. A missing
+          log is a failure too, and a mute button cannot do that. The Auth0
+          warning went away by giving the tests the same placeholder config the
+          CI build uses.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Every test file has been run alone, shuffled, under two seeds, and every test has a verdict. About one in seven was weak, tautological, leaky, misnamed or redundant, and those were strengthened or replaced.",
           "Tests that assert nothing, run in an order they depend on, are skipped, or are expected to fail without saying why now fail the build, as does a BFF route nobody tests.",
           "Lint fails on a warning. The e2e log names every test and each step keeps a report.",
           "The untested BFF routes and the logic files nothing touched got real tests.",
+          "The operator factories and the test clock are pinned, the handlers wait a constant tick, and the reset restores the seed. The default test timeout is fifteen seconds, so a page-sized render survives a loaded machine.",
+          "An act() warning, an unmatched mock request, or any console error or warning fails the test that caused it. The run printed 94 act warnings, 25 unmatched requests and 120 blocks of stderr before, and prints none now. A test that logs on purpose asserts the line.",
+          "The per-push smoke and axe job runs on two workers. Playwright named the accessibility file at 9.0 minutes of a 10.2 minute run, and the same 141 tests now take 6.2 minutes with no retries.",
+          "A card with two blobs of the same shape no longer shares a key or a gradient with itself, and charts draw in tests instead of an empty box.",
         ]}
         couldImprove={[
-          "Fix the twenty bugs held as expected failures, and turn each marker back into an ordinary test.",
           "Run mutation testing in CI on the code that handles money and auth. It only runs on the NFL projection math today.",
-          "Make the operator seed and factories deterministic. Three reviewers found the same unseeded random and real clock.",
+          "Fail on console.log and console.info too. The guard covers error and warn, and the one stdout line left was an e2e setup message that now has an assertion.",
           "Decide what to do about tests that pin exact prose. Rewording a write-up should not break a build.",
           "A coverage floor for logic files, so a new one cannot arrive without a test.",
         ]}

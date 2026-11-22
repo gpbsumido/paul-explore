@@ -31,6 +31,24 @@ const sharedTest = {
   // failure means an empty or half-written test cannot sit in the suite looking
   // green.
   expect: { requireAssertions: true },
+  // The 5s default is tuned for an idle machine. A test that renders a whole
+  // page (the updates list, the design-system gallery) takes under a second
+  // idle and ten to twenty times that on a loaded CI runner, so it failed with
+  // "Test timed out" on a run where nothing was wrong. 15s covers that without
+  // hiding a hang for long.
+  testTimeout: 15_000,
+  // Importing the real Auth0 client with no config makes the SDK print a
+  // "Not all required options were provided" warning for each test file that
+  // touches it (twelve files in a full run). These are the same placeholders
+  // the CI build jobs use; no test talks to Auth0, so any well-formed value
+  // does.
+  env: {
+    AUTH0_SECRET: "ci-placeholder-secret-32-characters!!",
+    AUTH0_DOMAIN: "placeholder.auth0.com",
+    AUTH0_CLIENT_ID: "ci-placeholder-client-id",
+    AUTH0_CLIENT_SECRET: "ci-placeholder-client-secret",
+    APP_BASE_URL: "http://localhost:3000",
+  },
   // Tests run in a random order on CI. Three files only passed in the order
   // they were written, because an earlier test left a counter or a cache
   // behind. The seed is printed below, so a red run replays with

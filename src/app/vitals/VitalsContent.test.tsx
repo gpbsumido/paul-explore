@@ -12,6 +12,10 @@ import type {
 // The header pulls in the session menu and its providers, which none of these
 // assertions are about. Same stub the other content tests use.
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
+vi.mock("recharts", async (importOriginal) => {
+  const { withFixedChartSize } = await import("@/test/chartSize");
+  return withFixedChartSize(await importOriginal<typeof import("recharts")>());
+});
 
 /** Props for a dashboard the backend answered normally. */
 function reachableProps(overrides: Partial<Parameters<typeof VitalsContent>[0]> = {}) {

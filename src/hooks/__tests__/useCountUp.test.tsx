@@ -126,9 +126,7 @@ describe("useCountUp", () => {
     }
   });
 
-  // Known bug: Found while auditing: a zero duration returns early and the hook then
-  // returns its state, which is still 0, so the figure never shows the target.
-  it.fails("lands on the target straight away when the duration is zero", async () => {
+  it("lands on the target straight away when the duration is zero", async () => {
     stubPreference(false);
     const useCountUp = await freshHook();
     const { result } = renderHook(() => useCountUp(42, 0));

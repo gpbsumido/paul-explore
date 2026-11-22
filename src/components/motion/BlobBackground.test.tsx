@@ -48,6 +48,38 @@ describe("BlobBackground", () => {
     expect(firstStops).toEqual(["red", "blue", "red"]);
   });
 
+  // A card's two seeds come from a hash and land on the same number about one
+  // card in six. React then saw two children with one key and warned, and both
+  // layers pointed at one gradient, so the second colour never showed.
+  it("keeps two layers apart when their seeds are the same number", () => {
+    const { container } = render(
+      <BlobBackground seeds={[3, 3]} colors={["red", "blue"]} />,
+    );
+    const fills = [...container.querySelectorAll("path")].map((path) =>
+      path.getAttribute("fill"),
+    );
+    const gradientIds = [...container.querySelectorAll("radialGradient")].map(
+      (gradient) => gradient.id,
+    );
+
+    expect(new Set(gradientIds).size).toBe(2);
+    expect(fills).toEqual(gradientIds.map((id) => `url(#${id})`));
+  });
+
+  it("gives two backgrounds on one page gradients of their own", () => {
+    const { container } = render(
+      <>
+        <BlobBackground seeds={[3]} colors={["red"]} />
+        <BlobBackground seeds={[3]} colors={["blue"]} />
+      </>,
+    );
+    const gradientIds = [...container.querySelectorAll("radialGradient")].map(
+      (gradient) => gradient.id,
+    );
+
+    expect(new Set(gradientIds).size).toBe(2);
+  });
+
   it("renders one path per seed", () => {
     const { container } = render(<BlobBackground seeds={[1, 2, 3]} />);
     expect(container.querySelectorAll("path")).toHaveLength(3);

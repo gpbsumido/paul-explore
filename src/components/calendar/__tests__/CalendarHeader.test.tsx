@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CalendarHeader from "../CalendarHeader";
 import type { Calendar } from "@/types/calendar";
+import { advanceTimersWithinAct } from "@/test/advanceTimersWithinAct";
 
 const state = vi.hoisted(() => ({
   calendars: [] as Calendar[],
@@ -184,9 +185,9 @@ describe("CalendarHeader banner", () => {
       const message = "Could not leave the calendar. Please try again.";
       expect(await screen.findByText(message)).toBeInTheDocument();
 
-      await vi.advanceTimersByTimeAsync(4_000);
+      await advanceTimersWithinAct(4_000);
       expect(screen.getByText(message)).toBeInTheDocument();
-      await vi.advanceTimersByTimeAsync(2_000);
+      await advanceTimersWithinAct(2_000);
       await waitFor(() => expect(screen.queryByText(message)).not.toBeInTheDocument());
     } finally {
       vi.useRealTimers();

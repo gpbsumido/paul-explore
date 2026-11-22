@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import { m, useScroll, useTransform } from "framer-motion";
 import { useHubReducedMotion } from "@/app/providers";
 import { blobPath } from "./blobPath";
@@ -39,6 +39,10 @@ export default function BlobBackground({
   className,
 }: BlobBackgroundProps) {
   const reducedMotion = useHubReducedMotion();
+  // Gradient ids live in the whole page, so two backgrounds (a grid of cards)
+  // must not both call theirs "blob-grad-3". useId is the same on the server
+  // and the client; the colons are stripped so the id is safe inside url(#...).
+  const gradientIdPrefix = `blob-grad-${useId().replace(/:/g, "")}`;
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -55,7 +59,9 @@ export default function BlobBackground({
     >
       {seeds.map((seed, index) => (
         <m.svg
-          key={seed}
+          // The index, not the seed: two layers can share a seed, and the list
+          // never reorders, so the position is the stable identity.
+          key={index}
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           preserveAspectRatio="xMidYMid slice"
           className="absolute inset-0 h-full w-full"
@@ -65,7 +71,7 @@ export default function BlobBackground({
           }}
         >
           <defs>
-            <radialGradient id={`blob-grad-${seed}`}>
+            <radialGradient id={`${gradientIdPrefix}-${index}`}>
               <stop
                 offset="0%"
                 stopColor={colors[index % colors.length]}
@@ -94,7 +100,7 @@ export default function BlobBackground({
               variance: 0.45,
               size: SIZE,
             })}
-            fill={`url(#blob-grad-${seed})`}
+            fill={`url(#${gradientIdPrefix}-${index})`}
           />
         </m.svg>
       ))}

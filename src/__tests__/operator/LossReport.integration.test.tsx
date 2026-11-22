@@ -158,7 +158,8 @@ describe("LossReport", () => {
         HttpResponse.json({
           ...fleet(),
           stores: [
-            { storeId: "s1", storeName: "Spotless", ...EMPTY, countedLines: 4 },
+            // Its own id: the fleet already has an "s1", and two rows with one id make React warn about duplicate keys.
+            { storeId: "s-spotless", storeName: "Spotless", ...EMPTY, countedLines: 4 },
             ...fleet().stores,
           ],
         }),

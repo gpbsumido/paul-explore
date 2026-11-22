@@ -1,31 +1,20 @@
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect } from "vitest";
 import { getStores, getInventory, getAlerts } from "@/lib/operator-data";
+import { PINNED_FACTORY_NOW, pinFactories, seededRandom } from "@/test/factories/operator";
 
 const GLOBAL_KEY = "__operatorDataStore";
 
 /**
- * Re-seeds the demo store with Math.random answering from a fixed function, so
- * the shelves (and so the alerts) are the same on every run instead of whatever
- * the dice gave this time.
+ * Re-seeds the demo store with the factories answering from a fixed function,
+ * so the shelves (and so the alerts) are the same on every run instead of
+ * whatever the dice gave this time.
  */
 function seedWith(random: () => number): void {
   delete (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
-  vi.spyOn(Math, "random").mockImplementation(random);
-}
-
-/** A small repeatable pseudo-random sequence (mulberry32). */
-function seededRandom(seed: number): () => number {
-  let state = seed;
-  return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+  pinFactories({ random, now: PINNED_FACTORY_NOW });
 }
 
 afterEach(() => {
-  vi.restoreAllMocks();
   delete (globalThis as unknown as Record<string, unknown>)[GLOBAL_KEY];
 });
 
@@ -110,10 +99,6 @@ describe("seeded alerts against the inventory they describe", () => {
 });
 
 describe("seeded alerts for known shelves", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it("raises a critical out-of-stock alert for every empty slot", () => {
     seedWith(() => 0);
     for (const store of getStores()) {

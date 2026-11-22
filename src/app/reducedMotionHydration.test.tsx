@@ -61,6 +61,17 @@ async function freshApp(side: "server" | "client") {
   };
 }
 
+/**
+ * LazyMotion starts loading its features in an effect, which flushes when the
+ * hydrating act() ends, and the update that follows lands after it. Left alone,
+ * that update is outside act on some test orderings. A second act waits for the
+ * import it started.
+ */
+const settleLazyFeatures = () =>
+  act(async () => {
+    await vi.dynamicImportSettled();
+  });
+
 afterEach(() => {
   vi.unstubAllGlobals();
   document.body.innerHTML = "";
@@ -82,6 +93,7 @@ describe("reduced motion across hydration", () => {
     await act(async () => {
       hydrateRoot(container, <ClientApp />, { onRecoverableError });
     });
+    await settleLazyFeatures();
 
     expect(onRecoverableError).not.toHaveBeenCalled();
   });
@@ -100,6 +112,7 @@ describe("reduced motion across hydration", () => {
     await act(async () => {
       hydrateRoot(container, <ClientApp />, { onRecoverableError: () => {} });
     });
+    await settleLazyFeatures();
 
     expect(container.querySelector("[data-testid=probe]")?.textContent).toBe(
       "reduced",
@@ -160,6 +173,7 @@ describe("the page under the template", () => {
         { onRecoverableError: () => {} },
       );
     });
+    await settleLazyFeatures();
 
     expect(mounts.count).toBe(1);
   });

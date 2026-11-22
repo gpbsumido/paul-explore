@@ -7,6 +7,7 @@ import { useCountdowns } from "../useCountdowns";
 import type { Countdown, CountdownPage } from "@/types/calendar";
 import type { ReactNode } from "react";
 import { CONNECTION_ERROR_MESSAGE } from "@/lib/userFacingError";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -144,6 +145,7 @@ describe("useCountdowns — read", () => {
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
     expect(result.current.error).toBe(CONNECTION_ERROR_MESSAGE);
+    expect(forgiveUnexpectedOutput()).toEqual(["[request failed] TypeError: Failed to fetch"]);
   });
 
   it("passes the cursor from one page on to the request for the next", async () => {

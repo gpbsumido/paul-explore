@@ -13,6 +13,7 @@ vi.mock("@/lib/auth0", () => ({
 import { NextRequest } from "next/server";
 import { fetchUpstream } from "@/lib/upstream";
 import { auth0 } from "@/lib/auth0";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const ok = (body: unknown) =>
   ({
@@ -60,6 +61,7 @@ describe("GET /api/vitals", () => {
     const res = await GET(req());
 
     expect(res.status).toBe(502);
+    expect(forgiveUnexpectedOutput()).toEqual(["[vitals BFF] GET — backend error on summary"]);
   });
 
   it("forwards a signed-in visitor's token to both aggregate calls", async () => {

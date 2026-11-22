@@ -101,7 +101,8 @@ export function toAlertTrendData(
   for (const alert of alerts) {
     const alertTime = new Date(alert.timestamp);
     const diffMs = currentHourStart.getTime() - alertTime.getTime();
-    const hoursAgo = Math.floor(diffMs / (60 * 60 * 1000));
+    // ceil, so 11:30 against a 2 pm hour start is 3 hours back (the 11:00 bucket)
+    const hoursAgo = Math.ceil(diffMs / (60 * 60 * 1000));
 
     if (hoursAgo < 0) {
       // alert is in the current hour (ahead of hour start)

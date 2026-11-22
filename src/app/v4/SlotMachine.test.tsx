@@ -6,7 +6,7 @@ import {
   within,
   act,
 } from "@testing-library/react";
-import { axe } from "vitest-axe";
+import { axe } from "@/test/a11y";
 import SlotMachine from "./SlotMachine";
 import { buildSlots } from "./slotData";
 import { WIN_MS } from "./WinCelebration";

@@ -226,13 +226,14 @@ export function createTracker(deps: TrackerDeps): Tracker {
 
     if (flushing) return;
     flushing = true;
+    let delivered = false;
     clearTimer();
     try {
       const status = await deps.transport.send(batch);
       if (status >= 200 && status < 300) {
         attempt = 0;
         remove(batch);
-        if (queue.length > 0) maybeFlush();
+        delivered = true;
         return;
       }
       if (isRetryableStatus(status)) {
@@ -251,6 +252,9 @@ export function createTracker(deps: TrackerDeps): Tracker {
       remove(batch);
     } finally {
       flushing = false;
+      // Only now can a follow-up flush run: inside the try, flushing was still
+      // true, so a full batch queued behind this one was left waiting.
+      if (delivered && queue.length > 0) maybeFlush();
     }
   }
 
