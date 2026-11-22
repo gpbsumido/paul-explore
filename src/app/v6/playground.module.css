@@ -65,14 +65,15 @@
 .about { display:grid; grid-template-columns:minmax(0,1fr); gap:1.5rem 3rem; margin:0 clamp(1.25rem,4vw,4.5rem); padding:4rem 0 3rem; border-bottom:1px solid var(--paul-color-border); }
 .about > p { margin:0; }
 .aboutTitle { font-size:clamp(1.9rem,4vw,3rem); line-height:1.05; letter-spacing:-.03em; font-weight:600; }
-.aboutCopy { display:grid; gap:1rem; max-width:38rem; color:var(--paul-color-muted); }
-.photoStack { display:grid; justify-items:center; margin:1rem 0 2rem; padding:0; list-style:none; }
+.aboutCopy { display:grid; align-content:center; gap:1rem; max-width:38rem; color:var(--paul-color-muted); }
+.photoStack { display:grid; justify-items:center; overflow-x:clip; overflow-clip-margin:1rem; margin:1rem 0 2rem; padding:0; list-style:none; }
 .photoStack li { grid-area:1/1; width:min(70vw,22rem); --tilt:0deg; --shift:0rem; translate:var(--shift) 0; rotate:var(--tilt); }
 .photoStack li:nth-child(1) { --tilt:-8deg; --shift:-2.5rem; }
 .photoStack li:nth-child(3) { --tilt:7deg; --shift:2.5rem; }
 .photoStack:hover li:nth-child(1), .photoStack:focus-within li:nth-child(1) { --tilt:-12deg; --shift:-6rem; }
 .photoStack:hover li:nth-child(3), .photoStack:focus-within li:nth-child(3) { --tilt:11deg; --shift:6rem; }
-.photoStack li:has(a:hover), .photoStack li:has(a:focus-visible) { z-index:1; }
+.photoStack li:nth-child(2) { z-index:1; }
+.photoStack li:has(a:hover), .photoStack li:has(a:focus-visible) { z-index:2; }
 .photoStack a { display:block; overflow:hidden; border:.35rem solid var(--paul-color-surface); border-radius:1rem; background:var(--paul-color-surface); box-shadow:0 1.2rem 2.5rem -1.2rem color-mix(in oklab,var(--paul-color-foreground) 45%,transparent); }
 .photoStack img { width:100%; height:auto; aspect-ratio:16/10; object-fit:cover; object-position:top; }
 @media (prefers-reduced-motion: no-preference) { .photoStack li { transition:translate .45s cubic-bezier(.2,.8,.2,1), rotate .45s cubic-bezier(.2,.8,.2,1); } }
