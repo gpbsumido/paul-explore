@@ -13,6 +13,7 @@ import {
 } from "@/lib/operator-detail";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/contexts/ToastContext";
+import { failureAlreadyToasted } from "@/lib/mutationErrorToast";
 import ConfirmModal from "./ConfirmModal";
 import { RestockIcon, CheckmarkIcon, RefreshIcon } from "./icons";
 
@@ -43,10 +44,13 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
   const handleRestockAll = useCallback(async () => {
     setConfirmTarget(null);
     if (lowStockIds.length === 0) return;
-    await restockStore({ storeId, itemIds: [...lowStockIds] });
-    addToast({
-      message: `Restocked ${lowStockIds.length} item${lowStockIds.length !== 1 ? "s" : ""}`,
-    });
+    await restockStore({ storeId, itemIds: [...lowStockIds] }).then(
+      () =>
+        addToast({
+          message: `Restocked ${lowStockIds.length} item${lowStockIds.length !== 1 ? "s" : ""}`,
+        }),
+      failureAlreadyToasted,
+    );
   }, [storeId, lowStockIds, restockStore, addToast]);
 
   const handleDismissAll = useCallback(async () => {
@@ -55,8 +59,10 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
     const count = dismissableAlerts.length;
     await Promise.all(
       dismissableAlerts.map((a) => dismissAlert({ alertId: a.id, storeId })),
+    ).then(
+      () => addToast({ message: `Dismissed ${count} alert${count !== 1 ? "s" : ""}` }),
+      failureAlreadyToasted,
     );
-    addToast({ message: `Dismissed ${count} alert${count !== 1 ? "s" : ""}` });
   }, [storeId, dismissableAlerts, dismissAlert, addToast]);
 
   // Re-pulls this store's readings. It does not reach the hardware — there is

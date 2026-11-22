@@ -11,6 +11,7 @@ import {
 } from "@/lib/operator-detail";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { storeTimeZone } from "@/lib/operator-timezone";
+import { failureAlreadyToasted } from "@/lib/mutationErrorToast";
 import type { AlertCategory } from "@/types/operator";
 import ChartBar from "./ChartBar";
 import AlertRow from "./AlertRow";
@@ -81,7 +82,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
   const handleDismiss = useCallback(
     (alertId: string) => {
       setDismissingIds((prev) => new Set([...prev, alertId]));
-      dismissAlert({ alertId, storeId }).finally(() => {
+      dismissAlert({ alertId, storeId }).catch(failureAlreadyToasted).finally(() => {
         setDismissingIds((prev) => {
           const next = new Set(prev);
           next.delete(alertId);

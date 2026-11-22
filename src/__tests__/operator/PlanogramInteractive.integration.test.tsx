@@ -149,7 +149,7 @@ describe("PlanogramTab moving into an empty box", () => {
   it("tells the operator when a move couldn't be saved", async () => {
     server.use(
       http.patch(`/api/operator/stores/${STORE_ID}/planogram`, () =>
-        HttpResponse.json({ error: "no" }, { status: 500 }),
+        HttpResponse.json({ error: "The shelf didn't save" }, { status: 500 }),
       ),
     );
     const user = userEvent.setup();
@@ -159,8 +159,8 @@ describe("PlanogramTab moving into an empty box", () => {
 
     await user.click(await within(container).findByRole("button", { name: /move chips to the next box/i }));
 
-    expect(await screen.findByText("no")).toBeInTheDocument();
-    expect(screen.getAllByText("no")).toHaveLength(1);
+    expect(await screen.findByText("The shelf didn't save")).toBeInTheDocument();
+    expect(screen.getAllByText("The shelf didn't save")).toHaveLength(1);
     expect(screen.queryByText("Failed to move product")).not.toBeInTheDocument();
     expect(within(container).getByLabelText("Empty box A4")).toBeInTheDocument();
   });
@@ -206,7 +206,7 @@ describe("PlanogramTab layout and refill run", () => {
   it("tells the operator when a re-sync couldn't be saved", async () => {
     server.use(
       http.patch(`/api/operator/stores/${STORE_ID}/planogram`, () =>
-        HttpResponse.json({ error: "no" }, { status: 500 }),
+        HttpResponse.json({ error: "The sensor didn't re-sync" }, { status: 500 }),
       ),
     );
     const user = userEvent.setup();
@@ -216,8 +216,8 @@ describe("PlanogramTab layout and refill run", () => {
 
     await user.click(await within(container).findByRole("button", { name: /re-sync sensor for water/i }));
 
-    expect(await screen.findByText("no")).toBeInTheDocument();
-    expect(screen.getAllByText("no")).toHaveLength(1);
+    expect(await screen.findByText("The sensor didn't re-sync")).toBeInTheDocument();
+    expect(screen.getAllByText("The sensor didn't re-sync")).toHaveLength(1);
     expect(screen.queryByText("Failed to re-sync sensor")).not.toBeInTheDocument();
     expect(within(container).getByText("Mismatch")).toBeInTheDocument();
   });

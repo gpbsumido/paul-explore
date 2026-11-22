@@ -4,7 +4,7 @@ import { useMemo, useCallback, useState } from "react";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { useRestockStore } from "@/hooks/useOperatorMutations";
-import { useToast } from "@/contexts/ToastContext";
+import { failureAlreadyToasted } from "@/lib/mutationErrorToast";
 import { computeInventorySummary } from "@/lib/operator-detail";
 import InventorySummary from "./InventorySummary";
 import InventoryRow from "./InventoryRow";
@@ -24,7 +24,6 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
   const { items, loading, error } = useOperatorInventory(storeId);
   const { store } = useOperatorStore(storeId);
   const { restockStore } = useRestockStore();
-  const { addToast } = useToast();
 
   const [restockingIds, setRestockingIds] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -50,9 +49,7 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
             });
           }, 2000);
         })
-        .catch(() => {
-          addToast({ message: "Failed to restock item", variant: "error" });
-        })
+        .catch(failureAlreadyToasted)
         .finally(() => {
           setRestockingIds((prev) => {
             const next = new Set(prev);
@@ -61,7 +58,7 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
           });
         });
     },
-    [storeId, restockStore, addToast],
+    [storeId, restockStore],
   );
 
   if (error) {
