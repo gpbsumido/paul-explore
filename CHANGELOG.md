@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.1
+
+- Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact.
+
 ## 2026-11-22 - version 9.3.0
 
 - The About band gets an experience card: a Work and Education switch over a dated timeline, after the reference site's tabbed card. Every entry is lifted from the résumé in public/resume, so the landing can't claim more than the PDF does. It uses the design system's Timeline, an ordered list with a `<time>` per entry, with the date moved above the role so it reads like a résumé. With the photo stack and the typed heading, this finishes the About band, so the version moves to 9.3.0 and the public updates feed gets an entry for it.
