@@ -25,12 +25,10 @@ export default function StackStrip() {
 
   return (
     <section aria-labelledby="stack-title" className={`${SHELL} ${styles.stack}`}>
-      <div className={styles.stackCopy}>
-        <h3 id="stack-title">Built on</h3>
-        <p>The runtime this site ships on and the test stack that keeps it honest. Every name here is checked against package.json.</p>
-      </div>
       <div className={styles.phone}>
         <div className={styles.phoneScreen}>
+          <h3 id="stack-title">Built on</h3>
+          <p>The runtime this site ships on and the test stack that keeps it honest. Every name here is checked against package.json.</p>
           <ul ref={railRef} tabIndex={0} aria-label="What this site is built on" className={styles.stackList}>
             {STACK.map(({ pkg, label }) => (
               <li key={pkg}>{label}</li>
