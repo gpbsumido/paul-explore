@@ -756,6 +756,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   "fantasy-nfl": "--color-feature-nfl",
   pokemon: "--color-feature-tcg",
   calendar: "--color-feature-calendar",
+  budget: "--color-feature-budget",
   vitals: "--color-feature-vitals",
   particles: "--color-feature-particles",
   ketsup: "--color-feature-ketsup",
