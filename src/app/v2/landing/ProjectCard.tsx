@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { spring, instantTransition } from "@/lib/animations";
 
 type ProjectCardProps = {
@@ -25,7 +26,7 @@ export default function ProjectCard({
   index,
   reversed = false,
 }: ProjectCardProps) {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const skip = prefersReduced ?? false;
 
   return (

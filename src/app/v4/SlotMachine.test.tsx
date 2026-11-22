@@ -17,9 +17,8 @@ const mocks = vi.hoisted(() => ({
   unlockWinAudio: vi.fn(),
 }));
 
-vi.mock("framer-motion", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("framer-motion")>()),
-  useReducedMotion: () => mocks.reducedMotion,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reducedMotion,
 }));
 
 // The jingle itself is covered in winSound.test.ts; here only whether the

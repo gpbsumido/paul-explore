@@ -5,10 +5,10 @@ import dynamic from "next/dynamic";
 import {
   m,
   useInView,
-  useReducedMotion,
   useSpring,
   useTransform,
 } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import Section from "./Section";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
@@ -171,7 +171,7 @@ function RatingBadge({
 export default function VitalsSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = useReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion() ?? false;
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (

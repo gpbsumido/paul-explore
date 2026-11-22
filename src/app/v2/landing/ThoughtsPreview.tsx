@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import {
   fadeInUp,
   staggerContainer,
@@ -12,7 +13,7 @@ import { THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
 
 export default function ThoughtsPreview() {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const skip = prefersReduced ?? false;
 
   return (

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { m, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { staggerContainer } from "@/lib/animations";
 import { reveal } from "@/app/landing/Section";
 import NavBar from "./landing/NavBar";
@@ -33,7 +34,7 @@ const CATEGORIES: ReadonlyArray<{
 ];
 
 export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
-  const prefersReduced = useReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion() ?? false;
   const [active, setActive] = useState(0);
 
   // The server-read name covers the first paint. It stays local rather than

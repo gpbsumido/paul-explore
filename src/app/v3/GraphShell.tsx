@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import GraphBackground from "./graph/GraphBackground";
 import NodeGraph from "./graph/NodeGraph";
 import { openCommandPalette } from "@/lib/command-palette/open-event";
@@ -181,7 +181,7 @@ export default function GraphShell({
   greeting: ReactNode;
   action: ReactNode;
 }) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = usePrefersReducedMotion() ?? false;
   const [mode, setModeState] = useState<LayoutMode>("force");
   // Once the flat view has been asked for we keep it mounted, so switching back
   // to it is instant and never re-loads its chunk or replays its intro.

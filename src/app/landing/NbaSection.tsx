@@ -7,10 +7,10 @@ import {
   m,
   AnimatePresence,
   useInView,
-  useReducedMotion,
   useSpring,
   useTransform,
 } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import Section from "./Section";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
@@ -40,7 +40,7 @@ function AnimatedStat({
   inView: boolean;
   className?: string;
 }) {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const target = parseFloat(value);
   const decimals = value.includes(".") ? value.split(".")[1].length : 0;
 
@@ -82,7 +82,7 @@ function StatRow({
   index: number;
   inView: boolean;
 }) {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
 
   return (
     <m.tr
@@ -154,7 +154,7 @@ const SLIDES = [
 export default function NbaSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
 
   const [activeSlide, setActiveSlide] = useState(0);

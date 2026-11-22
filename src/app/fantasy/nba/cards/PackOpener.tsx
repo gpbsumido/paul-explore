@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { ACCENT_BAND } from "@/lib/accentBand";
 import { type GeneratedCard } from "@/lib/fantasy-cards";
 import FantasyCard from "./FantasyCard";
@@ -37,9 +38,9 @@ export default function PackOpener({
   cards: GeneratedCard[];
   onClose: () => void;
 }) {
-  const reduced = useReducedMotion();
-  // Read the preference synchronously for the initial phase — framer's
-  // useReducedMotion resolves to false on the first render, which would flash
+  const reduced = usePrefersReducedMotion();
+  // Read the preference synchronously for the initial phase. The hook
+  // resolves to false on the first render, which would flash
   // the wheel before jumping to the reveal.
   const [phase, setPhase] = useState<Phase>(() =>
     typeof window !== "undefined" &&

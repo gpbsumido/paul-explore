@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { RefObject } from "react";
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { EXHIBITS } from "@/lib/world/exhibits";
@@ -333,7 +334,7 @@ function Joystick({
 
 export default function WorldContent() {
   const router = useRouter();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   // The city dresses for the visitor's local clock; ?t=day|dusk|night forces
   // a look, and anything unknowable falls back to night. Browser-only sources
   // (clock, URL, localStorage) are read after mount — reading them during

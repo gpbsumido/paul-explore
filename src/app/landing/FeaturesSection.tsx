@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { m, useInView, useReducedMotion, type Transition } from "framer-motion";
+import { m, useInView, type Transition } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import Section from "./Section";
 import {
   cardFlipIn,
@@ -210,7 +211,7 @@ function FeatureCard({
 export default function FeaturesSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (

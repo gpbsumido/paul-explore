@@ -152,7 +152,7 @@ export const staggerContainer = (
 // ---------------------------------------------------------------------------
 
 /**
- * Pass as the `transition` prop when `useReducedMotion()` returns true.
+ * Pass as the `transition` prop when `usePrefersReducedMotion()` returns true.
  * Skips the animation entirely without removing the motion element from the tree.
  */
 export const instantTransition: Transition = { duration: 0 };

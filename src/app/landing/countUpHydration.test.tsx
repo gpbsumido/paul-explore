@@ -27,19 +27,11 @@ const stubPreference = (reduce: boolean) =>
     })),
   );
 
+/** Imports the section as a fresh module graph, the way each side would. */
 async function freshSection(
   path: "./VitalsSection" | "./NbaSection",
-  side: "server" | "client",
 ): Promise<ComponentType> {
   vi.resetModules();
-  if (side === "server") {
-    vi.doMock("framer-motion", async (importOriginal) => ({
-      ...(await importOriginal<typeof import("framer-motion")>()),
-      useReducedMotion: () => null,
-    }));
-  } else {
-    vi.doUnmock("framer-motion");
-  }
   return (await import(path)).default;
 }
 
@@ -53,11 +45,11 @@ describe.each(["./VitalsSection", "./NbaSection"] as const)(
   (path) => {
     it("hydrate for a reduced-motion visitor without a mismatch", async () => {
       stubPreference(false);
-      const Server = await freshSection(path, "server");
+      const Server = await freshSection(path);
       const html = renderToString(<Server />);
 
       stubPreference(true);
-      const Client = await freshSection(path, "client");
+      const Client = await freshSection(path);
       const container = document.createElement("div");
       container.innerHTML = html;
       document.body.appendChild(container);

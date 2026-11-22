@@ -1,7 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import {
   spring,
   fadeInUp,
@@ -20,7 +21,7 @@ export default function HeroSection() {
     () => true,
     () => false,
   );
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const skip = prefersReduced ?? false;
   const transition = skip ? instantTransition : spring.wordReveal;
 
