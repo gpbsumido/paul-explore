@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.36
+
+- "Try again" on a failed page fetches the page again. The 30 route error boundaries handed the shared error screen Next's `reset`, which clears the error and re-renders the same payload, so a page that failed because an API was down stayed failed until a full reload. They pass `retry` now, stable since Next 16.3, which refreshes the route first. A test checks every `error.tsx` for it.
+- A failure on a page outside the feature routes, such as a write-up, `/` or `/settings`, showed the framework's bare error screen, because there was no root `error.tsx`. There is now, plus a `global-error.tsx` for a failure in the root layout itself. That last one renders in the light theme, since the theme script lives in the layout it replaces.
+
 ## 2026-11-22 - version 9.2.35
 
 - Every per-IP rate limit is enforced by the proxy from the one rule table. The proxy ran its own copy of the matching loop, so the rule tests checked `matchRateLimit`, a function the proxy never called, and the one-minute window lived in proxy.ts apart from the rules. It calls `matchRateLimit` now, and a new test floods the proxy itself. `/api/research/ask` keeps its own limit of 10 a minute on purpose, because it counts per signed-in account rather than per address.
