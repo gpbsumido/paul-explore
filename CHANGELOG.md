@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.53
+
+- The landing has an About band after the projects. It says who builds this and what I care about, with a photo stack beside it: three of the site's own screens (the operator dashboard, the design system and the 3D world), tilted on top of each other. They fan out on hover or when a card takes focus, and each one opens its app. The fan is a transition, so it's off for anyone who prefers reduced motion. The sections after it renumber to 04 and 05.
+
 ## 2026-11-22 - version 9.2.52
 
 - The site describes itself the way the landing does. The web app manifest, the root layout's fallback description and the share image still led with NBA stats and a Pokémon TCG browser, long after the landing became about lead front-end work. They now all read one `SITE_DESCRIPTION`, the same line the home page uses, and a test fails if any of them goes back to its own copy.
