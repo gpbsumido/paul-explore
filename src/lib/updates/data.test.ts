@@ -29,19 +29,18 @@ describe("the public feed keeps pace with releases", () => {
     readFileSync(join(process.cwd(), "package.json"), "utf-8"),
   ).version;
 
-  it("gives the current minor or major release a public update entry", () => {
-    const patch = version.split(".")[2];
+  it("gives the minor or major release this version builds on a public update entry", () => {
     // Patch releases are small fixes and stay out of the curated feed on
     // purpose. A minor or major bump (X.Y.0) ships a feature or a real change,
-    // so it has to be told to a reader here — this is the guard that a version
-    // bump can't land without one.
-    const needsEntry = patch === "0";
+    // so it has to be told to a reader here. Checking X.Y.0 rather than the
+    // current version means a patch still asserts something: the release its
+    // line started from was announced.
+    const [major, minor] = version.split(".");
+    const release = `${major}.${minor}.0`;
     const shipped = new Set(UPDATE_ENTRIES.map((e) => e.version));
-    // Always asserts, so a patch version is a passing check and not an empty
-    // test that proves nothing.
     expect(
-      !needsEntry || shipped.has(version),
-      `${version} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts`,
+      shipped.has(release),
+      `${release} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts`,
     ).toBe(true);
   });
 });
