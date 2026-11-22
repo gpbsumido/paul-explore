@@ -2,8 +2,9 @@
 
 ## 2026-11-22 - version 9.2.33
 
-- A failed request in the browser now shows the reason the server gave, through one helper, `responseError`, instead of eleven copies of `res.json().catch(() => null) as { error?: string }`. The calendar helpers used to throw a fixed "Failed to create event" even when the server said why, such as "You can only view this calendar", and they pass that sentence on now. The caller's own wording still shows when the body has no reason, or isn't JSON at all.
-- Budget, practice and gallery walls shared three copies of the same request function. They use `requestJson` now, which sends JSON and throws the server's reason.
+- A failed request in the browser now shows the reason the server gave, through one helper, `responseError`, instead of twelve copies of `res.json().catch(() => null) as { error?: string }`. The calendar helpers used to throw a fixed "Failed to create event" even when the server said why, such as "You can only view this calendar", and they pass that sentence on now. The caller's own wording still shows when the body has no reason, or isn't JSON at all.
+- The shared route helpers answer with labels meant for the logs, like "Upstream timed out", "Invalid request body" and "Not authenticated". Passing every `{ error }` through would have put those on screen at all nineteen calendar call sites, so `responseError` treats them as no reason and shows the caller's wording. The test builds those responses from the real helpers, so renaming a label fails it.
+- Budget and practice had their own copies of the same request function. They use `requestJson` now, which sends JSON and throws the server's reason. Gallery walls keeps its `unwrap`, since it also sends uploads as form data, but reads a failure through `responseError`.
 - The two league-removal checks read `!res.ok && res.status !== 204`, and the second half could never be false when the first was true. They're plain `!res.ok` now.
 - A test scans the browser code for a hand-rolled `.json().catch(`, so the next fetch goes through the helper too. Check-in keeps its own parsing because its backend answers with `message`, not `error`.
 
