@@ -567,9 +567,24 @@ const selectedVersion = urlVersion ?? versions[0];`}
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-15-bundle-fcp",
+            date: "Sep 15, 2026",
+            title: "Chasing FCP by shipping less JavaScript, not by measuring more",
+          },
+          {
             id: "update-2026-08-24-noise",
             date: "Aug 24, 2026",
             title: "The dashboard was crying wolf",
+          },
+          {
+            id: "update-2026-08-18-coverage",
+            date: "Aug 18, 2026",
+            title: "The alert widens to pages and releases",
+          },
+          {
+            id: "update-2026-08-18-alerts",
+            date: "Aug 18, 2026",
+            title: "It alerts now",
           },
           {
             id: "update-2026-08-15-outage",

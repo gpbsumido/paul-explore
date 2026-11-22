@@ -169,6 +169,11 @@ export default function DeploymentContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-30-migration-rename",
+            date: "Aug 30, 2026",
+            title: "“It has not been released” is the wrong question",
+          },
+          {
             id: "update-2026-08-16-ffprobe",
             date: "Aug 16, 2026",
             title: "The weight came off, and took a broken feature with it",
