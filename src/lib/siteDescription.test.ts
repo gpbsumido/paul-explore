@@ -31,6 +31,12 @@ describe("the site description", () => {
     expect(homeMetadata.description).toBe(SITE_DESCRIPTION);
   });
 
+  it("is what a shared link to the home page previews with", async () => {
+    const { metadata } = await import("@/app/page");
+    expect(metadata.openGraph?.description).toBe(SITE_DESCRIPTION);
+    expect(metadata.twitter?.description).toBe(SITE_DESCRIPTION);
+  });
+
   it("gives the share image an alt that matches the pitch", () => {
     expect(OG_IMAGE.alt).not.toMatch(/playground/i);
     expect(OG_IMAGE.alt).toMatch(/front-end/i);
