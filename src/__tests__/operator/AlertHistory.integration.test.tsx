@@ -144,6 +144,23 @@ describe("AlertsTab list", () => {
     expect(view.getByText("OtherMsg")).toBeInTheDocument();
   });
 
+  it("puts a refused dismissal back without leaving the failure unhandled", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.patch("/api/operator/alerts/:id/dismiss", () =>
+        HttpResponse.json({ error: "down" }, { status: 500 }),
+      ),
+    );
+    const { container } = render(<AlertsTab storeId={STORE_ID} />, { wrapper: makeWrapper() });
+    const view = within(container);
+    const row = (await view.findByText("ActiveAlertMsg")).closest("div") as HTMLElement;
+
+    await user.click(within(row).getByRole("button", { name: "Dismiss" }));
+
+    await waitFor(() => expect(view.getByRole("button", { name: "Dismiss" })).toBeEnabled());
+    expect(view.getByText("ActiveAlertMsg")).toBeInTheDocument();
+  });
+
   it("says all is clear when a store has no alerts at all", async () => {
     const view = renderWith([]);
 
