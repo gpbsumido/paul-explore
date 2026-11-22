@@ -181,7 +181,7 @@ export default function GraphShell({
   greeting: ReactNode;
   action: ReactNode;
 }) {
-  const reduced = usePrefersReducedMotion() ?? false;
+  const reduced = usePrefersReducedMotion();
   const [mode, setModeState] = useState<LayoutMode>("force");
   // Once the flat view has been asked for we keep it mounted, so switching back
   // to it is instant and never re-loads its chunk or replays its intro.

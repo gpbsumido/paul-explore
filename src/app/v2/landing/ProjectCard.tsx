@@ -26,8 +26,7 @@ export default function ProjectCard({
   index,
   reversed = false,
 }: ProjectCardProps) {
-  const prefersReduced = usePrefersReducedMotion();
-  const skip = prefersReduced ?? false;
+  const skip = usePrefersReducedMotion();
 
   return (
     <m.div

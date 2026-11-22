@@ -13,8 +13,7 @@ import { THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
 
 export default function ThoughtsPreview() {
-  const prefersReduced = usePrefersReducedMotion();
-  const skip = prefersReduced ?? false;
+  const skip = usePrefersReducedMotion();
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-20 sm:py-28">

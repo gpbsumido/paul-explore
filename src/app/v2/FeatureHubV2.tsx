@@ -34,7 +34,7 @@ const CATEGORIES: ReadonlyArray<{
 ];
 
 export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
-  const prefersReduced = usePrefersReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion();
   const [active, setActive] = useState(0);
 
   // The server-read name covers the first paint. It stays local rather than

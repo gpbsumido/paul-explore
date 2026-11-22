@@ -143,7 +143,7 @@ const ROW2 = [
 export default function CalendarSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = usePrefersReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (

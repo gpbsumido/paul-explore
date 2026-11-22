@@ -21,8 +21,7 @@ export default function HeroSection() {
     () => true,
     () => false,
   );
-  const prefersReduced = usePrefersReducedMotion();
-  const skip = prefersReduced ?? false;
+  const skip = usePrefersReducedMotion();
   const transition = skip ? instantTransition : spring.wordReveal;
 
   const words = LINES.flatMap((line, lineIdx) =>

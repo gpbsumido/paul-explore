@@ -601,7 +601,7 @@ export default function SlotMachine({
   action: ReactNode;
 }) {
   const router = useRouter();
-  const reduced = usePrefersReducedMotion() ?? false;
+  const reduced = usePrefersReducedMotion();
   const categories = useMemo(() => buildSlots(), []);
 
   // Every reachable category → option → write-up leaf, flattened, so a spin can

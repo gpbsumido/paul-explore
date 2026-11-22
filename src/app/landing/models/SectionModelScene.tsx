@@ -33,7 +33,7 @@ export default function SectionModelScene({
   autoRotateSpeed = 0.8,
   camera = DEFAULT_CAMERA,
 }: Props) {
-  const prefersReduced = usePrefersReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion();
   const isMobile = useIsMobile();
   const orbitRef = useRef<ThreeOrbitControls>(null);
 
