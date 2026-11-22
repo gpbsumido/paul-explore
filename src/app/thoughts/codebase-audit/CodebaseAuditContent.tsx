@@ -794,7 +794,7 @@ if (isSessionTimeout(false, marker)) {               // always false`}
           "The second stack: a test count that regenerates on every build, one error boundary where twenty-nine said the same thing, write timeouts that never replay against the seed, NBA queries that parse what the API sends, a proxy whose exits share two helpers, and guards that can fail.",
         ]}
         couldImprove={[
-          "Client fetches read a failure one way now, but the server side is only half done. The ZeroProof routes still forward request bodies without a schema, and the risk route still keeps its own five-second timeout apart from the shared one.",
+          "Client fetches read a failure one way now, but the server side is only half done. The ZeroProof routes still forward request bodies without a schema, and the operator reads (on purpose, they sit on the render path) and the risk route still keep their own five-second timeouts.",
           "Screenshots of the visible fixes (the card colours, the bracket's failed-save alert) still need capturing.",
           "The calendar repository tests still mock knex. Only the card update compiles its SQL for real, so the next raw statement there can make the same mistake.",
           "I haven't checked the production ledger for a bet that was paid twice before settling checked the bet was still open.",
