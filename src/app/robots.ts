@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
+import { SESSION_PROTECTED_PREFIXES } from "@/lib/protectedPaths";
 
 /**
  * robots.txt.
@@ -9,9 +10,10 @@ import { SITE_URL } from "@/lib/site";
  *
  * What is disallowed is not secret — it is the stuff there is no point
  * crawling. The API returns JSON, the /dev pages are skeleton harnesses for
- * building UI, and /settings and /calendar hand an anonymous crawler a login
- * redirect and nothing else. Blocking them keeps the crawl budget on the
- * write-ups, which are the part worth finding.
+ * building UI, and every session-protected prefix hands an anonymous crawler a
+ * login redirect and nothing else. Those come from the list the proxy enforces,
+ * because a hand-kept copy here missed five of them. Blocking them keeps the
+ * crawl budget on the write-ups, which are the part worth finding.
  *
  * Auth is what protects the private routes. This file is a hint, and a hint is
  * all it has ever been.
@@ -22,7 +24,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/dev/", "/settings", "/calendar", "/auth/"],
+        disallow: ["/api/", "/dev/", "/auth/", ...SESSION_PROTECTED_PREFIXES],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

@@ -10,7 +10,7 @@
  * rather than a bare 404. Being signed in is not enough to see it, though: the
  * page itself 404s anyone who is not on the admin allowlist.
  */
-const SESSION_PROTECTED_PREFIXES = [
+export const SESSION_PROTECTED_PREFIXES = [
   "/settings",
   "/calendar",
   "/to-do",
