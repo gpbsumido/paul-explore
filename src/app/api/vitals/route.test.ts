@@ -109,7 +109,6 @@ describe("GET /api/vitals", () => {
   });
 
   it("returns 502 when an aggregate answers with an error status", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(fetchUpstream).mockImplementation(async (url: string) =>
       url.includes("/by-page")
         ? ({
@@ -124,6 +123,7 @@ describe("GET /api/vitals", () => {
 
     expect(res.status).toBe(502);
     expect(await res.json()).toEqual({ error: "Failed to fetch vitals" });
+    expect(forgiveUnexpectedOutput()).toEqual(["[vitals BFF] GET — backend error on by-page"]);
   });
 });
 
