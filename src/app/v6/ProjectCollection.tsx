@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button, ClickSpark, RubberSegment, Spotlight, TiltCard } from "@paul-portfolio/react";
+import { Button, ClickSpark, RubberSegment } from "@paul-portfolio/react";
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import styles from "./playground.module.css";
@@ -28,104 +28,66 @@ const PICKS = [
   { id: "calendar", category: "Interfaces", note: "Events, countdowns, and a month you can actually plan in.", caption: "Time, laid out", number: "15" },
 ];
 
+/**
+ * Two splits, then a wide row. Three image-beside-text rows in a row start to
+ * read as a template, so every third project gets the full width instead.
+ */
+const LAYOUTS = ["left", "right", "wide"] as const;
+
+/** The hub entry behind a pick. A pick naming no feature is a typo, so say which. */
+function featureFor(id: string) {
+  const feature = FEATURES.find((item) => item.id === id);
+  if (!feature) throw new Error(`ProjectCollection picks "${id}", which isn't in FEATURES`);
+  return feature;
+}
+
 export default function ProjectCollection() {
   const [filter, setFilter] = useState("All");
   const projects = PICKS.filter((pick) => filter === "All" || pick.category === filter);
-  const sectionRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLUListElement>(null);
-
-  // Filtering changes how many cards there are, which changes the section's
-  // height. Jump back to the top of the shelf so the shorter set starts from
-  // the left instead of stranding you partway through a section that just shrank.
-  const changeFilter = (value: string) => {
-    const section = sectionRef.current;
-    if (section) {
-      window.scrollTo({ top: section.getBoundingClientRect().top + window.scrollY });
-    }
-    setFilter(value);
-  };
-
-  // Vertical scroll through the (tall) section drives the track sideways: as you
-  // scroll down, the projects pass by left to right. The section height is set
-  // to the track's overflow so the two distances match. Under reduced motion we
-  // bail out and let the row scroll normally, so no one gets scroll-jacked.
-  useEffect(() => {
-    const section = sectionRef.current;
-    const track = trackRef.current;
-    if (!section || !track) return;
-    const update = () => {
-      // Reduced motion or a narrow screen: hand back to a normal wrapping row
-      // (the CSS unpins it), so we never scroll-jack where it'd hurt.
-      // Unpin at the same 900px the CSS does, or the section stays pinned while
-      // the track sits frozen and you scroll a tall block of the same cards.
-      const off =
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
-        window.innerWidth <= 900;
-      if (off) {
-        track.style.transform = "";
-        return;
-      }
-      // The section height is a fixed CSS value, so filtering never resizes it
-      // (which was jumping the page). We just map that fixed scroll distance to
-      // the track's current overflow.
-      const scrollable = section.offsetHeight - window.innerHeight;
-      const progress = scrollable > 0
-        ? Math.min(1, Math.max(0, -section.getBoundingClientRect().top / scrollable))
-        : 0;
-      const distance = Math.max(0, track.scrollWidth - track.clientWidth);
-      track.style.transform = `translate3d(${-progress * distance}px, 0, 0)`;
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, [projects.length]);
 
   return (
     <>
-    <section
-      id="work"
-      ref={sectionRef}
-      className={styles.workScroll}
-      aria-labelledby="work-title"
-      style={{ ["--scroll-height" as string]: `${projects.length * 30}vh` }}
-    >
-      <div className={styles.workSticky}>
-        <div className={styles.sectionHeading}>
-          <div><p className={styles.eyebrow}>02 / Open for exploring</p><h2 id="work-title">Pick a rabbit hole<span className={styles.accent}>.</span></h2></div>
-          <p>Working apps. Small obsessions.<br />Scroll to travel through them.</p>
-        </div>
-        <div className={styles.filterBar}>
-          <fieldset><legend className="sr-only">Filter projects</legend><RubberSegment segments={FILTERS} value={filter} onChange={changeFilter} /></fieldset>
-          <span aria-live="polite" aria-atomic="true" className={styles.count}>{String(projects.length).padStart(2, "0")} projects / {filter}</span>
-        </div>
-        <ul ref={trackRef} className={styles.projectsRow} aria-label="Projects">
-          {projects.map((pick) => {
-            const feature = FEATURES.find((item) => item.id === pick.id)!;
-            return (
-              <li key={pick.id} className={styles.project}>
-                <TiltCard maxTilt={4} glare={false} className={styles.tilt}>
-                  <Spotlight color="color-mix(in srgb, var(--paul-color-primary-400) 15%, transparent)" className={styles.projectSurface}>
-                    <Link href={feature.href} className={styles.projectLink}>
-                      <div className={styles.projectTop}><span>{pick.number} / {pick.caption}</span><span className={styles.openArrow} aria-hidden="true"><ArrowUpRight /></span></div>
-                      <div className={styles.preview}>
-                        <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.lightImage} />
-                        <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 700px) 90vw, 30vw" className={styles.darkImage} />
-                        <span className={styles.openLabel} aria-hidden="true">Step inside <ArrowUpRight size={13} /></span>
-                      </div>
-                      <div className={styles.projectTitle}><h3>{feature.title}</h3><span>{pick.category}</span></div>
-                      <p className={styles.projectNote}>{pick.note}</p>
-                    </Link>
-                  </Spotlight>
-                </TiltCard>
-              </li>
-            );
-          })}
-        </ul>
+    <section id="work" className={styles.work} aria-labelledby="work-title">
+      <div className={styles.sectionHeading}>
+        <div><p className={styles.eyebrow}>02 / Open for exploring</p><h2 id="work-title">Pick a rabbit hole<span className={styles.accent}>.</span></h2></div>
+        <p>Working apps. Small obsessions.<br />Each one has a write-up behind it.</p>
       </div>
+      <div className={styles.filterBar}>
+        <fieldset><legend className="sr-only">Filter projects</legend><RubberSegment segments={FILTERS} value={filter} onChange={setFilter} /></fieldset>
+        <span aria-live="polite" aria-atomic="true" className={styles.count}>{String(projects.length).padStart(2, "0")} projects / {filter}</span>
+      </div>
+      <ul className={styles.showcase} aria-label="Projects">
+        {projects.map((pick, index) => {
+          const feature = featureFor(pick.id);
+          return (
+            <li key={pick.id} className={styles.showcaseRow} data-layout={LAYOUTS[index % LAYOUTS.length]}>
+              {/* The screenshot opens the app too, but it's the same place as
+                  the Open link, so it stays out of the tab order and the
+                  accessibility tree rather than being announced twice. */}
+              <Link href={feature.href} className={styles.showcaseMedia} tabIndex={-1} aria-hidden="true">
+                <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 900px) 92vw, 60vw" className={styles.lightImage} />
+                <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 900px) 92vw, 60vw" className={styles.darkImage} />
+              </Link>
+              <div className={styles.showcaseText}>
+                <div>
+                  <p className={styles.showcaseCaption}>{pick.number} / {pick.caption}</p>
+                  <h3>{feature.title}</h3>
+                  <span className={styles.showcaseCategory}>{pick.category}</span>
+                </div>
+                <div>
+                  <p className={styles.showcaseNote}>{pick.note}</p>
+                  <div className={styles.showcaseLinks}>
+                    <Link href={feature.href} aria-label={`Open ${feature.title}`}>Open <ArrowUpRight size={14} /></Link>
+                    {feature.thoughtsHref && (
+                      <Link href={feature.thoughtsHref} aria-label={`Read the ${feature.title} write-up`}>Write-up <ArrowUpRight size={14} /></Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
     <div className={styles.collectionFooter}><p>This is just the shortlist. There are {FEATURES.length} places to go.</p><ClickSpark><Button href="/surprise" variant="outline">Surprise me <ArrowUpRight size={14} /></Button></ClickSpark><Button href="/design-system" variant="ghost">Explore the components <ArrowUpRight size={14} /></Button></div>
     </>
