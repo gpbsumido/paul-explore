@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { proxy } from "./proxy";
 import type { SessionData } from "@auth0/nextjs-auth0/types";
 import { auth0 } from "@/lib/auth0";
-import { SESSION_MARKER_COOKIE } from "@/lib/authSession";
+import { SESSION_ABSOLUTE_SECONDS, SESSION_MARKER_COOKIE } from "@/lib/authSession";
 import { CONSENT_ACCEPTED, CONSENT_COOKIE } from "@/lib/consent";
 import { LOGIN_PROMPT_COOKIE } from "@/lib/loginReturnTo";
 import { SESSION_PROTECTED_PREFIXES } from "@/lib/protectedPaths";
@@ -76,7 +76,14 @@ describe("proxy: what every pass-through carries", () => {
 
     expect(middleware).toHaveBeenCalledOnce();
     expect(res.headers.get("Content-Security-Policy")).toContain("default-src");
-    expect(res.cookies.get(SESSION_MARKER_COOKIE)?.value).toBe("1");
+    expect(res.cookies.get(SESSION_MARKER_COOKIE)).toMatchObject({
+      value: "1",
+      path: "/",
+      maxAge: SESSION_ABSOLUTE_SECONDS,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+    });
   });
 
   it("still sets the CSP when the auth SDK throws", async () => {
@@ -90,7 +97,7 @@ describe("proxy: what every pass-through carries", () => {
     ]);
   });
 
-  it("arms a fresh login prompt when a session times out", async () => {
+  it("arms a fresh login prompt and clears the marker when a session times out", async () => {
     stubAuth0({ signedIn: null });
 
     const res = await proxy(request(PROTECTED, { [SESSION_MARKER_COOKIE]: "1" }));
@@ -104,5 +111,6 @@ describe("proxy: what every pass-through carries", () => {
       sameSite: "lax",
       secure: true,
     });
+    expect(res.cookies.get(SESSION_MARKER_COOKIE)).toMatchObject({ value: "", expires: new Date(0) });
   });
 });
