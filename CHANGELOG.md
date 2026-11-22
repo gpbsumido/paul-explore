@@ -2,8 +2,8 @@
 
 ## 2026-11-22 - version 9.2.37
 
-- The budget and practice proxies share one forwarder now. They were hand copies, and the practice one had drifted: it dropped the query string, and a 204 from the backend threw inside the route (a Response can't carry a body at that status), so a successful save came back as a 502.
-- Neither proxy capped the body it forwarded. Both refuse anything over 64 KB with a 413 now, checked from the declared length before reading and from the real length after, the same limit the other write routes use.
+- The budget and practice proxies share one forwarder now. They were hand copies, and the practice one had drifted: it dropped the query string, and it had no 204 branch (a Response can't carry a body at that status, so building one throws). Neither had bitten yet, since the practice API always answers with JSON and the page never sends a query, but the first 204 would have come back as a 502.
+- Neither proxy capped the body it forwarded. Both refuse an oversized body with a 413 now, checked from the declared length before reading and from the real length after. Budget uses the 64 KB limit the other write routes use. Practice takes up to 100 KB, matching the backend, because importing every problem reviewed in both modes is about 69 KB and a 64 KB cap would have blocked the heaviest users on every load.
 
 ## 2026-11-22 - version 9.2.36
 
