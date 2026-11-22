@@ -3,6 +3,7 @@
 ## 2026-11-22 - version 9.2.50
 
 - Research source settings and reviewed interview topics now follow you across open tabs. Turning a journal off in one tab used to leave every other tab searching it until a reload, and research settings didn't notice cleared site data either, because they were read once and cached for the life of the page. Both hooks now sit on one small localStorage store that re-reads when the stored value changes and listens for other tabs writing it.
+- With storage blocked (third-party cookie blocking, a sandboxed iframe), the browser throws on any touch of `localStorage`. The old research hook read it inside a try and fell back to the defaults, and the first cut of the shared store dropped that guard, so /research would have crashed instead. The store reads through one guarded helper now, and a write still applies for the rest of the visit.
 
 ## 2026-11-22 - version 9.2.49
 
