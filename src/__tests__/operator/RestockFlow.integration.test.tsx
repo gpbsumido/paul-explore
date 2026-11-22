@@ -704,6 +704,42 @@ describe("RestockFlow counting through to completion", () => {
     expect(saved[0].body).toMatchObject({ removed: 1, removalReason: "expired" });
   });
 
+  it("says a slot that timed out may have saved, in the server's words", async () => {
+    // A PUT that ran out of time may have landed, so "did not save" would be a
+    // guess, and the route's 504 sentence is the one that's true.
+    const timedOut =
+      "The operator API didn't answer in time. The change may have been saved, so reload before trying again.";
+    installSessionServer();
+    server.use(
+      http.put("/api/operator/restock-sessions/:sessionId/lines/:itemId", () =>
+        HttpResponse.json({ error: timedOut }, { status: 504 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<RestockFlow storeId="store-001" onClose={vi.fn()} />);
+
+    await addTwoToTheFirstSlot(user);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(timedOut);
+  });
+
+  it("says the slot is still on this device when the save failed with no reason", async () => {
+    installSessionServer();
+    server.use(
+      http.put("/api/operator/restock-sessions/:sessionId/lines/:itemId", () =>
+        new HttpResponse(null, { status: 502 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<RestockFlow storeId="store-001" onClose={vi.fn()} />);
+
+    await addTwoToTheFirstSlot(user);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "That slot did not save. It is still on this device.",
+    );
+  });
+
   it("does not push a slot that was opened and left untouched", async () => {
     const { saved } = installSessionServer();
     const user = userEvent.setup();
