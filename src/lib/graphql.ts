@@ -158,8 +158,8 @@ const POKEAPI_GRAPHQL = "https://beta.pokeapi.co/graphql/v1beta";
 export async function fetchPokemonDirect(
   name: string,
   type: string,
-  limit: number = PAGE_SIZE,
-  offset: number = 0,
+  limit: number,
+  offset: number,
 ): Promise<PokemonListResult> {
   const { query, variables } = buildPokemonQuery(name, type, limit, offset);
   const res = await fetch(POKEAPI_GRAPHQL, {

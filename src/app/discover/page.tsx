@@ -126,7 +126,7 @@ export default async function DiscoverPage({
   // you took a wrong turn.
   return (
     <>
-      <VersionBanner version={version} label={archiveLabel(version)} />
+      <VersionBanner label={archiveLabel(version)} />
       <div className="pt-8">{content}</div>
     </>
   );

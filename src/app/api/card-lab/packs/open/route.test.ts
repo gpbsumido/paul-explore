@@ -15,7 +15,7 @@ import { fetchUpstream } from "@/lib/upstream";
 import { auth0 } from "@/lib/auth0";
 import { loadNightlySlate } from "@/lib/espn-nightly";
 import { loadNflWeek, loadNflSeason } from "@/lib/espn-nfl";
-import { nbaFantasyLeagueUrl } from "@/lib/espn-performances";
+import { fantasyLeagueUrl } from "@/lib/espn-performances";
 import type { GeneratedCard } from "@/lib/fantasy-cards";
 import { POST } from "./route";
 import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
@@ -78,7 +78,7 @@ describe("POST /api/card-lab/packs/open draws from the slate on screen", () => {
     await rip({ sport: "nba", mode: "season", season: "2024" });
 
     expect(loadNightlySlate).not.toHaveBeenCalled();
-    expect(vi.mocked(fetchUpstream).mock.calls[0][0]).toBe(nbaFantasyLeagueUrl("2024"));
+    expect(vi.mocked(fetchUpstream).mock.calls[0][0]).toBe(fantasyLeagueUrl("nba", "2024"));
     // This one reads the fantasy league through the real loader, and the mocked
     // answer is an empty object, so the pool really is empty and the route says so.
     expect(forgiveUnexpectedOutput()).toEqual([

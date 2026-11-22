@@ -62,16 +62,10 @@ export function Timestamp({ children }: { children: React.ReactNode }) {
  * Pages pass only their bubbles as children instead of repeating the three-div
  * scaffold (and reaching into this feature's CSS module) by hand.
  */
-export function ChatThread({
-  children,
-  minHeight = "calc(100dvh - 56px)",
-}: {
-  children: React.ReactNode;
-  minHeight?: string;
-}) {
+export function ChatThread({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex justify-center">
-      <div className={styles.phone} style={{ minHeight }}>
+      <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
         <div className={styles.chat}>{children}</div>
       </div>
     </div>
