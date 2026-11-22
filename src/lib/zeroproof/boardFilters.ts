@@ -7,6 +7,7 @@
 // only decide what a viewer sees.
 // ---------------------------------------------------------------------------
 
+import { espnGameSport } from "./espnGames";
 import type { ZeroproofEvent } from "./schemas";
 
 /** In or out of ESPN fantasy: everything, real sports only, or fantasy only. */
@@ -68,16 +69,12 @@ export function isEventBettable(event: ZeroproofEvent, now: number): boolean {
   return !Number.isNaN(time) && time > now;
 }
 
-const FANTASY_GAME_NAMES: Record<string, string> = {
-  ffl: "Fantasy Football",
-  fba: "Fantasy Basketball",
-};
-
 /** A label for a fantasy sport, or null when it isn't one. */
 export function fantasyLabel(sport: string): string | null {
   if (!isFantasySport(sport)) return null;
   const game = sport.slice("fantasy_".length);
-  return FANTASY_GAME_NAMES[game] ?? "Fantasy";
+  const gameSport = espnGameSport(game);
+  return gameSport ? `Fantasy ${gameSport}` : "Fantasy";
 }
 
 const REAL_SPORT_LABELS: Record<string, string> = {
