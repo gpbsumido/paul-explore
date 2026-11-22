@@ -9,8 +9,10 @@ import type { FeatureItem, ThoughtItem } from "@/types/hub";
 import { ACCENT_BAND } from "@/lib/accentBand";
 
 // The data moved to a plain module so it can be imported without dragging
-// framer-motion (and "use client") along. Re-exported here so the ~20 existing
-// importers keep working; new code should import from ./featureData.data.
+// framer-motion (and "use client") along. Re-exported here for the hubs that
+// also want the cards (FeatureHub, FeatureHubV2, the v2 ProjectsSection) and
+// for older tests; anything that only needs the data should import
+// ./featureData.data.
 export {
   FEATURES,
   THOUGHTS,
