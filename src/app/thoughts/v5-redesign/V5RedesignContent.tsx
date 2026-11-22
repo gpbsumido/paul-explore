@@ -623,14 +623,48 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
           up, I found the pause is hover only. Anything that moves by itself
           for more than five seconds needs a way to stop it, and a keyboard
           visitor has no hover. The hero already has a Pause motion button for
-          this reason, and a second moving strip without one would undo it. So
-          it&rsquo;s a plain wrapped list of pills that rises in once, with the
-          same scroll-driven animation as the project rows.
+          this reason, and a second moving strip without one would undo it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The pill row passed, and still looked like a form field.
+        </h3>
+        <p className="text-muted">
+          My first cut was a plain wrapped row of pills. It was accessible and
+          dull, and the thing I&rsquo;d liked about his band was the frame: dark
+          chips sliding across a phone screen. So the chips went back into a
+          phone, on a scroll-snapped rail that only moves when the visitor
+          swipes, scrolls, arrows through it after tabbing in, or presses the
+          two buttons under it. It reads as a ticker and behaves like a list.
+          I cut it to the runtime and the test stack too. Recharts and MSW are
+          real, but a rail of fourteen names says more than one of nineteen.
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
           {`onMouseEnter: () => setPaused(true),
 onMouseLeave: () => setPaused(false),
 onTouchStart: freezeForTouch,`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The strip failed a contrast check on a link it never touched.
+        </h3>
+        <p className="text-muted">
+          CI went red on the dark landing, on the vitals link above the strip,
+          on every retry. My first guess was the new rise animation catching
+          axe mid-fade. It wasn&rsquo;t. Running axe against a production build
+          with the strip deleted from the page turned the failure into an
+          &ldquo;incomplete&rdquo;: before the strip, something overlapped that
+          link, so axe couldn&rsquo;t read its background and never judged it.
+          The strip moved the layout, the overlap went away, and axe finally
+          looked. The link had been failing in dark mode all along, because
+          LinkPreview puts my className on its wrapper and colours the inner
+          anchor itself, so <code>dark:text-primary-300</code> never reached
+          the text. One <code>[&amp;&gt;a]:text-inherit</code> fixed it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`with strip     violations [ 'color-contrast' ]  (#157c6b on #131110, 3.7)
+strip removed  violations []  incomplete [ "Element's background color could
+               not be determined because it is overlapped by another element" ]`}
         </pre>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
@@ -657,7 +691,7 @@ onTouchStart: freezeForTouch,`}
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
           "Project showcase rows that scroll like the rest of the page, each with a large light and dark screenshot and its own Open and Write-up links, cycling left, right and full-width. A field-notes bloom sits over a drifting wall of app tiles.",
-          "A static row of the tools the site is built on, under the figures, where every label is checked against package.json.",
+          "A phone-framed rail of the tools the site is built on, under the figures. It moves only when the visitor moves it, and every label is checked against package.json.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
