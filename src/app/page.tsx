@@ -14,7 +14,6 @@ export const revalidate = 3600;
 
 const TITLE = "Paul Sumido, Lead Frontend Developer";
 
-
 export const metadata: Metadata = {
   title: TITLE,
   description: SITE_DESCRIPTION,
