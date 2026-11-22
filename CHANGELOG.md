@@ -3,7 +3,8 @@
 ## 2026-11-22 - version 9.2.45
 
 - A failed operator write says why it failed, once. Dismiss, restock, reorder and re-sync threw a fixed string, so the server's reason never reached the screen, including the new "the change may have been saved, so reload" sentence on a timeout. They throw the route's own message now. The tabs also showed a second, local toast next to the app-wide one, which is gone.
-- Restock All and Acknowledge All don't claim success when the write failed, and neither they nor a single dismissal leave the rejection unhandled. Callers that have nothing to add pass `failureAlreadyToasted`, which says out loud that the app-wide handler already covered it.
+- Restock All, Acknowledge All and a single dismissal no longer leave a failed write's promise rejected with nobody listening, which surfaced as an unhandled rejection on top of the toast. They never announced a success that didn't happen; the unhandled rejection was the bug. Callers that have nothing to add pass `failureAlreadyToasted`, which says out loud that the app-wide handler already covered it.
+- Acknowledge All reports a failure once. It runs one dismissal per alert, so a hung API raised the same app-wide toast once per alert. Its dismissals skip the app-wide toast now, and it shows the first failure itself.
 - A restock refreshes the activity feed it just wrote to, and finishing a restock session refreshes restock history. Both had stayed stale until something else refetched them.
 
 ## 2026-11-22 - version 9.2.44
