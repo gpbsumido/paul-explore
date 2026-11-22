@@ -583,6 +583,15 @@ describe("event helpers", () => {
     await expect(createEvent(draft)).rejects.toThrow("Failed to create event");
   });
 
+  it("createEvent passes on the reason the server gives", async () => {
+    answer("post", "/api/calendar/events", () =>
+      HttpResponse.json({ error: "You can only view this calendar" }, { status: 403 }),
+    );
+    const { id: _id, ...draft } = savedEvent;
+
+    await expect(createEvent(draft)).rejects.toThrow("You can only view this calendar");
+  });
+
   it("createEvent rejects an answer that isn't an event", async () => {
     answer("post", "/api/calendar/events", () => HttpResponse.json({ event: { id: 7 } }));
     const { id: _id, ...draft } = savedEvent;
