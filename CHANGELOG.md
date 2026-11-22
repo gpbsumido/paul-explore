@@ -4,6 +4,8 @@
 
 - Operator writes and flag writes give up after eight seconds. They had no deadline, so a hung portfolio_api held the route open until the platform killed it. The flags audit read had none either.
 - A write that runs out of time answers 504, "the change may have been saved, so reload before trying again", and is never replayed against the demo seed. Both write paths fall back to the seed when the API never answered, and an abort would have looked exactly like that: a write that might have landed upstream would have reported a seed success. The timeout is its own error now, the same way an unreadable answer already was.
+- Only a connection that was never made falls back to the seed. Node rejects with the same `TypeError: fetch failed` for a refused connection and for a server that read the whole write and then hung up, so the cause decides now: a refusal or a failed lookup (`ECONNREFUSED`, `ENOTFOUND`, `EAI_AGAIN`) still answers from the seed, and anything else gets the same 504 as a timeout.
+- The 504 sentence reaches the screen. Toggling a flag, scheduling or ending a promotion and saving a restock slot all threw a fixed string, so the route's reason was dropped on the way. They show it now. A promotion that timed out closes its form and reloads the list instead of leaving the button there to press again, since creating one isn't idempotent and a second press could make two. A restock slot that didn't save says so on the slot list too; that message only ever showed on the review screen.
 - One `UPSTREAM_TIMEOUT_MS` in `upstream.ts` replaces the literal eight seconds the flags read had copied from it. Operator reads keep their own five seconds, which sits on a page's render path.
 
 ## 2026-11-22 - version 9.2.43
