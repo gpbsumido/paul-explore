@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
+import { createElement, useSyncExternalStore } from "react";
+import { renderToString } from "react-dom/server";
 import { createLocalStorageStore } from "./localStorageStore";
 
 type Tally = { count: number };
@@ -96,6 +98,16 @@ describe("createLocalStorageStore", () => {
     expect(store.getSnapshot()).toEqual(EMPTY);
   });
 
+  it("treats another tab clearing all of storage as a change", () => {
+    const store = tallyStore("tally-clear-all");
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    window.dispatchEvent(new StorageEvent("storage", { key: null }));
+
+    expect(listener).toHaveBeenCalledOnce();
+  });
+
   it("shows the empty value when storage is blocked", () => {
     const storage = blockStorage();
     try {
@@ -120,8 +132,14 @@ describe("createLocalStorageStore", () => {
     }
   });
 
-  it("renders empty on the server", () => {
+  it("renders empty on the server whatever is stored", () => {
     window.localStorage.setItem("tally-server", JSON.stringify({ count: 7 }));
-    expect(tallyStore("tally-server").getServerSnapshot()).toBe(EMPTY);
+    const store = tallyStore("tally-server");
+    function Count() {
+      const tally = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+      return createElement("span", null, tally.count);
+    }
+
+    expect(renderToString(createElement(Count))).toBe("<span>0</span>");
   });
 });
