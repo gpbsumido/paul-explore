@@ -164,6 +164,32 @@ describe("/api/budget proxy", () => {
     expect(await res.json()).toEqual({});
   });
 
+  it("refuses a body over 64 KB with 413 and never calls the backend", async () => {
+    const body = JSON.stringify({ note: "x".repeat(70_000) });
+
+    const res = await POST(
+      new NextRequest("http://localhost/api/budget", { method: "POST", body }),
+      ctx(),
+    );
+
+    expect(res.status).toBe(413);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("refuses an oversized body from its declared length before reading it", async () => {
+    const res = await PATCH(
+      new NextRequest("http://localhost/api/budget/abc", {
+        method: "PATCH",
+        body: "{}",
+        headers: { "content-length": "70000" },
+      }),
+      ctx(["abc"]),
+    );
+
+    expect(res.status).toBe(413);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
   it("passes a 204 from the backend through as a 204", async () => {
     upstreamAnswers(null, 204);
 

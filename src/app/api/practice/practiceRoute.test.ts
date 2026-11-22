@@ -145,6 +145,40 @@ describe("practice proxy", () => {
     expect(await res.json()).toEqual({});
   });
 
+  it("keeps the query string, like the budget proxy does", async () => {
+    upstreamReturns({ reviews: [] });
+
+    await GET(new NextRequest("http://localhost/api/practice/reviews?due=today"), params("reviews"));
+
+    expect(vi.mocked(fetchUpstream).mock.calls[0][0]).toMatch(/\/api\/practice\/reviews\?due=today$/);
+  });
+
+  it("passes a 204 from the backend through as a 204", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: true,
+      response: new Response(null, { status: 204 }),
+    });
+
+    const res = await PUT(
+      new NextRequest("http://localhost/x", { method: "PUT", body: "{}" }),
+      params("reviews", "problem", "two-sum"),
+    );
+
+    expect(res.status).toBe(204);
+  });
+
+  it("refuses a body over 64 KB with 413 and never calls the backend", async () => {
+    const body = JSON.stringify({ reviews: "x".repeat(70_000) });
+
+    const res = await POST(
+      new NextRequest("http://localhost/x", { method: "POST", body }),
+      params("reviews", "import"),
+    );
+
+    expect(res.status).toBe(413);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
   it("answers 502 when the backend cannot be reached", async () => {
     vi.mocked(fetchUpstream).mockResolvedValue({
       ok: false,
