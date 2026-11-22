@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.34
+
+- robots.txt reads its login-gated paths from the list the proxy enforces. The hand-kept copy named `/settings` and `/calendar` and missed the five added since, `/to-do`, `/interviewee`, `/zeroproof/admin`, `/check-in/sites` and `/check-in/display`, so crawlers spent their budget on login redirects. `/check-in` itself stays crawlable, since a volunteer arriving from a poster should find it.
+
 ## 2026-11-22 - version 9.2.33
 
 - A failed request in the browser now shows the reason the server gave, through one helper, `responseError`, instead of twelve copies of `res.json().catch(() => null) as { error?: string }`. The calendar helpers used to throw a fixed "Failed to create event" even when the server said why, such as "You can only view this calendar", and they pass that sentence on now. The caller's own wording still shows when the body has no reason, or isn't JSON at all.
