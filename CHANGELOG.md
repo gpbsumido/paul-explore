@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.37
+
+- The budget and practice proxies share one forwarder now. They were hand copies, and the practice one had drifted: it dropped the query string, and a 204 from the backend threw inside the route (a Response can't carry a body at that status), so a successful save came back as a 502.
+- Neither proxy capped the body it forwarded. Both refuse anything over 64 KB with a 413 now, checked from the declared length before reading and from the real length after, the same limit the other write routes use.
+
 ## 2026-11-22 - version 9.2.36
 
 - "Try again" on a failed page fetches the page again. The 30 route error boundaries handed the shared error screen Next's `reset`, which clears the error and re-renders the same payload, so a page that failed because an API was down stayed failed until a full reload. They pass `retry` now, stable since Next 16.3, which refreshes the route first. A test checks every `error.tsx` for it.
