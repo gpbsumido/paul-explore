@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.41
 
-- Reduced motion is read from one hook, `usePrefersReducedMotion`. 25 components still used framer-motion's `useReducedMotion`, which checks the preference on the first client render while the server can't see it. Anything those components rendered differently for reduced motion could disagree with the server HTML while hydrating, on the archived landings, the command palette, the slot machine, World and the pack opener. The app-root context was a second copy of the same store, and it made 34 components import the app shell to get one boolean. It's gone. A guard test fails if either one comes back.
+- Reduced motion is read from one hook, `usePrefersReducedMotion`. 25 components still used framer-motion's `useReducedMotion`, which checks the preference on the first client render while the server can't see it. Anything those components rendered differently for reduced motion could disagree with the server HTML while hydrating, on the archived landings, the command palette, the slot machine, World and the pack opener. The app-root context was a second copy of the same store, and it made 33 files import the app shell to get one boolean. It's gone. A guard test fails if either one comes back. On the v2 landing a reduced-motion visitor still gets no hero bounce and no entrance motion: that hero mounts fresh on the client, so the hook already sees the real preference on its first render.
 
 ## 2026-11-22 - version 9.2.40
 
