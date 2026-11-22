@@ -1,12 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 import { proxy } from "./proxy";
+import type { SessionData } from "@auth0/nextjs-auth0/types";
 import { auth0 } from "@/lib/auth0";
 import { SESSION_MARKER_COOKIE } from "@/lib/authSession";
 import { CONSENT_ACCEPTED, CONSENT_COOKIE } from "@/lib/consent";
 import { LOGIN_PROMPT_COOKIE } from "@/lib/loginReturnTo";
 import { SESSION_PROTECTED_PREFIXES } from "@/lib/protectedPaths";
 import { VISITOR_COOKIE } from "@/lib/visitor";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 vi.mock("@/lib/auth0", () => ({
   auth0: { getSession: vi.fn(), middleware: vi.fn() },
@@ -15,9 +17,25 @@ vi.mock("@/lib/auth0", () => ({
 const getSession = vi.mocked(auth0.getSession);
 const middleware = vi.mocked(auth0.middleware);
 
-const session = { user: { name: "Paul", email: "paul@example.com" } } as unknown as Awaited<
-  ReturnType<typeof auth0.getSession>
->;
+const session: SessionData = {
+  user: { sub: "auth0|paul", name: "Paul", email: "paul@example.com" },
+  tokenSet: { accessToken: "access-token", expiresAt: 1_900_000_000 },
+  internal: { sid: "session-id", createdAt: 1_800_000_000 },
+};
+
+/**
+ * Sets up the mocked Auth0 SDK for one test: who is signed in, and whether its
+ * middleware lets the request through or throws.
+ */
+function stubAuth0({ signedIn, middlewareError }: { signedIn: SessionData | null; middlewareError?: Error }) {
+  getSession.mockReset();
+  getSession.mockResolvedValue(signedIn);
+  middleware.mockReset();
+  middleware.mockImplementation(async () => {
+    if (middlewareError) throw middlewareError;
+    return NextResponse.next();
+  });
+}
 
 function request(path: string, cookies: Record<string, string> = {}) {
   const req = new NextRequest(new URL(path, "https://paulsumido.com"));
@@ -33,19 +51,14 @@ const PROTECTED = SESSION_PROTECTED_PREFIXES[0];
  * set the header by hand, so these pin all of them in one place.
  */
 describe("proxy: what every pass-through carries", () => {
-  beforeEach(() => {
-    getSession.mockReset();
-    getSession.mockResolvedValue(null);
-    middleware.mockReset();
-    middleware.mockImplementation(async () => NextResponse.next());
-  });
-
   it.each([
     ["a returning visitor", "/thoughts", { [VISITOR_COOKIE]: "v-1" }],
     ["a visitor who hasn't accepted cookies", "/thoughts", {}],
     ["a visitor who just accepted cookies", "/thoughts", { [CONSENT_COOKIE]: CONSENT_ACCEPTED }],
     ["the landing page, signed out", "/", {}],
   ])("sets the CSP for %s", async (_label, path, cookies) => {
+    stubAuth0({ signedIn: null });
+
     const res = await proxy(request(path, cookies));
 
     expect(res.headers.get("Content-Security-Policy")).toContain("default-src");
@@ -57,7 +70,7 @@ describe("proxy: what every pass-through carries", () => {
     ["a protected feature", PROTECTED],
     ["any other page", "/thoughts"],
   ])("sets the CSP and rolls the session on %s when signed in", async (_label, path) => {
-    getSession.mockResolvedValue(session);
+    stubAuth0({ signedIn: session });
 
     const res = await proxy(request(path));
 
@@ -67,15 +80,19 @@ describe("proxy: what every pass-through carries", () => {
   });
 
   it("still sets the CSP when the auth SDK throws", async () => {
-    middleware.mockRejectedValue(new Error("missing AUTH0_DOMAIN"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    stubAuth0({ signedIn: null, middlewareError: new Error("missing AUTH0_DOMAIN") });
 
     const res = await proxy(request("/auth/profile"));
 
     expect(res.headers.get("Content-Security-Policy")).toContain("default-src");
+    expect(forgiveUnexpectedOutput()).toEqual([
+      "[proxy] auth0.middleware() failed on /auth/profile Error: missing AUTH0_DOMAIN",
+    ]);
   });
 
   it("arms a fresh login prompt when a session times out", async () => {
+    stubAuth0({ signedIn: null });
+
     const res = await proxy(request(PROTECTED, { [SESSION_MARKER_COOKIE]: "1" }));
 
     expect(res.headers.get("location")).toBe("https://paulsumido.com/?authError=timeout");
