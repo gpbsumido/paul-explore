@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./upstream", () => ({ fetchUpstream: vi.fn() }));
 
-import { fetchUpstream } from "./upstream";
+import { fetchUpstream, type UpstreamResult } from "./upstream";
 import { loadNightlySlate, scoreboardUrl, summaryUrl } from "./espn-nightly";
 import { fantasyLeagueUrl } from "./espn-performances";
 
@@ -58,8 +58,10 @@ const leagueWith = (rosterIds: number[]) => ({
 type Routes = Record<string, unknown>;
 
 /**
- * Answers ESPN requests from a table keyed by a fragment of the URL. A URL with
- * no entry is a 404, which is how ESPN answers a date with nothing on it.
+ * Answers ESPN requests from a table keyed by a fragment of the URL, first
+ * matching key wins. A URL with no entry is a 404. ESPN itself answers a quiet
+ * date with a 200 and no events, so a test that wants an empty night serves
+ * `{ events: [] }` rather than leaving the date out.
  */
 function serve(routes: Routes) {
   vi.mocked(fetchUpstream).mockImplementation(async (url) => {
@@ -182,13 +184,23 @@ describe("loadNightlySlate without a date", () => {
     expect(slate.date).toBe("2026-07-05");
   });
 
-  it("gives up after forty-five windows with no date and no error", async () => {
-    serve({});
+  it("gives up after forty-five quiet windows with no date and no error", async () => {
+    serve({ "/scoreboard?": { events: [] } });
 
     const slate = await loadNightlySlate({ sport: "wnba", season: "2025" });
 
     expect(slate).toEqual({ cards: [], date: null, error: false });
     expect(urlsRequested().filter((url) => url.includes("/scoreboard?"))).toHaveLength(45);
+  });
+
+  // An outage used to come back as error: false, so Card Lab said nothing had
+  // been played instead of saying it couldn't reach ESPN.
+  it("flags an error when no window's scoreboard can be read", async () => {
+    serve({});
+
+    const slate = await loadNightlySlate({ sport: "wnba", season: "2025" });
+
+    expect(slate).toEqual({ cards: [], date: null, error: true });
   });
 });
 
@@ -343,18 +355,19 @@ describe("the ESPN cookie for a private league", () => {
 });
 
 describe("an unreadable upstream", () => {
-  it("reads a failed or malformed scoreboard as an empty night, not a crash", async () => {
+  it.each([
+    ["unreachable", (): UpstreamResult => ({ ok: false, cause: "unreachable", message: "down" })],
+    ["answering HTML", (): UpstreamResult => ({ ok: true, response: new Response("<html>", { status: 200 }) })],
+  ])("flags a scoreboard that's %s as an error, not an empty night or a crash", async (_label, scoreboard) => {
     vi.mocked(fetchUpstream).mockImplementation(async (url) => {
-      if (String(url).includes("/scoreboard?")) {
-        return { ok: false, cause: "unreachable", message: "down" };
-      }
+      if (String(url).includes("/scoreboard?")) return scoreboard();
       return { ok: true, response: new Response("<html>", { status: 200 }) };
     });
 
     expect(await loadNightlySlate({ sport: "wnba", season: "2025", date: "2026-04-20" })).toEqual({
       cards: [],
       date: "2026-04-20",
-      error: false,
+      error: true,
     });
   });
 });

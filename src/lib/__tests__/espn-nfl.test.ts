@@ -316,6 +316,16 @@ describe("loadNflWeek", () => {
     // One probe for week 1, then weeks 10 down to 5.
     expect(asked).toEqual([1, 10, 9, 8, 7, 6, 5]);
   });
+
+  // An outage used to come back as error: false, so Card Lab said there were no
+  // box scores yet instead of saying it couldn't reach ESPN.
+  it("flags an error when ESPN answers none of the weeks it steps through", async () => {
+    serveWeeks({});
+
+    const slate = await loadNflWeek({ season: "2025" });
+
+    expect(slate).toEqual({ cards: [], week: null, latestWeek: 1, error: true });
+  });
 });
 
 describe("loadNflSeason", () => {
