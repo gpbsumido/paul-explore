@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.52
+
+- The site describes itself the way the landing does. The web app manifest, the root layout's fallback description and the share image still led with NBA stats and a Pokémon TCG browser, long after the landing became about lead front-end work. They now all read one `SITE_DESCRIPTION`, the same line the home page uses, and a test fails if any of them goes back to its own copy.
+
 ## 2026-11-22 - version 9.2.51
 
 - The landing names what the site is built on. Under the figures in "Under the surface" there's now a phone-framed rail of the runtime and testing tools behind it, from Next.js and TanStack Query through Vitest, Playwright and Stryker. It looks like a ticker but only moves when the visitor scrolls, swipes or presses its buttons, because a strip that moves on its own needs a pause control and the design system's ticker only stops on hover. The vitals link above it also gets its dark-mode colour back; the package was colouring the inner link itself, which axe had been unable to see until the rail moved the layout. Every label is backed by a test that the package it names is actually installed, so the list can't outlive a dependency.
