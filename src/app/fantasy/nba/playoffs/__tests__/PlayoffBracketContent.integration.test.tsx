@@ -382,3 +382,51 @@ describe("PlayoffBracketContent — viewing someone else's bracket", () => {
     expect(screen.queryByText("This bracket isn’t publicly available yet.")).not.toBeInTheDocument();
   });
 });
+
+describe("PlayoffBracketContent — retrying someone else's picks", () => {
+  // The shared wrapper turns retries off, which is exactly what hid a private
+  // bracket sitting through three retries. This client keeps the real retry
+  // count and only drops the backoff, so the test doesn't wait seven seconds.
+  function makeRetryingWrapper() {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retryDelay: 0 } },
+    });
+    return function Wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    };
+  }
+
+  function countPickReads(status: number, body: object) {
+    const reads = { count: 0 };
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/:sub", () => {
+        reads.count += 1;
+        return HttpResponse.json(body, { status });
+      }),
+    );
+    return reads;
+  }
+
+  it("asks once for a private bracket, since asking again won't make it public", async () => {
+    const reads = countPickReads(404, { picks: null });
+    render(<PlayoffBracketContent viewUsername="paul" />, {
+      wrapper: makeRetryingWrapper(),
+    });
+
+    expect(
+      await screen.findByText("This bracket isn’t publicly available yet."),
+    ).toBeInTheDocument();
+    expect(reads.count).toBe(1);
+  });
+
+  it("still retries an outage before saying the picks couldn't load", async () => {
+    const reads = countPickReads(502, { error: "Couldn't load these picks right now" });
+    render(<PlayoffBracketContent viewUsername="paul" />, {
+      wrapper: makeRetryingWrapper(),
+    });
+
+    expect(await screen.findByText("Couldn't load these picks right now")).toBeInTheDocument();
+    expect(reads.count).toBe(4);
+  });
+});
