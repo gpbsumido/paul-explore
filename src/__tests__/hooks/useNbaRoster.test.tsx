@@ -98,6 +98,13 @@ describe("useNbaPlayers", () => {
     expect(result.current.data?.map((p) => p.id)).toEqual([700]);
   });
 
+  it("fails on a body it doesn't recognise rather than showing an empty roster", async () => {
+    server.use(http.get("/api/nba/players/:teamId", () => HttpResponse.json({ players: [] })));
+    const { result } = renderHook(() => useNbaPlayers(7), { wrapper: wrapper() });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
   it("waits for a team before asking", () => {
     const { result } = renderHook(() => useNbaPlayers(null), { wrapper: wrapper() });
     expect(result.current.fetchStatus).toBe("idle");
