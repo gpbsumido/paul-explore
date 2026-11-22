@@ -44,6 +44,15 @@ export function loginReturnToFromReferer(
  */
 export const LOGIN_PROMPT_COOKIE = "auth_login_prompt";
 
+/** How the prompt cookie is set wherever it's armed: ten minutes, server-only. */
+export const LOGIN_PROMPT_COOKIE_OPTIONS = {
+  path: "/",
+  maxAge: 600,
+  httpOnly: true,
+  sameSite: "lax",
+  secure: true,
+} as const;
+
 /**
  * The prompt to force after a local session times out.
  *
