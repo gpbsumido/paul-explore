@@ -210,13 +210,14 @@ export function useRestockSession(storeId: string): UseRestockSessionReturn {
 
         storeSessionId(storeId, null);
         setSession(null);
-        // Inventory and the activity feed both moved.
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.operator.inventory(storeId),
-        });
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.operator.activity(storeId),
-        });
+        // Inventory, the activity feed and the restock history all moved.
+        await Promise.all(
+          [
+            queryKeys.operator.inventory(storeId),
+            queryKeys.operator.activity(storeId),
+            queryKeys.operator.restockHistory(storeId),
+          ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+        );
         return true;
       } catch (err) {
         setError(
