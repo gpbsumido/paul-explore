@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.38
+
+- The codebase-audit write-up has a dated update on the first redesign stack: why failures now carry the server's reason, why the rate-limit tests were checking a function the proxy never called, why "Try again" didn't, and how two copies of one proxy drifted into a 204 that came back as a 502.
+
 ## 2026-11-22 - version 9.2.37
 
 - The budget and practice proxies share one forwarder now. They were hand copies, and the practice one had drifted: it dropped the query string, and it had no 204 branch (a Response can't carry a body at that status, so building one throws). Neither had bitten yet, since the practice API always answers with JSON and the page never sends a query, but the first 204 would have come back as a 502.
