@@ -41,4 +41,14 @@ describe("reduced motion has one source", () => {
       .map(({ file }) => file);
     expect(offenders).toEqual([]);
   });
+
+  it("is only read from matchMedia inside usePrefersReducedMotion", () => {
+    // A component reading matchMedia itself sees the real value on its first
+    // client render, while the server rendered full motion.
+    const offenders = files
+      .filter(({ text }) => text.includes('matchMedia("(prefers-reduced-motion'))
+      .map(({ file }) => file)
+      .filter((file) => file !== path.join("hooks", "usePrefersReducedMotion.ts"));
+    expect(offenders).toEqual([]);
+  });
 });
