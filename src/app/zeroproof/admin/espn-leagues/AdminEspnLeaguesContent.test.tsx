@@ -200,6 +200,16 @@ describe("AdminEspnLeaguesContent", () => {
     expect(screen.getByRole("button", { name: "Remove ffl:111:2026" })).toBeInTheDocument();
   });
 
+  it("shows the server's reason when the list fails with one", async () => {
+    server.use(
+      http.get("/api/zeroproof/espn-leagues", () =>
+        HttpResponse.json({ error: "Service unavailable" }, { status: 502 }),
+      ),
+    );
+    renderAdmin();
+    expect(await screen.findByText("Service unavailable")).toBeInTheDocument();
+  });
+
   it("says the list could not be loaded, and says when none are registered", async () => {
     server.use(
       http.get("/api/zeroproof/espn-leagues", () => new HttpResponse(null, { status: 500 })),
