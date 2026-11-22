@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useTransientValue } from "@/hooks/useTransientValue";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -103,7 +104,7 @@ function CacheVisualizerDemo() {
   const [status, setStatus] = useState<string | null>(null);
   const [computing, setComputing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [flashKey, setFlashKey] = useState<number | null>(null);
+  const [flashKey, flashCacheHit, clearFlashKey] = useTransientValue<number>(600);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafRef = useRef<number | null>(null);
 
@@ -114,8 +115,7 @@ function CacheVisualizerDemo() {
       const cached = cache.find((e) => e.input === input);
       if (cached) {
         setStatus(`Cache hit! compute(\`${input}\`) = \`${cached.result}\``);
-        setFlashKey(input);
-        setTimeout(() => setFlashKey(null), 600);
+        flashCacheHit(input);
         return;
       }
 
@@ -144,7 +144,7 @@ function CacheVisualizerDemo() {
         setProgress(0);
       }, duration);
     },
-    [cache, computing],
+    [cache, computing, flashCacheHit],
   );
 
   const clearCache = useCallback(() => {
@@ -154,8 +154,8 @@ function CacheVisualizerDemo() {
     setStatus(null);
     setComputing(false);
     setProgress(0);
-    setFlashKey(null);
-  }, []);
+    clearFlashKey();
+  }, [clearFlashKey]);
 
   return (
     <div>
@@ -252,28 +252,28 @@ function ReactMemoDemo() {
   const [memoEnabled, setMemoEnabled] = useState(false);
   const [parentCount, setParentCount] = useState(0);
   const [childCounts, setChildCounts] = useState([0, 0, 0]);
-  const [flashParent, setFlashParent] = useState(false);
-  const [flashChildren, setFlashChildren] = useState([false, false, false]);
+  const [parentFlash, showParentFlash, clearParentFlash] = useTransientValue<true>(400);
+  const [childrenFlash, showChildrenFlash, clearChildrenFlash] = useTransientValue<true>(400);
+  const flashParent = parentFlash !== null;
+  const flashChildren = childrenFlash !== null;
 
   const rerender = useCallback(() => {
     setParentCount((p) => p + 1);
-    setFlashParent(true);
-    setTimeout(() => setFlashParent(false), 400);
+    showParentFlash(true);
 
     if (!memoEnabled) {
       setChildCounts((prev) => prev.map((c) => c + 1));
-      setFlashChildren([true, true, true]);
-      setTimeout(() => setFlashChildren([false, false, false]), 400);
+      showChildrenFlash(true);
     }
-  }, [memoEnabled]);
+  }, [memoEnabled, showParentFlash, showChildrenFlash]);
 
   const toggleMemo = useCallback((on: boolean) => {
     setMemoEnabled(on);
     setParentCount(0);
     setChildCounts([0, 0, 0]);
-    setFlashParent(false);
-    setFlashChildren([false, false, false]);
-  }, []);
+    clearParentFlash();
+    clearChildrenFlash();
+  }, [clearParentFlash, clearChildrenFlash]);
 
   const childLabels = ["List", "Form", "Chart"];
 
@@ -316,7 +316,7 @@ function ReactMemoDemo() {
               <div
                 className={[
                   "flex items-center justify-center rounded-sm border px-3 py-2 font-mono text-[11px] transition-colors",
-                  flashChildren[i]
+                  flashChildren
                     ? "border-foreground/20 bg-foreground/10"
                     : "border-foreground/10",
                 ].join(" ")}
