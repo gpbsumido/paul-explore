@@ -9,6 +9,7 @@
  */
 
 import { serializeGallery, type GalleryState } from "./state";
+import { responseError } from "@/lib/responseError";
 
 /** A saved wall as it appears in the list. */
 export type WallSummary = {
@@ -70,14 +71,8 @@ export function buildWallFormData({
 
 /** Unwrap a BFF response, turning a failure into an Error with its message. */
 async function unwrap<T>(res: Response): Promise<T> {
-  const data = await res.json().catch(() => null);
-  if (!res.ok) {
-    const message =
-      (data as { error?: string } | null)?.error ??
-      `Request failed (${res.status})`;
-    throw new Error(message);
-  }
-  return data as T;
+  if (!res.ok) throw await responseError(res, `Request failed (${res.status})`);
+  return res.json();
 }
 
 export async function listWalls(): Promise<WallSummary[]> {

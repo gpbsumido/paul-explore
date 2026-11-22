@@ -1,4 +1,5 @@
 import type { ReviewState } from "./review";
+import { requestJson } from "@/lib/responseError";
 
 /**
  * Client for the practice BFF (`/api/practice/*`), which proxies to
@@ -24,17 +25,7 @@ type PracticeReview = {
 /** Every review on the account, split by kind and keyed by item id. */
 export type ReviewStatesByKind = Readonly<Record<ReviewKind, Readonly<Record<string, ReviewState>>>>;
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api/practice${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(body?.error ?? `Request failed (${res.status})`);
-  }
-  return (await res.json()) as T;
-}
+const call = <T,>(path: string, init?: RequestInit) => requestJson<T>(`/api/practice${path}`, init);
 
 function toReviewState(review: PracticeReview): ReviewState {
   return {
