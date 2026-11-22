@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.43
 
-- A copy button says when the copy didn't happen. The review-progress Copy on /interviewee showed "Copied to clipboard." before the write settled, even when the browser refused it, and the bracket's Share and Copy Link buttons dropped a refused write without saying anything. They all go through `copyText()` now, which reports whether the text actually reached the clipboard. On failure they say "Copy failed", or ask for a manual copy.
+- A copy button says when the copy didn't happen. The review-progress Copy on /interviewee showed "Copied to clipboard." before the write settled, even when the browser refused it, and the bracket's Share and Copy Link buttons dropped a refused write without saying anything. They all go through `copyText()` now, which reports whether the text actually reached the clipboard. On failure they say "Copy failed", or ask for a manual copy. The bracket's buttons also read the result out through a polite status region, since a button's label changing isn't announced, and a refused copy puts the link in a read-only field next to the button so it can be copied by hand.
 - "Copied!", the event-delegation demo's row flashes and the calendar's removal warning share one `useTransientValue` hook. Each had started its own timer and never cleared it, so a second click inside the window got cut short by the first click's timer, and closing the view left the timer running.
 
 ## 2026-11-22 - version 9.2.42

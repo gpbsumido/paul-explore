@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
@@ -275,45 +275,121 @@ function SubmitButton({
 /** What a copy-link button says for a couple of seconds after a click. */
 const COPY_LABEL = { copied: "Copied!", failed: "Copy failed" } as const;
 
-function ShareButton({ url }: { url: string }) {
-  const [copyResult, showCopyResult] = useTransientValue<keyof typeof COPY_LABEL>(2000);
+type CopyResult = keyof typeof COPY_LABEL;
 
-  function handleCopy() {
-    void copyText(url).then((ok) => showCopyResult(ok ? "copied" : "failed"));
+/**
+ * What a screen reader hears after a click. A button's label changing isn't
+ * announced, so the result goes through a status region as well.
+ */
+const COPY_ANNOUNCEMENT: Record<CopyResult, string> = {
+  copied: "Link copied.",
+  failed:
+    "Couldn't copy the link. It's in the field next to the button to copy by hand.",
+};
+
+/**
+ * Copies a link and keeps what its button needs to report: the short-lived
+ * result for the label and the status region, and the link itself while the
+ * last try failed, so it can be copied by hand. A later successful copy
+ * clears the link again.
+ */
+function useCopyLink() {
+  const [copyResult, showCopyResult] = useTransientValue<CopyResult>(2000);
+  const [linkToCopyByHand, setLinkToCopyByHand] = useState<string | null>(null);
+
+  function copyLink(url: string) {
+    void copyText(url).then((ok) => {
+      showCopyResult(ok ? "copied" : "failed");
+      setLinkToCopyByHand(ok ? null : url);
+    });
   }
 
+  return { copyResult, copyLink, linkToCopyByHand };
+}
+
+/**
+ * The polite status region that reads a copy's result out, plus a read-only
+ * field holding the link when the clipboard refused it. The region is always
+ * rendered, because one that appears with its text already in it often isn't
+ * announced at all.
+ */
+function CopyLinkFeedback({
+  copyResult,
+  linkToCopyByHand,
+  className,
+}: {
+  copyResult: CopyResult | null;
+  linkToCopyByHand: string | null;
+  className: string;
+}) {
+  const fieldId = useId();
+
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium text-muted hover:text-foreground hover:bg-surface-raised transition-colors"
-      title="Copy bracket link"
-    >
-      <svg
-        className="h-3.5 w-3.5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
+    <>
+      <span role="status" className="sr-only">
+        {copyResult ? COPY_ANNOUNCEMENT[copyResult] : ""}
+      </span>
+      {linkToCopyByHand && (
+        <span className={className}>
+          <label htmlFor={fieldId} className="shrink-0 text-[11px] text-muted">
+            Copy it by hand
+          </label>
+          <input
+            id={fieldId}
+            type="text"
+            readOnly
+            value={linkToCopyByHand}
+            onFocus={(e) => e.currentTarget.select()}
+            className="w-56 min-w-0 rounded-md border border-border bg-surface-raised/50 px-2 py-1 font-mono text-[11px] text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          />
+        </span>
+      )}
+    </>
+  );
+}
+
+function ShareButton({ url }: { url: string }) {
+  const { copyResult, copyLink, linkToCopyByHand } = useCopyLink();
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => copyLink(url)}
+        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium text-muted hover:text-foreground hover:bg-surface-raised transition-colors"
+        title="Copy bracket link"
       >
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-      </svg>
-      <AnimatePresence mode="wait">
-        <m.span
-          key={copyResult ?? "share"}
-          initial={{ opacity: 0, y: -3 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 3 }}
-          transition={{ duration: 0.15 }}
+        <svg
+          className="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
         >
-          {copyResult ? COPY_LABEL[copyResult] : "Share"}
-        </m.span>
-      </AnimatePresence>
-    </button>
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+        <AnimatePresence mode="wait">
+          <m.span
+            key={copyResult ?? "share"}
+            initial={{ opacity: 0, y: -3 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 3 }}
+            transition={{ duration: 0.15 }}
+          >
+            {copyResult ? COPY_LABEL[copyResult] : "Share"}
+          </m.span>
+        </AnimatePresence>
+      </button>
+      <CopyLinkFeedback
+        copyResult={copyResult}
+        linkToCopyByHand={linkToCopyByHand}
+        className="flex items-center gap-2"
+      />
+    </div>
   );
 }
 
@@ -452,13 +528,7 @@ function ViewModeBanner({
   viewName: string;
   currentUserSub: string | null;
 }) {
-  const [copyResult, showCopyResult] = useTransientValue<keyof typeof COPY_LABEL>(2000);
-
-  function handleCopyLink() {
-    void copyText(window.location.href).then((ok) =>
-      showCopyResult(ok ? "copied" : "failed"),
-    );
-  }
+  const { copyResult, copyLink, linkToCopyByHand } = useCopyLink();
 
   return (
     <m.div
@@ -489,7 +559,7 @@ function ViewModeBanner({
       <div className="ml-auto flex items-center gap-2">
         <button
           type="button"
-          onClick={handleCopyLink}
+          onClick={() => copyLink(window.location.href)}
           className="rounded-md px-2.5 py-1 text-[11px] font-medium text-primary-400/80 hover:text-primary-300 hover:bg-primary-500/15 transition-colors"
         >
           {copyResult ? COPY_LABEL[copyResult] : "Copy Link"}
@@ -504,6 +574,12 @@ function ViewModeBanner({
           </a>
         )}
       </div>
+
+      <CopyLinkFeedback
+        copyResult={copyResult}
+        linkToCopyByHand={linkToCopyByHand}
+        className="flex basis-full items-center justify-end gap-2"
+      />
     </m.div>
   );
 }
@@ -798,7 +874,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {/* Toolbar: only in edit mode */}
         {!isViewMode && (
-          <div className="mb-4 flex items-center justify-end gap-3 min-h-8">
+          <div className="mb-4 flex flex-wrap items-center justify-end gap-3 min-h-8">
             {/* Progress */}
             {bracket && <PickProgress picks={picks} matchups={matchups} />}
 
