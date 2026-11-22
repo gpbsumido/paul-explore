@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.48
+
+- The projects on the landing page are big showcase rows now, instead of a sideways strip of cards that hijacked the scroll wheel. The page scrolls normally, every project gets a large screenshot, and each row has its own "Open" and "Write-up" links rather than one whole-card link. The rows cycle through left, right and full-width layouts so the page doesn't read as the same split over and over. On browsers that support scroll-driven animation the rows rise in as they enter, unless reduced motion is on.
+
 ## 2026-11-22 - version 9.2.47
 
 - The Volunteer Check-in card on the hub, and its llms.txt line, open the public /check-in page. They linked to the organizer's site list, which needs a login, so a guest who clicked was sent straight to sign-in for a page they never asked to use. A test now checks that every hub card opens somewhere a guest can see, with the calendar as the one gated on purpose.
