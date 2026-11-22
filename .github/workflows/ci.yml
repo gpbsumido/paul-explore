@@ -151,7 +151,16 @@ jobs:
         # days with every PR green. One grep and one `playwright test` call, so
         # they reuse this job's build instead of paying for another one:
         # measured, that is about a minute on a job that runs in two.
-        run: pnpm exec playwright test --project=public --grep "@smoke|@a11y" --grep-invert @flaky
+        #
+        # Two workers, not the config's one. The scans are one page load and
+        # one axe pass each, 128 of them, and one worker ran them back to back:
+        # Playwright's slow-file warning named a11y-routes.spec.ts at 9.0m of a
+        # 10.2m run. Everything in this grep only reads, so tests do not share
+        # state, and a public repo's runner has four cores for the server and
+        # two browsers. The flag is here and not in playwright.config.ts because
+        # the config's single worker also covers the authenticated and operator
+        # write specs, which I have not checked for order dependence.
+        run: pnpm exec playwright test --project=public --grep "@smoke|@a11y" --grep-invert @flaky --workers=2
 
       # Rides this job's build rather than paying for its own. A budget check
       # needs a production build, and `quality` deliberately doesn't do one, so
