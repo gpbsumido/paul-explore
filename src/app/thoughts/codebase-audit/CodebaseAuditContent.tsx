@@ -789,6 +789,121 @@ if (isSessionTimeout(false, marker)) {               // always false`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-22-third-stack"
+        date="November 22, 2026"
+        title="Finishing the leftovers, and the two PRs the full suite caught me breaking"
+      >
+        <p>
+          The third stack picked up what the first two left: ZeroProof write
+          bodies checked before they leave the site (#756), the rest of the
+          proxy cleanup (#757), registries that had drifted from what they
+          describe (#758), and four small sharing passes, covering the external
+          link check, the theme key and a few timers, the 3D models&rsquo;
+          motion hook, and the ESPN readers (#759 to #762). I re-read each audit
+          item against the current code before starting it, and some of them
+          turned out smaller than the audit said, or wrong.
+        </p>
+
+        <h3 className={beat}>
+          A shared bracket called itself private whenever the backend was down
+        </h3>
+        <pre className={pre}>
+          {`if (!res.ok) {
+  return NextResponse.json({ picks: null }, { status: 404 });
+}
+// ...
+} catch {
+  return NextResponse.json({ picks: null }, { status: 404 });
+}
+
+// and on the page, for any error at all:
+This bracket isn’t publicly available yet.`}
+        </pre>
+        <p>
+          The public picks route turned every upstream failure into a 404, and
+          the view showed one fixed sentence for any error, so an outage read
+          as someone keeping their bracket to themselves. Only a real 404
+          means missing now. Anything else is a 502 with{" "}
+          <C>Couldn&rsquo;t load these picks right now</C>, and the view shows
+          whatever reason it was given. It&rsquo;s the same bug as the
+          empty-state ones from the first pass, just on a page I hadn&rsquo;t
+          looked at.
+        </p>
+
+        <h3 className={beat}>
+          I ran each PR&rsquo;s own tests, and the full suite found two PRs I
+          had broken further down
+        </h3>
+        <pre className={pre}>
+          {`FAIL src/app/api/authedProxyRoutes.test.ts > POST /api/zeroproof/wallets
+  > sends an empty object, not a crash, when the body isn't JSON
+FAIL src/app/api/routePathSegments.test.ts
+  > 'POST zeroproof/leagues/:id/espn-leagu…' rejects \`..\` with a 400
+FAIL src/app/design-system/catalog.test.ts
+  > never claims 'not adopted here' for a component the app already imports
+AssertionError: expected [ 'timeline' ] to deeply equal []`}
+        </pre>
+        <p>
+          While building each PR I ran the tests for the folders it touched.
+          That felt thorough and wasn&rsquo;t. The body checks in #756 made two
+          older tests wrong: one still expected a non-JSON body to reach the
+          API as <C>{"{}"}</C>, and the other sent a body the new schema
+          rejected before the path check it was meant to test ever ran. The
+          experience timeline in #755 used the design system&rsquo;s Timeline,
+          and the catalog still said nothing on the site imported it. None of
+          those tests sit near the code that broke them, which is the whole
+          point of having them. I fixed each on the branch that broke it and
+          carried the fix up the stack. Now every PR gets a full run before
+          its body is written.
+        </p>
+
+        <h3 className={beat}>
+          Four write-ups had timelines that stopped partway down the page
+        </h3>
+        <pre className={pre}>
+          {`× 'deployment' lists every update it has, and only those
+× 'tcg' lists every update it has, and only those
+× 'vitals' lists every update it has, and only those
+× 'work-portfolio' lists every update it has, and only those`}
+        </pre>
+        <p>
+          The audit named one: the TCG timeline listed one of its four
+          updates. A fix for that page alone would have left the other three,
+          so the test reads every write-up with a timeline and compares it to
+          the update anchors in that folder, both ways. Vitals was missing
+          three of six. The work portfolio was also out of order.
+        </p>
+
+        <h3 className={beat}>
+          The hub&rsquo;s updates card is still typed out, and that&rsquo;s the
+          fix
+        </h3>
+        <p>
+          The card showed three entries from version 5. The obvious fix is to
+          read the newest entries from the feed, but the feed is a 75 KB file
+          and the card lives in a client module that most of the hub imports,
+          so the whole changelog would ship with it. The three rows stay
+          written by hand, and a test fails when a new entry lands and the
+          card falls behind. Budget had the same kind of gap: its colour token
+          existed and nothing mapped the card to it.
+        </p>
+
+        <h3 className={beat}>
+          Some of the audit was wrong, and I left those alone
+        </h3>
+        <p>
+          It flagged three hand-written <C>Request failed</C> errors in
+          ZeroProof. All three feed an error box with fixed copy, so the
+          message never reaches the screen, and changing them would change
+          nothing. The leaderboard and vitals catches looked redundant around a
+          fetch that never throws, but they still catch a non-JSON body. The
+          two ESPN roster schemas looked like copies, but one requires a field
+          the other treats as optional. Merging them would quietly change what
+          one of the readers accepts.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An audit that only listed problems, with the bugs in their own table, so fixing them couldn't quietly turn into the redesign.",
@@ -798,9 +913,10 @@ if (isSessionTimeout(false, marker)) {               // always false`}
           "The API half: calendar sync wired back up, the database tests running in CI, bets that can't overdraw or pay twice, a Google connect bound to the person finishing it, typed reads of the signed-in user, 4xx for caller mistakes, and card updates that bind.",
           "The first redesign stack: one way to read a failed response in the browser, one rate-limit table the proxy actually uses, a Try again that refetches, root error boundaries, one signed-in catch-all proxy with a body cap, robots.txt and the admin check reading the lists they used to copy, and a dead-code pass.",
           "The second stack: a test count that regenerates on every build, three error boundaries where thirty-one said the same thing, write timeouts that never replay against the seed, NBA queries that parse what the API sends, a proxy whose exits share two helpers, and guards that can fail.",
+          "The third stack: ZeroProof write bodies checked before they leave the site, a shared bracket that says when the backend is down, one optional-token lookup, timelines checked against their updates, a hub card that keeps up with the feed, and shared helpers for links, the theme key, timers, motion and ESPN reads.",
         ]}
         couldImprove={[
-          "Client fetches read a failure one way now, but the server side is only half done. The ZeroProof routes still forward request bodies without a schema, and the operator reads (on purpose, they sit on the render path) and the risk route still keep their own five-second timeouts.",
+          "The calendar events GET logs the backend's reason and answers with a generic one, while the PUT routes forward it. I haven't decided which of the two is right for a read.",
           "Screenshots of the visible fixes (the card colours, the bracket's failed-save alert) still need capturing.",
           "The calendar repository tests still mock knex. Only the card update compiles its SQL for real, so the next raw statement there can make the same mistake.",
           "I haven't checked the production ledger for a bet that was paid twice before settling checked the bet was still open.",
