@@ -7,6 +7,7 @@ import * as api from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import { InvalidSegmentError } from "@/lib/safeSegment";
+import { fetchMayHaveLanded } from "@/lib/upstream";
 import {
   OperatorServiceTokenError,
   OperatorUnavailableError,
@@ -348,7 +349,9 @@ export async function loadFinance(): Promise<FinanceResponse> {
  * that would report a success nothing persisted.
  *
  * A write that ran out of time may have applied too, so it goes back to the
- * route the same way.
+ * route the same way. So does a fetch that failed for any reason other than a
+ * connection that was never made: a server can read the whole request and
+ * then drop the socket, and that looks like `fetch failed` as well.
  *
  * A 401 or 403 is called out on its own: it means OPERATOR_SERVICE_TOKEN is
  * missing here or different from portfolio_api's, a misconfiguration rather
@@ -375,6 +378,9 @@ async function writeWithFallback<T>(
     }
     if (err instanceof api.OperatorContractError) throw err;
     if (err instanceof api.OperatorWriteTimeoutError) throw err;
+    if (fetchMayHaveLanded(err)) {
+      throw new api.OperatorWriteTimeoutError(label, "lost the connection before an answer came back");
+    }
     noteFallback(label, err);
     return fallback();
   }

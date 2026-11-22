@@ -13,6 +13,7 @@ import {
   FlagsWriteTimeoutError,
   type FlagWriteAuth,
 } from "@/lib/flags-client";
+import { fetchMayHaveLanded } from "@/lib/upstream";
 import {
   getFlag,
   getFlags,
@@ -87,7 +88,8 @@ export type PatchOutcome = {
 /**
  * Applies a flag update. Writes through to the live API when it answers; a real
  * error status (a signed-out 401, an unknown-flag 404) is propagated to the
- * caller. Only a genuine connection failure falls back to the seed store, so
+ * caller. Only a connection that was never made (refused, or a host that
+ * didn't resolve) falls back to the seed store, so
  * the demo keeps working while the backend is not yet deployed.
  */
 export async function applyFlagPatch(
@@ -110,6 +112,13 @@ export async function applyFlagPatch(
     }
     if (err instanceof FlagsWriteTimeoutError) {
       console.error("[flags] no answer in time patching flag", flagKey);
+      return { status: 504 };
+    }
+    // A server can read the whole PATCH and then drop the socket, which also
+    // rejects as `fetch failed`. Only a connection that was never made is safe
+    // to answer from the seed.
+    if (fetchMayHaveLanded(err)) {
+      console.error(`[flags] lost the connection patching flag ${flagKey}, so it may have applied`, err);
       return { status: 504 };
     }
     // Anything left is the API not answering at all, which the seed store can

@@ -10,6 +10,30 @@ import { InvalidSegmentError } from "@/lib/safeSegment";
  */
 export const UPSTREAM_TIMEOUT_MS = 8_000;
 
+/** Socket codes that mean no connection was ever made, so nothing was sent. */
+const NEVER_CONNECTED_CODES: ReadonlySet<unknown> = new Set(["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN"]);
+
+/** The errno-style `code` Node puts on a socket error, if there is one. */
+function codeOf(value: unknown): unknown {
+  return typeof value === "object" && value !== null && "code" in value ? value.code : undefined;
+}
+
+/**
+ * Whether a rejected fetch might still have delivered its request.
+ *
+ * Node rejects with the same `TypeError: fetch failed` for a refused connection
+ * and for a server that read the whole body and then hung up. Only the cause
+ * tells them apart, so a write is treated as never sent only when the cause (or
+ * one of the addresses Node tried, for a host with several) is a refusal or a
+ * failed lookup. Anything else might have landed, and replaying it somewhere
+ * else would report a success that isn't the real outcome.
+ */
+export function fetchMayHaveLanded(err: unknown): boolean {
+  if (!(err instanceof TypeError)) return false;
+  const causes = err.cause instanceof AggregateError ? [err.cause, ...err.cause.errors] : [err.cause];
+  return !causes.some((cause) => NEVER_CONNECTED_CODES.has(codeOf(cause)));
+}
+
 export type UpstreamResult =
   | { ok: true; response: Response }
   | { ok: false; cause: "timeout" | "unreachable"; message: string };

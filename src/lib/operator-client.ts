@@ -111,10 +111,16 @@ export class OperatorContractError extends Error {
  * A write that got no answer before its deadline. It may still have applied
  * upstream, so it is neither an outage the seed could answer nor a rejection:
  * the caller has to be told to reload before trying again.
+ *
+ * A connection that dropped after the request went out is the same situation
+ * with a different cause, so it uses this error with its own `reason`.
  */
 export class OperatorWriteTimeoutError extends Error {
-  constructor(readonly path: string) {
-    super(`operator write ${path} got no answer in ${UPSTREAM_TIMEOUT_MS} ms`);
+  constructor(
+    readonly path: string,
+    reason = `got no answer in ${UPSTREAM_TIMEOUT_MS} ms`,
+  ) {
+    super(`operator write ${path} ${reason}`);
     this.name = "OperatorWriteTimeoutError";
   }
 }
