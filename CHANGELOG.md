@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.33
+
+- A failed request in the browser now shows the reason the server gave, through one helper, `responseError`, instead of eleven copies of `res.json().catch(() => null) as { error?: string }`. The calendar helpers used to throw a fixed "Failed to create event" even when the server said why, such as "You can only view this calendar", and they pass that sentence on now. The caller's own wording still shows when the body has no reason, or isn't JSON at all.
+- Budget, practice and gallery walls shared three copies of the same request function. They use `requestJson` now, which sends JSON and throws the server's reason.
+- The two league-removal checks read `!res.ok && res.status !== 204`, and the second half could never be false when the first was true. They're plain `!res.ok` now.
+- A test scans the browser code for a hand-rolled `.json().catch(`, so the next fetch goes through the helper too. Check-in keeps its own parsing because its backend answers with `message`, not `error`.
+
 ## 2026-11-22 - version 9.2.32
 
 - These two entries were numbered 9.3.7 and 9.3.6 when they merged, which started a 9.3 line with no 9.3.0 release and no announcement behind it. Both are patch fixes and nothing past 9.2.28 has been released, so they're 9.2.31 and 9.2.32, in order. The PR screenshot folders keep the old numbers, since their links are pinned to the commits that hold them.
