@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.2
+
+- A shared bracket link no longer says "This bracket isn't publicly available yet" when the backend is down. The public picks route treated any failure as a missing bracket, so an outage looked like a private one; now only a 404 means missing, anything else answers 502 with "Couldn't load these picks right now", and the view shows that instead.
+- The admin ESPN leagues list shows the server's reason when loading fails, the same way the add and remove buttons already did.
+- Server plumbing, no visible change: the "token if signed in" lookup that three public routes and the vitals proxy each copied now lives once in `getOptionalToken`, the operator client reads the API URL from `apiUrl` instead of a module that pulls in auth0, the risk demo's 5 second timeout has a name, and the ZeroProof track route loses a catch that `fetchUpstream` made unreachable.
+
 ## 2026-11-22 - version 9.3.1
 
 - Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact. A refused body says which field was wrong in words, like "Max members must be a number", rather than "Invalid request body", since the forms put that sentence on screen. The forms also stop the two that were easy to send: Max members is required and at least 2, and a stake that rounds to nothing, like $0.001, says "Enter at least $0.01" beside it instead of going to the server.
