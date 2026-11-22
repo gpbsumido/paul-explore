@@ -52,7 +52,7 @@ export const FEATURES: FeatureItem[] = [
     title: "Volunteer Check-in",
     description:
       "Proof that someone actually turned up: a display at the entrance shows a code that rotates every two minutes, volunteers type it on their phone, and the arrival is recorded against their account rather than a name they typed.",
-    href: "/check-in/sites",
+    href: "/check-in",
     color: "#2d8f66",
     thoughtsHref: "/thoughts/volunteer-check-in",
   },
