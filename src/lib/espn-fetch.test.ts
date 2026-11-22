@@ -12,8 +12,17 @@ describe("fetchEspnJson", () => {
     expect(await fetchEspnJson(URL)).toEqual({ events: [] });
   });
 
-  it("returns null when ESPN answers with an error", async () => {
-    server.use(http.get(URL, () => new HttpResponse(null, { status: 503 })));
+  // The body is JSON on purpose: a private league answers 401 with a readable
+  // message, and that must not reach a caller as if it were league data.
+  it("returns null when ESPN answers with an error, even one with a JSON body", async () => {
+    server.use(
+      http.get(URL, () =>
+        HttpResponse.json(
+          { messages: ["You are not authorized to view this League."] },
+          { status: 401 },
+        ),
+      ),
+    );
     expect(await fetchEspnJson(URL)).toBeNull();
   });
 
