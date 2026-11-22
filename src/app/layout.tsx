@@ -9,6 +9,7 @@ import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import CookieConsent from "@/components/CookieConsent";
 import { SITE_URL, OG_IMAGE, SITE_DESCRIPTION } from "@/lib/site";
+import { THEME_STORAGE_KEY } from "@/lib/themePreference";
 import "./globals.css";
 
 // preload:false on the body face too. Above the fold it only sets the role
@@ -77,7 +78,7 @@ export const metadata: Metadata = {
 // Runs synchronously before CSS or React hydration. It records whether the
 // navigation began in a visible tab for WebVitalsReporter, then applies the
 // saved theme before paint. Must be a self-contained IIFE — no imports allowed.
-const ANTI_FOUC_SCRIPT = `(function(){window.__pageStartedVisible=document.visibilityState==='visible';try{var p=localStorage.getItem('theme-preference')||'system';var t=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+const ANTI_FOUC_SCRIPT = `(function(){window.__pageStartedVisible=document.visibilityState==='visible';try{var p=localStorage.getItem('${THEME_STORAGE_KEY}');if(p!=='light'&&p!=='dark')p='system';var t=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
 
 export default function RootLayout({
   children,
