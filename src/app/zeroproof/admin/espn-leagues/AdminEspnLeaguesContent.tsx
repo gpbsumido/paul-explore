@@ -1,7 +1,6 @@
 "use client";
 
 import { responseError } from "@/lib/responseError";
-import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -9,123 +8,12 @@ import {
   espnLeaguesResponseSchema,
 } from "@/lib/zeroproof/schemas";
 import AdminBackLink from "../AdminBackLink";
+import EspnLeagueForm from "../../EspnLeagueForm";
 
 async function fetchEspnLeagues(): Promise<EspnLeague[]> {
   const res = await fetch("/api/zeroproof/espn-leagues");
   if (!res.ok) throw new Error(`Couldn't load ESPN leagues (${res.status})`);
   return espnLeaguesResponseSchema.parse(await res.json()).leagues;
-}
-
-const controlClass =
-  "h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
-const primaryButtonClass =
-  "inline-flex h-9 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-500 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
-
-function AddLeagueForm() {
-  const queryClient = useQueryClient();
-  const [game, setGame] = useState("ffl");
-  const [leagueId, setLeagueId] = useState("");
-  const [season, setSeason] = useState("");
-  const [label, setLabel] = useState("");
-
-  const add = useMutation({
-    mutationFn: async () => {
-      const body: Record<string, unknown> = {
-        game,
-        leagueId: leagueId.trim(),
-        season: season.trim(),
-      };
-      if (label.trim()) body.label = label.trim();
-      const res = await fetch("/api/zeroproof/espn-leagues", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw await responseError(res, `Couldn't add the league (${res.status})`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.espnLeagues() });
-      setLeagueId("");
-      setSeason("");
-      setLabel("");
-    },
-  });
-
-  return (
-    <form
-      className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface-raised p-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        add.mutate();
-      }}
-    >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="espn-game" className="text-xs text-muted">
-          Sport
-        </label>
-        <select
-          id="espn-game"
-          value={game}
-          onChange={(event) => setGame(event.target.value)}
-          className={`${controlClass} w-32`}
-        >
-          <option value="ffl">Football</option>
-          <option value="fba">Basketball</option>
-          <option value="flb">Baseball</option>
-          <option value="fhl">Hockey</option>
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="espn-id" className="text-xs text-muted">
-          ESPN league id
-        </label>
-        <input
-          id="espn-id"
-          inputMode="numeric"
-          required
-          value={leagueId}
-          onChange={(event) => setLeagueId(event.target.value)}
-          placeholder="836777691"
-          className={`${controlClass} w-40`}
-        />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="espn-season" className="text-xs text-muted">
-          Season
-        </label>
-        <input
-          id="espn-season"
-          inputMode="numeric"
-          required
-          value={season}
-          onChange={(event) => setSeason(event.target.value)}
-          placeholder="2026"
-          className={`${controlClass} w-24`}
-        />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="espn-label" className="text-xs text-muted">
-          Label (optional)
-        </label>
-        <input
-          id="espn-label"
-          value={label}
-          onChange={(event) => setLabel(event.target.value)}
-          placeholder="The office league"
-          className={`${controlClass} w-56`}
-        />
-      </div>
-      <button type="submit" disabled={add.isPending} className={primaryButtonClass}>
-        {add.isPending ? "Adding…" : "Add league"}
-      </button>
-      {add.isError && (
-        <p className="w-full text-xs text-error-600 dark:text-error-300">
-          {(add.error as Error).message}
-        </p>
-      )}
-    </form>
-  );
 }
 
 function RemoveButton({ league }: { league: EspnLeague }) {
@@ -172,7 +60,13 @@ export default function AdminEspnLeaguesContent() {
         </p>
       </header>
 
-      <AddLeagueForm />
+      <div className="mt-4">
+        <EspnLeagueForm
+          endpoint="/api/zeroproof/espn-leagues"
+          listQueryKey={queryKeys.zeroproof.espnLeagues()}
+          idPrefix="espn"
+        />
+      </div>
 
       <section aria-labelledby="registered-title" className="mt-8">
         <h2 id="registered-title" className="text-sm font-semibold tracking-wide text-muted uppercase">
