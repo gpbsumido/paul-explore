@@ -183,7 +183,10 @@ describe("browser code reading a failed response", () => {
     const root = process.cwd();
     const offenders = sourceFiles(path.join(root, "src"))
       .map((file) => path.relative(root, file))
+      // API routes and the server proxy helper pass the backend's body through
+      // rather than reading an error out of it.
       .filter((file) => !file.startsWith("src/app/api/") && !file.startsWith("src/app/thoughts/"))
+      .filter((file) => file !== "src/lib/backendFetch.ts")
       .filter((file) => !READS_ITS_OWN_BODY.has(file))
       .flatMap((file) =>
         readFileSync(path.join(root, file), "utf8")

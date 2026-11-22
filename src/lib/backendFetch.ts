@@ -5,6 +5,7 @@ import { API_URL } from "@/lib/apiUrl";
 import { InvalidSegmentError } from "@/lib/safeSegment";
 import { isSiteAdmin } from "@/lib/emailAllowlist";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { DEFAULT_MAX_BYTES } from "@/lib/parseBody";
 
 /** The auth context handed to a wrapped BFF handler. */
 export type BackendContext = { token: string; email: string | null };
@@ -143,6 +144,60 @@ export async function proxyPublicList(
     console.error(`[BFF] GET ${path} — fetch threw:`, err);
     return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }
+}
+
+type CatchAllCtx = { params: Promise<{ path?: string[] }> };
+
+// Catch-all segments are route words, UUIDs and slugs. Anything else is a
+// malformed caller, so reject it rather than forward a traversal attempt.
+const CATCH_ALL_SEGMENT = /^[a-zA-Z0-9-]+$/;
+
+const tooLarge = () =>
+  NextResponse.json({ error: "Payload too large" }, { status: 413 });
+
+/**
+ * One signed-in proxy for a whole backend domain, so `/api/<domain>/...`
+ * forwards to `${API_URL}${backendPrefix}/...` with the caller's own token and
+ * the query string intact. Pass it the method and get the route handler back.
+ *
+ * The body is forwarded as text, untouched, but never more than 64 KB of it.
+ * The backend's status and JSON come back as they were, a 204 stays a 204 (a
+ * Response can't carry a body at that status, so building one throws), and a
+ * reply with no JSON reads as `{}`.
+ */
+export function signedInCatchAll(label: string, backendPrefix: string) {
+  return (method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE") =>
+    withBackend<CatchAllCtx>(`${label} ${method}`, async (backend, request, ctx) => {
+      const { path = [] } = await ctx.params;
+      if (path.some((segment) => !CATCH_ALL_SEGMENT.test(segment))) {
+        return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+      }
+
+      const sendsBody = method !== "GET" && method !== "DELETE";
+      if (sendsBody && Number(request.headers.get("content-length") ?? 0) > DEFAULT_MAX_BYTES) {
+        return tooLarge();
+      }
+      const body = sendsBody ? await request.text() : "";
+      if (new TextEncoder().encode(body).length > DEFAULT_MAX_BYTES) return tooLarge();
+
+      const suffix = path.length ? `/${path.join("/")}` : "";
+      const search = new URL(request.url).search;
+      const upstream = await fetchUpstream(`${API_URL}${backendPrefix}${suffix}${search}`, {
+        method,
+        headers: buildHeaders(
+          backend.token,
+          backend.email,
+          sendsBody ? { "Content-Type": "application/json" } : {},
+        ),
+        ...(body ? { body } : {}),
+      });
+      if (!upstream.ok) return upstreamErrorResponse(upstream);
+
+      const res = upstream.response;
+      if (res.status === 204) return new NextResponse(null, { status: 204 });
+      const json: unknown = await res.json().catch(() => null);
+      return NextResponse.json(json ?? {}, { status: res.status });
+    });
 }
 
 export function buildHeaders(
