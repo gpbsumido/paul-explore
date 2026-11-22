@@ -548,15 +548,16 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
         <p className="text-muted">
           Scrolling down to go sideways is fun the first time. After that, a
           trackpad user who wants the contact section has to scroll through
-          240vh of cards first. Each card was one big link with the write-up
-          tucked inside the tilt surface, so the project and its write-up
-          competed for one click. I deleted the scroll maths, the pinned
-          viewport and the tilt, and the rows are a plain list now.
+          450vh of cards first, 30vh for each of the fifteen projects. Each
+          card was one big link with the write-up tucked inside the tilt
+          surface, so the project and its write-up competed for one click. I
+          deleted the scroll maths, the pinned viewport and the tilt, and the
+          rows are a plain list now.
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
-          {`- .workScroll { height: 240vh; }
-- track.style.transform = \`translate3d(\${-progress * distance}px,0,0)\`;
-+ <li className={styles.showcaseRow} data-layout={LAYOUTS[index % 3]}>`}
+          {`- style={{ ["--scroll-height" as string]: \`\${projects.length * 30}vh\` }}
+- track.style.transform = \`translate3d(\${-progress * distance}px, 0, 0)\`;
++ <li key={pick.id} className={styles.showcaseRow} data-layout={LAYOUTS[index % LAYOUTS.length]}>`}
         </pre>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
@@ -588,8 +589,7 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
           {`@supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .showcaseRow { animation: showcaseRise linear both;
-      animation-timeline: view(); animation-range: entry 0% entry 55%; }
+    .showcaseRow { animation:showcaseRise linear both; animation-timeline:view(); animation-range:entry 0% entry 55%; }
   }
 }`}
         </pre>
