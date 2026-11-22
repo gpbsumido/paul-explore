@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.44
+
+- Operator writes and flag writes give up after eight seconds. They had no deadline, so a hung portfolio_api held the route open until the platform killed it. The flags audit read had none either.
+- A write that runs out of time answers 504, "the change may have been saved, so reload before trying again", and is never replayed against the demo seed. Both write paths fall back to the seed when the API never answered, and an abort would have looked exactly like that: a write that might have landed upstream would have reported a seed success. The timeout is its own error now, the same way an unreadable answer already was.
+- One `UPSTREAM_TIMEOUT_MS` in `upstream.ts` replaces the literal eight seconds the flags read had copied from it. Operator reads keep their own five seconds, which sits on a page's render path.
+
 ## 2026-11-22 - version 9.2.43
 
 - A copy button says when the copy didn't happen. The review-progress Copy on /interviewee showed "Copied to clipboard." before the write settled, even when the browser refused it, and the bracket's Share and Copy Link buttons dropped a refused write without saying anything. They all go through `copyText()` now, which reports whether the text actually reached the clipboard. On failure they say "Copy failed", or ask for a manual copy. The bracket's buttons also read the result out through a polite status region, since a button's label changing isn't announced, and a refused copy puts the link in a read-only field next to the button so it can be copied by hand.
