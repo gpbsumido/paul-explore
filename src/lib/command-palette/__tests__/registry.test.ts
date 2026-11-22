@@ -43,6 +43,18 @@ describe("buildCommandRegistry", () => {
     expect(external.every((c) => c.href?.startsWith("http"))).toBe(true);
   });
 
+  it("makes every command either a link with a target or a known action", () => {
+    for (const command of registry) {
+      if (command.kind === "link") {
+        expect(command.href, command.id).toMatch(/^(\/|https:\/\/)/);
+        expect(command.external, command.id).toBe(command.href.startsWith("http"));
+      } else {
+        expect(command.kind, command.id).toBe("action");
+        expect(command.action, command.id).toBe("toggle-theme");
+      }
+    }
+  });
+
   it("gives every command a unique id", () => {
     const ids = registry.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
