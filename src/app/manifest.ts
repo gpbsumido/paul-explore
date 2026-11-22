@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SITE_DESCRIPTION } from "@/lib/site";
 
 /**
  * Web app manifest.
@@ -16,8 +17,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Paul Sumido",
     short_name: "paul-explore",
-    description:
-      "Personal playground and portfolio — NBA stats, fantasy league history, Pokémon TCG browser, and write-ups on how it was built.",
+    description: SITE_DESCRIPTION,
     start_url: "/",
     display: "browser",
     // Matches the light-theme background token, so the splash and theme colour
