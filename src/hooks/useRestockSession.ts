@@ -12,8 +12,11 @@ import {
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import type { RestockLine, RestockSession } from "@/types/operator";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
+import { responseError } from "@/lib/responseError";
 
 const STORAGE_PREFIX = "operator-restock-session";
+
+const SLOT_NOT_SAVED = "That slot did not save. It is still on this device.";
 
 /**
  * Prefers the server's own explanation over a generic one.
@@ -176,11 +179,13 @@ export function useRestockSession(storeId: string): UseRestockSessionReturn {
             body: JSON.stringify(body),
           },
         );
-        if (!res.ok) throw new Error("line rejected");
+        if (!res.ok) throw await responseError(res, SLOT_NOT_SAVED);
         restockLineSchema.parse((await res.json()).line);
         return true;
-      } catch {
-        setError("That slot did not save. It is still on this device.");
+      } catch (err) {
+        // The route's reason wins: on a timeout the slot may well have saved,
+        // and "did not save" would be a guess.
+        setError(messageFor(err, SLOT_NOT_SAVED));
         return false;
       }
     },

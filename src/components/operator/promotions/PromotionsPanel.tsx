@@ -14,6 +14,8 @@ import {
 import { promotionSchema } from "@/lib/operator-schemas";
 import { storeTimeZone, zoneLabel } from "@/lib/operator-timezone";
 import { queryKeys } from "@/lib/queryKeys";
+import { ResponseError, responseError } from "@/lib/responseError";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 import type { InventoryItem, Promotion } from "@/types/operator";
 import TimeZoneNote from "../TimeZoneNote";
 import PromotionPerformance from "./PromotionPerformance";
@@ -26,6 +28,9 @@ interface PromotionsPanelProps {
   modelledProduct: string | null;
 }
 
+const SCHEDULE_FAILED = "Could not schedule that promotion.";
+const END_FAILED = "Could not end that promotion.";
+
 // Module-level so the default never changes identity between renders.
 const EMPTY_PROMOTIONS: readonly Promotion[] = [];
 
@@ -34,6 +39,15 @@ const STATUS_STYLES: Record<string, string> = {
   scheduled: "bg-primary-500/15 text-primary-600 dark:text-primary-400",
   ended: "bg-surface-raised text-muted",
 };
+
+/**
+ * Whether a failed write may still have applied. The routes answer 504 when
+ * the API never answered, so the only honest next step is to reload the list
+ * and see.
+ */
+function mayHaveApplied(err: unknown): boolean {
+  return err instanceof ResponseError && err.status === 504;
+}
 
 function toLocalInputValue(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -118,15 +132,21 @@ export default function PromotionsPanel({
           endsAt: endsAt === "" ? null : new Date(endsAt).toISOString(),
         }),
       });
-      if (!res.ok) throw new Error("rejected");
+      if (!res.ok) throw await responseError(res, SCHEDULE_FAILED);
 
       addToast({
         message: `Scheduled ${percent}% off ${productName ?? "everything"}`,
       });
       setShowForm(false);
       await load();
-    } catch {
-      setError("Could not schedule that promotion.");
+    } catch (err) {
+      setError(userFacingErrorMessage(err, SCHEDULE_FAILED));
+      // Creating a promotion isn't idempotent. If it may have landed, an open
+      // form with its button still enabled is an invitation to post it twice.
+      if (mayHaveApplied(err)) {
+        setShowForm(false);
+        await load();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -138,11 +158,12 @@ export default function PromotionsPanel({
         const res = await fetch(`/api/operator/promotions/${promotionId}/end`, {
           method: "PATCH",
         });
-        if (!res.ok) throw new Error("failed");
+        if (!res.ok) throw await responseError(res, END_FAILED);
         addToast({ message: "Promotion ended" });
         await load();
-      } catch {
-        setError("Could not end that promotion.");
+      } catch (err) {
+        setError(userFacingErrorMessage(err, END_FAILED));
+        if (mayHaveApplied(err)) await load();
       }
     },
     [addToast, load],

@@ -9,6 +9,7 @@ import type {
 } from "@/types/flags";
 import { queryKeys } from "@/lib/queryKeys";
 import { flagSchema } from "@/lib/flags-schemas";
+import { responseError } from "@/lib/responseError";
 import type { FlagList } from "./useFlags";
 
 // ---------------------------------------------------------------------------
@@ -68,7 +69,7 @@ export function useUpdateFlag(): UseUpdateFlagReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("Failed to update flag");
+      if (!res.ok) throw await responseError(res, "Failed to update flag");
       const json = await res.json();
       return flagSchema.parse(json.flag);
     },
