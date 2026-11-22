@@ -230,9 +230,7 @@ function RemoveEspnLeagueButton({
         `/api/zeroproof/leagues/${leagueId}/espn-leagues/${row.id}`,
         { method: "DELETE" },
       );
-      if (!res.ok && res.status !== 204) {
-        throw new Error(`Couldn't remove the league (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't remove the league (${res.status})`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.league(leagueId) });

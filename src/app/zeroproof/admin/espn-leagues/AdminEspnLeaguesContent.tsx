@@ -133,9 +133,7 @@ function RemoveButton({ league }: { league: EspnLeague }) {
   const remove = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/zeroproof/espn-leagues/${league.id}`, { method: "DELETE" });
-      if (!res.ok && res.status !== 204) {
-        throw new Error(`Couldn't remove the league (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't remove the league (${res.status})`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.espnLeagues() });
