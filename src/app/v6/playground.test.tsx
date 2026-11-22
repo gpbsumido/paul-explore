@@ -60,6 +60,15 @@ describe("portfolio playground", () => {
       expect(within(row).getByRole("link", { name: `Read the ${title} write-up` })).toHaveAttribute("href", feature!.thoughtsHref);
     }
   });
+  it("asks for a full-width screenshot on full-width rows and a narrower one beside text", () => {
+    const { container } = render(<ProjectCollection />);
+    const rows = Array.from(container.querySelectorAll("li[data-layout]"));
+    const sizesOn = (layout: string) =>
+      rows.filter((row) => row.getAttribute("data-layout") === layout)
+        .flatMap((row) => Array.from(row.querySelectorAll("img")).map((img) => img.getAttribute("sizes")));
+    expect(new Set(sizesOn("wide"))).toEqual(new Set(["100vw"]));
+    expect(new Set([...sizesOn("left"), ...sizesOn("right")])).toEqual(new Set(["(max-width: 900px) 92vw, 60vw"]));
+  });
   it("scrolls with the page instead of pinning the section and sliding the list sideways", () => {
     render(<ProjectCollection />);
     const section = screen.getByRole("region", { name: /Pick a rabbit hole/ });
