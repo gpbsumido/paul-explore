@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { act, render, screen } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import TypedHeadline from "./TypedHeadline";
 
 const TEXT = "Nine years building data-heavy web apps";
@@ -21,9 +22,11 @@ function stubObserver() {
       }
     },
   );
+  const report = (isIntersecting: boolean) =>
+    act(() => callbacks.forEach((callback) => callback([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)));
   return {
-    scrollIntoView: () =>
-      act(() => callbacks.forEach((callback) => callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver))),
+    scrollIntoView: () => report(true),
+    reportOffScreen: () => report(false),
   };
 }
 
@@ -64,6 +67,26 @@ describe("the typed headline", () => {
     expect(TEXT.startsWith(partway)).toBe(true);
     act(() => vi.advanceTimersByTime(10_000));
     expect(typedLayer(container)).toBe(TEXT);
+  });
+
+  it("renders the whole sentence in the server HTML, so it shows without JavaScript", () => {
+    const html = renderToString(<TypedHeadline id="about-title" text={TEXT} />);
+    const page = document.createElement("div");
+    page.innerHTML = html;
+    expect(typedLayer(page)).toBe(TEXT);
+  });
+
+  it("waits off-screen without typing until the heading scrolls into view", () => {
+    vi.useFakeTimers();
+    const observer = stubObserver();
+    preferReducedMotion(false);
+    const { container } = render(<TypedHeadline id="about-title" text={TEXT} />);
+    observer.reportOffScreen();
+    act(() => vi.advanceTimersByTime(1000));
+    expect(typedLayer(container)).toBe("");
+    observer.scrollIntoView();
+    act(() => vi.advanceTimersByTime(300));
+    expect(typedLayer(container).length).toBeGreaterThan(0);
   });
 
   it("shows the whole sentence at once for anyone who prefers less motion", () => {
