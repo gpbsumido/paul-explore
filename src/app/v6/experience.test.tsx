@@ -13,7 +13,8 @@ describe("the experience card", () => {
   it("opens on work, newest role first", () => {
     render(<ExperienceCard />);
     const work = screen.getByRole("list", { name: "Work history" });
-    const roles = within(work).getAllByRole("listitem").map((item) => item.textContent ?? "");
+    // Each role carries its own list of highlights, so count the top level only.
+    const roles = Array.from(work.children, (item) => item.textContent ?? "");
     expect(roles).toHaveLength(WORK.length);
     expect(roles[0]).toContain("Helika");
     expect(roles.at(-1)).toContain("PeopleInsight");
