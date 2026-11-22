@@ -5,7 +5,7 @@
  * finds the most recent week with results, reaching back through the season.
  */
 import { z } from "zod";
-import { fetchUpstream } from "./upstream";
+import { fetchEspnJson } from "./espn-fetch";
 import { fantasyLeagueUrl } from "./espn-performances";
 import { generateCards, type GeneratedCard, type PlayerPerformance } from "./fantasy-cards";
 import { sortCards } from "./card-view";
@@ -141,16 +141,6 @@ function weekUrl(season: string, week: number): string {
   });
 }
 
-async function fetchJson(url: string): Promise<unknown | null> {
-  const result = await fetchUpstream(url, { next: { revalidate: 3600 } });
-  if (!result.ok || !result.response.ok) return null;
-  try {
-    return await result.response.json();
-  } catch {
-    return null;
-  }
-}
-
 export interface WeeklySlate {
   cards: GeneratedCard[];
   /** The week the cards came from, or null if none was found. */
@@ -173,7 +163,7 @@ export async function loadNflWeek({
   week?: number;
 }): Promise<WeeklySlate> {
   // One fetch tells us the latest week (status rides on any week's response).
-  const probe = await fetchJson(weekUrl(season, week ?? 1));
+  const probe = await fetchEspnJson(weekUrl(season, week ?? 1));
   const latest = latestScoringPeriod(probe) ?? week ?? 1;
 
   if (week !== undefined) {
@@ -183,7 +173,7 @@ export async function loadNflWeek({
   }
 
   for (let w = latest, steps = 0; w >= 1 && steps < MAX_WEEK_STEPS; w--, steps++) {
-    const payload = await fetchJson(weekUrl(season, w));
+    const payload = await fetchEspnJson(weekUrl(season, w));
     if (!payload) continue;
     const cards = generateCards(performancesFromWeek(payload, { season, week: w }));
     if (cards.length > 0) return { cards, week: w, latestWeek: latest, error: false };
@@ -201,12 +191,12 @@ export async function loadNflSeason({
 }: {
   season: string;
 }): Promise<WeeklySlate> {
-  const probe = await fetchJson(weekUrl(season, 1));
+  const probe = await fetchEspnJson(weekUrl(season, 1));
   const latest = latestScoringPeriod(probe) ?? 1;
   const weeks = Array.from({ length: latest }, (_, i) => i + 1);
 
   const payloads = await Promise.all(
-    weeks.map((w) => (w === 1 ? probe : fetchJson(weekUrl(season, w)))),
+    weeks.map((w) => (w === 1 ? probe : fetchEspnJson(weekUrl(season, w)))),
   );
   const cards = sortCards(
     payloads.flatMap((p, i) =>

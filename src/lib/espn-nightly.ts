@@ -3,7 +3,7 @@
  * score, and turn them into rarity-tiered cards. Thin IO over the tested pure
  * parsers in espn-boxscore.ts and the engine in fantasy-cards.ts.
  */
-import { fetchUpstream } from "./upstream";
+import { fetchEspnJson } from "./espn-fetch";
 import { rostersByPlayer, playoffTeamPlayerIds, fantasyLeagueUrl } from "./espn-performances";
 import { latestCompletedSlate, performancesFromBoxscore } from "./espn-boxscore";
 import { generateCards, type GeneratedCard, type Sport } from "./fantasy-cards";
@@ -24,19 +24,6 @@ export function scoreboardUrl(sport: Sport, yyyymmdd: string): string {
 
 export function summaryUrl(sport: Sport, eventId: string): string {
   return `${BASE}/${sport}/summary?event=${eventId}`;
-}
-
-async function fetchJson(
-  url: string,
-  headers?: Record<string, string>,
-): Promise<unknown | null> {
-  const result = await fetchUpstream(url, { next: { revalidate: 3600 }, headers });
-  if (!result.ok || !result.response.ok) return null;
-  try {
-    return await result.response.json();
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -80,7 +67,7 @@ async function slateToCards(
   { roster, playoffTeamIds }: RosterContext,
 ): Promise<GeneratedCard[]> {
   const summaries = await Promise.all(
-    eventIds.map((id) => fetchJson(summaryUrl(sport, id))),
+    eventIds.map((id) => fetchEspnJson(summaryUrl(sport, id))),
   );
   const performances = summaries.flatMap((s) =>
     s ? performancesFromBoxscore(s, { sport, date, roster, playoffTeamIds }) : [],
@@ -115,7 +102,7 @@ interface RosterContext {
  * absent and the caller shows the whole slate with no fantasy boost.
  */
 async function rosterContext(sport: Sport, season: string): Promise<RosterContext> {
-  const league = await fetchJson(
+  const league = await fetchEspnJson(
     fantasyLeagueUrl(sport, rosterSeason(sport, season)),
     espnAuthHeaders(),
   );
@@ -152,7 +139,7 @@ export async function loadNightlySlate({
 
   // An explicit date: read just that day.
   if (date) {
-    const slate = latestCompletedSlate(await fetchJson(scoreboardUrl(sport, date.replace(/-/g, ""))));
+    const slate = latestCompletedSlate(await fetchEspnJson(scoreboardUrl(sport, date.replace(/-/g, ""))));
     if (!slate) return { cards: [], date, error: false };
     return { cards: await slateToCards(sport, slate.date, slate.eventIds, context), date: slate.date, error: false };
   }
@@ -160,7 +147,7 @@ export async function loadNightlySlate({
   // Otherwise scan windows back through history for the most recent slate that
   // yields cards (in season that's last night; out of season, last season).
   for (const window of rangeWindows()) {
-    const slate = latestCompletedSlate(await fetchJson(scoreboardUrl(sport, window)));
+    const slate = latestCompletedSlate(await fetchEspnJson(scoreboardUrl(sport, window)));
     if (!slate) continue;
     const cards = await slateToCards(sport, slate.date, slate.eventIds, context);
     if (cards.length === 0) continue;
