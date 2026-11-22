@@ -8,6 +8,7 @@ import type {
   PlanogramSlot,
 } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { responseError } from "@/lib/responseError";
 import {
   alertSchema,
   inventoryItemSchema,
@@ -45,7 +46,7 @@ export function useDismissAlert(): UseDismissAlertReturn {
       const res = await fetch(`/api/operator/alerts/${alertId}/dismiss`, {
         method: "PATCH",
       });
-      if (!res.ok) throw new Error("Failed to dismiss alert");
+      if (!res.ok) throw await responseError(res, "Failed to dismiss alert");
       const json = await res.json();
       return alertSchema.parse(json.alert);
     },
@@ -123,7 +124,7 @@ export function useRestockStore(): UseRestockStoreReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ itemIds }),
       });
-      if (!res.ok) throw new Error("Failed to restock items");
+      if (!res.ok) throw await responseError(res, "Failed to restock items");
       const json = await res.json();
       return z.object({
         items: z.array(inventoryItemSchema),
@@ -158,6 +159,10 @@ export function useRestockStore(): UseRestockStoreReturn {
     onSettled: (_data, _err, { storeId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.operator.inventory(storeId),
+      });
+      // The restock logged an event, so the feed is stale too.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.operator.activity(storeId),
       });
     },
   });
@@ -201,7 +206,7 @@ export function useReorderPlanogram(): UseReorderPlanogramReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ boxes }),
       });
-      if (!res.ok) throw new Error("Failed to rearrange planogram");
+      if (!res.ok) throw await responseError(res, "Failed to rearrange planogram");
       const json = await res.json();
       return z.array(planogramSlotSchema).parse(json.slots);
     },
@@ -262,7 +267,7 @@ export function useResyncSlot(): UseResyncSlotReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resyncItemId: itemId }),
       });
-      if (!res.ok) throw new Error("Failed to re-sync sensor");
+      if (!res.ok) throw await responseError(res, "Failed to re-sync sensor");
       const json = await res.json();
       return z.array(planogramSlotSchema).parse(json.slots);
     },

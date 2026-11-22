@@ -112,7 +112,7 @@ describe("useDismissAlert", () => {
         });
     });
 
-    expect(failure).toEqual(new Error("Failed to dismiss alert"));
+    expect(failure).toMatchObject({ message: "Server error", status: 500 });
     await waitFor(() => {
       const cached = queryClient.getQueryData<Alert[]>(
         queryKeys.operator.alerts(storeId),
@@ -237,7 +237,7 @@ describe("useRestockStore", () => {
       );
       expect(cached?.find((i) => i.id === "item-fail")?.currentStock).toBe(3);
     });
-    expect(failure).toEqual(new Error("Failed to restock items"));
+    expect(failure).toMatchObject({ message: "Server error", status: 500 });
   });
 
   it("sends the chosen item ids to the store's restock endpoint and returns what came back", async () => {
@@ -354,7 +354,7 @@ describe("useReorderPlanogram", () => {
         });
     });
 
-    expect(failure).toEqual(new Error("Failed to rearrange planogram"));
+    expect(failure).toMatchObject({ message: "no", status: 500 });
     expect(queryClient.getQueryData(queryKeys.operator.planogram(storeId))).toEqual(before);
   });
 });
@@ -416,7 +416,7 @@ describe("useResyncSlot", () => {
         });
     });
 
-    expect(failure).toEqual(new Error("Failed to re-sync sensor"));
+    expect(failure).toMatchObject({ message: "no", status: 500 });
     expect(queryClient.getQueryData(queryKeys.operator.planogram(storeId))).toEqual(mismatched);
   });
 });
