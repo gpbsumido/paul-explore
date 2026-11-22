@@ -11,6 +11,7 @@ import { useCalendars, useCalendarMembers } from "@/hooks/useCalendars";
 import { queryKeys } from "@/lib/queryKeys";
 import ColorSwatchPicker from "./ColorSwatchPicker";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
+import { useTransientValue } from "@/hooks/useTransientValue";
 
 // ---- Types -----------------------------------------------------------------
 
@@ -116,7 +117,7 @@ function SharingTab({
   const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("editor");
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
-  const [removeWarning, setRemoveWarning] = useState<string | null>(null);
+  const [removeWarning, showRemoveWarning] = useTransientValue<string>(8000);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
   async function handleInvite() {
@@ -141,10 +142,9 @@ function SharingTab({
     try {
       const result = await removeMember(calendarId, memberSub);
       if (!result.googleAclRemoved) {
-        setRemoveWarning(
+        showRemoveWarning(
           "Removed from this calendar. Their Google Calendar access may still be active — they can remove it manually from their Google Calendar settings.",
         );
-        setTimeout(() => setRemoveWarning(null), 8000);
       }
     } catch {
       setRemoveError("Couldn't remove them. Please try again.");

@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useTransientValue } from "@/hooks/useTransientValue";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -165,16 +166,8 @@ function BubblingDemo() {
 // ---------------------------------------------------------------------------
 
 function CostComparisonDemo() {
-  const [flashIdx50, setFlashIdx50] = useState<number | null>(null);
-  const [flashIdx1, setFlashIdx1] = useState<number | null>(null);
-
-  const flashItem = useCallback(
-    (setter: (v: number | null) => void, idx: number) => {
-      setter(idx);
-      setTimeout(() => setter(null), 400);
-    },
-    [],
-  );
+  const [flashIdx50, flashFiftyListenerRow] = useTransientValue<number>(400);
+  const [flashIdx1, flashDelegatedRow] = useTransientValue<number>(400);
 
   return (
     <div className="grid gap-6 sm:grid-cols-2">
@@ -188,7 +181,7 @@ function CostComparisonDemo() {
             <button
               type="button"
               key={i}
-              onClick={() => flashItem(setFlashIdx50, i)}
+              onClick={() => flashFiftyListenerRow(i)}
               className={[
                 "block w-full border-b border-foreground/5 px-3 py-1.5 text-left font-mono text-[12px] transition-colors last:border-b-0",
                 flashIdx50 === i
@@ -217,7 +210,7 @@ function CostComparisonDemo() {
           className="mt-2 max-h-52 overflow-y-auto border border-foreground/10 rounded-sm"
           onClick={(e) => {
             const item = (e.target as HTMLElement).closest<HTMLElement>("[data-idx]");
-            if (item?.dataset.idx != null) flashItem(setFlashIdx1, Number(item.dataset.idx));
+            if (item?.dataset.idx != null) flashDelegatedRow(Number(item.dataset.idx));
           }}
         >
           {Array.from({ length: 50 }, (_, i) => (
@@ -250,7 +243,7 @@ function CostComparisonDemo() {
 function DynamicListDemo() {
   const [items, setItems] = useState<number[]>([1, 2, 3]);
   const [addedCount, setAddedCount] = useState(0);
-  const [flashId, setFlashId] = useState<number | null>(null);
+  const [flashId, flashItem] = useTransientValue<number>(400);
   const nextId = useRef(4);
 
   const addItem = useCallback(() => {
@@ -268,10 +261,9 @@ function DynamicListDemo() {
     // dynamically" label inside an item.
     const id = (e.target as HTMLElement).closest<HTMLElement>("[data-item-id]")?.dataset.itemId;
     if (id != null) {
-      setFlashId(Number(id));
-      setTimeout(() => setFlashId(null), 400);
+      flashItem(Number(id));
     }
-  }, []);
+  }, [flashItem]);
 
   return (
     <div>
