@@ -4,32 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BotanicalText, DriftWall } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
-import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import { ArrowUpRight } from "./arrows";
+import { featureFor, TILE_IDS } from "./picks";
 import styles from "./playground.module.css";
 
-// Every feature with a capture. Each tile shows the app, is named after it, and
-// links to its write-up where one exists (or the app itself), so the screenshot,
-// the hovered title, and the destination all agree.
-const TILE_IDS = [
-  "design-system",
-  "operator",
-  "world",
-  "vitals",
-  "flags",
-  "work-portfolio",
-  "pokemon",
-  "particles",
-  "research",
-  "learn",
-  "budget",
-  "fantasy-nba",
-  "gallery-wall",
-  "craft",
-  "zeroproof",
-  "calendar",
-];
 
 const BLOOM_TEXT = "docs and thoughts";
 
@@ -58,17 +37,13 @@ export default function FieldNotes() {
     return () => observer.disconnect();
   }, []);
 
-  const tiles = TILE_IDS.flatMap((id) => {
-    const feature = FEATURES.find((f) => f.id === id);
-    return feature
-      ? [
-          {
-            image: previewSrc(id, theme),
-            title: feature.title,
-            href: feature.thoughtsHref ?? feature.href,
-          },
-        ]
-      : [];
+  const tiles = TILE_IDS.map((id) => {
+    const feature = featureFor(id);
+    return {
+      image: previewSrc(id, theme),
+      title: feature.title,
+      href: feature.thoughtsHref ?? feature.href,
+    };
   });
 
   return (
