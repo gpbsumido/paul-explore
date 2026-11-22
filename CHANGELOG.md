@@ -3,6 +3,7 @@
 ## 2026-11-22 - version 9.2.53
 
 - The landing has an About band after the projects. It says who builds this and what I care about, with a photo stack beside it: three of the site's own screens (the operator dashboard, the design system and the 3D world), tilted on top of each other. They fan out on hover or when a card takes focus, and each one opens its app. The fan is a transition, so it's off for anyone who prefers reduced motion. The sections after it renumber to 04 and 05.
+- The v5 redesign write-up has a dated update on the band: why the photos are screens, the front card that was painted behind the others, the fan that pushed past a phone screen, and the CSS parts no test covers yet.
 
 ## 2026-11-22 - version 9.2.52
 
