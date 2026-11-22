@@ -53,7 +53,8 @@ const TEAMS = [team(2, "Boston Celtics"), team(1, "Atlanta Hawks"), team(3, "Chi
 /** Serves the teams, a Hawks roster of three, and their stats (Cole's request fails). */
 function serveLeague() {
   server.use(
-    http.get("/api/nba/teams", () => HttpResponse.json({ data: TEAMS })),
+    // portfolio_api nests the paginated teams result inside its own `data`.
+    http.get("/api/nba/teams", () => HttpResponse.json({ data: { data: TEAMS } })),
     http.get("/api/nba/players/:teamId", ({ params }) =>
       HttpResponse.json({
         data:
@@ -180,10 +181,14 @@ describe("StatsContent", () => {
 
   it("says so, with a retry, when the teams can't be loaded", async () => {
     const user = userEvent.setup();
-    server.use(http.get("/api/nba/teams", () => HttpResponse.json({ error: "nope" }, { status: 500 })));
+    server.use(
+      http.get("/api/nba/teams", () =>
+        HttpResponse.json({ error: "Failed to fetch teams" }, { status: 502 }),
+      ),
+    );
     renderPage();
 
-    expect(await screen.findByText("Failed to load teams")).toBeInTheDocument();
+    expect(await screen.findByText("Failed to fetch teams")).toBeInTheDocument();
     expect(screen.queryByText(/pick a team/i)).not.toBeInTheDocument();
 
     serveLeague();
