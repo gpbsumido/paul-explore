@@ -13,7 +13,7 @@ import {
 } from "@/lib/operator-detail";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/contexts/ToastContext";
-import { failureAlreadyToasted } from "@/lib/mutationErrorToast";
+import { failureAlreadyToasted, notifyMutationError } from "@/lib/mutationErrorToast";
 import ConfirmModal from "./ConfirmModal";
 import { RestockIcon, CheckmarkIcon, RefreshIcon } from "./icons";
 
@@ -31,7 +31,9 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
   const { items } = useOperatorInventory(storeId);
   const { alerts } = useOperatorAlerts(storeId);
   const { restockStore, isRestocking } = useRestockStore();
-  const { dismissAlert, isDismissing } = useDismissAlert();
+  // Acknowledge All fires one dismissal per alert, so it reports failure itself
+  // instead of letting every one of them raise the same toast.
+  const { dismissAlert, isDismissing } = useDismissAlert({ reportsItsOwnFailures: true });
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -61,7 +63,7 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
       dismissableAlerts.map((a) => dismissAlert({ alertId: a.id, storeId })),
     ).then(
       () => addToast({ message: `Dismissed ${count} alert${count !== 1 ? "s" : ""}` }),
-      failureAlreadyToasted,
+      (err: unknown) => notifyMutationError(err),
     );
   }, [storeId, dismissableAlerts, dismissAlert, addToast]);
 

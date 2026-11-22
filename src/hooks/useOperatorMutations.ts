@@ -37,11 +37,18 @@ export interface UseDismissAlertReturn {
  * Optimistically flips `acknowledged` to true in the alerts cache for the
  * given store so the UI removes the alert row immediately. If the server
  * rejects the dismiss, the snapshot is restored and the alert reappears.
+ *
+ * `reportsItsOwnFailures` keeps a failure out of the app-wide toast, for a
+ * caller that runs many dismissals at once and would otherwise get one toast
+ * per alert for a single outage. That caller has to report the failure itself.
  */
-export function useDismissAlert(): UseDismissAlertReturn {
+export function useDismissAlert({
+  reportsItsOwnFailures = false,
+}: { reportsItsOwnFailures?: boolean } = {}): UseDismissAlertReturn {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
+    meta: { silent: reportsItsOwnFailures },
     mutationFn: async ({ alertId }: DismissAlertInput): Promise<Alert> => {
       const res = await fetch(`/api/operator/alerts/${alertId}/dismiss`, {
         method: "PATCH",
