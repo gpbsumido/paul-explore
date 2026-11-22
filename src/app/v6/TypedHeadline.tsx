@@ -16,18 +16,24 @@ type TypedHeadlineProps = { id: string; text: string };
  * aria-hidden layer types. An invisible copy of the full text holds the space,
  * so nothing below it moves while the letters arrive. Reduced motion skips the
  * typing and shows the sentence whole.
+ *
+ * The server HTML and the first client render show the whole sentence too, so
+ * nothing is blank without JavaScript or before hydration. The observer's
+ * first report is what clears it and arms the typing.
  */
 export default function TypedHeadline({ id, text }: TypedHeadlineProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [typedLength, setTypedLength] = useState(0);
+  const [typedLength, setTypedLength] = useState(text.length);
 
   useEffect(() => {
     const heading = headingRef.current;
     if (prefersReducedMotion || !heading) return;
     let timer: ReturnType<typeof setInterval> | undefined;
     const observer = new IntersectionObserver(([entry]) => {
-      if (!entry?.isIntersecting || timer) return;
+      if (timer) return;
+      setTypedLength(0);
+      if (!entry?.isIntersecting) return;
       observer.disconnect();
       timer = setInterval(() => {
         setTypedLength((length) => {

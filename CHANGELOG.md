@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.54
 
-- The About band's heading types itself out the first time it scrolls into view, with an accent bar under it that grows as it goes. Only the visible layer types; screen readers get the whole sentence from the first render, an invisible copy holds the line's space so nothing below it jumps, and anyone who prefers reduced motion sees it whole.
+- The About band's heading types itself out the first time it scrolls into view, with an accent bar under it that grows as it goes. Only the visible layer types; screen readers get the whole sentence from the first render, an invisible copy holds the line's space so nothing below it jumps, and anyone who prefers reduced motion sees it whole. The page arrives with the whole sentence showing, so it's there without JavaScript and on a jump to `/#about`; it only clears and starts typing once the browser reports where the heading sits. The heading drops the accent full stop it used to end on; the growing bar underneath takes its place.
 
 ## 2026-11-22 - version 9.2.53
 
