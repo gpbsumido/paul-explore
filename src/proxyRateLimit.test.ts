@@ -21,8 +21,9 @@ async function flood(path: string, ip: string, count: number): Promise<number[]>
 }
 
 /**
- * The proxy is where every rate limit is enforced, from one rule table, so a
- * flood is refused before any route code or session work runs.
+ * The proxy is where every per-IP rate limit is enforced, from one rule table,
+ * so a flood is refused before any route code or session work runs.
+ * research/ask counts per account inside its own route, so it isn't here.
  */
 describe("proxy rate limiting", () => {
   beforeEach(async () => {

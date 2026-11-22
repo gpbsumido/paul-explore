@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.35
 
-- Every rate limit is enforced by the proxy from the one rule table. The proxy ran its own copy of the matching loop, so the rule tests checked `matchRateLimit`, a function the proxy never called, and the one-minute window lived in proxy.ts apart from the rules. It calls `matchRateLimit` now, and a new test floods the proxy itself.
+- Every per-IP rate limit is enforced by the proxy from the one rule table. The proxy ran its own copy of the matching loop, so the rule tests checked `matchRateLimit`, a function the proxy never called, and the one-minute window lived in proxy.ts apart from the rules. It calls `matchRateLimit` now, and a new test floods the proxy itself. `/api/research/ask` keeps its own limit of 10 a minute on purpose, because it counts per signed-in account rather than per address.
 - ZeroProof telemetry had a second limiter inside its route, which ran after the proxy had already counted the batch against the general API cap. Its 60-a-minute cap is a rule in the table now, so a flood is refused before the body is read and the 429 carries the same `Retry-After` header as the rest.
 
 ## 2026-11-22 - version 9.2.34
