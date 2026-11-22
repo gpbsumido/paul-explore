@@ -353,3 +353,32 @@ describe("PlayoffBracketContent — viewing someone else's bracket", () => {
     ).toHaveValue(window.location.href);
   });
 });
+
+describe("PlayoffBracketContent — viewing someone else's bracket", () => {
+  it("says the bracket isn't public when there isn't one", async () => {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/:sub", () =>
+        HttpResponse.json({ picks: null }, { status: 404 }),
+      ),
+    );
+    render(<PlayoffBracketContent viewUsername="paul" />, { wrapper: makeWrapper() });
+
+    expect(
+      await screen.findByText("This bracket isn’t publicly available yet."),
+    ).toBeInTheDocument();
+  });
+
+  it("says the picks couldn't load when the backend is down, not that they're private", async () => {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/:sub", () =>
+        HttpResponse.json({ error: "Couldn't load these picks right now" }, { status: 502 }),
+      ),
+    );
+    render(<PlayoffBracketContent viewUsername="paul" />, { wrapper: makeWrapper() });
+
+    expect(await screen.findByText("Couldn't load these picks right now")).toBeInTheDocument();
+    expect(screen.queryByText("This bracket isn’t publicly available yet.")).not.toBeInTheDocument();
+  });
+});
