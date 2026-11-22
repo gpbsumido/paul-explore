@@ -13,6 +13,17 @@ function tallyStore(key: string) {
   });
 }
 
+/**
+ * Makes `window.localStorage` throw the way it does with storage blocked
+ * (third-party cookie blocking, sandboxed iframes), until `restore` is called.
+ */
+function blockStorage() {
+  const getter = vi.spyOn(window, "localStorage", "get").mockImplementation(() => {
+    throw new DOMException("The operation is insecure.", "SecurityError");
+  });
+  return { restore: () => getter.mockRestore() };
+}
+
 /** What another tab writing the same key looks like from this one. */
 function writeFromAnotherTab(key: string, value: string | null) {
   if (value === null) window.localStorage.removeItem(key);
@@ -83,6 +94,30 @@ describe("createLocalStorageStore", () => {
     window.localStorage.clear();
 
     expect(store.getSnapshot()).toEqual(EMPTY);
+  });
+
+  it("shows the empty value when storage is blocked", () => {
+    const storage = blockStorage();
+    try {
+      expect(tallyStore("tally-blocked").getSnapshot()).toBe(EMPTY);
+    } finally {
+      storage.restore();
+    }
+  });
+
+  it("keeps a write for this page when storage is blocked", () => {
+    const store = tallyStore("tally-blocked-write");
+    const listener = vi.fn();
+    store.subscribe(listener);
+    const storage = blockStorage();
+    try {
+      store.write({ count: 6 });
+
+      expect(store.getSnapshot()).toEqual({ count: 6 });
+      expect(listener).toHaveBeenCalledOnce();
+    } finally {
+      storage.restore();
+    }
   });
 
   it("renders empty on the server", () => {
