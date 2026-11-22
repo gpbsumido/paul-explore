@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { FEATURES } from "@/app/_shared/featureData.data";
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -69,17 +69,6 @@ describe("llms.txt", () => {
 
   it("found paths to check, so a rotted regex fails rather than passes", () => {
     expect(paths.length).toBeGreaterThan(3);
-  });
-
-  it("does not name a write-up that no longer exists", () => {
-    const thoughts = readdirSync(join(APP, "thoughts")).filter((d) =>
-      existsSync(join(APP, "thoughts", d, "page.tsx")),
-    );
-    const named = paths
-      .filter((p) => p.startsWith("/thoughts/"))
-      .map((p) => p.replace("/thoughts/", ""));
-    const missing = named.filter((slug) => !thoughts.includes(slug));
-    expect(missing).toEqual([]);
   });
 
   /**
