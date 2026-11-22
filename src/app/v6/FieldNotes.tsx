@@ -9,7 +9,6 @@ import { ArrowUpRight } from "./arrows";
 import { featureFor, TILE_IDS } from "./picks";
 import styles from "./playground.module.css";
 
-
 const BLOOM_TEXT = "docs and thoughts";
 
 export default function FieldNotes() {

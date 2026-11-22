@@ -32,7 +32,6 @@ const MOBILE_HERO_COMPONENTS = [MobileReelHero, MobileOrbitHero, MobileLensHero]
 const SCENES = ["Spiral", "Perspective", "Corridor"];
 const HERO_COMPONENTS = [SpiralPortraitHero, PerspectivePortraitHero, CorridorPortraitHero];
 
-
 export default function PlaygroundHero() {
   const [scene, setScene] = useState("Spiral");
   const [mobileScene, setMobileScene] = useState("Reel");
