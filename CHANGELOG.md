@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.40
+
+- A baseball or hockey league on the ZeroProof board is labelled "Fantasy Baseball" or "Fantasy Hockey". The board kept its own two-sport name list, so anything past football and basketball showed as plain "Fantasy" even though both add forms offered all four sports.
+- The ESPN sports live in one list, and the admin page and the league page share one add-league form. The two forms were line-for-line copies apart from the endpoint. The ZeroProof control styles, pasted into four files, are one module too.
+
 ## 2026-11-22 - version 9.2.39
 
 - The NFL matchups and trade pages default to the season ESPN is actually running. They used the calendar year, but ESPN names a football season by the year it kicks off, so from New Year's (mid fantasy playoffs) until September they asked for a season with no games in it. `currentNflSeason()` rolls over on September 1, next to the NBA one that already rolls over in October. Both pages have a test that sets the clock to January and checks the season they ask for, so going back to the calendar year fails.
