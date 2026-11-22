@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { render, screen, within } from "@testing-library/react";
@@ -30,6 +31,22 @@ describe("the v6 stack strip", () => {
     expect(within(list).getAllByRole("listitem").map((item) => item.textContent)).toEqual(
       STACK.map((entry) => entry.label),
     );
+  });
+
+  it("lets a keyboard reach the rail, since it scrolls sideways", () => {
+    render(<StackStrip />);
+    expect(screen.getByRole("list", { name: "What this site is built on" })).toHaveAttribute("tabindex", "0");
+  });
+
+  it("moves the rail only when the visitor asks, one way or the other", async () => {
+    const scrollBy = vi.fn();
+    render(<StackStrip />);
+    const list = screen.getByRole("list", { name: "What this site is built on" });
+    list.scrollBy = scrollBy;
+    expect(scrollBy).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Scroll the tools forward" }));
+    await userEvent.click(screen.getByRole("button", { name: "Scroll the tools back" }));
+    expect(scrollBy.mock.calls.map(([options]) => Math.sign(options.left))).toEqual([1, -1]);
   });
 
   it("has no axe violations", async () => {
