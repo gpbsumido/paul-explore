@@ -33,7 +33,7 @@ import { seasonFor, SEASON_DRESSING, type Season } from "@/lib/world/seasons";
 import type { Vec2 } from "@/types/world";
 import type { InteractionKind } from "./WorldScene";
 import { useWeather, type WeatherCondition } from "@/hooks/useWeather";
-import { WEATHER_DRESSING } from "@/lib/world/weather";
+import { WEATHER_DRESSING, isWeatherCondition } from "@/lib/world/weather";
 import {
   COLLECTIBLES,
   REACHABLE_CELLS,
@@ -411,14 +411,7 @@ export default function WorldContent() {
         : currentTimeOfDay(),
     );
     const forcedW = new URLSearchParams(window.location.search).get("w");
-    if (
-      forcedW === "clear" ||
-      forcedW === "partly-cloudy" ||
-      forcedW === "fog" ||
-      forcedW === "rain" ||
-      forcedW === "snow" ||
-      forcedW === "storm"
-    ) {
+    if (isWeatherCondition(forcedW)) {
       setForcedWeather(forcedW);
     }
     const forcedSeason = new URLSearchParams(window.location.search).get(
