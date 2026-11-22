@@ -1,8 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { type NextRequest, NextResponse } from "next/server";
-import { API_URL } from "@/lib/backendFetch";
+import { API_URL, getOptionalToken } from "@/lib/backendFetch";
 import { InvalidSegmentError, safeSegment } from "@/lib/safeSegment";
-import { auth0 } from "@/lib/auth0";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -13,12 +12,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
 export async function GET(_request: NextRequest, { params }: RouteCtx) {
   const { id } = await params;
 
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch {
-    token = undefined;
-  }
+  const token = await getOptionalToken();
 
   try {
     const result = await fetchUpstream(
