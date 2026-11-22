@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.39
 
-- The NFL matchups and trade pages default to the season ESPN is actually running. They used the calendar year, but ESPN names a football season by the year it kicks off, so from New Year's (mid fantasy playoffs) until September they asked for a season with no games in it. `currentNflSeason()` rolls over at kickoff, next to the NBA one that already rolls over in October.
+- The NFL matchups and trade pages default to the season ESPN is actually running. They used the calendar year, but ESPN names a football season by the year it kicks off, so from New Year's (mid fantasy playoffs) until September they asked for a season with no games in it. `currentNflSeason()` rolls over on September 1, next to the NBA one that already rolls over in October. Both pages have a test that sets the clock to January and checks the season they ask for, so going back to the calendar year fails.
 
 ## 2026-11-22 - version 9.2.38
 

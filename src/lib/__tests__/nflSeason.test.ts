@@ -11,7 +11,7 @@ describe("currentNflSeason", () => {
     ["November, mid-season", new Date(2026, 10, 22), 2026],
     ["January, fantasy playoffs", new Date(2027, 0, 4), 2026],
     ["August, still last season", new Date(2027, 7, 31), 2026],
-    ["September, kickoff", new Date(2027, 8, 1), 2027],
+    ["September 1", new Date(2027, 8, 1), 2027],
   ])("is the season that kicked off before %s", (_label, now, season) => {
     expect(currentNflSeason(now)).toBe(season);
   });
