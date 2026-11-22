@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.5
+
+- The codebase-audit write-up has a dated update on the third stack: the shared bracket that called itself private during an outage, the two lower PRs a full test run caught me breaking after I'd only run each PR's own folders, the four write-up timelines that stopped partway down, why the hub's updates card stays typed by hand, and the audit items I left alone because they were wrong. Its what's-next list drops the ZeroProof body and risk timeout items, which shipped, and names the calendar GET question instead.
+
 ## 2026-11-22 - version 9.3.4
 
 - A saved theme that isn't light, dark or system now falls back to system. The provider cast whatever was in localStorage to a theme, and the pre-paint script wrote it straight onto `data-theme`, so a stray value left the page in no theme at all. The storage key and the pre-paint script both live in one module now, and a test runs that script against a saved "blue" to check it lands on light or dark.
