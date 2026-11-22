@@ -29,6 +29,9 @@ export default function StackStrip() {
         <div className={styles.phoneScreen}>
           <h3 id="stack-title">Built on</h3>
           <p>The runtime this site ships on and the test stack that keeps it honest. Every name here is checked against package.json.</p>
+          {/* The rail scrolls sideways, so it takes focus to be scrollable
+              from a keyboard (axe: scrollable-region-focusable). */}
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
           <ul ref={railRef} tabIndex={0} aria-label="What this site is built on" className={styles.stackList}>
             {STACK.map(({ pkg, label }) => (
               <li key={pkg}>{label}</li>
