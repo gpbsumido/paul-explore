@@ -1,5 +1,5 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { parseBody } from "@/lib/parseBody";
+import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
 import { joinLeagueBodySchema } from "@/lib/zeroproof/schemas";
 import { NextResponse } from "next/server";
 import { API_URL, buildHeaders, withBackend } from "@/lib/backendFetch";
@@ -13,7 +13,7 @@ export const POST = withBackend<RouteCtx>(
   "zeroproof join league",
   async ({ token }, request, { params }) => {
     const { id } = await params;
-    const parsed = await parseBody(request, joinLeagueBodySchema);
+    const parsed = await parseBody(request, joinLeagueBodySchema, DEFAULT_MAX_BYTES, { explainFirstIssue: true });
     if (!parsed.ok) return parsed.response;
     const result = await fetchUpstream(
       `${API_URL}/api/zeroproof/leagues/${safeSegment(id)}/join`,

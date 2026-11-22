@@ -1,5 +1,5 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { parseBody } from "@/lib/parseBody";
+import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
 import { openWalletBodySchema } from "@/lib/zeroproof/schemas";
 import { NextResponse } from "next/server";
 import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
@@ -7,7 +7,7 @@ import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 // POST /api/zeroproof/wallets — open a Season or Challenge wallet.
 // Auth required; the body ({ mode, depositCents? }) is validated on the backend.
 export const POST = withBackend("zeroproof open wallet", async ({ token }, request) => {
-  const parsed = await parseBody(request, openWalletBodySchema);
+  const parsed = await parseBody(request, openWalletBodySchema, DEFAULT_MAX_BYTES, { explainFirstIssue: true });
   if (!parsed.ok) return parsed.response;
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/wallets`, {
     method: "POST",

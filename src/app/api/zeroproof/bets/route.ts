@@ -1,5 +1,5 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { parseBody } from "@/lib/parseBody";
+import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
 import { placeBetBodySchema } from "@/lib/zeroproof/schemas";
 import { NextResponse } from "next/server";
 import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
@@ -8,7 +8,7 @@ import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 // ({ walletId, eventId, market, selection, stakeCents }) names the outcome; the
 // backend freezes the current line and checks the balance inside the transaction.
 export const POST = withBackend("zeroproof place bet", async ({ token }, request) => {
-  const parsed = await parseBody(request, placeBetBodySchema);
+  const parsed = await parseBody(request, placeBetBodySchema, DEFAULT_MAX_BYTES, { explainFirstIssue: true });
   if (!parsed.ok) return parsed.response;
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/bets`, {
     method: "POST",

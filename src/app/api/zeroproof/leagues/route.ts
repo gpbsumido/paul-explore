@@ -1,5 +1,5 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { parseBody } from "@/lib/parseBody";
+import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
 import { createLeagueBodySchema } from "@/lib/zeroproof/schemas";
 import { type NextRequest, NextResponse } from "next/server";
 import { API_URL, buildHeaders, withBackend } from "@/lib/backendFetch";
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/zeroproof/leagues — create a league (commissioner). Auth required.
 export const POST = withBackend("zeroproof create league", async ({ token }, request) => {
-  const parsed = await parseBody(request, createLeagueBodySchema);
+  const parsed = await parseBody(request, createLeagueBodySchema, DEFAULT_MAX_BYTES, { explainFirstIssue: true });
   if (!parsed.ok) return parsed.response;
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/leagues`, {
     method: "POST",
