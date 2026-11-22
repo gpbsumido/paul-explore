@@ -4,7 +4,7 @@ import path from "node:path";
 
 const APP = path.join(process.cwd(), "src", "app");
 
-/** Every error.tsx under src/app. */
+/** Every error.tsx under src/app, plus the root global-error.tsx. */
 function boundaries(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
@@ -20,7 +20,11 @@ function boundaries(dir: string): string[] {
  * button.
  */
 describe("error boundaries", () => {
-  it.each(boundaries(APP).map((file) => path.relative(process.cwd(), file)))(
+  it.each(
+    [...boundaries(APP), path.join(APP, "global-error.tsx")].map((file) =>
+      path.relative(process.cwd(), file),
+    ),
+  )(
     "%s retries by fetching again rather than resetting",
     (file) => {
       const source = readFileSync(file, "utf8");
