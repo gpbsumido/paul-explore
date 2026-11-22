@@ -772,22 +772,24 @@ export const FEATURE_TOKEN: Record<string, string> = {
 };
 
 // Mini changelog feed for the hub card: a category dot, a title, and a version
-// badge, echoing the real /updates entries.
+// badge, the three newest /updates entries. Typed out rather than imported, since
+// the entries file would ship the whole changelog with the hub;
+// updatesPreview.test.ts fails when a new entry lands and this falls behind.
 export const UPDATES_PREVIEW = [
   {
-    title: "Sets load from our catalog",
-    tone: "var(--color-update-fix)",
-    version: "5.19",
+    title: "The landing says who built it",
+    tone: "var(--color-update-feature)",
+    version: "9.3",
   },
   {
-    title: "Volunteer check-in",
+    title: "The Mind Reader: a party game for two",
     tone: "var(--color-update-feature)",
-    version: "5.18",
+    version: "9.2",
   },
   {
-    title: "Jump anywhere with ⌘K",
+    title: "An interview prep playbook for LeetCode",
     tone: "var(--color-update-feature)",
-    version: "5.12",
+    version: "9.1",
   },
 ];
 
