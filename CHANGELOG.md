@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.47
+
+- The Volunteer Check-in card on the hub, and its llms.txt line, open the public /check-in page. They linked to the organizer's site list, which needs a login, so a guest who clicked was sent straight to sign-in for a page they never asked to use. A test now checks that every hub card opens somewhere a guest can see, with the calendar as the one gated on purpose.
+- The check-in write-up sits under Features on /thoughts instead of the More catch-all. A test now fails when any write-up lands in More.
+
 ## 2026-11-22 - version 9.2.46
 
 - Court Vision and Player Stats load teams and rosters through one `useNbaRoster` module instead of two hand-copied queries. Both read the body with `json.data?.data ?? json.data ?? []` because portfolio_api wraps the two lists differently, and that guess also turned any other body into an empty team picker with no error. The module parses each route's real shape and fails loudly when it doesn't match, with a test for each list that fails if the old guess comes back.
