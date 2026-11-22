@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { previewSrc } from "../v5/featured";
 import { featureFor, PHOTO_STACK_IDS } from "./picks";
+import TypedHeadline from "./TypedHeadline";
 import styles from "./playground.module.css";
 
 /**
@@ -15,7 +16,7 @@ export default function AboutBand() {
   return (
     <section id="about" aria-labelledby="about-title" className={styles.about}>
       <p className={styles.eyebrow}>03 / The person behind it</p>
-      <h2 id="about-title" className={styles.aboutTitle}>Nine years building data-heavy web apps<span className={styles.accent}>.</span></h2>
+      <TypedHeadline id="about-title" text="Nine years building data-heavy web apps" />
       <ul aria-label="Snapshots from the site" className={styles.photoStack}>
         {PHOTO_STACK_IDS.map((id) => {
           const feature = featureFor(id);
