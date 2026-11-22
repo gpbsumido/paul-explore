@@ -16,6 +16,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("withOperatorErrors", () => {
   it("answers a write that ran out of time with 504 and says it may have saved", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     const wrapped = withOperatorErrors(async () => {
       throw new OperatorWriteTimeoutError("/alerts/x/dismiss");
     });
@@ -24,6 +25,7 @@ describe("withOperatorErrors", () => {
 
     expect(res.status).toBe(504);
     expect((await res.json()).error).toMatch(/may have been saved/i);
+    expect(logged).toHaveBeenCalledOnce();
   });
 
   it("maps a thrown InvalidSegmentError to a clean 400, not a 5xx outage", async () => {

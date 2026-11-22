@@ -10,6 +10,7 @@ import {
   patchFlagOnApi,
   FlagsApiError,
   FlagsContractError,
+  FlagsWriteTimeoutError,
   type FlagWriteAuth,
 } from "@/lib/flags-client";
 import {
@@ -106,6 +107,10 @@ export async function applyFlagPatch(
     if (err instanceof FlagsContractError) {
       console.error("[flags] unreadable response patching flag", flagKey, err);
       return { status: 502 };
+    }
+    if (err instanceof FlagsWriteTimeoutError) {
+      console.error("[flags] no answer in time patching flag", flagKey);
+      return { status: 504 };
     }
     // Anything left is the API not answering at all, which the seed store can
     // stand in for so the demo keeps working.

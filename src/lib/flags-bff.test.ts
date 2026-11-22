@@ -199,6 +199,7 @@ describe("applyFlagPatch", () => {
 
 describe("applyFlagPatch when the API runs out of time", () => {
   it("answers 504 and leaves the seed store alone, since the write may have landed", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     patchSeedStore("new-checkout", { environment: "production", enabled: true });
     vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsWriteTimeoutError());
 
@@ -209,6 +210,7 @@ describe("applyFlagPatch when the API runs out of time", () => {
 
     expect(result).toEqual({ status: 504 });
     expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(true);
+    expect(logged).toHaveBeenCalledOnce();
   });
 });
 
