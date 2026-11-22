@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.51
+
+- The landing names what the site is built on. Under the figures in "Under the surface" there's now a row of the frameworks and testing tools behind it, from Next.js and TanStack Query through Vitest, Playwright and Stryker. It's a plain list rather than a scrolling ticker, because a strip that moves on its own needs a pause control and the ticker only stops on hover. Every label is backed by a test that the package it names is actually installed, so the list can't outlive a dependency.
+
 ## 2026-11-22 - version 9.2.50
 
 - Research source settings and reviewed interview topics now follow you across open tabs. Turning a journal off in one tab used to leave every other tab searching it until a reload, and research settings didn't notice cleared site data either, because they were read once and cached for the life of the page. Both hooks now sit on one small localStorage store that re-reads when the stored value changes and listens for other tabs writing it.
