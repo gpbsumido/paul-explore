@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
@@ -59,10 +60,7 @@ function JoinAction({ detail }: { detail: LeagueDetail }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(league.joinCode ? { joinCode: league.joinCode } : {}),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't join (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't join (${res.status})`);
       return res.json();
     },
     onSuccess: () => {
@@ -131,10 +129,7 @@ function AddEspnLeagueForm({ leagueId }: { leagueId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't add the league (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't add the league (${res.status})`);
       return res.json();
     },
     onSuccess: () => {

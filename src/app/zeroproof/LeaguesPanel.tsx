@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -106,10 +107,7 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't create the league (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't create the league (${res.status})`);
       return res.json();
     },
     onSuccess: () => {
@@ -269,10 +267,7 @@ function JoinButton({ league }: { league: ZeroproofLeague }) {
           league.joinCode ? { joinCode: league.joinCode } : {},
         ),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't join (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't join (${res.status})`);
       return res.json();
     },
     onSuccess: () => {

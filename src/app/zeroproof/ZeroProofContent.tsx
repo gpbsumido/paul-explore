@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
@@ -1256,14 +1257,7 @@ function BetSlip({
           stakeCents,
         }),
       });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(
-          body?.error ?? "Couldn't place the bet — please try again.",
-        );
-      }
+      if (!res.ok) throw await responseError(res, "Couldn't place the bet — please try again.");
       return res.json();
     },
     onMutate: async ({ leg, stakeCents }) => {
