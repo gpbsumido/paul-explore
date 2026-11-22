@@ -37,6 +37,11 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-11-22-stack",
+            date: "November 22, 2026",
+            title: "The landing named its tools, and kept still while doing it",
+          },
+          {
             id: "update-2026-11-22-showcase",
             date: "November 22, 2026",
             title: "The project shelf stopped hijacking the scroll wheel",
@@ -596,6 +601,55 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
         </pre>
       </Update>
 
+      <Update
+        id="update-2026-11-22-stack"
+        date="November 22, 2026"
+        title="The landing named its tools, and kept still while doing it"
+      >
+        <p>
+          The other thing I lifted from Patryk Barnas&rsquo;s site the same
+          evening was a band that just says what he works with. My landing
+          argued about tests and vitals and never once said what any of it was
+          built on, so a recruiter skimming for &ldquo;React&rdquo; had to go
+          hunting.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I had the ticker ready, and it would have failed the page.
+        </h3>
+        <p className="text-muted">
+          His band scrolls sideways on its own, and my design system already
+          ships a Ticker that does exactly that. Reading its source to wire it
+          up, I found the pause is hover only. Anything that moves by itself
+          for more than five seconds needs a way to stop it, and a keyboard
+          visitor has no hover. The hero already has a Pause motion button for
+          this reason, and a second moving strip without one would undo it. So
+          it&rsquo;s a plain wrapped list of pills that rises in once, with the
+          same scroll-driven animation as the project rows.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`onMouseEnter: () => setPaused(true),
+onMouseLeave: () => setPaused(false),
+onTouchStart: freezeForTouch,`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A typed list can lie, so a test reads package.json.
+        </h3>
+        <p className="text-muted">
+          The strip sits under three figures that are all imported rather than
+          typed, and a hand-written list of tools is exactly the sort of thing
+          that keeps saying Recharts a year after Recharts is gone. Every label
+          carries the package that backs it, and a test fails if that package
+          isn&rsquo;t installed.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`it.each(STACK)("$label is a package this repo depends on ($pkg)", ({ pkg }) => {
+  expect(installedPackages()).toContain(pkg);
+});`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Three touch-first mobile heroes: a scrubbed Reel, a rotary Orbit and a draggable Lens. They replace the tunnel scenes on a phone, each with a tap and keyboard path, and they are documented on /design-system.",
@@ -603,6 +657,7 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
           "Project showcase rows that scroll like the rest of the page, each with a large light and dark screenshot and its own Open and Write-up links, cycling left, right and full-width. A field-notes bloom sits over a drifting wall of app tiles.",
+          "A static row of the tools the site is built on, under the figures, where every label is checked against package.json.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
