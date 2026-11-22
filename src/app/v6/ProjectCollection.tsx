@@ -34,11 +34,17 @@ const PICKS = [
  */
 const LAYOUTS = ["left", "right", "wide"] as const;
 
-/** The hub entry behind a pick. A pick naming no feature is a typo, so say which. */
+/**
+ * The hub entry behind a pick. Every row promises a write-up link, so a pick
+ * naming no feature, or a feature with nothing written about it, is a typo.
+ * Say which instead of quietly rendering a row with a missing link.
+ */
 function featureFor(id: string) {
   const feature = FEATURES.find((item) => item.id === id);
   if (!feature) throw new Error(`ProjectCollection picks "${id}", which isn't in FEATURES`);
-  return feature;
+  const { thoughtsHref } = feature;
+  if (!thoughtsHref) throw new Error(`ProjectCollection picks "${id}", which has no write-up to link`);
+  return { ...feature, thoughtsHref };
 }
 
 export default function ProjectCollection() {
@@ -78,9 +84,7 @@ export default function ProjectCollection() {
                   <p className={styles.showcaseNote}>{pick.note}</p>
                   <div className={styles.showcaseLinks}>
                     <Link href={feature.href} aria-label={`Open ${feature.title}`}>Open <ArrowUpRight size={14} /></Link>
-                    {feature.thoughtsHref && (
-                      <Link href={feature.thoughtsHref} aria-label={`Read the ${feature.title} write-up`}>Write-up <ArrowUpRight size={14} /></Link>
-                    )}
+                    <Link href={feature.thoughtsHref} aria-label={`Read the ${feature.title} write-up`}>Write-up <ArrowUpRight size={14} /></Link>
                   </div>
                 </div>
               </div>
