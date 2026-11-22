@@ -6,8 +6,8 @@ import { z } from "zod";
 /**
  * The landing's test figure is only honest if the count runs on every build.
  *
- * It used to hang off a `prebuild` script, and pnpm (7 and up) doesn't run
- * pre/post hooks unless told to. So `pnpm build` skipped it, every deploy
+ * It used to hang off a `prebuild` script, and the pnpm this repo pins (8.5.1,
+ * the only version I checked) doesn't run pre/post hooks unless told to. So `pnpm build` skipped it, every deploy
  * shipped whatever number was last committed, and production said 3,499 tests
  * while the suite had over 6,000. The count has to be part of `build` itself.
  */
