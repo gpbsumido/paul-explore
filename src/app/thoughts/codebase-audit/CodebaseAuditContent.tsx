@@ -821,9 +821,11 @@ if (isSessionTimeout(false, marker)) {               // always false`}
 This bracket isn’t publicly available yet.`}
         </pre>
         <p>
-          The public picks route turned every upstream failure into a 404, and
-          the view showed one fixed sentence for any error, so an outage read
-          as someone keeping their bracket to themselves. Only a real 404
+          The public picks route turned any non-ok answer from the backend,
+          and any body it couldn&rsquo;t parse, into a 404. A timeout already
+          came back as a 502 through the shared helper, but the view showed
+          one fixed sentence for any error, so an outage read as someone
+          keeping their bracket to themselves either way. Only a real 404
           means missing now. Anything else is a 502 with{" "}
           <C>Couldn&rsquo;t load these picks right now</C>, and the view shows
           whatever reason it was given. It&rsquo;s the same bug as the
@@ -854,8 +856,12 @@ AssertionError: expected [ 'timeline' ] to deeply equal []`}
           and the catalog still said nothing on the site imported it. None of
           those tests sit near the code that broke them, which is the whole
           point of having them. I fixed each on the branch that broke it and
-          carried the fix up the stack. Now every PR gets a full run before
-          its body is written.
+          carried the fix up the stack, and meant to give every PR a full run
+          before writing its body from then on. I didn&rsquo;t manage it:
+          #759, #761 and #762 still went up quoting folder runs of 2,985, 178
+          and 100 tests. The full suite does run on the top of the stack, so
+          a break would still show up there, just later and further from the
+          PR that caused it.
         </p>
 
         <h3 className={beat}>
@@ -901,6 +907,16 @@ AssertionError: expected [ 'timeline' ] to deeply equal []`}
           two ESPN roster schemas looked like copies, but one requires a field
           the other treats as optional. Merging them would quietly change what
           one of the readers accepts.
+        </p>
+        <p>
+          The risk route&rsquo;s own five-second timeout is the one I kept on
+          purpose rather than fixed. Scoring one transaction is a single
+          lookup behind a button someone is waiting on, so it should give up
+          sooner than the shared default. #757 only gave the number a name
+          and the reason a comment. The route still calls <C>fetch</C> with{" "}
+          <C>AbortSignal.timeout(RISK_TIMEOUT_MS)</C> instead of going
+          through <C>fetchUpstream</C>, so it doesn&rsquo;t share that
+          helper&rsquo;s timeout handling yet.
         </p>
       </Update>
 

@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.3.5
 
-- The codebase-audit write-up has a dated update on the third stack: the shared bracket that called itself private during an outage, the two lower PRs a full test run caught me breaking after I'd only run each PR's own folders, the four write-up timelines that stopped partway down, why the hub's updates card stays typed by hand, and the audit items I left alone because they were wrong. Its what's-next list drops the ZeroProof body and risk timeout items, which shipped, and names the calendar GET question instead.
+- The codebase-audit write-up has a dated update on the third stack: the shared bracket that called itself private during an outage, the two lower PRs a full test run caught me breaking after I'd only run each PR's own folders, the four write-up timelines that stopped partway down, why the hub's updates card stays typed by hand, and the audit items I left alone because they were wrong. It also says where I fell short: I meant to give every PR a full test run before writing its body, and three of them still went up with folder runs. The risk route's separate five-second timeout is written up as a decision rather than a fix; the route still calls `fetch` directly, and only the constant got a name. Its what's-next list drops the ZeroProof body item, which shipped, and the risk timeout, which stays as it is on purpose, and names the calendar GET question instead.
 
 ## 2026-11-22 - version 9.3.4
 
