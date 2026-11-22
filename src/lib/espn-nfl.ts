@@ -172,13 +172,17 @@ export async function loadNflWeek({
     return { cards, week, latestWeek: latest, error: false };
   }
 
+  let readAnyWeek = false;
   for (let w = latest, steps = 0; w >= 1 && steps < MAX_WEEK_STEPS; w--, steps++) {
     const payload = await fetchEspnJson(weekUrl(season, w));
     if (!payload) continue;
+    readAnyWeek = true;
     const cards = generateCards(performancesFromWeek(payload, { season, week: w }));
     if (cards.length > 0) return { cards, week: w, latestWeek: latest, error: false };
   }
-  return { cards: [], week: null, latestWeek: latest, error: false };
+  // Weeks that answered with nobody scoring are a quiet stretch. No week
+  // answering at all is ESPN being down, and the page should say so.
+  return { cards: [], week: null, latestWeek: latest, error: !readAnyWeek };
 }
 
 /**

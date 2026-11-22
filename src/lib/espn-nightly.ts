@@ -139,20 +139,28 @@ export async function loadNightlySlate({
 
   // An explicit date: read just that day.
   if (date) {
-    const slate = latestCompletedSlate(await fetchEspnJson(scoreboardUrl(sport, date.replace(/-/g, ""))));
+    const scoreboard = await fetchEspnJson(scoreboardUrl(sport, date.replace(/-/g, "")));
+    if (!scoreboard) return { cards: [], date, error: true };
+    const slate = latestCompletedSlate(scoreboard);
     if (!slate) return { cards: [], date, error: false };
     return { cards: await slateToCards(sport, slate.date, slate.eventIds, context), date: slate.date, error: false };
   }
 
   // Otherwise scan windows back through history for the most recent slate that
   // yields cards (in season that's last night; out of season, last season).
+  let readAnyScoreboard = false;
   for (const window of rangeWindows()) {
-    const slate = latestCompletedSlate(await fetchEspnJson(scoreboardUrl(sport, window)));
+    const scoreboard = await fetchEspnJson(scoreboardUrl(sport, window));
+    if (!scoreboard) continue;
+    readAnyScoreboard = true;
+    const slate = latestCompletedSlate(scoreboard);
     if (!slate) continue;
     const cards = await slateToCards(sport, slate.date, slate.eventIds, context);
     if (cards.length === 0) continue;
     return { cards, date: slate.date, error: false };
   }
 
-  return { cards: [], date: null, error: false };
+  // Quiet windows mean nothing was played. No window answering at all is ESPN
+  // being down, and the page should say so rather than show an empty night.
+  return { cards: [], date: null, error: !readAnyScoreboard };
 }
