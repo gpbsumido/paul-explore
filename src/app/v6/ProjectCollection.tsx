@@ -65,14 +65,18 @@ export default function ProjectCollection() {
       <ul className={styles.showcase} aria-label="Projects">
         {projects.map((pick, index) => {
           const feature = featureFor(pick.id);
+          const layout = LAYOUTS[index % LAYOUTS.length];
+          // A wide row's screenshot spans the page, so the beside-text 60vw
+          // would hand it an image that gets stretched.
+          const imageSizes = layout === "wide" ? "100vw" : "(max-width: 900px) 92vw, 60vw";
           return (
-            <li key={pick.id} className={styles.showcaseRow} data-layout={LAYOUTS[index % LAYOUTS.length]}>
+            <li key={pick.id} className={styles.showcaseRow} data-layout={layout}>
               {/* The screenshot opens the app too, but it's the same place as
                   the Open link, so it stays out of the tab order and the
                   accessibility tree rather than being announced twice. */}
               <Link href={feature.href} className={styles.showcaseMedia} tabIndex={-1} aria-hidden="true">
-                <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes="(max-width: 900px) 92vw, 60vw" className={styles.lightImage} />
-                <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes="(max-width: 900px) 92vw, 60vw" className={styles.darkImage} />
+                <Image src={previewSrc(pick.id, "light")} alt="" width={1280} height={800} sizes={imageSizes} className={styles.lightImage} />
+                <Image src={previewSrc(pick.id, "dark")} alt="" width={1280} height={800} sizes={imageSizes} className={styles.darkImage} />
               </Link>
               <div className={styles.showcaseText}>
                 <div>

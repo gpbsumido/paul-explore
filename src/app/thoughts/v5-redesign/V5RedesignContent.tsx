@@ -557,7 +557,8 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
           {`- style={{ ["--scroll-height" as string]: \`\${projects.length * 30}vh\` }}
 - track.style.transform = \`translate3d(\${-progress * distance}px, 0, 0)\`;
-+ <li key={pick.id} className={styles.showcaseRow} data-layout={LAYOUTS[index % LAYOUTS.length]}>`}
++ const layout = LAYOUTS[index % LAYOUTS.length];
++ <li key={pick.id} className={styles.showcaseRow} data-layout={layout}>`}
         </pre>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
