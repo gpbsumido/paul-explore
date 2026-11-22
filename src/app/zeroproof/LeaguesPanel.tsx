@@ -11,6 +11,7 @@ import {
   type ZeroproofLeague,
   leaguesResponseSchema,
 } from "@/lib/zeroproof/schemas";
+import { controlClass, primaryButtonClass } from "./controls";
 
 /** Fetch and validate a leagues list; a 401 (signed out) reads as "no leagues". */
 async function fetchLeagues(url: string): Promise<ZeroproofLeague[]> {
@@ -27,12 +28,8 @@ function centsFromDollars(input: string): number | null {
   return Math.round(n * 100);
 }
 
-const controlClass =
-  "h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
 const buttonClass =
   "inline-flex h-9 items-center rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
-const primaryButtonClass =
-  "inline-flex h-9 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-500 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
 
 function winConditionLabel(league: ZeroproofLeague): string {
   if (league.winCondition === "threshold" && league.thresholdCents != null) {
