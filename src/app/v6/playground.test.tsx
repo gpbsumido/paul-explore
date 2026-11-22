@@ -57,9 +57,7 @@ describe("portfolio playground", () => {
       const feature = FEATURES.find((f) => f.title === title);
       expect(feature).toBeDefined();
       expect(within(row).getByRole("link", { name: `Open ${title}` })).toHaveAttribute("href", feature!.href);
-      const writeUp = within(row).queryByRole("link", { name: `Read the ${title} write-up` });
-      if (feature!.thoughtsHref) expect(writeUp).toHaveAttribute("href", feature!.thoughtsHref);
-      else expect(writeUp).toBeNull();
+      expect(within(row).getByRole("link", { name: `Read the ${title} write-up` })).toHaveAttribute("href", feature!.thoughtsHref);
     }
   });
   it("scrolls with the page instead of pinning the section and sliding the list sideways", () => {
