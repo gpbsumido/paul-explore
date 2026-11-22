@@ -214,8 +214,7 @@ describe("POST /api/zeroproof/wallets", () => {
     expect(JSON.parse(call.body ?? "")).toEqual({ mode: "challenge", depositCents: 5000 });
   });
 
-  it("sends an empty object, not a crash, when the body isn't JSON", async () => {
-    fetchMock.mockResolvedValue(Response.json({ error: "mode is required" }, { status: 400 }));
+  it("answers 400 itself when the body isn't JSON, without asking the API", async () => {
     const { POST } = await import("./zeroproof/wallets/route");
 
     const res = await POST(
@@ -223,9 +222,9 @@ describe("POST /api/zeroproof/wallets", () => {
       undefined,
     );
 
-    expect(upstreamCall().body).toBe("{}");
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "mode is required" });
+    expect(await res.json()).toEqual({ error: "Invalid JSON" });
   });
 
   it("falls back to a plain message when the API's refusal has no readable body", async () => {
