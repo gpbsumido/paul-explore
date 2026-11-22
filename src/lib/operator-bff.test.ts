@@ -20,6 +20,7 @@ import {
 } from "./operator-client";
 import * as seed from "./operator-data";
 import { buildStore, buildAlert } from "@/test/factories/operator";
+import { DROPPED_CONNECTIONS, REFUSED_CONNECTIONS } from "@/test/factories/fetchFailures";
 
 vi.mock("./operator-client", async () => {
   const actual =
@@ -213,16 +214,32 @@ describe("a write the API answered never falls back to the seed", () => {
     expect(isDismissedInSeed(alert.id)).toBe(false);
   });
 
-  it("still falls back to the seed when the API never answered", async () => {
-    const alert = undismissedSeedAlert(1);
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.mocked(patchDismiss).mockRejectedValue(new TypeError("fetch failed"));
+  it.each(REFUSED_CONNECTIONS)(
+    "still falls back to the seed when the connection was never made ($label)",
+    async ({ error }) => {
+      const alert = undismissedSeedAlert(1);
+      vi.mocked(patchDismiss).mockRejectedValue(error);
 
-    const result = await applyDismiss(alert.id);
+      const result = await applyDismiss(alert.id);
 
-    expect(result?.acknowledged).toBe(true);
-    expect(isDismissedInSeed(alert.id)).toBe(true);
-  });
+      expect(result?.acknowledged).toBe(true);
+      expect(isDismissedInSeed(alert.id)).toBe(true);
+      expect(forgiveUnexpectedOutput()).toEqual([
+        expect.stringContaining("applyDismiss fell back to seed data: fetch failed"),
+      ]);
+    },
+  );
+
+  it.each(DROPPED_CONNECTIONS)(
+    "reports a write whose connection failed some other way instead of replaying it ($label)",
+    async ({ error }) => {
+      const alert = undismissedSeedAlert(0);
+      vi.mocked(patchDismiss).mockRejectedValue(error);
+
+      await expect(applyDismiss(alert.id)).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+      expect(isDismissedInSeed(alert.id)).toBe(false);
+    },
+  );
 
   const WRITES = [
     { name: "applyRestock", client: postRestock, run: () => applyRestock("store", ["item"]) },
