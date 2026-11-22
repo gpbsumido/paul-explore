@@ -1,6 +1,5 @@
 import type {
   Store,
-  Alert,
   InventoryItem,
   StoreStatus,
 } from "@/types/operator";
