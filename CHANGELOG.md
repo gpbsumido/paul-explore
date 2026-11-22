@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.46
+
+- Court Vision and Player Stats load teams and rosters through one `useNbaRoster` module instead of two hand-copied queries. Both read the body with `json.data?.data ?? json.data ?? []` because portfolio_api wraps the two lists differently, and that guess also turned any other body into an empty team picker with no error. The module parses each route's real shape and fails loudly when it doesn't match.
+- A failed teams or roster load shows the route's own reason rather than a fixed "Failed to load teams".
+
 ## 2026-11-22 - version 9.2.45
 
 - A failed operator write says why it failed, once. Dismiss, restock, reorder and re-sync threw a fixed string, so the server's reason never reached the screen, including the new "the change may have been saved, so reload" sentence on a timeout. They throw the route's own message now. The tabs also showed a second, local toast next to the app-wide one, which is gone.
