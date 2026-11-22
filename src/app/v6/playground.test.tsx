@@ -49,6 +49,27 @@ describe("portfolio playground", () => {
     fireEvent.click(screen.getByRole("radio", { name: "All" }));
     expect(within(collection).getAllByRole("listitem")).toHaveLength(15);
   });
+  it("gives every project an Open link and a link to its write-up, each named for the project", () => {
+    render(<ProjectCollection />);
+    const collection = screen.getByRole("list", { name: "Projects" });
+    for (const row of within(collection).getAllByRole("listitem")) {
+      const title = within(row).getByRole("heading", { level: 3 }).textContent ?? "";
+      const feature = FEATURES.find((f) => f.title === title);
+      expect(feature).toBeDefined();
+      expect(within(row).getByRole("link", { name: `Open ${title}` })).toHaveAttribute("href", feature!.href);
+      const writeUp = within(row).queryByRole("link", { name: `Read the ${title} write-up` });
+      if (feature!.thoughtsHref) expect(writeUp).toHaveAttribute("href", feature!.thoughtsHref);
+      else expect(writeUp).toBeNull();
+    }
+  });
+  it("scrolls with the page instead of pinning the section and sliding the list sideways", () => {
+    render(<ProjectCollection />);
+    const section = screen.getByRole("region", { name: /Pick a rabbit hole/ });
+    const collection = screen.getByRole("list", { name: "Projects" });
+    expect(section.style.getPropertyValue("--scroll-height")).toBe("");
+    fireEvent.scroll(window);
+    expect(collection.style.transform).toBe("");
+  });
   it("reveals write-ups as a hover menu with a browse-all link", () => {
     render(<ThemeProvider><FieldNotes /></ThemeProvider>);
     expect(screen.getByRole("link", { name: /Every write-up on this site/ })).toHaveAttribute("href", "/thoughts");
