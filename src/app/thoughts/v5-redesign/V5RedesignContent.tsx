@@ -37,6 +37,11 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-11-22-showcase",
+            date: "November 22, 2026",
+            title: "The project shelf stopped hijacking the scroll wheel",
+          },
+          {
             id: "update-2026-09-20-mobile-heroes",
             date: "September 20, 2026",
             title: "Mobile got its own heroes, and shipping them early broke the install",
@@ -523,13 +528,80 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-22-showcase"
+        date="November 22, 2026"
+        title="The project shelf stopped hijacking the scroll wheel"
+      >
+        <p>
+          Two months after the sideways shelf went in, I spent an evening on
+          other people&rsquo;s portfolios, and Patryk Barnas&rsquo;s was the one
+          I kept going back to. Nothing on it moves sideways. Each project gets
+          a big screenshot, a title, a sentence and two underlined links, and
+          the page just scrolls. Mine made a visitor learn a gesture before
+          they could see my work.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The shelf was clever, and that was the problem.
+        </h3>
+        <p className="text-muted">
+          Scrolling down to go sideways is fun the first time. After that, a
+          trackpad user who wants the contact section has to scroll through
+          240vh of cards first. Each card was one big link with the write-up
+          tucked inside the tilt surface, so the project and its write-up
+          competed for one click. I deleted the scroll maths, the pinned
+          viewport and the tilt, and the rows are a plain list now.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- .workScroll { height: 240vh; }
+- track.style.transform = \`translate3d(\${-progress * distance}px,0,0)\`;
++ <li className={styles.showcaseRow} data-layout={LAYOUTS[index % 3]}>`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I planned alternating rows, and then my own rule said no.
+        </h3>
+        <p className="text-muted">
+          The plan was the reference layout as it stands: image left, then
+          image right, all the way down. Fifteen projects of that is a zigzag,
+          and the design checklist I hold myself to caps image-and-text splits
+          at two in a row before the rhythm has to break. So the rows cycle
+          left, right, then a full-width row with the text spread underneath.
+          It drifts from the plan, and the page is better for it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const LAYOUTS = ["left", "right", "wide"] as const;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The screenshot is not a third link.
+        </h3>
+        <p className="text-muted">
+          The image still opens the project for anyone with a mouse, but it is
+          out of the tab order and hidden from screen readers. Each row has
+          exactly two stops, Open and Write-up, and each is labelled with the
+          project&rsquo;s name. The rise-in is a scroll-driven CSS animation,
+          gated on support and on reduced motion being off, so nothing runs in
+          JavaScript per scroll frame any more.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .showcaseRow { animation: showcaseRise linear both;
+      animation-timeline: view(); animation-range: entry 0% entry 55%; }
+  }
+}`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Three touch-first mobile heroes: a scrubbed Reel, a rotary Orbit and a draggable Lens. They replace the tunnel scenes on a phone, each with a tap and keyboard path, and they are documented on /design-system.",
           "A portfolio playground built with the published design-system heroes and motion components. V5 remains at /discover?version=v5, and the new root still renders statically.",
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
-          "A project shelf that scrolls sideways as you scroll down, past eight works with real light and dark screenshots, and a field-notes bloom over a drifting wall of app tiles.",
+          "Project showcase rows that scroll like the rest of the page, each with a large light and dark screenshot and its own Open and Write-up links, cycling left, right and full-width. A field-notes bloom sits over a drifting wall of app tiles.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
