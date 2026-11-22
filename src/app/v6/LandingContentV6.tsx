@@ -6,6 +6,7 @@ import PlaygroundHero from "./PlaygroundHero";
 import ProjectCollection from "./ProjectCollection";
 import DetailsHeading from "./DetailsHeading";
 import FieldNotes from "./FieldNotes";
+import StackStrip from "./StackStrip";
 import { ArrowUp, ArrowUpRight } from "./arrows";
 import styles from "./playground.module.css";
 
@@ -20,7 +21,7 @@ export default function LandingContentV6() {
       <main>
         <PlaygroundHero />
         <ProjectCollection />
-        <div className={styles.proof}><p className={styles.eyebrow}>03 / Under the surface</p><DetailsHeading /><Proof /></div>
+        <div className={styles.proof}><p className={styles.eyebrow}>03 / Under the surface</p><DetailsHeading /><Proof /><StackStrip /></div>
         <div className={styles.writing}><p className={styles.eyebrow}>04 / Field notes</p><FieldNotes /></div>
         <Contact variant="blob" />
       </main>
