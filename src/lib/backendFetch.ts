@@ -160,12 +160,16 @@ const tooLarge = () =>
  * forwards to `${API_URL}${backendPrefix}/...` with the caller's own token and
  * the query string intact. Pass it the method and get the route handler back.
  *
- * The body is forwarded as text, untouched, but never more than 64 KB of it.
- * The backend's status and JSON come back as they were, a 204 stays a 204 (a
- * Response can't carry a body at that status, so building one throws), and a
- * reply with no JSON reads as `{}`.
+ * The body is forwarded as text, untouched, but never more than `maxBytes` of
+ * it, 64 KB unless the domain needs more. The backend's status and JSON come
+ * back as they were, a 204 stays a 204 (a Response can't carry a body at that
+ * status, so building one throws), and a reply with no JSON reads as `{}`.
  */
-export function signedInCatchAll(label: string, backendPrefix: string) {
+export function signedInCatchAll(
+  label: string,
+  backendPrefix: string,
+  { maxBytes = DEFAULT_MAX_BYTES }: { maxBytes?: number } = {},
+) {
   return (method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE") =>
     withBackend<CatchAllCtx>(`${label} ${method}`, async (backend, request, ctx) => {
       const { path = [] } = await ctx.params;
@@ -174,11 +178,11 @@ export function signedInCatchAll(label: string, backendPrefix: string) {
       }
 
       const sendsBody = method !== "GET" && method !== "DELETE";
-      if (sendsBody && Number(request.headers.get("content-length") ?? 0) > DEFAULT_MAX_BYTES) {
+      if (sendsBody && Number(request.headers.get("content-length") ?? 0) > maxBytes) {
         return tooLarge();
       }
       const body = sendsBody ? await request.text() : "";
-      if (new TextEncoder().encode(body).length > DEFAULT_MAX_BYTES) return tooLarge();
+      if (new TextEncoder().encode(body).length > maxBytes) return tooLarge();
 
       const suffix = path.length ? `/${path.join("/")}` : "";
       const search = new URL(request.url).search;

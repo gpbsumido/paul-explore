@@ -198,8 +198,8 @@ describe("practice proxy", () => {
     expect(res.status).toBe(204);
   });
 
-  it("refuses a body over 64 KB with 413 and never calls the backend", async () => {
-    const body = JSON.stringify({ reviews: "x".repeat(70_000) });
+  it("refuses a body over the backend's 100 KB limit with 413 and never calls the backend", async () => {
+    const body = JSON.stringify({ reviews: "x".repeat(102_400) });
 
     const res = await POST(
       new NextRequest("http://localhost/x", { method: "POST", body }),
@@ -213,9 +213,10 @@ describe("practice proxy", () => {
   it("forwards an import of every problem reviewed in both modes, which is over 64 KB", async () => {
     upstreamReturns({ reviews: [] });
     const body = await importBodyFor(everyProblemReviewedInBothModes());
+    const declaredLength = String(new TextEncoder().encode(body).length);
 
     const res = await POST(
-      new NextRequest("http://localhost/x", { method: "POST", body }),
+      new NextRequest("http://localhost/x", { method: "POST", body, headers: { "content-length": declaredLength } }),
       params("reviews", "import"),
     );
 
