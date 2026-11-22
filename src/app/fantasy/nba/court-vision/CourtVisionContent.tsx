@@ -5,41 +5,21 @@ import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
+import { useNbaPlayers, useNbaTeams } from "@/hooks/useNbaRoster";
 import FantasyNav from "../FantasyNav";
 import CourtSVG from "./CourtSVG";
-import type { Team, Player } from "@/types/nba";
 import type { ShotChartData } from "@/types/nba";
 
 export default function CourtVisionContent() {
   const [explicitTeamId, setExplicitTeamId] = useState<number | null>(null);
   const [playerId, setPlayerId] = useState<number | null>(null);
 
-  const teamsQuery = useQuery({
-    queryKey: queryKeys.nba.teams(),
-    queryFn: async (): Promise<Team[]> => {
-      const res = await fetch("/api/nba/teams");
-      if (!res.ok) throw new Error("Failed to load teams");
-      const json = await res.json();
-      const list: Team[] = json.data?.data ?? json.data ?? [];
-      return [...list].sort((a, b) => a.full_name.localeCompare(b.full_name));
-    },
-    staleTime: 5 * 60_000,
-  });
+  const teamsQuery = useNbaTeams();
 
   const teams = teamsQuery.data ?? [];
   const selectedTeamId = explicitTeamId ?? teams[0]?.id ?? null;
 
-  const playersQuery = useQuery({
-    queryKey: queryKeys.nba.players(selectedTeamId!),
-    queryFn: async (): Promise<Player[]> => {
-      const res = await fetch(`/api/nba/players/${selectedTeamId}`);
-      if (!res.ok) throw new Error("Failed to load players");
-      const json = await res.json();
-      return json.data?.data ?? json.data ?? [];
-    },
-    enabled: !!selectedTeamId,
-    staleTime: 5 * 60_000,
-  });
+  const playersQuery = useNbaPlayers(selectedTeamId);
 
   const players = playersQuery.data ?? [];
 
