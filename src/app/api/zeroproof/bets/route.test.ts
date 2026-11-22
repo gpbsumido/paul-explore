@@ -110,12 +110,10 @@ describe("POST /api/zeroproof/bets", () => {
     expect(await res.json()).toEqual({ error: "Failed to place bet" });
   });
 
-  it("sends an empty slip upstream, for the backend to refuse, when the body is not JSON", async () => {
-    upstreamAnswers({ error: "walletId is required" }, 400);
-
+  it("refuses a body that is not JSON without calling the backend", async () => {
     const res = await POST(postRequest("{not json"), undefined);
 
-    expect(vi.mocked(fetchUpstream).mock.calls[0][1]?.body).toBe("{}");
+    expect(fetchUpstream).not.toHaveBeenCalled();
     expect(res.status).toBe(400);
   });
 

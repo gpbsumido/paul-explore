@@ -107,6 +107,16 @@ describe("GET /api/zeroproof/leagues", () => {
   });
 });
 
+/** A league body the BFF's schema accepts, so it reaches the (mocked) backend. */
+const LEAGUE = {
+  name: "Friday",
+  visibility: "public",
+  startingBankrollCents: 10000,
+  maxMembers: 8,
+  winCondition: "threshold",
+  thresholdCents: 20000,
+};
+
 describe("POST /api/zeroproof/leagues", () => {
   it("creates a league and preserves the backend 201", async () => {
     signedIn();
@@ -116,7 +126,7 @@ describe("POST /api/zeroproof/leagues", () => {
     const res = await POST(
       new NextRequest("http://localhost/api/zeroproof/leagues", {
         method: "POST",
-        body: JSON.stringify({ name: "Friday", visibility: "public" }),
+        body: JSON.stringify(LEAGUE),
       }),
       {},
     );
@@ -130,24 +140,28 @@ describe("POST /api/zeroproof/leagues", () => {
       Authorization: "Bearer tok",
       "Content-Type": "application/json",
     });
-    expect(JSON.parse(String(init?.body))).toEqual({ name: "Friday", visibility: "public" });
+    expect(JSON.parse(String(init?.body))).toEqual(LEAGUE);
   });
 
-  it("passes the backend's validation error through with its status", async () => {
+  it("passes the backend's cross-field validation error through with its status", async () => {
     signedIn();
-    vi.mocked(fetchUpstream).mockResolvedValue(upstream({ error: "name is required" }, 400));
+    // The shape is fine, so the BFF forwards it; the target-above-bankroll rule
+    // lives in the backend's service, and its message has to reach the form.
+    vi.mocked(fetchUpstream).mockResolvedValue(
+      upstream({ error: "The target must be above the starting bankroll" }, 400),
+    );
     const { POST } = await import("./route");
 
     const res = await POST(
       new NextRequest("http://localhost/api/zeroproof/leagues", {
         method: "POST",
-        body: JSON.stringify({}),
+        body: JSON.stringify({ ...LEAGUE, thresholdCents: 5000 }),
       }),
       {},
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "name is required" });
+    expect(await res.json()).toEqual({ error: "The target must be above the starting bankroll" });
   });
 
   it("401s without a session", async () => {
