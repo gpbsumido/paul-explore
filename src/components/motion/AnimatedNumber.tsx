@@ -3,7 +3,7 @@
 import { useRef, useSyncExternalStore } from "react";
 import { useInView } from "framer-motion";
 import { useCountUp } from "@/hooks/useCountUp";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * True while rendering on the server and through hydration, false afterwards.
@@ -51,7 +51,7 @@ export type AnimatedNumberProps = {
  * only takes over after mount, by which point the element is off screen unless
  * it is already in view.
  *
- * Reduced motion comes from the shared context, so it agrees with every other
+ * Reduced motion comes from the shared hook, so it agrees with every other
  * motion decision on the hub.
  */
 export default function AnimatedNumber({
@@ -61,7 +61,7 @@ export default function AnimatedNumber({
   className,
 }: AnimatedNumberProps) {
   const render = FORMATTERS[format];
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
   const isServerRender = useIsServerRender();

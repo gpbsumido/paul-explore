@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, m } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { spring, project } from "@/lib/animations";
 
 /** Projected travel (px) past which a downward flick lets the sheet go. */
@@ -31,7 +31,7 @@ export interface SheetProps {
  */
 export default function Sheet({ open, onClose, label, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
 
   // The latest onClose, kept in a ref so it isn't an effect dependency. Callers
   // pass a fresh onClose every render, and when it was in the deps the effect

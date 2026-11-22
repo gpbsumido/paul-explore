@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useInView } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export type LoopingDemoProps = {
   children: ReactNode;
@@ -39,7 +39,7 @@ export default function LoopingDemo({
   label,
   intervalMs = 4200,
 }: LoopingDemoProps) {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
   const [run, setRun] = useState(0);

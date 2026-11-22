@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { LazyMotion } from "framer-motion";
 import {
   QueryClient,
@@ -28,56 +28,12 @@ const ReactQueryDevtools =
     : () => null;
 
 // ---------------------------------------------------------------------------
-// ReducedMotionProvider — reads prefers-reduced-motion once at the app root
-// so every animated component can access it without calling the hook itself.
-//
-// Read through useSyncExternalStore rather than framer-motion's
-// useReducedMotion. The server can't see the preference, so it renders
-// "full motion"; framer's hook read matchMedia on the client's very first
-// render, which made a reduced-motion visitor's hydration disagree with that
-// HTML, and template.tsx turned it into a mismatch on every route. The server
-// snapshot below is what React uses while hydrating, so both sides agree, and
-// the real preference lands on the render straight after.
-// ---------------------------------------------------------------------------
-
-const ReducedMotionContext = createContext(false);
-
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
-function subscribeToMotionPreference(onChange: () => void) {
-  const query = window.matchMedia(REDUCED_MOTION_QUERY);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-const prefersReducedMotion = () =>
-  window.matchMedia(REDUCED_MOTION_QUERY).matches;
-
-/** Returns true when the user has requested reduced motion. */
-export function useHubReducedMotion() {
-  return useContext(ReducedMotionContext);
-}
-
-function ReducedMotionProvider({ children }: { children: React.ReactNode }) {
-  const prefersReduced = useSyncExternalStore(
-    subscribeToMotionPreference,
-    prefersReducedMotion,
-    () => false,
-  );
-  return (
-    <ReducedMotionContext.Provider value={prefersReduced}>
-      {children}
-    </ReducedMotionContext.Provider>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Providers
 // ---------------------------------------------------------------------------
 
 /**
  * Client-side provider wrapper. Sits just inside the root layout and gives
- * every page access to TanStack Query's cache and the reduced-motion flag.
+ * every page access to TanStack Query's cache and framer's motion features.
  *
  * QueryClient lives in useState so each server render gets a fresh instance
  * while the browser keeps a stable singleton across navigations. The devtools
@@ -108,21 +64,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ReducedMotionProvider>
-        {/* LazyMotion lets components use the lighter `m` components instead of
-            `motion`. domMax (not domAnimation) because the app uses layout and
-            drag animations. Non-strict during the migration so files still on
-            `motion` keep working. See /thoughts/react-doctor.
+      {/* LazyMotion lets components use the lighter `m` components instead of
+          `motion`. domMax (not domAnimation) because the app uses layout and
+          drag animations. Non-strict during the migration so files still on
+          `motion` keep working. See /thoughts/react-doctor.
 
-            Passed as a loader, not a static import. domMax is the largest
-            feature bundle framer-motion ships -- drag, layout projection and
-            every gesture -- and importing it here put all of it in the root
-            layout's synchronous chunk on every route, which is the one thing
-            LazyMotion exists to avoid. */}
-        <LazyMotion features={() => import("framer-motion").then((m) => m.domMax)}>
-          {children}
-        </LazyMotion>
-      </ReducedMotionProvider>
+          Passed as a loader, not a static import. domMax is the largest
+          feature bundle framer-motion ships -- drag, layout projection and
+          every gesture -- and importing it here put all of it in the root
+          layout's synchronous chunk on every route, which is the one thing
+          LazyMotion exists to avoid. */}
+      <LazyMotion features={() => import("framer-motion").then((m) => m.domMax)}>
+        {children}
+      </LazyMotion>
       {/* One app-wide notification region. The global mutation-error handler
           above raises error toasts here, and any screen can call toast.* too. */}
       <Toaster />

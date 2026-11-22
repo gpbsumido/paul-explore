@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * ReactBits-style "click spark": a ring of rays bursts outward from the press
@@ -30,7 +30,7 @@ export default function ClickSpark({
   const ref = useRef<HTMLSpanElement>(null);
   // A monotonic id keeps React keys stable without a clock or randomness.
   const seq = useRef(0);
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const [bursts, setBursts] = useState<Burst[]>([]);
 
   const spawn = (event: ReactPointerEvent<HTMLSpanElement>) => {

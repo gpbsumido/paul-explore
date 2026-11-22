@@ -6,7 +6,7 @@ import {
   type ElementType,
   type ReactNode,
 } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * ReactBits-style "blur text": children resolve from a soft blur as they rise
@@ -28,7 +28,7 @@ export default function BlurReveal({
   delayMs?: number;
 }) {
   const Tag = (as ?? "span") as ElementType;
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const style: CSSProperties | undefined =
     reduced || delayMs === 0 ? undefined : { animationDelay: `${delayMs}ms` };
   return createElement(

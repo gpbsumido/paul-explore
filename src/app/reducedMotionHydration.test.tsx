@@ -13,10 +13,9 @@ import { hydrateRoot } from "react-dom/client";
  *   Hydration failed because the server rendered HTML didn't match the client.
  *   … <Template> … + <Suspense> - <div style={{opacity:"1"}}>
  *
- * Each side of the round trip gets a fresh module graph. framer-motion is an
- * external dependency, which resetModules doesn't reset, and it caches the
- * preference on first read, so the server pass mocks its hook instead of
- * calling it: the server simply cannot see the preference.
+ * Each side of the round trip gets a fresh module graph. renderToString reads
+ * the hook's server snapshot, so the server pass cannot see the preference,
+ * the same as a real server.
  */
 
 const stubPreference = (reduce: boolean) =>
@@ -35,20 +34,13 @@ const stubPreference = (reduce: boolean) =>
   );
 
 /** Imports the providers and template as a fresh app, the way each side would. */
-async function freshApp(side: "server" | "client") {
+async function freshApp() {
   vi.resetModules();
-  if (side === "server") {
-    vi.doMock("framer-motion", async (importOriginal) => ({
-      ...(await importOriginal<typeof import("framer-motion")>()),
-      useReducedMotion: () => null,
-    }));
-  } else {
-    vi.doUnmock("framer-motion");
-  }
-  const { Providers, useHubReducedMotion } = await import("./providers");
+  const { Providers } = await import("./providers");
+  const { usePrefersReducedMotion } = await import("@/hooks/usePrefersReducedMotion");
   const { default: Template } = await import("./template");
   function Probe() {
-    return <p data-testid="probe">{useHubReducedMotion() ? "reduced" : "full"}</p>;
+    return <p data-testid="probe">{usePrefersReducedMotion() ? "reduced" : "full"}</p>;
   }
   return function App() {
     return (
@@ -80,11 +72,11 @@ afterEach(() => {
 describe("reduced motion across hydration", () => {
   it("hydrates a reduced-motion visitor's page without a mismatch", async () => {
     stubPreference(false);
-    const ServerApp = await freshApp("server");
+    const ServerApp = await freshApp();
     const html = renderToString(<ServerApp />);
 
     stubPreference(true);
-    const ClientApp = await freshApp("client");
+    const ClientApp = await freshApp();
     const container = document.createElement("div");
     container.innerHTML = html;
     document.body.appendChild(container);
@@ -100,11 +92,11 @@ describe("reduced motion across hydration", () => {
 
   it("still tells components about reduced motion once hydrated", async () => {
     stubPreference(false);
-    const ServerApp = await freshApp("server");
+    const ServerApp = await freshApp();
     const html = renderToString(<ServerApp />);
 
     stubPreference(true);
-    const ClientApp = await freshApp("client");
+    const ClientApp = await freshApp();
     const container = document.createElement("div");
     container.innerHTML = html;
     document.body.appendChild(container);
@@ -133,10 +125,6 @@ describe("the page under the template", () => {
 
     stubPreference(false);
     vi.resetModules();
-    vi.doMock("framer-motion", async (importOriginal) => ({
-      ...(await importOriginal<typeof import("framer-motion")>()),
-      useReducedMotion: () => null,
-    }));
     const server = await import("./template");
     const serverProviders = await import("./providers");
     function Page() {
@@ -155,7 +143,6 @@ describe("the page under the template", () => {
 
     stubPreference(true);
     vi.resetModules();
-    vi.doUnmock("framer-motion");
     const client = await import("./template");
     const clientProviders = await import("./providers");
     const container = document.createElement("div");

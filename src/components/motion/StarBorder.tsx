@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * OriginKit-style animated border: a conic gradient sweeps around the edge of
@@ -16,7 +16,7 @@ export default function StarBorder({
   children: ReactNode;
   className?: string;
 }) {
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   return (
     <div
       className={`motion-star-border ${reduced ? "motion-star-border--static" : ""} ${className}`.trim()}

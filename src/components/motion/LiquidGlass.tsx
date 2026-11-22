@@ -1,7 +1,7 @@
 "use client";
 
 import { createElement, type ElementType, type ReactNode } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * iOS "Liquid Glass": a frosted, translucent surface with a specular highlight
@@ -20,7 +20,7 @@ export default function LiquidGlass({
   className?: string;
 }) {
   const Tag = (as ?? "div") as ElementType;
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   return createElement(
     Tag,
     {

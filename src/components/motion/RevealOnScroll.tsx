@@ -2,7 +2,7 @@
 
 import { m } from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 type MotionTag = "div" | "li" | "article" | "section";
 
@@ -46,7 +46,7 @@ export default function RevealOnScroll({
   style,
   children,
 }: RevealOnScrollProps) {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const Motion = m[as];
 
   return (

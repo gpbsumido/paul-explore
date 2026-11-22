@@ -3,8 +3,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import ClickSpark from "./ClickSpark";
 
 const mocks = vi.hoisted(() => ({ reduced: false }));
-vi.mock("@/app/providers", () => ({
-  useHubReducedMotion: () => mocks.reduced,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reduced,
 }));
 
 beforeEach(() => {

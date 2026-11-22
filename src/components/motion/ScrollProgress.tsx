@@ -2,7 +2,7 @@
 
 import type { RefObject } from "react";
 import { m, useScroll, useSpring } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export type ScrollProgressProps = {
   /** Bar thickness in pixels. */
@@ -28,7 +28,7 @@ export default function ScrollProgress({
   className,
   container,
 }: ScrollProgressProps) {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   // Passing `container: undefined` is not the same as passing nothing to
   // framer, so the argument object is only built when there is one to track.
   const { scrollYProgress } = useScroll(

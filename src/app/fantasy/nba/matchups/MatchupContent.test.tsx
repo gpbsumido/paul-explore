@@ -11,7 +11,7 @@ import MatchupContent from "./MatchupContent";
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/fantasy/nba/matchups" }));
 // Reduced motion keeps the count-up scores from animating in jsdom.
-vi.mock("@/app/providers", () => ({ useHubReducedMotion: () => true }));
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({ usePrefersReducedMotion: () => true }));
 
 const team = (id: number, name: string, ownerId: string): ESPNTeam => ({
   id,

@@ -6,8 +6,8 @@ import { axe } from "@/test/a11y";
 import LoopingDemo from "./LoopingDemo";
 
 const mocks = vi.hoisted(() => ({ reduced: false, inView: true }));
-vi.mock("@/app/providers", () => ({
-  useHubReducedMotion: () => mocks.reduced,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reduced,
 }));
 
 // The wrapper only runs while the card is on screen. jsdom has no real

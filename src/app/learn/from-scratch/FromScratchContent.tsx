@@ -5,7 +5,7 @@ import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -671,7 +671,7 @@ function GuidedWalkthrough({
 // ---------------------------------------------------------------------------
 
 export default function FromScratchContent() {
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const t = reduced ? instantTransition : spring.smooth;
   const itemT = reduced ? instantTransition : hoverSpring;
 

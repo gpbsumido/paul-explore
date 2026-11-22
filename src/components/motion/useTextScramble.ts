@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /** Glyphs the decode effect churns through before a character settles. */
 export const DEFAULT_CHARSET =
@@ -76,7 +76,7 @@ export function useTextScramble({
   speedMs = 40,
   charset = DEFAULT_CHARSET,
 }: UseTextScrambleOptions): UseTextScrambleResult {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const [display, setDisplay] = useState(text);
   // The mount trigger is known at first render, so it belongs in the initial
   // state rather than in an effect that immediately sets it and costs a second
