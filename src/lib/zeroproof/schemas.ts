@@ -242,11 +242,14 @@ export const addEspnLeagueBodySchema = z.object({
   label: z.string().max(80).optional(),
 });
 
-
 // Write bodies, copied from portfolio_api src/modules/zeroproof/schemas.ts so a
 // body the backend would refuse is turned away here, before the round trip.
 // Cross-field rules (league targets, deadlines, the $20 minimum) stay in the
 // backend's service, where every field is known.
+//
+// These are hand copies and nothing checks them against the backend. A field
+// or market added there gets refused here until it's copied over too, so
+// change both in the same breath.
 
 /** POST /api/zeroproof/bets. */
 export const placeBetBodySchema = z.object({

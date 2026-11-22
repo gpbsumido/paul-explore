@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.3.1
 
-- Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact.
+- Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact. A refused body says which field was wrong in words, like "Max members must be a number", rather than "Invalid request body", since the forms put that sentence on screen. The forms also stop the two that were easy to send: Max members is required and at least 2, and a stake that rounds to nothing, like $0.001, says "Enter at least $0.01" beside it instead of going to the server.
 
 ## 2026-11-22 - version 9.3.0
 
