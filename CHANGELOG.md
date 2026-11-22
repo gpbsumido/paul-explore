@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.38
 
-- The codebase-audit write-up has a dated update on the first redesign stack: why failures now carry the server's reason, why the rate-limit tests were checking a function the proxy never called, why "Try again" didn't, and how two copies of one proxy drifted into a 204 that came back as a 502.
+- The codebase-audit write-up has a dated update on the first redesign stack: why failures now carry the server's reason, why the rate-limit tests were checking a function the proxy never called, why "Try again" didn't, and how two copies of one proxy had drifted apart before either broke: the test that failed first shows a 204 that would have come back as a 502.
 
 ## 2026-11-22 - version 9.2.37
 

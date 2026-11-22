@@ -555,7 +555,7 @@ Error: Expected 5 bindings, saw 0`}
         </pre>
         <p>
           The calendar client had ten of these, the calendar hooks another
-          ten, and the budget, practice, gallery and ZeroProof clients each
+          nine, and the budget, practice, gallery and ZeroProof clients each
           had their own version. The API answers a failed write with{" "}
           <C>{`{ error: "..." }`}</C>, so the reason was sitting in the body
           and every toast showed the fixed string instead. There is one{" "}
@@ -609,21 +609,28 @@ this.retry = ()=>{ startTransition(()=>{ this.context?.refresh(); this.reset(); 
         </p>
 
         <h3 className={beat}>
-          Two copies of the same proxy had already drifted into a bug
+          Two copies of the same proxy had already drifted apart
         </h3>
+        <p>
+          The test that failed first, with the backend mocked to answer a save
+          with 204:
+        </p>
         <pre className={pre}>
           {`[practice PUT] backend unavailable: TypeError: Response constructor: Invalid response status code 204`}
         </pre>
         <p>
           Budget and practice each had a hand-copied catch-all proxy. The
           budget copy had learned that a 204 can&rsquo;t carry a body. The
-          practice copy hadn&rsquo;t, so a backend that answered a save with
-          204 turned it into a 502. It also dropped the query string, and
-          neither capped the body it forwarded. Two copies is normally where I
-          wait for a third before sharing anything, but these had already
-          disagreed in a way that broke one of them. They share{" "}
-          <C>signedInCatchAll</C> now, with the same 64 KB cap as the other
-          write routes.
+          practice copy hadn&rsquo;t, so the first 204 would have come back as
+          a 502. It also dropped the query string. Neither had happened yet:
+          the practice API always answers with JSON and the page never sends a
+          query. And neither copy capped the body it forwarded. Two copies is
+          normally where I wait for a third before sharing anything, but these
+          had already disagreed, and the next change would have landed in one
+          and not the other. They share <C>signedInCatchAll</C> now. Budget
+          keeps the same 64 KB cap as the other write routes, and practice
+          takes up to 100 KB like the backend does, because importing every
+          problem reviewed in both modes comes to about 69 KB.
         </p>
 
         <h3 className={beat}>
