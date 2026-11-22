@@ -35,7 +35,7 @@
 :global([data-theme="dark"]) .darkImage { display:block; }
 :global([data-theme="dark"]) .lightImage { display:none; }
 .work { display:flex; flex-direction:column; gap:1.75rem; padding:4.5rem clamp(1.25rem,4vw,4.5rem) 2rem; }
-.showcase { display:grid; gap:clamp(3.5rem,8vw,7rem); padding:2.5rem 0 1rem; list-style:none; }
+.showcase { display:grid; grid-template-columns:minmax(0,1fr); gap:clamp(3.5rem,8vw,7rem); padding:2.5rem 0 1rem; list-style:none; }
 .showcaseRow { display:grid; grid-template-columns:minmax(0,7fr) minmax(0,5fr); align-items:center; gap:clamp(1.5rem,4vw,4rem); }
 .showcaseRow[data-layout="right"] { grid-template-columns:minmax(0,5fr) minmax(0,7fr); }
 .showcaseRow[data-layout="right"] .showcaseMedia { order:2; }
