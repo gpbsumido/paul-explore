@@ -2,7 +2,7 @@
 
 ## 2026-11-22 - version 9.2.48
 
-- The projects on the landing page are big showcase rows now, instead of a sideways strip of cards that hijacked the scroll wheel. The page scrolls normally, every project gets a large screenshot, and each row has its own "Open" and "Write-up" links rather than one whole-card link. The rows cycle through left, right and full-width layouts so the page doesn't read as the same split over and over. On browsers that support scroll-driven animation the rows rise in as they enter, unless reduced motion is on.
+- The projects on the landing page are big showcase rows now, instead of a sideways strip of cards that hijacked the scroll wheel. The page scrolls normally, every project gets a large screenshot, and each row has its own "Open" and "Write-up" links rather than one whole-card link. The rows cycle through left, right and full-width layouts so the page doesn't read as the same split over and over, and the full-width rows load a screenshot big enough for their width rather than stretching the side-by-side size. On browsers that support scroll-driven animation the rows rise in as they enter, unless reduced motion is on.
 
 ## 2026-11-22 - version 9.2.47
 
