@@ -3,6 +3,7 @@ import {
   FLAGS_TOKEN_HEADER,
   FlagsApiError,
   FlagsContractError,
+  FlagsWriteTimeoutError,
   fetchFlagsFromApi,
   fetchAuditFromApi,
   patchFlagOnApi,
@@ -258,5 +259,32 @@ describe("patchFlagOnApi response shape", () => {
     await expect(
       patchFlagOnApi("dark-mode", { environment: "production", enabled: false }),
     ).rejects.toBeInstanceOf(FlagsContractError);
+  });
+});
+
+/**
+ * The audit read and the flag write had no deadline, unlike the fleet read.
+ * A write that runs out of time may have landed, so it gets its own error.
+ */
+describe("flags-client deadlines", () => {
+  it("bounds the audit read with an abort signal", async () => {
+    const fetchMock = mockFetch(200, { audit: [] });
+    await fetchAuditFromApi();
+    expect((fetchMock.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("bounds a flag write with an abort signal", async () => {
+    const fetchMock = mockFetch(200, { flag: buildFlag({ key: "new-checkout" }) });
+    await patchFlagOnApi("new-checkout", { environment: "production", enabled: true }).catch(() => {
+      // the body shape isn't the point; only that the write carries a deadline
+    });
+    expect((fetchMock.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("names a flag write that ran out of time as its own error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+    await expect(
+      patchFlagOnApi("new-checkout", { environment: "production", enabled: true }),
+    ).rejects.toBeInstanceOf(FlagsWriteTimeoutError);
   });
 });

@@ -6,11 +6,26 @@ import {
   withOperatorErrors,
 } from "@/lib/operator-route-errors";
 import { InvalidSegmentError } from "@/lib/safeSegment";
-import { OperatorApiError, OperatorContractError } from "@/lib/operator-client";
+import {
+  OperatorApiError,
+  OperatorContractError,
+  OperatorWriteTimeoutError,
+} from "@/lib/operator-client";
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("withOperatorErrors", () => {
+  it("answers a write that ran out of time with 504 and says it may have saved", async () => {
+    const wrapped = withOperatorErrors(async () => {
+      throw new OperatorWriteTimeoutError("/alerts/x/dismiss");
+    });
+
+    const res = await wrapped();
+
+    expect(res.status).toBe(504);
+    expect((await res.json()).error).toMatch(/may have been saved/i);
+  });
+
   it("maps a thrown InvalidSegmentError to a clean 400, not a 5xx outage", async () => {
     const wrapped = withOperatorErrors(async () => {
       throw new InvalidSegmentError("path separator in segment");

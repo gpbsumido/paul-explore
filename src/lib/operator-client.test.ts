@@ -7,6 +7,7 @@ import {
   postRestock,
   OperatorApiError,
   OperatorContractError,
+  OperatorWriteTimeoutError,
 } from "@/lib/operator-client";
 import { buildStore } from "@/test/factories/operator";
 import { InvalidSegmentError } from "@/lib/safeSegment";
@@ -228,5 +229,37 @@ describe("operator-client unreadable write responses", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("<html>", { status: 200 })));
 
     await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorContractError);
+  });
+});
+
+/**
+ * Writes had no deadline at all, so a hung API held the route open until the
+ * platform killed it. A write that runs out of time may still have applied
+ * upstream, so it's named as its own error rather than looking like an outage
+ * the seed could answer.
+ */
+describe("operator-client write timeout", () => {
+  it("bounds a write with an abort signal", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await patchDismiss("alert-1").catch(() => {
+      // the body shape isn't the point; only that the write carries a deadline
+    });
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("names a write that ran out of time as its own error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+  });
+
+  it("leaves a refused connection as it was, so the seed can still stand in", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(TypeError);
   });
 });

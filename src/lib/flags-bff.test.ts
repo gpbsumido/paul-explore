@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 import { loadFleet, loadAuditLog, applyFlagPatch, patchSeedStore } from "./flags-bff";
-import { FlagsApiError, FlagsContractError } from "./flags-client";
+import { FlagsApiError, FlagsContractError, FlagsWriteTimeoutError } from "./flags-client";
 import { getAudit, getFlag, getFlags } from "./flags-data";
 import { ENVIRONMENTS } from "@/types/flags";
 import { buildFlag, percentRollout } from "@/test/factories/flags";
@@ -194,6 +194,21 @@ describe("applyFlagPatch", () => {
     expect(result).toEqual({ status: 502 });
     expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(true);
     expect(logged).toHaveBeenCalledOnce();
+  });
+});
+
+describe("applyFlagPatch when the API runs out of time", () => {
+  it("answers 504 and leaves the seed store alone, since the write may have landed", async () => {
+    patchSeedStore("new-checkout", { environment: "production", enabled: true });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsWriteTimeoutError());
+
+    const result = await applyFlagPatch("new-checkout", {
+      environment: "production",
+      enabled: false,
+    });
+
+    expect(result).toEqual({ status: 504 });
+    expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(true);
   });
 });
 

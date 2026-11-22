@@ -13,7 +13,11 @@ import {
   createPromotion,
   stopPromotion,
 } from "./operator-bff";
-import { OperatorApiError, OperatorContractError } from "./operator-client";
+import {
+  OperatorApiError,
+  OperatorContractError,
+  OperatorWriteTimeoutError,
+} from "./operator-client";
 import * as seed from "./operator-data";
 import { buildStore, buildAlert } from "@/test/factories/operator";
 
@@ -198,6 +202,14 @@ describe("a write the API answered never falls back to the seed", () => {
     );
 
     await expect(applyDismiss(alert.id)).rejects.toBeInstanceOf(OperatorContractError);
+    expect(isDismissedInSeed(alert.id)).toBe(false);
+  });
+
+  it("reports a write that ran out of time instead of replaying it against the seed", async () => {
+    const alert = undismissedSeedAlert(0);
+    vi.mocked(patchDismiss).mockRejectedValue(new OperatorWriteTimeoutError("/alerts/x/dismiss"));
+
+    await expect(applyDismiss(alert.id)).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
     expect(isDismissedInSeed(alert.id)).toBe(false);
   });
 
