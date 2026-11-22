@@ -281,8 +281,7 @@ export const COMPONENTS: ComponentDoc[] = [
       "Any non-default status also emits a screen-reader word, so the state is never carried by colour alone",
       "The marker is decorative and hidden; the title and time carry the content",
     ],
-    usedOn: [],
-    elsewhere: AI_ELSEWHERE,
+    usedOn: [{ label: "Landing experience card", href: "/#about" }],
   },
   {
     id: "stat-card",
