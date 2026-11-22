@@ -23,14 +23,34 @@ async function readErrorMessage(res: Response): Promise<string | null> {
 }
 
 /**
+ * What the shared route helpers (upstream, parseBody, withBackend) answer with.
+ * They're labels for the logs, and "Upstream timed out" tells the person who
+ * clicked nothing they can act on. The test builds these responses from the
+ * real helpers, so a renamed label fails there instead of reaching the screen.
+ */
+const ROUTE_HELPER_LABELS = new Set([
+  "Upstream timed out",
+  "Backend unavailable",
+  "Invalid request body",
+  "Invalid JSON",
+  "Payload too large",
+  "Not authenticated",
+  "Invalid identifier",
+]);
+
+/**
  * Turns a non-ok response into an error worth showing.
  *
- * The BFF routes answer a failure with `{ error }`, written for whoever
- * clicked, so that sentence wins. Anything else, an HTML page from a proxy or a
- * body with no reason in it, gets the caller's own wording instead.
+ * A route that refuses a request on purpose (a 409 for a second active wallet,
+ * a 403 for a viewer editing a calendar) answers `{ error }` with a sentence
+ * for whoever clicked, so that sentence wins. So does a 503 that says why, like
+ * a pack that can't be drawn. A shared helper's log label, an HTML page from a
+ * proxy or a body with no reason in it all get the caller's own wording instead.
  */
 export async function responseError(res: Response, fallback: string): Promise<ResponseError> {
-  return new ResponseError((await readErrorMessage(res)) ?? fallback, res.status);
+  const reason = await readErrorMessage(res);
+  const shown = reason && !ROUTE_HELPER_LABELS.has(reason) ? reason : fallback;
+  return new ResponseError(shown, res.status);
 }
 
 /**

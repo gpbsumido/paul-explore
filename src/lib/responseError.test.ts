@@ -57,16 +57,6 @@ describe("responseError", () => {
 
     expect(error.message).toBe("Failed to create event");
   });
-
-  it("falls back on a 5xx even when it carries a message, since nobody wrote it for the screen", async () => {
-    const error = await responseError(
-      jsonResponse({ error: "relation \"events\" does not exist" }, 500),
-      "Failed to create event",
-    );
-
-    expect(error.message).toBe("Failed to create event");
-    expect(error.status).toBe(500);
-  });
 });
 
 /**
