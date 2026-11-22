@@ -269,6 +269,8 @@ describe("LeaguesPanel create form", () => {
     ["Starting bankroll ($)", "-5", "Enter a starting bankroll"],
     ["Target ($)", "", "Enter a target amount"],
     ["Target ($)", "0", "Enter a target amount"],
+    ["Max members", "", "Max members must be at least 2"],
+    ["Max members", "1", "Max members must be at least 2"],
   ])("refuses %s of %j without calling the server", async (label, value, message) => {
     const bodies = recordCreates();
     renderSignedIn();
@@ -281,6 +283,14 @@ describe("LeaguesPanel create form", () => {
 
     expect(await screen.findByText(message)).toBeInTheDocument();
     expect(bodies).toHaveLength(0);
+  });
+
+  it("asks the browser to hold back a Max members below 2", async () => {
+    renderSignedIn();
+    await openForm();
+    const maxMembers = screen.getByLabelText("Max members");
+    expect(maxMembers).toBeRequired();
+    expect(maxMembers).toHaveAttribute("min", "2");
   });
 
   it("asks for an end date on a timeline league instead of sending none", async () => {
