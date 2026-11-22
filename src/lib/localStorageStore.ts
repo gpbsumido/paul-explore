@@ -1,4 +1,21 @@
 /**
+ * Reads one key, or null when storage is blocked. With third-party cookies
+ * blocked or inside a sandboxed iframe, even touching `window.localStorage`
+ * throws a SecurityError, and that should look like nothing stored rather
+ * than take the page down.
+ *
+ * @param key - The localStorage key.
+ * @returns The stored string, or null when unset or unreadable.
+ */
+function readRaw(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * An external store over one localStorage key, for useSyncExternalStore.
  *
  * The snapshot has to be referentially stable between reads or
@@ -28,7 +45,7 @@ export function createLocalStorageStore<T>({
   const listeners = new Set<() => void>();
 
   function getSnapshot(): T {
-    const raw = window.localStorage.getItem(key);
+    const raw = readRaw(key);
     if (raw !== cachedRaw) {
       cachedRaw = raw;
       cachedValue = parse(raw);
@@ -56,7 +73,7 @@ export function createLocalStorageStore<T>({
       // Full or blocked storage keeps the new value for this page only, which
       // beats breaking whatever the visitor was doing.
     }
-    cachedRaw = window.localStorage.getItem(key);
+    cachedRaw = readRaw(key);
     cachedValue = next;
     listeners.forEach((listener) => listener());
   }
