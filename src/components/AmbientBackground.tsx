@@ -1,68 +1,41 @@
 type Props = {
   /**
-   * Primary aurora colour. Defaults to verdigris. This lands inside a
-   * `color-mix()`, so a CSS var is a legal value: a page that belongs to one
-   * feature passes its `--color-feature-*` token and gets the dense light
-   * value and the pastel dark one with no change here.
+   * Primary tint, faint, from the top left. Defaults to verdigris. This lands
+   * inside a `color-mix()`, so a CSS var is a legal value: a page that belongs
+   * to one feature passes its `--color-feature-*` token and gets the dense
+   * light value and the pastel dark one with no change here.
    */
   colorA?: string;
-  /** Secondary aurora colour. Defaults to ember. */
+  /** Secondary tint, from the bottom right. Defaults to cyan. */
   colorB?: string;
 };
 
 /**
- * The ambient backdrop that gives the landing its "alive" feel — a faint dotted
- * grid that fades toward the edges, plus two slow drifting aurora blobs. Purely
- * decorative and non-interactive.
+ * The backdrop behind every page: a fine line grid with a coarser one over it,
+ * drifting slowly on a diagonal and fading into the page colour toward the
+ * edges, so the content sits on graph paper rather than a flat fill. Fixed to
+ * the viewport, so the drift reads the same at any scroll depth.
  *
- * The drift is a CSS transform animation (see `.ambient-blob-*` in globals.css),
- * so it runs on the compositor rather than the main thread — an earlier version
- * animated it with framer-motion's JS `animate`, which sampled every frame on
- * the main thread and showed up as interaction latency (INP) on every page that
- * renders this. CSS keyframes cost nothing on the main thread, disable
- * themselves under `prefers-reduced-motion`, and let this be a plain server
- * component with no client JS at all.
+ * The grid and its drift live in globals.css (`.grid-backdrop`). The drift is a
+ * compositor transform gated on prefers-reduced-motion: no-preference, so this
+ * stays a server component with no client JS.
  *
- * The two blob colours are parameterised so a page can tint its aurora to its
- * own accent (e.g. its feature token) while keeping the same treatment.
+ * The two tints are what's left of the old aurora blobs: static, and faint
+ * enough that a feature's accent shows without competing with the grid.
  */
 export default function AmbientBackground({
-  // Verdigris and ember rather than the violet-and-sky aurora every generated
-  // landing page has. Callers still override per page.
-  colorA = "#219b84",
-  colorB = "#d97e1f",
+  colorA = "var(--color-primary-500)",
+  colorB = "var(--paul-color-cyan-500)",
 }: Props) {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
-      {/* Dotted grid, fading out toward the edges. */}
+    <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
       <div
-        className="absolute inset-0 opacity-[0.35] dark:opacity-25"
+        className="absolute inset-0"
         style={{
-          backgroundImage:
-            "radial-gradient(circle at center, color-mix(in srgb, var(--color-foreground) 22%, transparent) 1px, transparent 1px)",
-          backgroundSize: "34px 34px",
-          maskImage:
-            "radial-gradient(ellipse 75% 75% at 50% 45%, black 40%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 75% 75% at 50% 45%, black 40%, transparent 100%)",
+          background: `radial-gradient(ellipse 60% 50% at 15% 10%, color-mix(in srgb, ${colorA} 9%, transparent), transparent 70%), radial-gradient(ellipse 55% 45% at 90% 95%, color-mix(in srgb, ${colorB} 7%, transparent), transparent 70%)`,
         }}
       />
-
-      <div
-        className="ambient-blob ambient-blob-a absolute left-[12%] top-[15%] h-[42vmax] w-[42vmax] rounded-full blur-3xl"
-        style={{
-          background: `radial-gradient(circle, color-mix(in srgb, ${colorA} 30%, transparent), transparent 65%)`,
-        }}
-      />
-      <div
-        className="ambient-blob ambient-blob-b absolute bottom-[12%] right-[10%] h-[38vmax] w-[38vmax] rounded-full blur-3xl"
-        style={{
-          background: `radial-gradient(circle, color-mix(in srgb, ${colorB} 26%, transparent), transparent 65%)`,
-        }}
-      />
+      <div className="grid-backdrop absolute inset-0" />
     </div>
   );
 }
