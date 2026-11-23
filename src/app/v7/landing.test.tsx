@@ -69,8 +69,10 @@ describe("the v7 landing", () => {
 
     expect(workTab).toHaveAttribute("aria-selected", "true");
     const panel = within(editor).getByRole("tabpanel", { name: "work.ts" });
-    for (const { title, href } of editorWorkLinks()) {
-      expect(within(panel).getByRole("link", { name: title })).toHaveAttribute("href", href);
+    for (const { title, href, note } of editorWorkLinks()) {
+      const link = within(panel).getByRole("link", { name: title });
+      expect(link).toHaveAttribute("href", href);
+      expect(link.closest("span[style]")).toHaveTextContent(`// ${note}`);
     }
   });
 
