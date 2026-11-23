@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.7
+
+- The prediction panel's Start / Sit table had every game a day late, so a Monday-to-Sunday week read Tuesday to Monday. The schedule route took each game's date from ESPN's UTC timestamp, and an evening tip-off in the US is already past midnight UTC. It now dates each game by the day it was asked for, which is the US day ESPN files it under.
+
 ## 2026-11-22 - version 9.3.6
 
 - The matchup prediction panel's weekly NBA schedule loads again. ESPN started answering every scoreboard date range with `400 Failed to get events endpoint.`, and the schedule route asked for the whole Monday-to-Sunday week as one range. It now asks for each day of the week and merges them in day order. A day that fails still fails the week, since a week missing a day would undercount games.
