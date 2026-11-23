@@ -55,7 +55,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 48px;
   align-items: center;
-  padding-block: clamp(72px, 10vw, 128px) clamp(64px, 8vw, 112px);
+  padding-block: clamp(48px, 7vw, 88px) clamp(40px, 5vw, 64px);
 }
 @media (min-width: 980px) {
   .hero {
@@ -67,7 +67,7 @@
   min-width: 0;
 }
 .heroTitle {
-  font-size: clamp(3rem, 6.6vw, 6rem);
+  font-size: clamp(2.75rem, 5.6vw, 5rem);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.03em;
@@ -295,7 +295,7 @@
 .track {
   display: flex;
   width: max-content;
-  font: 500 clamp(17px, 2.2vw, 26px) var(--font-mono);
+  font: 500 clamp(16px, 1.7vw, 21px) var(--font-mono);
   white-space: nowrap;
 }
 .track > span {
@@ -309,7 +309,7 @@
 }
 .trackAlt {
   color: var(--cool);
-  font-size: clamp(15px, 1.8vw, 21px);
+  font-size: clamp(14px, 1.4vw, 17px);
 }
 @media (prefers-reduced-motion: no-preference) {
   .track {
@@ -331,14 +331,14 @@
 
 /* Sections */
 .section {
-  padding-block: clamp(80px, 10vw, 136px);
+  padding-block: clamp(40px, 5vw, 64px);
 }
 .sectionTitle {
-  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  font-size: clamp(2rem, 3.8vw, 3.25rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 /* Work grid */
@@ -440,18 +440,8 @@
   flex-wrap: wrap;
 }
 .tileTitle {
-  font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
   font-weight: 700;
-}
-.go {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  display: inline-block;
-  transition: transform 0.35s var(--ease);
-}
-.tile:hover .go,
-.tile:focus-visible .go {
-  transform: translate(4px, -4px);
 }
 .chip {
   margin-left: auto;
@@ -466,7 +456,7 @@
   max-width: 48ch;
 }
 .workFoot {
-  margin-top: 64px;
+  margin-top: 40px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -488,7 +478,7 @@
 @media (min-width: 980px) {
   .about {
     grid-template-columns: 5fr 7fr;
-    gap: 80px;
+    gap: 56px;
   }
   .aboutIntro {
     position: sticky;
@@ -497,7 +487,7 @@
   }
 }
 .aboutTitle {
-  font-size: clamp(2.2rem, 4.2vw, 3.6rem);
+  font-size: clamp(2rem, 3.8vw, 3.25rem);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -549,7 +539,7 @@
   background: var(--accent);
 }
 .years {
-  font: 700 clamp(1.5rem, 3vw, 2.3rem) / 1.1 var(--font-mono);
+  font: 700 clamp(1.1rem, 1.5vw, 1.3rem) / 1.2 var(--font-mono);
   letter-spacing: -0.03em;
   transition: color 0.25s ease;
 }
@@ -558,7 +548,7 @@
 }
 .role {
   margin-top: 8px;
-  font: 600 19px var(--font-sans);
+  font: 600 18px var(--font-sans);
   letter-spacing: -0.01em;
 }
 .place {
@@ -573,11 +563,11 @@
 
 /* Proof */
 .proofTitle {
-  font-size: clamp(2.2rem, 4.8vw, 4.2rem);
+  font-size: clamp(2rem, 3.8vw, 3.25rem);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.03em;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 .cycle {
   color: var(--cool);
@@ -606,7 +596,7 @@
   border-top: 2px solid var(--accent);
 }
 .figures dd {
-  font: 800 clamp(2.8rem, 5.6vw, 4.8rem) / 1 var(--font-display);
+  font: 800 clamp(2.25rem, 4vw, 3.25rem) / 1 var(--font-display);
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
 }
@@ -616,13 +606,13 @@
   font-size: 15px;
 }
 .vitals {
-  margin-top: 44px;
+  margin-top: 32px;
   font: 15px var(--font-mono);
 }
 
 /* Contact */
 .contactTitle {
-  font-size: clamp(2.6rem, 7vw, 6.2rem);
+  font-size: clamp(2rem, 3.8vw, 3.25rem);
   font-weight: 800;
   line-height: 0.98;
   letter-spacing: -0.03em;
@@ -654,7 +644,7 @@
 
 /* Footer */
 .footer {
-  padding-block: 36px 56px;
+  padding-block: 32px 48px;
   display: grid;
   gap: 24px;
 }

@@ -27,7 +27,6 @@ export default function WorkGrid() {
               <div className={styles.tileCaption}>
                 <div className={styles.tileMeta}>
                   <h3 className={styles.tileTitle}>{tile.title}</h3>
-                  <span className={styles.go} aria-hidden="true">↗</span>
                   <span className={styles.chip}>{tile.category}</span>
                 </div>
                 <p className={styles.tileNote}>{tile.note}</p>
