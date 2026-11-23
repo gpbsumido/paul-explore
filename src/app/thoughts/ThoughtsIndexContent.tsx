@@ -26,7 +26,7 @@ function ThoughtCard({
       href={thought.href}
       className={`glass-card flex h-full items-start gap-3 rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
         featured ? " sm:col-span-2 sm:p-6" : wide ? " sm:col-span-2" : ""
-      }${thought.deprecated ? " opacity-70" : ""}`}
+      }`}
     >
       <span
         aria-hidden
@@ -39,7 +39,7 @@ function ThoughtCard({
         >
           <span className="truncate">{thought.title}</span>
           {thought.deprecated ? (
-            <span className="shrink-0 rounded-sm bg-foreground/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted">
+            <span className="shrink-0 rounded-sm bg-foreground/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-foreground">
               deprecated
             </span>
           ) : null}

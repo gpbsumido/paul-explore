@@ -696,7 +696,7 @@ function TopicCard({
           <ConceptMark id={topic.id} hovered={hovered} />
         </div>
         <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="font-mono text-xs tabular-nums text-foreground/50 transition-colors duration-200 group-hover:text-foreground/70">
+          <span className="font-mono text-xs tabular-nums text-muted transition-colors duration-200 group-hover:text-foreground">
             {num}
           </span>
           <h3 className="text-[15px] font-semibold tracking-tight text-foreground">

@@ -453,10 +453,15 @@
 .chip {
   margin-left: auto;
   font: 500 12px var(--font-mono);
-  color: var(--accent);
+  /* primary-600 on primary-100 is 4.3:1, so the light chip takes the next
+     step down. Dark already clears it with the accent. */
+  color: var(--color-primary-700);
   background: var(--accent-soft);
   padding: 4px 10px;
   border-radius: var(--radius-full);
+}
+:global([data-theme="dark"]) .chip {
+  color: var(--accent);
 }
 .tileNote {
   color: var(--color-muted);
