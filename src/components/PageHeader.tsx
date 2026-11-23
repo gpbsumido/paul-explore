@@ -149,13 +149,15 @@ export default function PageHeader({
 }: PageHeaderProps) {
   // At the top: a full-width frosted bar. Floating: the bar goes clear and
   // click-through, and the inner row becomes the pill.
+  // The pill drops with `top`, not a margin: a margin collapses through the
+  // frame and leaves the pill flush with the top edge.
   const frameClassName = `group/header sticky top-0 ${zIndex} min-h-14 border-b border-border bg-background/80 backdrop-blur-(--blur-bar) transition-[background-color,border-color] duration-300 data-[floating=true]:pointer-events-none data-[floating=true]:border-transparent data-[floating=true]:bg-transparent data-[floating=true]:backdrop-blur-none`;
 
   const content = (
     <>
       {overlay}
       <div
-        className={`pointer-events-auto relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4 rounded-full border border-transparent transition-[max-width,margin,min-height,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none group-data-[floating=true]/header:my-1.5 group-data-[floating=true]/header:min-h-11 group-data-[floating=true]/header:max-w-[min(48rem,calc(100%-1.5rem))] group-data-[floating=true]/header:border-border group-data-[floating=true]/header:bg-surface/80 group-data-[floating=true]/header:py-1 group-data-[floating=true]/header:pr-1 group-data-[floating=true]/header:pl-5 sm:group-data-[floating=true]/header:pr-2 group-data-[floating=true]/header:shadow-[0_12px_32px_-16px_rgb(0_0_0/0.35)] group-data-[floating=true]/header:backdrop-blur-md`}
+        className={`pointer-events-auto relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4 rounded-full border border-transparent transition-[max-width,top,min-height,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none group-data-[floating=true]/header:top-2 group-data-[floating=true]/header:min-h-11 group-data-[floating=true]/header:max-w-[min(48rem,calc(100%-1.5rem))] group-data-[floating=true]/header:border-border group-data-[floating=true]/header:bg-surface/80 group-data-[floating=true]/header:py-1 group-data-[floating=true]/header:pr-1 group-data-[floating=true]/header:pl-5 sm:group-data-[floating=true]/header:pr-2 group-data-[floating=true]/header:shadow-[0_12px_32px_-16px_rgb(0_0_0/0.35)] group-data-[floating=true]/header:backdrop-blur-md`}
       >
         {/* Left: breadcrumb trail or custom node */}
         {left ??
