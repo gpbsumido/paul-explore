@@ -6,6 +6,9 @@
 - The rest of the site picks up the same language through the shared pieces instead of page by page. PageHeader sits full width at the top and lifts into a centered floating pill once the page scrolls. It stays inside the same 56px box, so sub-bars pinned under it don't move. A breadcrumb that starts at `/` now shows the paul—explore wordmark as its home link, and the crumbs are set in mono. The backdrop behind every PageShell page is now a drifting line grid that fades out toward the edges. The old aurora blobs are gone and a faint, still tint keeps each feature's accent. h2 and h3 move onto the display face, and PageIntro's eyebrow becomes a mono label in the accent colour.
 - The mockup's second accent was cyan. The palette sweep keeps stock Tailwind ramps out of live code, and the design system's cyan is stock cyan, so the cool accent is a deeper verdigris step instead.
 - The grid only drifts, the marquee only slides and the proof headline only cycles its last word when the OS allows motion. A guard test checks the grid's drift is gated.
+- The hero editor's work.ts tab is real now. It's a keyboard-operable tab that lists six projects the grid doesn't show, each one a link with a comment saying what it is, and the window eases to the new file's height instead of jumping. Long lines soft-wrap with a hanging indent instead of scrolling the panel sideways.
+- The work grid's stagger comes from the screenshots' own heights instead of a fixed 72px offset, which had the Operator tile running into the caption above it at every width. Both columns now get the same gutter, and the tile arrows are gone.
+- The homepage type and spacing are pulled in. Every section heading is one size, so the contact line no longer outsizes the hero. The timeline years and figures shrink to match, the rules between sections are gone, sections sit about half as far apart, and the footer drops its link to past editions.
 
 ## 2026-11-22 - version 9.3.5
 
