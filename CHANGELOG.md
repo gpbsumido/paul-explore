@@ -9,6 +9,8 @@
 - The hero editor's work.ts tab is real now. It's a keyboard-operable tab that lists six projects the grid doesn't show, each one a link with a comment saying what it is, and the window eases to the new file's height instead of jumping. Long lines soft-wrap with a hanging indent instead of scrolling the panel sideways.
 - The work grid's stagger comes from the screenshots' own heights instead of a fixed 72px offset, which had the Operator tile running into the caption above it at every width. Both columns now get the same gutter, and the tile arrows are gone.
 - The homepage type and spacing are pulled in. Every section heading is one size, so the contact line no longer outsizes the hero. The timeline years and figures shrink to match, the rules between sections are gone, sections sit about half as far apart, and the footer drops its link to past editions.
+- The header's Work, About and Contact links glide to their section on the homepage when motion is allowed, and jump straight there when it isn't. The timeline shows every résumé point, not just the first, and the Refmint role says what the job was: the wallet interface for a web3 user-acquisition and analytics tool.
+- On small windows the floating header keeps a gap at the edges instead of running full width between 640px and 768px, and the menu button is rounded so it sits inside the pill instead of clipping its curve.
 
 ## 2026-11-22 - version 9.3.5
 
