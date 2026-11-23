@@ -8,6 +8,44 @@ import { NextRequest, NextResponse } from "next/server";
  */
 
 const DATE_RE = /^\d{8}$/;
+const MAX_DAYS_IN_A_WEEK = 7;
+
+/** "YYYYMMDD" for a UTC date. */
+function ymd(date: Date): string {
+  return date.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+/** The UTC date a "YYYYMMDD" names, or null when it's not a real day (Feb 30). */
+function parseDay(yyyymmdd: string): Date | null {
+  const date = new Date(
+    Date.UTC(Number(yyyymmdd.slice(0, 4)), Number(yyyymmdd.slice(4, 6)) - 1, Number(yyyymmdd.slice(6, 8))),
+  );
+  return ymd(date) === yyyymmdd ? date : null;
+}
+
+/**
+ * Every day from start to end inclusive, or null if either isn't a real day,
+ * the end comes first, or it runs past a week. ESPN gets one request per day,
+ * so the cap is what stops a hand-written URL fanning out into hundreds.
+ */
+function daysOfWeek(start: string, end: string): string[] | null {
+  const first = parseDay(start);
+  const last = parseDay(end);
+  if (!first || !last) return null;
+  const count = Math.round((last.getTime() - first.getTime()) / 86_400_000) + 1;
+  if (count < 1 || count > MAX_DAYS_IN_A_WEEK) return null;
+  return Array.from({ length: count }, (_, i) =>
+    ymd(new Date(first.getTime() + i * 86_400_000)),
+  );
+}
+
+/**
+ * One day's scoreboard. ESPN answers a `dates=A-B` range with 400 "Failed to
+ * get events endpoint." now, so a week is read a day at a time.
+ */
+function scoreboardUrl(yyyymmdd: string): string {
+  return `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?limit=200&dates=${yyyymmdd}`;
+}
 
 // games don't change mid-week, cache for 6 hours
 const CACHE_CONTROL = "public, s-maxage=21600";
@@ -23,22 +61,35 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  try {
-    const upstreamResult = await fetchUpstream(
-      `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?limit=200&dates=${start}-${end}`,
+  const days = daysOfWeek(start, end);
+  if (!days) {
+    return NextResponse.json(
+      { error: "start and end must be real days, at most a week apart" },
+      { status: 400 },
     );
-    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
-    const res = upstreamResult.response;
+  }
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch NBA schedule" },
-        { status: res.status },
-      );
+  try {
+    const upstreamResults = await Promise.all(
+      days.map((day) => fetchUpstream(scoreboardUrl(day))),
+    );
+
+    // A week with a day missing would undercount games for the prediction, so
+    // one failed day fails the week.
+    const responses: Response[] = [];
+    for (const upstreamResult of upstreamResults) {
+      if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+      if (!upstreamResult.response.ok) {
+        return NextResponse.json(
+          { error: "Failed to fetch NBA schedule" },
+          { status: upstreamResult.response.status },
+        );
+      }
+      responses.push(upstreamResult.response);
     }
 
-    const data = await res.json();
-    const events: unknown[] = data.events ?? [];
+    const scoreboards = await Promise.all(responses.map((res) => res.json()));
+    const events: unknown[] = scoreboards.flatMap((data) => data.events ?? []);
 
     // build map: proTeamId -> game list
     const schedule: Record<
