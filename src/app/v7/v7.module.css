@@ -141,10 +141,22 @@
   border-bottom: 1px solid var(--color-border);
   font: 13px var(--font-mono);
 }
+.tabList {
+  display: flex;
+}
 .tab {
   padding: 11px 18px;
   color: var(--color-muted);
   border-right: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.tab:hover {
+  color: var(--color-foreground);
+}
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 .tabOn {
   color: var(--color-foreground);
@@ -207,6 +219,27 @@
 }
 .pun {
   color: var(--color-muted);
+}
+.comment {
+  color: var(--color-muted);
+  font-style: italic;
+}
+/* The project names in work.ts are links. The underline says so without
+   leaning on colour, since they share the string colour. */
+.codeLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+}
+.codeLink:hover {
+  color: var(--accent);
+  text-decoration-style: solid;
+}
+.codeLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .caret {
   display: inline-block;

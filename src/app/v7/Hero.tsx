@@ -1,6 +1,8 @@
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
+import CodeEditor from "./CodeEditor";
+import { editorWorkLinks } from "./picks";
 import styles from "./v7.module.css";
 
 /** 6414 as a TypeScript numeric literal: 6_414. */
@@ -14,15 +16,13 @@ function stagger(index: number): CSSProperties {
 }
 
 /**
- * The hero: the headline on the left, and on the right the same facts written
- * as a TypeScript object in an editor panel. The test count is the generated
- * one, so the object can't overstate it.
- *
- * Each line carries its index in `--i` for the staggered rise, which only runs
- * when motion is allowed.
+ * The hero: the headline on the left, and on the right an editor panel with
+ * two files. paul.ts has the same facts as a TypeScript object, with the
+ * generated test count so it can't overstate it; work.ts lists projects the
+ * grid below doesn't show, each one a link.
  */
 export default function Hero() {
-  const lines = [
+  const paulLines = [
     <><span className={styles.kw}>export const</span> paul <span className={styles.pun}>=</span> <span className={styles.pun}>{"{"}</span></>,
     <>  name<span className={styles.pun}>:</span> <span className={styles.str}>&quot;Paul Sumido&quot;</span><span className={styles.pun}>,</span></>,
     <>  role<span className={styles.pun}>:</span> <span className={styles.str}>&quot;Lead Frontend Developer&quot;</span><span className={styles.pun}>,</span></>,
@@ -31,6 +31,15 @@ export default function Hero() {
     <>  focus<span className={styles.pun}>: [</span><span className={styles.str}>&quot;agentic workflow&quot;</span><span className={styles.pun}>,</span> <span className={styles.str}>&quot;design systems&quot;</span><span className={styles.pun}>,</span> <span className={styles.str}>&quot;experience&quot;</span><span className={styles.pun}>],</span></>,
     <>  testsWrittenFirst<span className={styles.pun}>:</span> <span className={styles.num}>{numericLiteral(TEST_COUNT)}</span><span className={styles.pun}>,</span></>,
     <><span className={styles.pun}>{"}"}</span> <span className={styles.kw}>as const</span><span className={styles.pun}>;</span><span className={styles.caret} aria-hidden="true" /></>,
+  ];
+
+  const workLines = [
+    <><span className={styles.comment}>{"// Some other things I've built. Each one opens."}</span></>,
+    <><span className={styles.kw}>export const</span> work <span className={styles.pun}>= [</span></>,
+    ...editorWorkLinks().map(({ title, href }) => (
+      <Fragment key={href}>  <span className={styles.str}>&quot;<Link href={href} className={styles.codeLink}>{title}</Link>&quot;</span><span className={styles.pun}>,</span></Fragment>
+    )),
+    <><span className={styles.pun}>]</span> <span className={styles.kw}>as const</span><span className={styles.pun}>;</span><span className={styles.caret} aria-hidden="true" /></>,
   ];
 
   return (
@@ -48,18 +57,12 @@ export default function Hero() {
           <Link className={`${styles.btn} ${styles.btnOutline}`} href="/resume">Resume <span aria-hidden="true">↗</span></Link>
         </div>
       </div>
-      <figure className={styles.editor} aria-label="About me, as a TypeScript object">
-        <div className={styles.tabs} aria-hidden="true">
-          <span className={`${styles.tab} ${styles.tabOn}`}>paul.ts</span>
-          <span className={styles.tab}>work.ts</span>
-          <span className={styles.lang}>TypeScript</span>
-        </div>
-        <pre className={styles.code}>
-          {lines.map((line, index) => (
-            <span key={index} className={styles.line} style={stagger(index)}>{line}</span>
-          ))}
-        </pre>
-      </figure>
+      <CodeEditor
+        files={[
+          { name: "paul.ts", lines: paulLines },
+          { name: "work.ts", lines: workLines },
+        ]}
+      />
     </div>
   );
 }
