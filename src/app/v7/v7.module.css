@@ -168,6 +168,15 @@
   padding: 11px 16px;
   color: var(--color-muted);
 }
+.codeFrame {
+  overflow: hidden;
+  transition: height 0.45s var(--ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .codeFrame {
+    transition: none;
+  }
+}
 .code {
   padding: 18px 0 22px;
   font: 400 clamp(13px, 1.2vw, 15px) / 1.9 var(--font-mono);

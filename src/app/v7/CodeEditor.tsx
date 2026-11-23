@@ -1,26 +1,39 @@
 "use client";
 
-import { useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import styles from "./v7.module.css";
 
-export type EditorFile = { name: string; lines: ReactNode[] };
-
-/** The stagger index for the rise animation. CSSProperties has no slot for custom properties, hence the cast. */
-function stagger(index: number): CSSProperties {
-  return { "--i": index } as CSSProperties;
-}
+export type EditorFile = { name: string; code: ReactNode };
 
 /**
  * The hero's editor panel. Each file is a tab, following the WAI-ARIA tabs
  * pattern: one tab in the tab order at a time, arrow keys and Home/End move
  * between files, and the code shows in the selected file's panel.
+ *
+ * The files aren't the same length, so the window eases to the new file's
+ * height instead of jumping. A ResizeObserver copies the panel's height onto
+ * the frame around it and CSS transitions the change; it also keeps the frame
+ * right when the code rewraps at a new width.
  */
 export default function CodeEditor({ files }: { files: EditorFile[] }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLPreElement>(null);
   const idPrefix = useId();
   const tabId = (index: number) => `${idPrefix}-tab-${index}`;
   const panelId = (index: number) => `${idPrefix}-panel-${index}`;
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const panel = panelRef.current;
+    if (!frame || !panel) return;
+    const observer = new ResizeObserver(() => {
+      frame.style.height = `${panel.offsetHeight}px`;
+    });
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [selectedIndex]);
 
   function selectAndFocus(index: number) {
     setSelectedIndex(index);
@@ -70,18 +83,19 @@ export default function CodeEditor({ files }: { files: EditorFile[] }) {
         </div>
         <span className={styles.lang} aria-hidden="true">TypeScript</span>
       </div>
-      <pre
-        key={selectedIndex}
-        role="tabpanel"
-        id={panelId(selectedIndex)}
-        aria-labelledby={tabId(selectedIndex)}
-        tabIndex={0}
-        className={styles.code}
-      >
-        {files[selectedIndex].lines.map((line, index) => (
-          <span key={index} className={styles.line} style={stagger(index)}>{line}</span>
-        ))}
-      </pre>
+      <div ref={frameRef} className={styles.codeFrame}>
+        <pre
+          key={selectedIndex}
+          ref={panelRef}
+          role="tabpanel"
+          id={panelId(selectedIndex)}
+          aria-labelledby={tabId(selectedIndex)}
+          tabIndex={0}
+          className={styles.code}
+        >
+          {files[selectedIndex].code}
+        </pre>
+      </div>
     </figure>
   );
 }

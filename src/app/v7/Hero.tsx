@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 import CodeEditor from "./CodeEditor";
@@ -13,6 +13,13 @@ function numericLiteral(value: number): string {
 /** The stagger index for the rise animation. CSSProperties has no slot for custom properties, hence the cast. */
 function stagger(index: number): CSSProperties {
   return { "--i": index } as CSSProperties;
+}
+
+/** One numbered editor line per entry. Each carries its index in `--i` for the staggered rise, which only runs when motion is allowed. */
+function codeLines(lines: ReactNode[]): ReactNode {
+  return lines.map((line, index) => (
+    <span key={index} className={styles.line} style={stagger(index)}>{line}</span>
+  ));
 }
 
 /**
@@ -58,8 +65,8 @@ export default function Hero() {
       </div>
       <CodeEditor
         files={[
-          { name: "paul.ts", lines: paulLines },
-          { name: "work.ts", lines: workLines },
+          { name: "paul.ts", code: codeLines(paulLines) },
+          { name: "work.ts", code: codeLines(workLines) },
         ]}
       />
     </div>
