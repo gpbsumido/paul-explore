@@ -11,15 +11,19 @@ import { generateCards, type GeneratedCard, type Sport } from "./fantasy-cards";
 const BASE = "https://site.web.api.espn.com/apis/site/v2/sports/basketball";
 
 /**
- * Nightly discovery scans date-range windows back from today until it finds a
+ * Nightly discovery scans calendar months back from today until it finds a
  * completed slate — so it reaches into previous seasons when the current one is
- * out of season, which is the whole point of "use prev history".
+ * out of season, which is the whole point of "use prev history". It used to scan
+ * twelve-day ranges, but ESPN answers any `dates=A-B` range with a 400 now.
  */
-const WINDOW_DAYS = 12;
-const MAX_WINDOWS = 45;
+const MAX_MONTHS = 18;
 
-export function scoreboardUrl(sport: Sport, yyyymmdd: string): string {
-  return `${BASE}/${sport}/scoreboard?dates=${yyyymmdd}`;
+/**
+ * A scoreboard for a day (`YYYYMMDD`) or a whole month (`YYYYMM`). ESPN caps a
+ * scoreboard at 100 events unless asked for more, and a busy NBA month has 200+.
+ */
+export function scoreboardUrl(sport: Sport, dates: string): string {
+  return `${BASE}/${sport}/scoreboard?dates=${dates}&limit=1000`;
 }
 
 export function summaryUrl(sport: Sport, eventId: string): string {
@@ -39,24 +43,12 @@ function espnAuthHeaders(): Record<string, string> | undefined {
   return { Cookie: `espn_s2=${s2}; SWID=${swid}` };
 }
 
-/** A UTC date `n` days before today. */
-function daysAgo(n: number): Date {
+/** "YYYYMM" months back from this one, most recent first, for scoreboard scans. */
+function recentMonths(): string[] {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - n));
-}
-
-/** "YYYYMMDD" for an ESPN scoreboard date param. */
-function ymd(d: Date): string {
-  return d.toISOString().slice(0, 10).replace(/-/g, "");
-}
-
-/** Date-range windows back from today, most recent first, for scoreboard scans. */
-function rangeWindows(): string[] {
-  return Array.from({ length: MAX_WINDOWS }, (_, i) => {
-    const end = daysAgo(i * WINDOW_DAYS);
-    const start = daysAgo((i + 1) * WINDOW_DAYS - 1);
-    return `${ymd(start)}-${ymd(end)}`;
-  });
+  return Array.from({ length: MAX_MONTHS }, (_, i) =>
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1)).toISOString().slice(0, 7).replace("-", ""),
+  );
 }
 
 /** Fetch a slate's box scores and turn them into cards. */
@@ -146,11 +138,11 @@ export async function loadNightlySlate({
     return { cards: await slateToCards(sport, slate.date, slate.eventIds, context), date: slate.date, error: false };
   }
 
-  // Otherwise scan windows back through history for the most recent slate that
+  // Otherwise scan months back through history for the most recent slate that
   // yields cards (in season that's last night; out of season, last season).
   let readAnyScoreboard = false;
-  for (const window of rangeWindows()) {
-    const scoreboard = await fetchEspnJson(scoreboardUrl(sport, window));
+  for (const month of recentMonths()) {
+    const scoreboard = await fetchEspnJson(scoreboardUrl(sport, month));
     if (!scoreboard) continue;
     readAnyScoreboard = true;
     const slate = latestCompletedSlate(scoreboard);
@@ -160,7 +152,7 @@ export async function loadNightlySlate({
     return { cards, date: slate.date, error: false };
   }
 
-  // Quiet windows mean nothing was played. No window answering at all is ESPN
+  // Quiet months mean nothing was played. No month answering at all is ESPN
   // being down, and the page should say so rather than show an empty night.
   return { cards: [], date: null, error: !readAnyScoreboard };
 }
