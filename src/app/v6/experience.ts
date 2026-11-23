@@ -2,12 +2,15 @@
  * The About band's timeline, copied from my published résumé
  * (public/resume/Resume-Developer-Sumido.pdf). Newest first. When the résumé
  * changes, this changes with it; nothing here should say more than that file.
+ * The one exception is `summary`, a plain description of the job in my own
+ * words, for roles where the résumé bullets only list the wins.
  */
 export type TimelineEntry = {
   id: string;
   dates: string;
   title: string;
   place: string;
+  summary?: string;
   points: string[];
 };
 
@@ -26,8 +29,9 @@ export const WORK: TimelineEntry[] = [
   {
     id: "refmint",
     dates: "Feb 2022 - Jun 2023",
-    title: "Frontend Developer",
+    title: "Front-End Developer",
     place: "Refmint, Vancouver (remote)",
+    summary: "The frontend developer in charge of the wallet interface for a web3 user-acquisition and analytics tool.",
     points: [
       "Cut page load times 40% on data-heavy React apps with lazy loading and caching.",
       "Built a shared UI component library with automated CI/CD pipelines.",
@@ -39,7 +43,7 @@ export const WORK: TimelineEntry[] = [
     title: "Front-End Developer (Analytics)",
     place: "PeopleInsight, Ottawa",
     points: [
-      "Built interactive React dashboards for enterprise HR analytics, plus survey-driven data collection with validation and automated tests.",
+      "Built interactive React dashboards for enterprise HR analytics, enterprise data collection with validation and automated tests.",
       "Automated data-processing pipelines and verification queries, cutting analytics QA time by 80%.",
     ],
   },

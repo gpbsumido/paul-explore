@@ -25,6 +25,7 @@ export default function About() {
             <span className={styles.years}>{yearsOf(entry.dates)}</span>
             <h3 className={styles.role}>{entry.title}</h3>
             <span className={styles.place}>{entry.place}</span>
+            {entry.summary ? <p className={styles.point}>{entry.summary}</p> : null}
             {entry.points[0] ? <p className={styles.point}>{entry.points[0]}</p> : null}
           </li>
         ))}
