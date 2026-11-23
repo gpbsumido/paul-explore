@@ -15,6 +15,13 @@
   font-size: 17px;
   line-height: 1.6;
 }
+/* The header's Work, About and Contact links glide to their section instead of
+   jumping, on this page only and only when the OS allows motion. */
+@media (prefers-reduced-motion: no-preference) {
+  :global(html):has(.page) {
+    scroll-behavior: smooth;
+  }
+}
 :global([data-theme="dark"]) .page {
   --accent: var(--color-primary-400);
   --accent-soft: var(--color-primary-900);
