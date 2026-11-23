@@ -17,6 +17,25 @@ function requestedUrl(fetchSpy: ReturnType<typeof stubFetch>): string {
   return String(fetchSpy.mock.calls[0][0]);
 }
 
+/**
+ * Answers each scoreboard request with the games listed for the day in its
+ * `dates=` param, and an empty day otherwise, the way ESPN does.
+ */
+function stubScoreboardDays(eventsByDay: Record<string, unknown[]>) {
+  const fetchSpy = vi.fn((input: unknown) => {
+    const day = new URL(String(input)).searchParams.get("dates") ?? "";
+    return Promise.resolve(
+      new Response(JSON.stringify({ events: eventsByDay[day] ?? [] }), { status: 200 }),
+    );
+  });
+  vi.stubGlobal("fetch", fetchSpy);
+  return fetchSpy;
+}
+
+/** Every `dates=` value the route asked ESPN for. */
+const datesRequested = (fetchSpy: { mock: { calls: unknown[][] } }) =>
+  fetchSpy.mock.calls.map(([input]) => new URL(String(input)).searchParams.get("dates"));
+
 const scheduleRequest = (query: string) =>
   new NextRequest(`http://localhost/api/nba/schedule${query}`);
 
@@ -60,31 +79,84 @@ describe("GET /api/nba/schedule", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("asks ESPN for exactly the requested week", async () => {
-    const fetchSpy = stubFetch(
-      () => new Response(JSON.stringify({ events: [] }), { status: 200 }),
-    );
+  it.each([
+    ["an end before the start", "?start=20260111&end=20260105"],
+    ["more than a week", "?start=20260105&end=20260112"],
+    ["a day that doesn't exist", "?start=20260230&end=20260301"],
+  ])("rejects %s with a 400 and never calls ESPN", async (_name, query) => {
+    const fetchSpy = stubFetch(() => new Response("{}"));
+
+    const res = await scheduleGET(scheduleRequest(query));
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      error: "start and end must be real days, at most a week apart",
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  // ESPN answers any dates=A-B range with 400 "Failed to get events endpoint."
+  // now, while single days still work.
+  it("asks ESPN for each day of the week, never a range", async () => {
+    const fetchSpy = stubScoreboardDays({});
 
     await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
 
-    expect(requestedUrl(fetchSpy)).toContain("dates=20260105-20260111");
+    expect(datesRequested(fetchSpy)).toEqual([
+      "20260105",
+      "20260106",
+      "20260107",
+      "20260108",
+      "20260109",
+      "20260110",
+      "20260111",
+    ]);
+  });
+
+  it("reads a week that crosses into a new month", async () => {
+    const fetchSpy = stubScoreboardDays({});
+
+    await scheduleGET(scheduleRequest("?start=20260126&end=20260201"));
+
+    expect(datesRequested(fetchSpy)).toEqual([
+      "20260126",
+      "20260127",
+      "20260128",
+      "20260129",
+      "20260130",
+      "20260131",
+      "20260201",
+    ]);
+  });
+
+  it("fails the whole week when one day can't be read", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: unknown) =>
+        Promise.resolve(
+          String(input).includes("dates=20260108")
+            ? new Response("nope", { status: 503 })
+            : new Response(JSON.stringify({ events: [] }), { status: 200 }),
+        ),
+      ),
+    );
+
+    const res = await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
+
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "Failed to fetch NBA schedule" });
   });
 
   it("files each game under both teams, with the opponent and where it is played", async () => {
-    stubFetch(
-      () =>
-        new Response(
-          JSON.stringify({
-            events: [
-              game(
-                "2026-01-06T00:30:00Z",
-                { id: "13", abbreviation: "LAL" },
-                { id: "2", abbreviation: "BOS" },
-              ),
-            ],
-          }),
+    stubScoreboardDays({
+      "20260105": [
+        game(
+          "2026-01-06T00:30:00Z",
+          { id: "13", abbreviation: "LAL" },
+          { id: "2", abbreviation: "BOS" },
         ),
-    );
+      ],
+    });
 
     const res = await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
 
@@ -95,17 +167,19 @@ describe("GET /api/nba/schedule", () => {
     });
   });
 
-  it("lists a team's games in the order ESPN sent them", async () => {
-    stubFetch(
-      () =>
-        new Response(
-          JSON.stringify({
-            events: [
-              game("2026-01-06T00:30:00Z", { id: "13", abbreviation: "LAL" }, { id: "2", abbreviation: "BOS" }),
-              game("2026-01-08T00:30:00Z", { id: "5", abbreviation: "CLE" }, { id: "13", abbreviation: "LAL" }),
-            ],
-          }),
-        ),
+  it("lists a team's games day by day, whichever day ESPN answers first", async () => {
+    const days: Record<string, unknown[]> = {
+      "20260105": [game("2026-01-06T00:30:00Z", { id: "13", abbreviation: "LAL" }, { id: "2", abbreviation: "BOS" })],
+      "20260107": [game("2026-01-08T00:30:00Z", { id: "5", abbreviation: "CLE" }, { id: "13", abbreviation: "LAL" })],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: unknown) => {
+        const day = new URL(String(input)).searchParams.get("dates") ?? "";
+        // The earlier day answers last.
+        if (day === "20260105") await new Promise((resolve) => setTimeout(resolve, 5));
+        return new Response(JSON.stringify({ events: days[day] ?? [] }), { status: 200 });
+      }),
     );
 
     const res = await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
@@ -118,14 +192,9 @@ describe("GET /api/nba/schedule", () => {
   });
 
   it("falls back to ?? when ESPN leaves out a team abbreviation", async () => {
-    stubFetch(
-      () =>
-        new Response(
-          JSON.stringify({
-            events: [game("2026-01-06T00:30:00Z", { id: "13" }, { id: "2" })],
-          }),
-        ),
-    );
+    stubScoreboardDays({
+      "20260105": [game("2026-01-06T00:30:00Z", { id: "13" }, { id: "2" })],
+    });
 
     const res = await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
     const schedule = await res.json();
@@ -135,11 +204,8 @@ describe("GET /api/nba/schedule", () => {
   });
 
   it("skips an event that is not a two-team game", async () => {
-    stubFetch(
-      () =>
-        new Response(
-          JSON.stringify({
-            events: [
+    stubScoreboardDays({
+      "20260105": [
               { date: "2026-01-06T00:30:00Z", competitions: [{ competitors: [] }] },
               {
                 date: "2026-01-06T00:30:00Z",
@@ -166,9 +232,7 @@ describe("GET /api/nba/schedule", () => {
                 ],
               },
             ],
-          }),
-        ),
-    );
+    });
 
     const res = await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
 

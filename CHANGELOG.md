@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.6
+
+- The matchup prediction panel's weekly NBA schedule loads again. ESPN started answering every scoreboard date range with `400 Failed to get events endpoint.`, and the schedule route asked for the whole Monday-to-Sunday week as one range. It now asks for each day of the week and merges them in day order. A day that fails still fails the week, since a week missing a day would undercount games.
+- The schedule route turns away a span that isn't a real week: an end before the start, more than seven days, or a day that doesn't exist like February 30. Each day is its own ESPN request now, so without the cap a hand-written URL could fan out into hundreds of them.
+
 ## 2026-11-21 - version 9.2.30
 
 - The twenty bugs the test audit held as expected failures are fixed, and each test is an ordinary passing test again. A malformed id on the operator and NBA routes answers 400 instead of a 404, 503 or unhandled 500, a budget delete the backend answers with 204 gets through, a mid-hour alert is counted in its own hour, a blank planner param falls back to the default, and the events date filters read the day in the viewer's zone instead of UTC.
