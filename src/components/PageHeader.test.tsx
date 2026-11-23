@@ -54,4 +54,11 @@ describe("the shared page header", () => {
     scrollTo(0);
     expect(nav).toHaveAttribute("data-floating", "false");
   });
+
+  it("rounds the menu trigger so it nests inside the floating pill", () => {
+    renderHeader();
+    const trigger = screen.getByRole("button", { name: /open menu/i });
+    expect(trigger.className).toContain("rounded-full");
+    expect(trigger.className).not.toContain("rounded-lg");
+  });
 });
