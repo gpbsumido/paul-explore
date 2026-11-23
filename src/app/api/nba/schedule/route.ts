@@ -89,7 +89,14 @@ export async function GET(request: NextRequest) {
     }
 
     const scoreboards = await Promise.all(responses.map((res) => res.json()));
-    const events: unknown[] = scoreboards.flatMap((data) => data.events ?? []);
+    // Each game is dated by the day it was asked for. ESPN's own timestamp is
+    // UTC, and an evening tip-off in the US is already the next day there.
+    const games: { ev: unknown; date: string }[] = scoreboards.flatMap((data, i) =>
+      (data.events ?? []).map((ev: unknown) => ({
+        ev,
+        date: `${days[i].slice(0, 4)}-${days[i].slice(4, 6)}-${days[i].slice(6, 8)}`,
+      })),
+    );
 
     // build map: proTeamId -> game list
     const schedule: Record<
@@ -97,9 +104,8 @@ export async function GET(request: NextRequest) {
       { date: string; opp: string; home: boolean }[]
     > = {};
 
-    for (const ev of events) {
+    for (const { ev, date } of games) {
       const event = ev as {
-        date?: string;
         competitions?: {
           competitors?: {
             homeAway?: string;
@@ -107,7 +113,6 @@ export async function GET(request: NextRequest) {
           }[];
         }[];
       };
-      const date = event.date?.slice(0, 10) ?? "";
       const competitors = event.competitions?.[0]?.competitors ?? [];
       if (competitors.length !== 2) continue;
 
