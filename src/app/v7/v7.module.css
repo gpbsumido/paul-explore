@@ -243,7 +243,6 @@
 
 /* Marquee */
 .marquee {
-  border-block: 1px solid var(--color-border);
   background: color-mix(in srgb, var(--color-surface) 85%, transparent);
   overflow: hidden;
   padding-block: 18px;
@@ -291,9 +290,6 @@
 /* Sections */
 .section {
   padding-block: clamp(80px, 10vw, 136px);
-}
-.ruled {
-  border-top: 1px solid var(--color-border);
 }
 .sectionTitle {
   font-size: clamp(2.4rem, 5vw, 4.4rem);
@@ -429,8 +425,6 @@
 }
 .workFoot {
   margin-top: 64px;
-  padding-top: 28px;
-  border-top: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -618,7 +612,6 @@
 
 /* Footer */
 .footer {
-  border-top: 1px solid var(--color-border);
   padding-block: 36px 56px;
   display: grid;
   gap: 24px;

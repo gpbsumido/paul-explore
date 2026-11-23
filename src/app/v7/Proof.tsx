@@ -14,7 +14,7 @@ const FIGURES = [
 /** Three figures on accent rules, then the one number I don't control. */
 export default function Proof() {
   return (
-    <section aria-labelledby="proof-title" className={`${styles.shell} ${styles.section} ${styles.ruled}`}>
+    <section aria-labelledby="proof-title" className={`${styles.shell} ${styles.section}`}>
       <h2 id="proof-title" className={styles.proofTitle}>
         Playful on the outside.
         <br />

@@ -6,7 +6,7 @@ const MAILTO = `mailto:${EMAIL}?subject=${encodeURIComponent("Hello Paul, I foun
 /** The close: who this is for, and the two fastest ways to reach me. */
 export default function Contact() {
   return (
-    <section id="contact" aria-labelledby="contact-title" className={`${styles.shell} ${styles.section} ${styles.ruled}`}>
+    <section id="contact" aria-labelledby="contact-title" className={`${styles.shell} ${styles.section}`}>
       <h2 id="contact-title" className={styles.contactTitle}>
         If you&apos;re hiring a frontend dev<span className={styles.accent}>.</span>
       </h2>

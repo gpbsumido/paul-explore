@@ -12,7 +12,7 @@ function yearsOf(dates: string): string {
  */
 export default function About() {
   return (
-    <section id="about" aria-labelledby="about-title" className={`${styles.shell} ${styles.section} ${styles.ruled} ${styles.about}`}>
+    <section id="about" aria-labelledby="about-title" className={`${styles.shell} ${styles.section} ${styles.about}`}>
       <div className={styles.aboutIntro}>
         <p className={styles.label}>{"// about"}</p>
         <h2 id="about-title" className={styles.aboutTitle}>Nine years building data-heavy web apps.</h2>
