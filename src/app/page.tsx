@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE, SITE_DESCRIPTION } from "@/lib/site";
-import LandingContentV6 from "./v6/LandingContentV6";
+import LandingContentV7 from "./v7/LandingContentV7";
 
 // Static, regenerated hourly. This page reads no session and renders no
 // session-derived markup -- the header's log in/log out control resolves its
-// own state client-side (see LandingActions). That is the durable fix for the
+// own state client-side (see HeaderMenu). That is the durable fix for the
 // Messenger auth bug: the old fix opted the whole route out of static
 // rendering, which stopped the edge cache from serving a signed-in hub to
 // guests by never caching at all, and paid a serverless render (and its TTFB)
@@ -38,5 +38,5 @@ export const metadata: Metadata = {
  * the ?version= switch between them, lives at /discover.
  */
 export default function Home() {
-  return <LandingContentV6 />;
+  return <LandingContentV7 />;
 }
