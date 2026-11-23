@@ -111,11 +111,14 @@ describe("the v7 landing", () => {
     expect(within(work).getByText(String(FEATURES.length))).toBeInTheDocument();
   });
 
-  it("lists every role and the degree on the timeline", () => {
+  it("lists every role, every point and the degree on the timeline", () => {
     renderLanding();
     const about = screen.getByRole("region", { name: /web apps/i });
     for (const entry of [...WORK, ...EDUCATION]) {
-      expect(within(about).getByRole("heading", { name: entry.title })).toBeInTheDocument();
+      const item = within(about).getByRole("heading", { name: entry.title }).closest("li");
+      for (const point of entry.points) {
+        expect(item).toHaveTextContent(point);
+      }
     }
   });
 
