@@ -5,6 +5,9 @@
 - A saved theme that isn't light, dark or system now falls back to system. The provider cast whatever was in localStorage to a theme, and the pre-paint script wrote it straight onto `data-theme`, so a stray value left the page in no theme at all. The storage key and the pre-paint script both live in one module now, and a test runs that script against a saved "blue" to check it lands on light or dark.
 - The memoization and hash-map demos flash with `useTransientValue` instead of a bare `setTimeout`. Clicking twice inside the flash used to let the first click's timer end the second flash early, and leaving the page left the timer running. The hook gains a `clear` for the demos' reset buttons. The 3D world's "token found" toast moves onto it too.
 - A `?w=` link on /world is checked against the weather dressing table instead of a list of six conditions typed out beside it.
+- Card Lab's nightly cards work again. ESPN started answering every scoreboard date range with `400 Failed to get events endpoint.`, so the scan back through twelve-day windows read nothing and the NBA view quietly fell back to season cards. It now reads a calendar month at a time, which ESPN still serves, with `limit=1000` because a month of NBA games runs past the default cap of 100.
+- When ESPN can't be reached, Card Lab says so instead of "No games with box scores on this slate yet". The NFL week reader and the nightly reader both treated an outage as a quiet night. The NBA landing view still falls back to season cards during an outage, since those come from the league read and usually still load; a night or the Nightly tab asked for by name shows the error.
+- Server plumbing, no visible change: the NFL and nightly readers share one ESPN JSON fetch, and the weekly NFL URL is built by the same helper as the league URL.
 
 ## 2026-11-22 - version 9.3.3
 
