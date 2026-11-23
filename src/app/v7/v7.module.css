@@ -297,35 +297,42 @@
 .workGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 28px;
+  gap: 48px;
   list-style: none;
 }
+/* The stagger comes from the screenshots themselves: the small tile in the top
+   row sits on the row's bottom edge, so it drops by exactly the height the big
+   one has over it. A fixed offset only lined up at one width and let the
+   Operator tile run into the caption above it everywhere else. */
 @media (min-width: 860px) {
   .workGrid {
     grid-template-columns: repeat(12, 1fr);
-    gap: 28px 24px;
+    gap: 64px 24px;
   }
   .workGrid > :nth-child(1) {
     grid-column: span 7;
   }
   .workGrid > :nth-child(2) {
     grid-column: span 5;
-    margin-top: 72px;
+    align-self: end;
   }
   .workGrid > :nth-child(3) {
     grid-column: span 5;
   }
   .workGrid > :nth-child(4) {
     grid-column: span 7;
-    margin-top: -72px;
   }
 }
 .tile {
   display: grid;
-  gap: 14px;
+  gap: 18px;
   align-content: start;
   min-width: 0;
   border-radius: var(--radius-md);
+}
+.tileCaption {
+  display: grid;
+  gap: 6px;
 }
 .tileMedia {
   overflow: hidden;
