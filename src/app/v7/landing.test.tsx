@@ -119,6 +119,14 @@ describe("the v7 landing", () => {
     }
   });
 
+  it("describes the role, not just the wins, where a timeline entry has a summary", () => {
+    renderLanding();
+    const about = screen.getByRole("region", { name: /web apps/i });
+    const refmint = within(about).getByRole("heading", { name: "Front-End Developer" }).closest("li");
+    expect(refmint).toHaveTextContent(/in charge of the wallet interface for a web3 user-acquisition and analytics tool/);
+    expect(refmint).toHaveTextContent(/Cut page load times 40%/);
+  });
+
   it("reads its figures from the build, not from typed-in numbers", () => {
     renderLanding();
     const proof = screen.getByRole("region", { name: /playful on the outside/i });
