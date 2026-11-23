@@ -97,4 +97,11 @@ describe("the v7 landing", () => {
     expect(within(contact).getByRole("link", { name: /Email me/ }).getAttribute("href")).toMatch(/^mailto:psumido@gmail\.com/);
     expect(within(contact).getByRole("link", { name: /Book a 30-min call/ })).toHaveAttribute("href", "https://calendly.com/psumido/30min");
   });
+
+  it("keeps the old editions out of the footer", () => {
+    renderLanding();
+    const footer = screen.getByRole("contentinfo");
+    const hrefs = within(footer).getAllByRole("link").map((link) => link.getAttribute("href"));
+    expect(hrefs.some((href) => href?.startsWith("/discover"))).toBe(false);
+  });
 });
