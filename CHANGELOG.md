@@ -1,8 +1,39 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.1
+
+- Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact. A refused body says which field was wrong in words, like "Max members must be a number", rather than "Invalid request body", since the forms put that sentence on screen. The forms also stop the two that were easy to send: Max members is required and at least 2, and a stake that rounds to nothing, like $0.001, says "Enter at least $0.01" beside it instead of going to the server.
+
+## 2026-11-22 - version 9.3.0
+
+- The About band gets an experience card: a Work and Education switch over a dated timeline, after the reference site's tabbed card. Every entry is lifted from the résumé in public/resume, so the landing can't claim more than the PDF does. It uses the design system's Timeline, an ordered list with a `<time>` per entry, with the date moved above the role so it reads like a résumé. With the photo stack and the typed heading, this finishes the About band, so the version moves to 9.3.0 and the public updates feed gets an entry for it.
+
+## 2026-11-22 - version 9.2.54
+
+- The About band's heading types itself out the first time it scrolls into view, with an accent bar under it that grows as it goes. Only the visible layer types; screen readers get the whole sentence from the first render, an invisible copy holds the line's space so nothing below it jumps, and anyone who prefers reduced motion sees it whole. The page arrives with the whole sentence showing, so it's there without JavaScript and on a jump to `/#about`; it only clears and starts typing once the browser reports where the heading sits. The heading drops the accent full stop it used to end on; the growing bar underneath takes its place.
+
+## 2026-11-22 - version 9.2.53
+
+- The landing has an About band after the projects. It says who builds this and what I care about, with a photo stack beside it: three of the site's own screens (the operator dashboard, the design system and the 3D world), tilted on top of each other. They fan out on hover or when a card takes focus, and each one opens its app. The fan is a transition, so it's off for anyone who prefers reduced motion. The sections after it renumber to 04 and 05.
+- The v5 redesign write-up has a dated update on the band: why the photos are screens, the front card that was painted behind the others, the fan that pushed past a phone screen, and the CSS parts no test covers yet.
+
+## 2026-11-22 - version 9.2.52
+
+- The site describes itself the way the landing does. The web app manifest, the root layout's fallback description and the share image still led with NBA stats and a Pokémon TCG browser, long after the landing became about lead front-end work. They now all read one `SITE_DESCRIPTION`, the same line the home page uses, and a test fails if any of them goes back to its own copy.
+
+## 2026-11-22 - version 9.2.51
+
+- The landing names what the site is built on. Under the figures in "Under the surface" there's now a phone-framed rail of the runtime and testing tools behind it, from Next.js and TanStack Query through Vitest, Playwright and Stryker. It looks like a ticker but only moves when the visitor scrolls, swipes or presses its buttons, because a strip that moves on its own needs a pause control and the design system's ticker only stops on hover. The vitals link above it also gets its dark-mode colour back; the package was colouring the inner link itself, which axe had been unable to see until the rail moved the layout. Every label is backed by a test that the package it names is actually installed, so the list can't outlive a dependency.
+
+## 2026-11-22 - version 9.2.50
+
+- Research source settings and reviewed interview topics now follow you across open tabs. Turning a journal off in one tab used to leave every other tab searching it until a reload, and research settings didn't notice cleared site data either, because they were read once and cached for the life of the page. Both hooks now sit on one small localStorage store that re-reads when the stored value changes and listens for other tabs writing it.
+- With storage blocked (third-party cookie blocking, a sandboxed iframe), the browser throws on any touch of `localStorage`. The old research hook read it inside a try and fell back to the defaults, and the first cut of the shared store dropped that guard, so /research would have crashed instead. The store reads through one guarded helper now, and a write still applies for the rest of the visit.
+
 ## 2026-11-22 - version 9.2.49
 
 - The landing page's test figure counts again. It's regenerated by a script that was wired up as a `prebuild` hook, and pnpm doesn't run those, so every deploy shipped the last number someone committed: 3,499, against more than 6,400 tests in the repo. The count now runs as the first step of `build`, and a test fails if it ever moves back into a hook.
+- The codebase-audit write-up has a dated update on the second redesign stack: the test count that was meant to be impossible to go stale, the thirty error boundaries I fixed and then deleted twenty-eight of, operator writes that timed out being replayed against the seed, the NBA pages guessing the response shape, the proxy's seven hand-set security headers, and two tests that passed whatever the code did.
 
 ## 2026-11-22 - version 9.2.48
 

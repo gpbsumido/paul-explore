@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { BAND_VALUES } from "./accentBand";
+import { isInToneBand } from "@/test/toneBand";
 import { join, relative, sep } from "node:path";
 
 const SRC = join(process.cwd(), "src");
@@ -131,19 +132,6 @@ function tokenHexes(): Set<string> {
   );
 }
 
-/** The tone band, the same one `thoughtColors.test.ts` pins the registry into. */
-function inToneBand(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  const d = max - min;
-  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-  return s >= 0.24 && s <= 0.68 && l >= 0.33 && l <= 0.62;
-}
-
 /**
  * A hex literal on a live surface has to be a colour the palette accounts for:
  * a token value, one of the named band accents, or any other hue that sits in
@@ -160,7 +148,7 @@ function isOffPalette(hex: string, tokens: Set<string>): boolean {
   if (value === "#000000" || value === "#ffffff") return false;
   if (tokens.has(value)) return false;
   if ((BAND_VALUES as readonly string[]).includes(value)) return false;
-  return !inToneBand(value);
+  return !isInToneBand(value);
 }
 
 /**

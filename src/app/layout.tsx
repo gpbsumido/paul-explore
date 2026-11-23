@@ -8,7 +8,7 @@ import AuthErrorToast from "@/components/AuthErrorToast";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import CookieConsent from "@/components/CookieConsent";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { SITE_URL, OG_IMAGE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
 
 // preload:false on the body face too. Above the fold it only sets the role
@@ -62,8 +62,7 @@ export const metadata: Metadata = {
   // and shared-link previews, at the homepage.
   metadataBase: new URL(SITE_URL),
   title: "Paul Sumido",
-  description:
-    "Personal playground and portfolio — NBA stats, fantasy league history, Pokémon TCG browser, and write-ups on how it was built.",
+  description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
     siteName: "paul-explore",

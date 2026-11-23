@@ -41,6 +41,9 @@ const demos = readdirSync(LEARN)
 /** Arrow-key stepping, spelled any of the ways it gets spelled. */
 const HANDLES_ARROWS = /["']Arrow(Left|Right)["']/;
 
+/** A visible "Step" button, which is what a stepped demo puts on screen. */
+const HAS_STEP_CONTROL = />\s*Step\s*</;
+
 describe("learn demos agree about the keyboard", () => {
   it("never hand-roll arrow-key stepping", () => {
     const rolled = demos.filter((d) => HANDLES_ARROWS.test(d.source)).map((d) => d.name);
@@ -51,8 +54,10 @@ describe("learn demos agree about the keyboard", () => {
     // A demo with previous/next controls but no hook is the case this exists
     // for: it will have got its keyboard behaviour from somewhere else, or from
     // nowhere.
-    const stepped = demos.filter((d) => /useStepPlayer/.test(d.source));
+    const stepped = demos.filter((d) => HAS_STEP_CONTROL.test(d.source));
+    const unhooked = stepped.filter((d) => !/useStepPlayer/.test(d.source)).map((d) => d.name);
     expect(stepped.length).toBeGreaterThan(5);
+    expect(unhooked).toEqual([]);
   });
 
   it("found the demos it claims to be checking", () => {

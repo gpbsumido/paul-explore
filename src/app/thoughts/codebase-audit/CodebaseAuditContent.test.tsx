@@ -108,4 +108,20 @@ describe("CodebaseAuditContent", () => {
       /^The test that failed first/,
     );
   });
+
+  it("carries the second redesign stack as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-22-second-stack"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes("export const TEST_COUNT = 3499;")),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("OperatorWriteTimeoutError")),
+    ).toBe(true);
+  });
 });

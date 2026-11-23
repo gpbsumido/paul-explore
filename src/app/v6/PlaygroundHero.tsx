@@ -7,9 +7,9 @@ import {
   type MobileHeroProps,
 } from "@paul-portfolio/react";
 import { useTheme } from "@/components/ThemeProvider";
-import { FEATURES } from "@/app/_shared/featureData.data";
 import { previewSrc } from "../v5/featured";
 import { ArrowDownRight, ArrowUpRight } from "./arrows";
+import { featureFor, HERO_IMAGE_IDS } from "./picks";
 import styles from "./playground.module.css";
 
 // Phone widths, plus coarse-pointer phones in landscape. No user-agent sniffing.
@@ -32,14 +32,6 @@ const MOBILE_HERO_COMPONENTS = [MobileReelHero, MobileOrbitHero, MobileLensHero]
 const SCENES = ["Spiral", "Perspective", "Corridor"];
 const HERO_COMPONENTS = [SpiralPortraitHero, PerspectivePortraitHero, CorridorPortraitHero];
 
-// Every feature that has a captured preview, so the hero gallery shows the whole
-// body of work rather than a curated handful.
-const HERO_IMAGE_IDS = [
-  "work-portfolio", "design-system", "operator", "world", "vitals", "flags",
-  "pokemon", "particles", "research", "learn", "budget", "fantasy-nba",
-  "gallery-wall", "craft", "zeroproof", "calendar",
-];
-
 export default function PlaygroundHero() {
   const [scene, setScene] = useState("Spiral");
   const [mobileScene, setMobileScene] = useState("Reel");
@@ -51,9 +43,9 @@ export default function PlaygroundHero() {
     : HERO_COMPONENTS[SCENES.indexOf(scene)];
   // Match the screenshots to the theme. Dark dashboards on a light page read as
   // heavy, so light mode gets the light captures (the images carry a border).
-  const images = HERO_IMAGE_IDS.flatMap((id) => {
-    const feature = FEATURES.find((item) => item.id === id);
-    return feature ? [{ src: previewSrc(id, theme), alt: feature.title, ...(isMobile ? { href: feature.href } : {}) }] : [];
+  const images = HERO_IMAGE_IDS.map((id) => {
+    const feature = featureFor(id);
+    return { src: previewSrc(id, theme), alt: feature.title, ...(isMobile ? { href: feature.href } : {}) };
   });
 
   const exploreAction = <Button href="#work" variant="primary" size="lg">Explore the work <ArrowDownRight size={15} /></Button>;

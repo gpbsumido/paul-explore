@@ -58,7 +58,7 @@ const CASES: Case[] = [
     name: "POST zeroproof/leagues/:id/espn-leagues",
     run: async () =>
       (await import("./zeroproof/leagues/[id]/espn-leagues/route")).POST(
-        request(json("POST", { espnLeagueId: "1" })),
+        request(json("POST", { game: "fba", leagueId: "1", season: "2026" })),
         params({ id: ".." }),
       ),
   },

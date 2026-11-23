@@ -38,6 +38,13 @@ const renderPage = (
   );
 };
 
+/**
+ * The signed-in header waits on the /api/me round trip. Alone that's quick, but
+ * in a full run it went past findBy's one-second default and the axe test
+ * failed looking for a link that was still on its way.
+ */
+const SESSION_SETTLE = { timeout: 5_000 };
+
 const hrefs = () =>
   screen.getAllByRole("link").map((a) => a.getAttribute("href"));
 
@@ -282,7 +289,7 @@ describe("V5Content", () => {
     );
     renderPage();
     expect(
-      await screen.findByRole("link", { name: /log out/i }),
+      await screen.findByRole("link", { name: /log out/i }, SESSION_SETTLE),
     ).toHaveAttribute("href", "/auth/logout");
     expect(screen.queryByText(/Back again/)).not.toBeInTheDocument();
     expect(hrefs()).not.toContain("/to-do");
@@ -301,7 +308,7 @@ describe("V5Content", () => {
     const { container } = renderPage();
     // Wait for the header CTA to settle in the signed-in state before scanning,
     // so axe sees the page a signed-in visitor actually gets.
-    await screen.findByRole("link", { name: /log out/i });
+    await screen.findByRole("link", { name: /log out/i }, SESSION_SETTLE);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

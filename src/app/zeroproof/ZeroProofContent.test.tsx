@@ -1189,6 +1189,27 @@ describe("ZeroProofContent — bet slip", () => {
     });
   });
 
+  it("says a stake under a cent is too small instead of sending it", async () => {
+    let posts = 0;
+    server.use(
+      http.post("/api/zeroproof/bets", () => {
+        posts += 1;
+        return HttpResponse.json({ id: "bet-1" });
+      }),
+    );
+    renderPage(() => HttpResponse.json(PROFILE));
+    fireEvent.click(await screen.findByRole("button", { name: /Celtics/ }));
+    const slip = await screen.findByRole("region", { name: /bet slip/i });
+    const stake = within(slip).getByRole("textbox", { name: /stake for Celtics/i });
+    fireEvent.change(stake, { target: { value: "0.001" } });
+    expect(stake).toHaveAccessibleDescription("Enter at least $0.01");
+    expect(stake).toHaveAttribute("aria-invalid", "true");
+    const place = within(slip).getByRole("button", { name: /place bet/i });
+    expect(place).toBeDisabled();
+    fireEvent.click(place);
+    expect(posts).toBe(0);
+  });
+
   it("flags the fixture the moment a bet is placed, before the server confirms", async () => {
     // Hold the POST open so the only thing that could flag the fixture is the
     // optimistic write — the bets GET stays empty throughout.

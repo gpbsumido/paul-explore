@@ -1197,11 +1197,16 @@ function WalletCard({ wallet }: { wallet: ZeroproofWallet }) {
 }
 
 
-/** Dollars typed by a person to positive integer cents, or null if not valid. */
+/**
+ * Dollars typed by a person to positive integer cents, or null if not valid.
+ * Anything that rounds to nothing, like 0.001, is null too: the backend
+ * refuses a 0-cent stake.
+ */
 function centsFromDollars(input: string): number | null {
   const n = Number.parseFloat(input);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  return Math.round(n * 100);
+  if (!Number.isFinite(n)) return null;
+  const cents = Math.round(n * 100);
+  return cents >= 1 ? cents : null;
 }
 
 function BetSlip({
@@ -1364,7 +1369,11 @@ function BetSlip({
         </div>
 
           <ul id="zeroproof-slip-picks" aria-label="Selected picks" hidden={!reviewOpen && slip.length > 1} className="max-h-[35dvh] divide-y divide-border overflow-y-auto border-t border-border px-4">
-            {slip.map((leg) => (
+            {slip.map((leg, index) => {
+              const stakeText = stakes[betLegKey(leg)] ?? "";
+              const stakeTooSmall = stakeText.trim() !== "" && centsFromDollars(stakeText) === null;
+              const stakeHintId = `zeroproof-stake-hint-${index}`;
+              return (
               <li key={betLegKey(leg)} className="flex items-center justify-between gap-2 py-2">
                 <div className="min-w-0 text-xs">
                   <p className="truncate text-muted">{leg.eventLabel}</p>
@@ -1373,17 +1382,26 @@ function BetSlip({
                   </p>
                 </div>
                 {wallets.length > 0 && (
-                  <label className="shrink-0 text-[11px] font-medium text-muted">
-                    <span aria-hidden="true">Stake</span>
-                    <span className="sr-only">Stake for {leg.selection}</span>
-                    <input
-                      inputMode="decimal"
-                      value={stakes[betLegKey(leg)] ?? ""}
-                      onChange={(event) => setStakes((current) => ({ ...current, [betLegKey(leg)]: event.target.value }))}
-                      placeholder="$0.00"
-                      className="mt-1 block h-11 w-20 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
-                    />
-                  </label>
+                  <div className="shrink-0">
+                    <label className="text-[11px] font-medium text-muted">
+                      <span aria-hidden="true">Stake</span>
+                      <span className="sr-only">Stake for {leg.selection}</span>
+                      <input
+                        inputMode="decimal"
+                        value={stakeText}
+                        onChange={(event) => setStakes((current) => ({ ...current, [betLegKey(leg)]: event.target.value }))}
+                        placeholder="$0.00"
+                        aria-invalid={stakeTooSmall || undefined}
+                        aria-describedby={stakeTooSmall ? stakeHintId : undefined}
+                        className="mt-1 block h-11 w-20 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+                      />
+                    </label>
+                    {stakeTooSmall && (
+                      <p id={stakeHintId} className="mt-1 w-20 text-[11px] text-error-600 dark:text-error-300">
+                        Enter at least $0.01
+                      </p>
+                    )}
+                  </div>
                 )}
                 <button
                   type="button"
@@ -1394,7 +1412,8 @@ function BetSlip({
                   ✕
                 </button>
               </li>
-            ))}
+              );
+            })}
           </ul>
 
         {signedOut ? (

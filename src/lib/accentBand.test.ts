@@ -1,43 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { ACCENT_BAND, BAND_VALUES } from "./accentBand";
 import { EVENT_COLORS } from "./calendar";
-
-/** Parses #rrggbb into HSL, since the band is defined in tone, not in hex. */
-function hsl(hex: string): { h: number; s: number; l: number } {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  const d = max - min;
-  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-  let h = 0;
-  if (d !== 0) {
-    if (max === r) h = ((g - b) / d) % 6;
-    else if (max === g) h = (b - r) / d + 2;
-    else h = (r - g) / d + 4;
-    h = (h * 60 + 360) % 360;
-  }
-  return { h, s, l };
-}
-
-const SATURATION = { min: 0.24, max: 0.68 };
-const LIGHTNESS = { min: 0.33, max: 0.62 };
+import { hexToHsl, isInToneBand } from "@/test/toneBand";
 
 /** The same band `thoughtColors.test.ts` pins the registry accents into. */
-function outOfBand(hex: string): boolean {
-  const { s, l } = hsl(hex);
-  return (
-    s < SATURATION.min ||
-    s > SATURATION.max ||
-    l < LIGHTNESS.min ||
-    l > LIGHTNESS.max
-  );
-}
+const outOfBand = (hex: string) => !isInToneBand(hex);
 
 const offenders = (hexes: readonly string[]) =>
-  hexes.filter(outOfBand).map((hex) => `${hex} -> ${JSON.stringify(hsl(hex))}`);
+  hexes.filter(outOfBand).map((hex) => `${hex} -> ${JSON.stringify(hexToHsl(hex))}`);
 
 /**
  * Six separate arrays in this app each invented their own rainbow — confetti,
@@ -63,6 +33,20 @@ describe("the shared accent band", () => {
   it("excludes neutrals, which is why the app's grey is not in it", () => {
     expect(outOfBand("#7f7869")).toBe(true);
     expect([...BAND_VALUES]).not.toContain("#7f7869");
+  });
+
+  it("draws the lightness edges where the band says, not further out", () => {
+    const sameBlueAtLightness = {
+      "0.31": "#285c77",
+      "0.35": "#2d6886",
+      "0.60": "#66aacc",
+      "0.64": "#75b2d1",
+    };
+
+    expect(outOfBand(sameBlueAtLightness["0.31"])).toBe(true);
+    expect(outOfBand(sameBlueAtLightness["0.35"])).toBe(false);
+    expect(outOfBand(sameBlueAtLightness["0.60"])).toBe(false);
+    expect(outOfBand(sameBlueAtLightness["0.64"])).toBe(true);
   });
 
   it("rejects the stock pastels this release exists to remove", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -280,6 +280,32 @@ describe("LeaguesPanel create form", () => {
     await user.click(screen.getByRole("button", { name: "Create league" }));
 
     expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(bodies).toHaveLength(0);
+  });
+
+  it("asks the browser to hold back a Max members below 2", async () => {
+    renderSignedIn();
+    await openForm();
+    const maxMembers = screen.getByLabelText("Max members");
+    expect(maxMembers).toBeRequired();
+    expect(maxMembers).toHaveAttribute("min", "2");
+  });
+
+  // required and min stop the submit in a browser (jsdom too), so submit the
+  // form directly to reach the check behind them.
+  it.each(["", "1"])("refuses a Max members of %j even if the browser lets the form through", async (value) => {
+    const bodies = recordCreates();
+    renderSignedIn();
+    const user = await openForm();
+    const maxMembers = screen.getByLabelText("Max members");
+    await user.clear(maxMembers);
+    if (value) await user.type(maxMembers, value);
+    const form = maxMembers.closest("form");
+    if (!form) throw new Error("Max members sits outside the create form");
+
+    fireEvent.submit(form);
+
+    expect(await screen.findByText("Max members must be at least 2")).toBeInTheDocument();
     expect(bodies).toHaveLength(0);
   });
 
