@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-23 - version 9.4.0
+
+- A new home page, v7, built from my November mockup. A split hero puts the headline beside the same facts written as a TypeScript object in an editor panel. Under it a marquee lists the stack as package@version, with versions read from package.json. Four apps sit on an offset grid, their screenshots in grayscale until you point at one. A sticky about panel runs beside a timeline taken from my résumé, three figures are imported rather than typed, and the page closes on contact. v6 moves to the /discover archive.
+- The rest of the site picks up the same language through the shared pieces instead of page by page. PageHeader sits full width at the top and lifts into a centered floating pill once the page scrolls. It stays inside the same 56px box, so sub-bars pinned under it don't move. A breadcrumb that starts at `/` now shows the paul—explore wordmark as its home link, and the crumbs are set in mono. The backdrop behind every PageShell page is now a drifting line grid that fades out toward the edges. The old aurora blobs are gone and a faint, still tint keeps each feature's accent. h2 and h3 move onto the display face, and PageIntro's eyebrow becomes a mono label in the accent colour.
+- The mockup's second accent was cyan. The palette sweep keeps stock Tailwind ramps out of live code, and the design system's cyan is stock cyan, so the cool accent is a deeper verdigris step instead.
+- The grid only drifts, the marquee only slides and the proof headline only cycles its last word when the OS allows motion. A guard test checks the grid's drift is gated.
+
 ## 2026-11-22 - version 9.3.5
 
 - The codebase-audit write-up has a dated update on the third stack: the shared bracket that called itself private during an outage, the two lower PRs a full test run caught me breaking after I'd only run each PR's own folders, the four write-up timelines that stopped partway down, why the hub's updates card stays typed by hand, and the audit items I left alone because they were wrong. It also says where I fell short: I meant to give every PR a full test run before writing its body, and three of them still went up with folder runs. The risk route's separate five-second timeout is written up as a decision rather than a fix; the route still calls `fetch` directly, and only the constant got a name. Its what's-next list drops the ZeroProof body item, which shipped, and the risk timeout, which stays as it is on purpose, and names the calendar GET question instead.
