@@ -61,4 +61,13 @@ describe("the shared page header", () => {
     expect(trigger.className).toContain("rounded-full");
     expect(trigger.className).not.toContain("rounded-lg");
   });
+
+  it("drops the floating pill clear of the top edge without changing the header's height", () => {
+    renderHeader();
+    const pill = screen.getByRole("navigation", { name: "Breadcrumb" }).firstElementChild;
+    // A vertical margin collapses through the frame and leaves the pill
+    // flush with the top, so the gap is a relative offset instead.
+    expect(pill?.className).toContain("group-data-[floating=true]/header:top-2");
+    expect(pill?.className).not.toMatch(/header:my-/);
+  });
 });
