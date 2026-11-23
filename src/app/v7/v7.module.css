@@ -7,7 +7,10 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --accent: var(--color-primary-600);
   --accent-soft: var(--color-primary-100);
-  --cyan: var(--paul-color-cyan-700);
+  /* The mockup's cool second accent. The palette sweep keeps stock ramps out
+     of live code, and the DS cyan is stock cyan, so it's the deeper verdigris
+     step here instead. */
+  --cool: var(--color-primary-800);
   --gutter: clamp(16px, 4vw, 48px);
   font-size: 17px;
   line-height: 1.6;
@@ -15,7 +18,7 @@
 :global([data-theme="dark"]) .page {
   --accent: var(--color-primary-400);
   --accent-soft: var(--color-primary-900);
-  --cyan: var(--paul-color-cyan-400);
+  --cool: var(--color-primary-300);
 }
 
 .shell {
@@ -190,7 +193,7 @@
   font-weight: 700;
 }
 .str {
-  color: var(--cyan);
+  color: var(--cool);
 }
 .pun {
   color: var(--color-muted);
@@ -254,7 +257,7 @@
   color: var(--color-muted);
 }
 .trackAlt {
-  color: var(--cyan);
+  color: var(--cool);
   font-size: clamp(15px, 1.8vw, 21px);
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -524,7 +527,7 @@
   margin-bottom: 60px;
 }
 .cycle {
-  color: var(--cyan);
+  color: var(--cool);
   display: inline-block;
 }
 @media (prefers-reduced-motion: no-preference) {

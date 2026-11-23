@@ -6,7 +6,7 @@ type Props = {
    * light value and the pastel dark one with no change here.
    */
   colorA?: string;
-  /** Secondary tint, from the bottom right. Defaults to cyan. */
+  /** Secondary tint, from the bottom right. Defaults to a lighter verdigris. */
   colorB?: string;
 };
 
@@ -25,7 +25,7 @@ type Props = {
  */
 export default function AmbientBackground({
   colorA = "var(--color-primary-500)",
-  colorB = "var(--paul-color-cyan-500)",
+  colorB = "var(--color-primary-300)",
 }: Props) {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
