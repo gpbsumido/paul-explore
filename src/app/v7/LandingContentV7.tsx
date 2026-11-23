@@ -20,7 +20,6 @@ const FOOTER_LINKS = [
   { label: "GitHub", href: "https://github.com/gpbsumido" },
   { label: "NPM", href: "https://www.npmjs.com/~psumido" },
   { label: "Design system", href: "/design-system" },
-  { label: "Past editions", href: "/discover?version=v6" },
 ];
 
 /**
