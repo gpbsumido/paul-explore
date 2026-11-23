@@ -35,7 +35,7 @@ export default function Hero() {
     <>  role<span className={styles.pun}>:</span> <span className={styles.str}>&quot;Lead Frontend Developer&quot;</span><span className={styles.pun}>,</span></>,
     <>  basedIn<span className={styles.pun}>:</span> <span className={styles.str}>&quot;Toronto, Canada&quot;</span><span className={styles.pun}>,</span></>,
     <>  shippingSince<span className={styles.pun}>:</span> <span className={styles.num}>2017</span><span className={styles.pun}>,</span></>,
-    <>  focus<span className={styles.pun}>: [</span><span className={styles.str}>&quot;agentic workflow&quot;</span><span className={styles.pun}>,</span> <span className={styles.str}>&quot;design systems&quot;</span><span className={styles.pun}>,</span> <span className={styles.str}>&quot;experience&quot;</span><span className={styles.pun}>],</span></>,
+    <>  focus<span className={styles.pun}>: [</span><span className={styles.str}>&quot;agentic workflow&quot;</span><span className={styles.pun}>,</span> <span className={styles.str}>&quot;design systems&quot;</span><span className={styles.pun}>,</span> <span className={styles.str}>&quot;user experience&quot;</span><span className={styles.pun}>],</span></>,
     <>  testsWrittenFirst<span className={styles.pun}>:</span> <span className={styles.num}>{numericLiteral(TEST_COUNT)}</span><span className={styles.pun}>,</span></>,
     <><span className={styles.pun}>{"}"}</span> <span className={styles.kw}>as const</span><span className={styles.pun}>;</span><span className={styles.caret} aria-hidden="true" /></>,
   ];
