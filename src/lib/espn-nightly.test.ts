@@ -93,9 +93,11 @@ afterEach(() => {
 describe("scoreboardUrl and summaryUrl", () => {
   it("point at the sport's own ESPN endpoints", () => {
     expect(scoreboardUrl("nba", "20260420")).toBe(
-      "https://site.web.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260420",
+      "https://site.web.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260420&limit=1000",
     );
-    expect(scoreboardUrl("wnba", "20260420-20260501")).toContain("/basketball/wnba/scoreboard?dates=20260420-20260501");
+    expect(scoreboardUrl("wnba", "202604")).toBe(
+      "https://site.web.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates=202604&limit=1000",
+    );
     expect(summaryUrl("wnba", "401")).toBe(
       "https://site.web.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=401",
     );
@@ -149,48 +151,51 @@ describe("loadNightlySlate without a date", () => {
     "summary?event=e1": boxscore([{ id: "10", name: "Jayson Tatum", points: 40 }]),
   };
 
-  it("scans back in twelve-day windows from today, newest first", async () => {
+  // ESPN stopped answering date ranges ("400 Failed to get events endpoint."),
+  // so the scan reads a calendar month at a time, which it still serves.
+  it("scans back a calendar month at a time from today, newest first", async () => {
     serve({});
 
     await loadNightlySlate({ sport: "wnba", season: "2025" });
 
     const scoreboards = urlsRequested().filter((url) => url.includes("/scoreboard?"));
-    expect(scoreboards[0]).toBe(scoreboardUrl("wnba", "20260709-20260720"));
-    expect(scoreboards[1]).toBe(scoreboardUrl("wnba", "20260627-20260708"));
+    expect(scoreboards[0]).toBe(scoreboardUrl("wnba", "202607"));
+    expect(scoreboards[1]).toBe(scoreboardUrl("wnba", "202606"));
+    expect(scoreboards[7]).toBe(scoreboardUrl("wnba", "202512"));
   });
 
-  it("stops at the first window that produced cards", async () => {
+  it("stops at the first month that produced cards", async () => {
     serve({
-      "dates=20260627-20260708": scoreboardWith([{ id: "e1", isoDate: "2026-07-05T23:00:00Z" }]),
+      "dates=202606": scoreboardWith([{ id: "e1", isoDate: "2026-06-05T23:00:00Z" }]),
       ...settled,
     });
 
     const slate = await loadNightlySlate({ sport: "wnba", season: "2025" });
 
-    expect(slate).toMatchObject({ date: "2026-07-05", error: false });
+    expect(slate).toMatchObject({ date: "2026-06-05", error: false });
     expect(slate.cards).toHaveLength(1);
     expect(urlsRequested().filter((url) => url.includes("/scoreboard?"))).toHaveLength(2);
   });
 
   it("keeps looking past a finished slate that yielded no cards", async () => {
     serve({
-      "dates=20260709-20260720": scoreboardWith([{ id: "empty", isoDate: "2026-07-15T23:00:00Z" }]),
-      "dates=20260627-20260708": scoreboardWith([{ id: "e1", isoDate: "2026-07-05T23:00:00Z" }]),
+      "dates=202607": scoreboardWith([{ id: "empty", isoDate: "2026-07-15T23:00:00Z" }]),
+      "dates=202606": scoreboardWith([{ id: "e1", isoDate: "2026-06-05T23:00:00Z" }]),
       ...settled,
     });
 
     const slate = await loadNightlySlate({ sport: "wnba", season: "2025" });
 
-    expect(slate.date).toBe("2026-07-05");
+    expect(slate.date).toBe("2026-06-05");
   });
 
-  it("gives up after forty-five quiet windows with no date and no error", async () => {
+  it("gives up after eighteen quiet months with no date and no error", async () => {
     serve({ "/scoreboard?": { events: [] } });
 
     const slate = await loadNightlySlate({ sport: "wnba", season: "2025" });
 
     expect(slate).toEqual({ cards: [], date: null, error: false });
-    expect(urlsRequested().filter((url) => url.includes("/scoreboard?"))).toHaveLength(45);
+    expect(urlsRequested().filter((url) => url.includes("/scoreboard?"))).toHaveLength(18);
   });
 
   // An outage used to come back as error: false, so Card Lab said nothing had
