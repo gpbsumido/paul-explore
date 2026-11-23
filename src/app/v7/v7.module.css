@@ -158,14 +158,20 @@
 }
 .code {
   padding: 18px 0 22px;
-  overflow-x: auto;
   font: 400 clamp(13px, 1.2vw, 15px) / 1.9 var(--font-mono);
   counter-reset: ln;
 }
+/* Long lines soft-wrap like an editor instead of scrolling the panel. The
+   hanging indent pulls the line number back to the left edge and starts the
+   wrapped part a couple of characters in from the code, so it still reads as
+   one line. */
 .line {
   display: block;
   padding-right: 22px;
-  white-space: pre;
+  padding-left: calc(3.2em + 4ch);
+  text-indent: calc(-3.2em - 4ch);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   transition: background-color 0.15s ease;
 }
 .line::before {
@@ -194,6 +200,10 @@
 }
 .str {
   color: var(--cool);
+}
+/* A wrap lands between items, never inside a string. */
+.line .str {
+  white-space: nowrap;
 }
 .pun {
   color: var(--color-muted);
