@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
-import { FlagsApiError, FlagsContractError } from "@/lib/flags-client";
+import { FlagsApiError, FlagsContractError, FlagsWriteTimeoutError } from "@/lib/flags-client";
 import { getFlag } from "@/lib/flags-data";
 import type { Flag } from "@/types/flags";
 import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
@@ -280,6 +280,26 @@ describe("PATCH /api/flags/:flagKey", () => {
 
     expect(res.status).toBe(200);
     expect(body.flag.key).toBe("new-checkout");
+  });
+
+  it("says a write that ran out of time may have saved, instead of answering from the seed", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "server-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsWriteTimeoutError());
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("new-checkout"),
+    );
+
+    expect(res.status).toBe(504);
+    expect((await res.json()).error).toMatch(/may have been saved/i);
   });
 
   it("rejects an invalid body with 400", async () => {

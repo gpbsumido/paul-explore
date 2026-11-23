@@ -29,6 +29,17 @@ describe("V5RedesignContent", () => {
     expect(links.some((href) => href?.startsWith("/design-system"))).toBe(true);
   });
 
+  it("records the sideways shelf giving way to showcase rows as a dated update", () => {
+    render(<V5RedesignContent />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /stopped hijacking the scroll wheel/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /stopped hijacking the scroll wheel/i })).toHaveAttribute(
+      "href",
+      "#update-2026-11-22-showcase",
+    );
+  });
+
   it("closes with the standing what-next block every write-up carries", () => {
     render(<V5RedesignContent />);
     expect(

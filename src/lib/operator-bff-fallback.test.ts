@@ -10,14 +10,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
  * the try/catch exists, because the thing worth pinning is that the seed can
  * actually satisfy the same contract the API does.
  */
-vi.mock("@/lib/operator-client", () => ({
-  OperatorApiError: class OperatorApiError extends Error {
-    constructor(readonly status: number) {
-      super(`operator API responded ${status}`);
-      this.name = "OperatorApiError";
-    }
-  },
-  OperatorContractError: class OperatorContractError extends Error {},
+vi.mock("@/lib/operator-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/operator-client")>()),
   fetchStores: vi.fn(),
   fetchStore: vi.fn(),
   fetchInventory: vi.fn(),

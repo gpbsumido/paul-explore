@@ -16,8 +16,6 @@ export const CARD_SORTS: { value: CardSort; label: string }[] = [
   { value: "name", label: "Name" },
 ];
 
-const RARITY_RANK: Record<Rarity, number> = { sir: 3, rare: 2, uncommon: 1, common: 0 };
-
 /**
  * Order a set of cards for display. Points and rarity go highest-first (rarity
  * ties broken by points); name is A→Z. Pure — returns a new array.
@@ -29,7 +27,10 @@ export function sortCards<T extends { points: number; rarity: Rarity; playerName
   const copy = [...cards];
   switch (sort) {
     case "rarity":
-      return copy.sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity] || b.points - a.points);
+      return copy.sort(
+        (a, b) =>
+          RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity) || b.points - a.points,
+      );
     case "name":
       return copy.sort((a, b) => a.playerName.localeCompare(b.playerName));
     default:

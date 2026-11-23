@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { FEATURES, THOUGHTS } from "../featureData.data";
+import { isSessionProtectedPath } from "@/lib/protectedPaths";
 import { FEATURES as ViaTsx, THOUGHTS as ThoughtsViaTsx } from "../featureData";
 
 const source = readFileSync(
@@ -39,5 +40,24 @@ describe("featureData.data", () => {
 
   it("sends EVAR Sizing to its own domain, now that it lives in its own project", () => {
     expect(FEATURES.find((f) => f.id === "evar")?.href).toBe("https://medical.paulsumido.com");
+  });
+});
+
+/**
+ * A hub card is the front door for a guest. One that points behind a login
+ * bounces them straight to sign-in for a page they never asked to use, which
+ * is what the Volunteer Check-in card did by linking to the organizer list.
+ */
+describe("hub card links", () => {
+  // A personal calendar has nothing to show a guest, and the login redirect
+  // carries returnTo, so this one is gated on purpose.
+  const GATED_ON_PURPOSE = new Set(["/calendar"]);
+
+  const guestFacing = FEATURES.filter(
+    (f) => f.href.startsWith("/") && !GATED_ON_PURPOSE.has(f.href),
+  ).map((f) => [f.id, f.href]);
+
+  it.each(guestFacing)("%s opens somewhere a guest can see (%s)", (_id, href) => {
+    expect(isSessionProtectedPath(href)).toBe(false);
   });
 });

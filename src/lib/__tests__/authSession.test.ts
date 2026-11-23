@@ -39,17 +39,14 @@ describe("isLogoutPath", () => {
   });
 });
 
+// Only asked once the session is known to be gone, so the marker is the whole answer.
 describe("isSessionTimeout", () => {
   it("is a timeout when the session is gone but the marker lingers", () => {
-    expect(isSessionTimeout(false, "1")).toBe(true);
+    expect(isSessionTimeout("1")).toBe(true);
   });
 
   it("is not a timeout for someone who was never signed in", () => {
-    expect(isSessionTimeout(false, undefined)).toBe(false);
-  });
-
-  it("is not a timeout while the session is still alive", () => {
-    expect(isSessionTimeout(true, "1")).toBe(false);
+    expect(isSessionTimeout(undefined)).toBe(false);
   });
 
   it("is not a timeout once a deliberate logout has cleared the marker", () => {
@@ -57,6 +54,6 @@ describe("isSessionTimeout", () => {
     // timeout look identical afterwards unless the marker goes with the
     // session, and the user gets told their session expired when they chose
     // to leave.
-    expect(isSessionTimeout(false, "")).toBe(false);
+    expect(isSessionTimeout("")).toBe(false);
   });
 });

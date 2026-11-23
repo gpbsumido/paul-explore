@@ -21,3 +21,12 @@ export function notifyMutationError(
     userFacingErrorMessage(error, "Something went wrong. Please try again."),
   );
 }
+
+/**
+ * The rejection handler for a caller that awaits a mutation but has nothing of
+ * its own to do when it fails. notifyMutationError above has already shown the
+ * toast, so the failure is handled; naming that here beats a bare `catch` that
+ * reads like an error being swallowed, and beats leaving the promise rejected
+ * with nobody listening.
+ */
+export function failureAlreadyToasted(): void {}

@@ -4,6 +4,7 @@ import { clientIp } from "@/lib/clientIp";
 import {
   loginRedirectAdditions,
   LOGIN_PROMPT_COOKIE,
+  LOGIN_PROMPT_COOKIE_OPTIONS,
   SESSION_TIMEOUT_PROMPT,
 } from "@/lib/loginReturnTo";
 import {
@@ -72,12 +73,20 @@ const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   remoteOrigins: REMOTE ? [REMOTE.origin] : [],
 });
 
+/** Stamps the policy on a response the proxy lets through. */
+function withCsp(res: NextResponse): NextResponse {
+  res.headers.set("Content-Security-Policy", CSP);
+  return res;
+}
+
 /**
- * Stamps the long-lived marker on an authenticated response. It outlives the
- * session cookie, so once the session has expired its lingering presence is how
- * we know the user timed out rather than never logging in.
+ * Lets a signed-in request through with its session rolled, the policy set,
+ * and the long-lived marker stamped. The marker outlives the session cookie, so
+ * once the session has expired its lingering presence is how we know the user
+ * timed out rather than never logging in.
  */
-function markSessionActive(res: NextResponse): NextResponse {
+async function rollSession(request: NextRequest): Promise<NextResponse> {
+  const res = withCsp(await auth0.middleware(request));
   res.cookies.set(SESSION_MARKER_COOKIE, "1", {
     path: "/",
     maxAge: SESSION_ABSOLUTE_SECONDS,
@@ -98,13 +107,7 @@ function sessionTimeoutRedirect(request: NextRequest): NextResponse {
   url.searchParams.set("authError", "timeout");
   const res = NextResponse.redirect(url);
   res.cookies.delete(SESSION_MARKER_COOKIE);
-  res.cookies.set(LOGIN_PROMPT_COOKIE, SESSION_TIMEOUT_PROMPT, {
-    path: "/",
-    maxAge: 600,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-  });
+  res.cookies.set(LOGIN_PROMPT_COOKIE, SESSION_TIMEOUT_PROMPT, LOGIN_PROMPT_COOKIE_OPTIONS);
   return res;
 }
 
@@ -179,9 +182,7 @@ export async function proxy(request: NextRequest) {
       // public routes continue to work — auth-gated routes will 500 naturally.
       // Still stamp the CSP header, matching every other pass-through: an Auth0
       // outage must not silently drop the policy on the pages that keep working.
-      const res = NextResponse.next();
-      res.headers.set("Content-Security-Policy", CSP);
-      return res;
+      return withCsp(NextResponse.next());
     }
   }
 
@@ -194,16 +195,14 @@ export async function proxy(request: NextRequest) {
     const session = await auth0.getSession(request);
     if (!session) {
       const marker = request.cookies.get(SESSION_MARKER_COOKIE)?.value;
-      if (isSessionTimeout(false, marker)) {
+      if (isSessionTimeout(marker)) {
         return sessionTimeoutRedirect(request);
       }
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("returnTo", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    const res = await auth0.middleware(request);
-    res.headers.set("Content-Security-Policy", CSP);
-    return markSessionActive(res);
+    return rollSession(request);
   }
 
   // The two pages that read the session themselves — run auth0.middleware()
@@ -225,16 +224,14 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/" || pathname === "/discover") {
     const session = await auth0.getSession(request);
     if (session) {
-      const res = await auth0.middleware(request);
-      res.headers.set("Content-Security-Policy", CSP);
-      return markSessionActive(res);
+      return rollSession(request);
     }
     // No session on the landing page. If the marker is still around the session
     // just timed out, so bounce once to show the toast; the redirect clears the
     // marker so the followup falls through and the landing renders.
     const marker = request.cookies.get(SESSION_MARKER_COOKIE)?.value;
     if (
-      isSessionTimeout(false, marker) &&
+      isSessionTimeout(marker) &&
       !request.nextUrl.searchParams.has("authError")
     ) {
       return sessionTimeoutRedirect(request);
@@ -248,9 +245,7 @@ export async function proxy(request: NextRequest) {
   // there's no session, so anonymous traffic falls straight through.
   const session = await auth0.getSession(request);
   if (session) {
-    const res = await auth0.middleware(request);
-    res.headers.set("Content-Security-Policy", CSP);
-    return markSessionActive(res);
+    return rollSession(request);
   }
 
   // All other routes: pass through with CSP headers, minting a stable visitor
@@ -260,9 +255,7 @@ export async function proxy(request: NextRequest) {
   // render already sees it instead of waiting for the next navigation.
   const visitorId = request.cookies.get(VISITOR_COOKIE)?.value;
   if (visitorId) {
-    const response = NextResponse.next();
-    response.headers.set("Content-Security-Policy", CSP);
-    return response;
+    return withCsp(NextResponse.next());
   }
 
   // visitor_id is a non-essential (feature-flag bucketing) cookie, so it is only
@@ -271,9 +264,7 @@ export async function proxy(request: NextRequest) {
   // backend rate-limits on IP. Recording the consent choice itself is strictly
   // necessary, so the consent cookie needs no consent of its own.
   if (!hasAcceptedConsent(request.cookies.get(CONSENT_COOKIE)?.value)) {
-    const response = NextResponse.next();
-    response.headers.set("Content-Security-Policy", CSP);
-    return response;
+    return withCsp(NextResponse.next());
   }
 
   const mintedVisitorId = newVisitorId();
@@ -286,8 +277,7 @@ export async function proxy(request: NextRequest) {
     httpOnly: true,
     secure: true,
   });
-  response.headers.set("Content-Security-Policy", CSP);
-  return response;
+  return withCsp(response);
 }
 
 export const config = {

@@ -105,3 +105,10 @@ describe("categoryAnchor", () => {
     expect(new Set(anchors).size).toBe(anchors.length);
   });
 });
+
+describe("the real write-ups", () => {
+  it("each sit in a named category rather than the More catch-all", () => {
+    const more = groupThoughts(THOUGHTS).find((group) => group.name === "More");
+    expect(more?.items.map((item) => item.href) ?? []).toEqual([]);
+  });
+});

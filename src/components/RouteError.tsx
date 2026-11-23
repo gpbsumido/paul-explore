@@ -37,7 +37,8 @@ function ErrorIcon() {
 /**
  * Shared error UI for Next.js route-segment error boundaries.
  *
- * Rendered by each route's error.tsx. `retry` fetches the segment again and
+ * Rendered by the root error.tsx, and by the two nested ones (zeroproof and
+ * lab/particles) that keep their layout on screen around it. `retry` fetches the segment again and
  * re-renders it, so a page that failed because an API was briefly down can
  * recover without reloading the whole page.
  */

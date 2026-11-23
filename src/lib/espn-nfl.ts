@@ -8,6 +8,7 @@ import { z } from "zod";
 import { fetchUpstream } from "./upstream";
 import { FANTASY_LEAGUES } from "./espn-performances";
 import { generateCards, type GeneratedCard, type PlayerPerformance } from "./fantasy-cards";
+import { sortCards } from "./card-view";
 
 const statSchema = z.object({
   scoringPeriodId: z.number().optional(),
@@ -189,8 +190,6 @@ export async function loadNflWeek({
   return { cards: [], week: null, latestWeek: latest, error: false };
 }
 
-const RARITY_RANK: Record<string, number> = { sir: 3, rare: 2, uncommon: 1, common: 0 };
-
 /**
  * Every week's cards for the season, combined and sorted rarest first, so the
  * rarity filter can show (say) every SIR of the whole season at once. Rarity is
@@ -208,9 +207,12 @@ export async function loadNflSeason({
   const payloads = await Promise.all(
     weeks.map((w) => (w === 1 ? probe : fetchJson(weekUrl(season, w)))),
   );
-  const cards = payloads
-    .flatMap((p, i) => (p ? generateCards(performancesFromWeek(p, { season, week: weeks[i] })) : []))
-    .sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity] || b.points - a.points);
+  const cards = sortCards(
+    payloads.flatMap((p, i) =>
+      p ? generateCards(performancesFromWeek(p, { season, week: weeks[i] })) : [],
+    ),
+    "rarity",
+  );
 
   return { cards, week: null, latestWeek: latest, error: cards.length === 0 };
 }

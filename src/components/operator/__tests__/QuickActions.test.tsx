@@ -197,3 +197,40 @@ describe("QuickActions refresh", () => {
     expect(screen.getByRole("button", { name: "Refresh Readings" })).toBeEnabled();
   });
 });
+
+/**
+ * A failed bulk action is already toasted by the app-wide mutation handler, so
+ * the button's job is to not claim success and not leave the promise rejected
+ * with nobody listening.
+ */
+describe("QuickActions when the write fails", () => {
+  it("doesn't announce a restock that didn't happen", async () => {
+    hooks.items = [low("a")];
+    hooks.restockStore.mockRejectedValue(new Error("down"));
+    const { user } = renderActions();
+
+    await user.click(screen.getByRole("button", { name: "Restock All (1)" }));
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Restock All" }),
+    );
+
+    await waitFor(() => expect(hooks.restockStore).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(hooks.addToast).not.toHaveBeenCalled();
+  });
+
+  it("doesn't announce a dismissal that didn't happen", async () => {
+    hooks.alerts = [alert("w1", "warning")];
+    hooks.dismissAlert.mockRejectedValue(new Error("down"));
+    const { user } = renderActions();
+
+    await user.click(screen.getByRole("button", { name: "Acknowledge All (1)" }));
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Dismiss All" }),
+    );
+
+    await waitFor(() => expect(hooks.dismissAlert).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(hooks.addToast).not.toHaveBeenCalled();
+  });
+});

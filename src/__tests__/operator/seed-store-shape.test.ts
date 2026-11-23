@@ -7,10 +7,8 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import { http, HttpResponse } from "msw";
 
-import { server } from "@/test/server";
-import { API_URL } from "@/lib/apiUrl";
+import { REFUSED_CONNECTIONS } from "@/test/factories/fetchFailures";
 import { getStores, openRestockSession, listPromotions } from "@/lib/operator-data";
 import {
   applyRestock,
@@ -118,15 +116,19 @@ describe("the whole write path heals, not just the seed helper", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   /**
    * The BFF only reaches the seed when the API call fails, so each test takes
    * the API down first and checks the fallback notice was logged. Without that
    * the MSW handler answers and the stale seed is never touched.
+   *
+   * Down means refused. The BFF only falls back when the connection was never
+   * made, and MSW's network error carries no cause to say so.
    */
-  function takeApiDown(path: string): MockInstance {
-    server.use(http.post(`${API_URL}/api/operator${path}`, () => HttpResponse.error()));
+  function takeApiDown(): MockInstance {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(REFUSED_CONNECTIONS[0].error));
     return vi.spyOn(console, "warn").mockImplementation(() => {});
   }
 
@@ -136,7 +138,7 @@ describe("the whole write path heals, not just the seed helper", () => {
    * because the cached store predated the restock collections.
    */
   it("opens a session through the BFF against a stale store", async () => {
-    const warn = takeApiDown("/stores/:id/restock-sessions");
+    const warn = takeApiDown();
     plantStore(staleStoreWithoutRestock());
 
     const session = await bffOpenSession("store-001");
@@ -148,7 +150,7 @@ describe("the whole write path heals, not just the seed helper", () => {
   });
 
   it("restocks to capacity through the BFF against a stale store", async () => {
-    const warn = takeApiDown("/stores/:id/restock");
+    const warn = takeApiDown();
     plantStore({ stores: [{ id: "store-001" }], allAlerts: new Map() });
 
     const result = await applyRestock("store-001", []);

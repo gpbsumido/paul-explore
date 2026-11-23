@@ -7,7 +7,7 @@ import {
   useReorderPlanogram,
   useResyncSlot,
 } from "@/hooks/useOperatorMutations";
-import { useToast } from "@/contexts/ToastContext";
+import { failureAlreadyToasted } from "@/lib/mutationErrorToast";
 import {
   assemblePlanogram,
   moveToBox,
@@ -42,7 +42,6 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
   } = useOperatorPlanogram(storeId);
   const { reorderPlanogram } = useReorderPlanogram();
   const { resyncSlot } = useResyncSlot();
-  const { addToast } = useToast();
 
   const itemsById = useMemo(() => {
     const map = new Map<string, InventoryItem>();
@@ -79,20 +78,16 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
   const rearrange = useCallback(
     (from: number, to: number) => {
       const boxes = moveToBox(slots, from, to);
-      reorderPlanogram({ storeId, boxes }).catch(() => {
-        addToast({ message: "Failed to move product", variant: "error" });
-      });
+      reorderPlanogram({ storeId, boxes }).catch(failureAlreadyToasted);
     },
-    [slots, storeId, reorderPlanogram, addToast],
+    [slots, storeId, reorderPlanogram],
   );
 
   const handleResync = useCallback(
     (itemId: string) => {
-      resyncSlot({ storeId, itemId }).catch(() => {
-        addToast({ message: "Failed to re-sync sensor", variant: "error" });
-      });
+      resyncSlot({ storeId, itemId }).catch(failureAlreadyToasted);
     },
-    [storeId, resyncSlot, addToast],
+    [storeId, resyncSlot],
   );
 
   const error = itemsError ?? planogramError;

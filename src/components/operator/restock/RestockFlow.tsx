@@ -286,6 +286,12 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
         </button>
       </header>
 
+      {error && (
+        <p role="alert" className="text-sm text-error-500">
+          {error}
+        </p>
+      )}
+
       <ul className="space-y-1.5">
         {items.map((item) => {
           const draft = drafts.get(item.id);

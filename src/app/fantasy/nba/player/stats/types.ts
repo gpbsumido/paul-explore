@@ -4,8 +4,6 @@
  * re-export everything here so StatsContent only needs one local import.
  */
 export type {
-  Team,
-  Player,
   PlayerStats,
   SortKey,
   PlayerRow,

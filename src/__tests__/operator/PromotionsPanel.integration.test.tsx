@@ -304,6 +304,12 @@ describe("PromotionPerformance in the panel", () => {
   });
 });
 
+/** What withOperatorErrors answers when a write ran out of time. */
+const TIMED_OUT =
+  "The operator API didn't answer in time. The change may have been saved, so reload before trying again.";
+/** What withOperatorErrors answers when the API said no to a write. */
+const REJECTED = "The operator API rejected this write (409).";
+
 describe("PromotionsPanel scheduling and ending", () => {
   /** Records the body of every promotion the panel posts. */
   const recordPosts = () => {
@@ -362,20 +368,57 @@ describe("PromotionsPanel scheduling and ending", () => {
     expect(posted[0].endsAt).toBe(new Date("2026-09-10T10:00").toISOString());
   });
 
-  it("keeps the form open and says so when the server refuses the promotion", async () => {
+  it("keeps the form open and gives the server's reason when it refuses the promotion", async () => {
     const user = userEvent.setup();
     renderPanel([], 20);
     server.use(
       http.post("/api/operator/stores/:id/promotions", () =>
-        HttpResponse.json({ error: "no" }, { status: 400 }),
+        HttpResponse.json({ error: REJECTED }, { status: 409 }),
       ),
     );
 
     await user.click(await screen.findByRole("button", { name: /schedule this/i }));
     await user.click(screen.getByRole("button", { name: "Schedule 20% off" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Could not schedule that promotion.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(REJECTED);
     expect(screen.getByRole("button", { name: "Schedule 20% off" })).toBeEnabled();
+  });
+
+  it("says so when the refusal carries no reason", async () => {
+    const user = userEvent.setup();
+    renderPanel([], 20);
+    server.use(
+      http.post("/api/operator/stores/:id/promotions", () => new HttpResponse(null, { status: 502 })),
+    );
+
+    await user.click(await screen.findByRole("button", { name: /schedule this/i }));
+    await user.click(screen.getByRole("button", { name: "Schedule 20% off" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not schedule that promotion.");
+  });
+
+  it("closes the form and reloads the list when scheduling timed out, rather than inviting a duplicate", async () => {
+    // A 504 means the promotion may exist upstream. Leaving the form open with
+    // its button enabled is an invitation to post it twice.
+    const user = userEvent.setup();
+    renderPanel([], 20);
+    let landed = false;
+    server.use(
+      http.post("/api/operator/stores/:id/promotions", () => {
+        landed = true;
+        return HttpResponse.json({ error: TIMED_OUT }, { status: 504 });
+      }),
+      http.get("/api/operator/stores/:id/promotions", () =>
+        HttpResponse.json({ promotions: landed ? [promo()] : [] }),
+      ),
+    );
+
+    await user.click(await screen.findByRole("button", { name: /schedule this/i }));
+    await user.click(screen.getByRole("button", { name: "Schedule 20% off" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(TIMED_OUT);
+    expect(screen.queryByRole("button", { name: "Schedule 20% off" })).not.toBeInTheDocument();
+    expect(await screen.findByText("20% off Energy Bar")).toBeInTheDocument();
   });
 
   it("ends the promotion whose End button was pressed and refreshes the list", async () => {
@@ -403,15 +446,49 @@ describe("PromotionsPanel scheduling and ending", () => {
     const user = userEvent.setup();
     renderPanel([promo()]);
     server.use(
-      http.patch("/api/operator/promotions/:id/end", () =>
-        HttpResponse.json({ error: "no" }, { status: 500 }),
-      ),
+      http.patch("/api/operator/promotions/:id/end", () => new HttpResponse(null, { status: 502 })),
     );
 
     await user.click(await screen.findByRole("button", { name: /^end$/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not end that promotion.");
     expect(screen.getByText("active")).toBeInTheDocument();
+  });
+
+  it("gives the server's reason when it refuses to end a promotion", async () => {
+    const user = userEvent.setup();
+    renderPanel([promo()]);
+    server.use(
+      http.patch("/api/operator/promotions/:id/end", () =>
+        HttpResponse.json({ error: REJECTED }, { status: 409 }),
+      ),
+    );
+
+    await user.click(await screen.findByRole("button", { name: /^end$/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(REJECTED);
+  });
+
+  it("says ending may have worked and reloads the list when it timed out", async () => {
+    const user = userEvent.setup();
+    renderPanel([promo()]);
+    let landed = false;
+    server.use(
+      http.patch("/api/operator/promotions/:id/end", () => {
+        landed = true;
+        return HttpResponse.json({ error: TIMED_OUT }, { status: 504 });
+      }),
+      http.get("/api/operator/stores/:id/promotions", () =>
+        HttpResponse.json({
+          promotions: [landed ? promo({ endsAt: "2026-01-02T00:00:00.000Z" }) : promo()],
+        }),
+      ),
+    );
+
+    await user.click(await screen.findByRole("button", { name: /^end$/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(TIMED_OUT);
+    expect(await screen.findByText("ended")).toBeInTheDocument();
   });
 
   it("says the promotions couldn't be loaded rather than showing none scheduled", async () => {

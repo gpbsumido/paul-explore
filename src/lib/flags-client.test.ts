@@ -3,12 +3,15 @@ import {
   FLAGS_TOKEN_HEADER,
   FlagsApiError,
   FlagsContractError,
+  FlagsWriteTimeoutError,
   fetchFlagsFromApi,
   fetchAuditFromApi,
   patchFlagOnApi,
 } from "./flags-client";
 import { InvalidSegmentError } from "./safeSegment";
 import { buildFlag } from "@/test/factories/flags";
+import { hangEveryFetchUntilItsDeadline, watchSettling } from "@/test/hungUpstream";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import type { AuditEntry } from "@/types/flags";
 
 function mockFetch(status: number, body: unknown) {
@@ -258,5 +261,39 @@ describe("patchFlagOnApi response shape", () => {
     await expect(
       patchFlagOnApi("dark-mode", { environment: "production", enabled: false }),
     ).rejects.toBeInstanceOf(FlagsContractError);
+  });
+});
+
+/**
+ * The audit read and the flag write had no deadline, unlike the fleet read.
+ * A write that runs out of time may have landed, so it gets its own error.
+ */
+describe("flags-client deadlines", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("bounds the audit read with an abort signal", async () => {
+    const fetchMock = mockFetch(200, { audit: [] });
+    await fetchAuditFromApi();
+    expect((fetchMock.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("gives up on a hung flag write at UPSTREAM_TIMEOUT_MS and not before", async () => {
+    hangEveryFetchUntilItsDeadline();
+
+    const write = patchFlagOnApi("new-checkout", { environment: "production", enabled: true });
+    const watch = watchSettling(write);
+
+    await vi.advanceTimersByTimeAsync(UPSTREAM_TIMEOUT_MS - 1);
+    expect(watch.settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(write).rejects.toBeInstanceOf(FlagsWriteTimeoutError);
+  });
+
+  it("names a flag write that ran out of time as its own error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+    await expect(
+      patchFlagOnApi("new-checkout", { environment: "production", enabled: true }),
+    ).rejects.toBeInstanceOf(FlagsWriteTimeoutError);
   });
 });

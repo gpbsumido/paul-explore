@@ -247,3 +247,109 @@ describe("PlayoffBracketContent — signed out", () => {
     expect(pickReads).toBe(0);
   });
 });
+
+describe("PlayoffBracketContent — share link", () => {
+  function withUsername() {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/leaderboard", () =>
+        HttpResponse.json({
+          entries: [
+            {
+              rank: 1,
+              sub: "auth0|me",
+              bracketId: "b1",
+              username: "paul",
+              displayName: "Paul",
+              score: 0,
+              maxScore: 0,
+              roundBreakdown: [],
+            },
+          ],
+        }),
+      ),
+    );
+  }
+
+  it("says the link was copied", async () => {
+    withUsername();
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText");
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+
+    await user.click(await screen.findByTitle("Copy bracket link"));
+
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/fantasy/nba/playoffs?view=paul`,
+    );
+    expect(await screen.findByText("Copied!")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Link copied.");
+    expect(
+      screen.queryByRole("textbox", { name: /copy it by hand/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says the copy failed when the clipboard refuses", async () => {
+    withUsername();
+    const user = userEvent.setup();
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+
+    await user.click(await screen.findByTitle("Copy bracket link"));
+
+    expect(await screen.findByText("Copy failed")).toBeInTheDocument();
+    expect(screen.queryByText("Copied!")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/couldn.t copy/i);
+  });
+
+  it("puts the link in a field to copy by hand when the clipboard refuses", async () => {
+    withUsername();
+    const user = userEvent.setup();
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+
+    await user.click(await screen.findByTitle("Copy bracket link"));
+
+    const field = await screen.findByRole("textbox", { name: /copy it by hand/i });
+    expect(field).toHaveValue(
+      `${window.location.origin}/fantasy/nba/playoffs?view=paul`,
+    );
+    expect(field).toHaveAttribute("readonly");
+  });
+});
+
+describe("PlayoffBracketContent — viewing someone else's bracket", () => {
+  function viewingPaul() {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/paul", () =>
+        HttpResponse.json({ picks: {} }),
+      ),
+    );
+  }
+
+  it("says Copy Link failed, out loud, and offers the link by hand", async () => {
+    viewingPaul();
+    const user = userEvent.setup();
+    render(<PlayoffBracketContent viewUsername="paul" />, {
+      wrapper: makeWrapper(),
+    });
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Copy Link" }));
+
+    expect(
+      await screen.findByRole("button", { name: "Copy failed" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/couldn.t copy/i);
+    expect(
+      screen.getByRole("textbox", { name: /copy it by hand/i }),
+    ).toHaveValue(window.location.href);
+  });
+});

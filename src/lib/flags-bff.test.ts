@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 import { loadFleet, loadAuditLog, applyFlagPatch, patchSeedStore } from "./flags-bff";
-import { FlagsApiError, FlagsContractError } from "./flags-client";
+import { FlagsApiError, FlagsContractError, FlagsWriteTimeoutError } from "./flags-client";
 import { getAudit, getFlag, getFlags } from "./flags-data";
 import { ENVIRONMENTS } from "@/types/flags";
 import { buildFlag, percentRollout } from "@/test/factories/flags";
+import { DROPPED_CONNECTIONS, REFUSED_CONNECTIONS } from "@/test/factories/fetchFailures";
 
 vi.mock("./flags-client", async () => {
   const actual =
@@ -195,6 +196,65 @@ describe("applyFlagPatch", () => {
     expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(true);
     expect(logged).toHaveBeenCalledOnce();
   });
+});
+
+describe("applyFlagPatch when the API runs out of time", () => {
+  it("answers 504 and leaves the seed store alone, since the write may have landed", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    patchSeedStore("new-checkout", { environment: "production", enabled: true });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsWriteTimeoutError());
+
+    const result = await applyFlagPatch("new-checkout", {
+      environment: "production",
+      enabled: false,
+    });
+
+    expect(result).toEqual({ status: 504 });
+    expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(true);
+    expect(logged).toHaveBeenCalledOnce();
+  });
+});
+
+/**
+ * `TypeError: fetch failed` covers a refused connection and a server that read
+ * the whole PATCH and then hung up. Only the first proves the write never
+ * arrived, so only the first may be answered from the seed.
+ */
+describe("applyFlagPatch when fetch itself fails", () => {
+  it.each(REFUSED_CONNECTIONS)(
+    "answers from the seed store when the connection was never made ($label)",
+    async ({ error }) => {
+      patchSeedStore("new-checkout", { environment: "production", enabled: true });
+      vi.mocked(patchFlagOnApi).mockRejectedValue(error);
+
+      const result = await applyFlagPatch("new-checkout", {
+        environment: "production",
+        enabled: false,
+      });
+
+      expect(result.status).toBe(200);
+      expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(false);
+    },
+  );
+
+  it.each(DROPPED_CONNECTIONS)(
+    "answers 504 and leaves the seed store alone when the write may have landed ($label)",
+    async ({ error }) => {
+      patchSeedStore("new-checkout", { environment: "production", enabled: true });
+      vi.mocked(patchFlagOnApi).mockRejectedValue(error);
+
+      const result = await applyFlagPatch("new-checkout", {
+        environment: "production",
+        enabled: false,
+      });
+
+      expect(result).toEqual({ status: 504 });
+      expect(getFlag("new-checkout")?.environments.production?.enabled).toBe(true);
+      expect(forgiveUnexpectedOutput()).toEqual([
+        expect.stringContaining("[flags] lost the connection patching flag new-checkout"),
+      ]);
+    },
+  );
 });
 
 describe("patchSeedStore", () => {

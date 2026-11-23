@@ -71,6 +71,19 @@ describe("ReviewSync", () => {
     );
   });
 
+  it("says the copy failed when the clipboard refuses, instead of claiming it worked", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSync />);
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /couldn't copy/i,
+    );
+    expect(screen.getByRole("status")).not.toHaveTextContent(/copied/i);
+  });
+
   it("rejects a paste that isn't exported progress", async () => {
     const user = userEvent.setup();
     render(<ReviewSync />);

@@ -29,6 +29,7 @@ import type {
 } from "@/types/operator";
 import { API_URL } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import {
@@ -107,6 +108,24 @@ export class OperatorContractError extends Error {
 }
 
 /**
+ * A write that got no answer before its deadline. It may still have applied
+ * upstream, so it is neither an outage the seed could answer nor a rejection:
+ * the caller has to be told to reload before trying again.
+ *
+ * A connection that dropped after the request went out is the same situation
+ * with a different cause, so it uses this error with its own `reason`.
+ */
+export class OperatorWriteTimeoutError extends Error {
+  constructor(
+    readonly path: string,
+    reason = `got no answer in ${UPSTREAM_TIMEOUT_MS} ms`,
+  ) {
+    super(`operator write ${path} ${reason}`);
+    this.name = "OperatorWriteTimeoutError";
+  }
+}
+
+/**
  * How long a read waits on the upstream before giving up. A cross-service fetch
  * with no deadline can hang for as long as the other end takes to fail, and
  * these reads sit on a page's render path — a hung upstream became a nine-second
@@ -140,6 +159,12 @@ async function sendJson<T>(
     headers: await writeHeaders(),
     body: JSON.stringify(body),
     cache: "no-store",
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  }).catch((err: unknown) => {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new OperatorWriteTimeoutError(path);
+    }
+    throw err;
   });
   if (!res.ok) throw new OperatorApiError(res.status);
   try {

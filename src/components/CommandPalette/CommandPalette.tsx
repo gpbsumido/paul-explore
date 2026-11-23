@@ -283,7 +283,7 @@ export default function CommandPalette({
                               </span>
                             )}
                           </span>
-                          {ranked.command.external && (
+                          {ranked.command.kind === "link" && ranked.command.external && (
                             <span className="shrink-0 text-[11px] text-muted">
                               ↗
                             </span>

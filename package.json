@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "9.2.41",
+  "version": "9.2.49",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -9,8 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "stats": "node scripts/count-tests.mjs",
-    "prebuild": "node scripts/count-tests.mjs",
-    "build": "next build",
+    "build": "node scripts/count-tests.mjs && next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "test": "vitest run --project unit --project svelte",

@@ -7,8 +7,11 @@ import {
   postRestock,
   OperatorApiError,
   OperatorContractError,
+  OperatorWriteTimeoutError,
 } from "@/lib/operator-client";
 import { buildStore } from "@/test/factories/operator";
+import { hangEveryFetchUntilItsDeadline, watchSettling } from "@/test/hungUpstream";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import { InvalidSegmentError } from "@/lib/safeSegment";
 
 // These calls carry OPERATOR_SERVICE_TOKEN and are reachable unauthenticated,
@@ -228,5 +231,43 @@ describe("operator-client unreadable write responses", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("<html>", { status: 200 })));
 
     await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorContractError);
+  });
+});
+
+/**
+ * Writes had no deadline at all, so a hung API held the route open until the
+ * platform killed it. A write that runs out of time may still have applied
+ * upstream, so it's named as its own error rather than looking like an outage
+ * the seed could answer.
+ */
+describe("operator-client write timeout", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("gives up on a hung write at UPSTREAM_TIMEOUT_MS and not before", async () => {
+    hangEveryFetchUntilItsDeadline();
+
+    const write = patchDismiss("alert-1");
+    const watch = watchSettling(write);
+
+    await vi.advanceTimersByTimeAsync(UPSTREAM_TIMEOUT_MS - 1);
+    expect(watch.settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(write).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+  });
+
+  it("names a write that ran out of time as its own error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+  });
+
+  it("leaves a refused connection as it was, so the seed can still stand in", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(TypeError);
   });
 });

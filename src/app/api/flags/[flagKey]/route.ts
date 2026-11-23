@@ -12,6 +12,7 @@ const ERRORS: Record<number, string> = {
   401: "Sign in to change this flag",
   403: "Only the site owner can change this flag",
   404: "Flag not found",
+  504: "The flags API didn't answer in time. The change may have been saved, so reload before trying again.",
 };
 
 /**

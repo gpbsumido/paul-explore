@@ -2,13 +2,37 @@ import { NextResponse } from "next/server";
 import { InvalidSegmentError } from "@/lib/safeSegment";
 
 /**
- * Default deadline for a call from a BFF route to portfolio_api.
+ * The deadline for a call from the server to portfolio_api, reads and writes.
  *
  * Eight seconds because that is the value /api/geo has been running in
  * production with, and reusing a number that has already survived beats
  * inventing a fresh one.
  */
-const DEFAULT_TIMEOUT_MS = 8_000;
+export const UPSTREAM_TIMEOUT_MS = 8_000;
+
+/** Socket codes that mean no connection was ever made, so nothing was sent. */
+const NEVER_CONNECTED_CODES: ReadonlySet<unknown> = new Set(["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN"]);
+
+/** The errno-style `code` Node puts on a socket error, if there is one. */
+function codeOf(value: unknown): unknown {
+  return typeof value === "object" && value !== null && "code" in value ? value.code : undefined;
+}
+
+/**
+ * Whether a rejected fetch might still have delivered its request.
+ *
+ * Node rejects with the same `TypeError: fetch failed` for a refused connection
+ * and for a server that read the whole body and then hung up. Only the cause
+ * tells them apart, so a write is treated as never sent only when the cause (or
+ * one of the addresses Node tried, for a host with several) is a refusal or a
+ * failed lookup. Anything else might have landed, and replaying it somewhere
+ * else would report a success that isn't the real outcome.
+ */
+export function fetchMayHaveLanded(err: unknown): boolean {
+  if (!(err instanceof TypeError)) return false;
+  const causes = err.cause instanceof AggregateError ? [err.cause, ...err.cause.errors] : [err.cause];
+  return !causes.some((cause) => NEVER_CONNECTED_CODES.has(codeOf(cause)));
+}
 
 export type UpstreamResult =
   | { ok: true; response: Response }
@@ -42,7 +66,7 @@ export async function fetchUpstream(
   url: string,
   init: UpstreamInit = {},
 ): Promise<UpstreamResult> {
-  const { timeoutMs = DEFAULT_TIMEOUT_MS, ...rest } = init;
+  const { timeoutMs = UPSTREAM_TIMEOUT_MS, ...rest } = init;
 
   try {
     const response = await fetch(url, {

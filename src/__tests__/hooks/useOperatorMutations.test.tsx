@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse, delay } from "msw";
@@ -112,7 +112,7 @@ describe("useDismissAlert", () => {
         });
     });
 
-    expect(failure).toEqual(new Error("Failed to dismiss alert"));
+    expect(failure).toMatchObject({ message: "Server error", status: 500 });
     await waitFor(() => {
       const cached = queryClient.getQueryData<Alert[]>(
         queryKeys.operator.alerts(storeId),
@@ -237,7 +237,7 @@ describe("useRestockStore", () => {
       );
       expect(cached?.find((i) => i.id === "item-fail")?.currentStock).toBe(3);
     });
-    expect(failure).toEqual(new Error("Failed to restock items"));
+    expect(failure).toMatchObject({ message: "Server error", status: 500 });
   });
 
   it("sends the chosen item ids to the store's restock endpoint and returns what came back", async () => {
@@ -354,7 +354,7 @@ describe("useReorderPlanogram", () => {
         });
     });
 
-    expect(failure).toEqual(new Error("Failed to rearrange planogram"));
+    expect(failure).toMatchObject({ message: "no", status: 500 });
     expect(queryClient.getQueryData(queryKeys.operator.planogram(storeId))).toEqual(before);
   });
 });
@@ -416,7 +416,95 @@ describe("useResyncSlot", () => {
         });
     });
 
-    expect(failure).toEqual(new Error("Failed to re-sync sensor"));
+    expect(failure).toMatchObject({ message: "no", status: 500 });
     expect(queryClient.getQueryData(queryKeys.operator.planogram(storeId))).toEqual(mismatched);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Failures carry the server's reason
+// ---------------------------------------------------------------------------
+
+/**
+ * Every write threw a fixed string ("Failed to restock items"), so the app's
+ * failure toast could only ever say that. The routes answer with a sentence
+ * written for whoever clicked, like "the change may have been saved, so reload
+ * before trying again", and that's the one worth showing.
+ */
+describe("a refused operator write", () => {
+  const REASON =
+    "The operator API didn't answer in time. The change may have been saved, so reload before trying again.";
+  const refuse = () => HttpResponse.json({ error: REASON }, { status: 504 });
+
+  type Wrapper = ReturnType<typeof makeWrapper>["Wrapper"];
+  it.each([
+    {
+      name: "dismiss",
+      handler: http.patch("/api/operator/alerts/:id/dismiss", refuse),
+      mount: (wrapper: Wrapper) => {
+        const { result } = renderHook(() => useDismissAlert(), { wrapper });
+        return () => result.current.dismissAlert({ alertId: "a", storeId: "s" });
+      },
+    },
+    {
+      name: "restock",
+      handler: http.post("/api/operator/stores/:id/restock", refuse),
+      mount: (wrapper: Wrapper) => {
+        const { result } = renderHook(() => useRestockStore(), { wrapper });
+        return () => result.current.restockStore({ storeId: "s", itemIds: ["i"] });
+      },
+    },
+    {
+      name: "reorder",
+      handler: http.patch("/api/operator/stores/:id/planogram", refuse),
+      mount: (wrapper: Wrapper) => {
+        const { result } = renderHook(() => useReorderPlanogram(), { wrapper });
+        return () => result.current.reorderPlanogram({ storeId: "s", boxes: [] });
+      },
+    },
+    {
+      name: "re-sync",
+      handler: http.patch("/api/operator/stores/:id/planogram", refuse),
+      mount: (wrapper: Wrapper) => {
+        const { result } = renderHook(() => useResyncSlot(), { wrapper });
+        return () => result.current.resyncSlot({ storeId: "s", itemId: "i" });
+      },
+    },
+  ])("$name fails with the route's own sentence", async ({ handler, mount }) => {
+    server.use(handler);
+    const { Wrapper } = makeWrapper();
+    const run = mount(Wrapper);
+
+    let failure: unknown;
+    await act(async () => {
+      await run().catch((error: unknown) => {
+        failure = error;
+      });
+    });
+
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toBe(REASON);
+  });
+});
+
+describe("what a restock refreshes", () => {
+  it("refreshes the activity feed as well as the inventory, since the restock logged an event", async () => {
+    server.use(
+      http.post("/api/operator/stores/:id/restock", () =>
+        HttpResponse.json({
+          items: [buildInventoryItem({ id: "i", storeId: "s" })],
+          activity: buildActivityEvent({ storeId: "s" }),
+        }),
+      ),
+    );
+    const { queryClient, Wrapper } = makeWrapper();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useRestockStore(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.restockStore({ storeId: "s", itemIds: ["i"] });
+    });
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.operator.activity("s") });
   });
 });

@@ -13,6 +13,7 @@ import {
 } from "@/lib/operator-detail";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/contexts/ToastContext";
+import { failureAlreadyToasted, notifyMutationError } from "@/lib/mutationErrorToast";
 import ConfirmModal from "./ConfirmModal";
 import { RestockIcon, CheckmarkIcon, RefreshIcon } from "./icons";
 
@@ -30,7 +31,9 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
   const { items } = useOperatorInventory(storeId);
   const { alerts } = useOperatorAlerts(storeId);
   const { restockStore, isRestocking } = useRestockStore();
-  const { dismissAlert, isDismissing } = useDismissAlert();
+  // Acknowledge All fires one dismissal per alert, so it reports failure itself
+  // instead of letting every one of them raise the same toast.
+  const { dismissAlert, isDismissing } = useDismissAlert({ reportsItsOwnFailures: true });
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -43,10 +46,13 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
   const handleRestockAll = useCallback(async () => {
     setConfirmTarget(null);
     if (lowStockIds.length === 0) return;
-    await restockStore({ storeId, itemIds: [...lowStockIds] });
-    addToast({
-      message: `Restocked ${lowStockIds.length} item${lowStockIds.length !== 1 ? "s" : ""}`,
-    });
+    await restockStore({ storeId, itemIds: [...lowStockIds] }).then(
+      () =>
+        addToast({
+          message: `Restocked ${lowStockIds.length} item${lowStockIds.length !== 1 ? "s" : ""}`,
+        }),
+      failureAlreadyToasted,
+    );
   }, [storeId, lowStockIds, restockStore, addToast]);
 
   const handleDismissAll = useCallback(async () => {
@@ -55,8 +61,10 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
     const count = dismissableAlerts.length;
     await Promise.all(
       dismissableAlerts.map((a) => dismissAlert({ alertId: a.id, storeId })),
+    ).then(
+      () => addToast({ message: `Dismissed ${count} alert${count !== 1 ? "s" : ""}` }),
+      (err: unknown) => notifyMutationError(err),
     );
-    addToast({ message: `Dismissed ${count} alert${count !== 1 ? "s" : ""}` });
   }, [storeId, dismissableAlerts, dismissAlert, addToast]);
 
   // Re-pulls this store's readings. It does not reach the hardware — there is

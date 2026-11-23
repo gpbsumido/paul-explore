@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@paul-portfolio/react";
+import { notifyMutationError } from "@/lib/mutationErrorToast";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { server } from "@/test/server";
@@ -13,7 +15,12 @@ import { buildInventoryItem } from "@/test/factories/operator";
 const STORE_ID = "store-plano-1";
 
 function makeWrapper() {
+  // Same wiring as providers.tsx: a failed write is toasted once, app-wide.
   const queryClient = new QueryClient({
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) =>
+        notifyMutationError(error, mutation.meta),
+    }),
     defaultOptions: { queries: { retry: false } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -23,6 +30,7 @@ function makeWrapper() {
           {children}
           <ToastNotification />
         </ToastProvider>
+        <Toaster />
       </QueryClientProvider>
     );
   };
@@ -141,7 +149,7 @@ describe("PlanogramTab moving into an empty box", () => {
   it("tells the operator when a move couldn't be saved", async () => {
     server.use(
       http.patch(`/api/operator/stores/${STORE_ID}/planogram`, () =>
-        HttpResponse.json({ error: "no" }, { status: 500 }),
+        HttpResponse.json({ error: "The shelf didn't save" }, { status: 500 }),
       ),
     );
     const user = userEvent.setup();
@@ -151,7 +159,9 @@ describe("PlanogramTab moving into an empty box", () => {
 
     await user.click(await within(container).findByRole("button", { name: /move chips to the next box/i }));
 
-    expect(await screen.findByText("Failed to move product")).toBeInTheDocument();
+    expect(await screen.findByText("The shelf didn't save")).toBeInTheDocument();
+    expect(screen.getAllByText("The shelf didn't save")).toHaveLength(1);
+    expect(screen.queryByText("Failed to move product")).not.toBeInTheDocument();
     expect(within(container).getByLabelText("Empty box A4")).toBeInTheDocument();
   });
 });
@@ -196,7 +206,7 @@ describe("PlanogramTab layout and refill run", () => {
   it("tells the operator when a re-sync couldn't be saved", async () => {
     server.use(
       http.patch(`/api/operator/stores/${STORE_ID}/planogram`, () =>
-        HttpResponse.json({ error: "no" }, { status: 500 }),
+        HttpResponse.json({ error: "The sensor didn't re-sync" }, { status: 500 }),
       ),
     );
     const user = userEvent.setup();
@@ -206,7 +216,9 @@ describe("PlanogramTab layout and refill run", () => {
 
     await user.click(await within(container).findByRole("button", { name: /re-sync sensor for water/i }));
 
-    expect(await screen.findByText("Failed to re-sync sensor")).toBeInTheDocument();
+    expect(await screen.findByText("The sensor didn't re-sync")).toBeInTheDocument();
+    expect(screen.getAllByText("The sensor didn't re-sync")).toHaveLength(1);
+    expect(screen.queryByText("Failed to re-sync sensor")).not.toBeInTheDocument();
     expect(within(container).getByText("Mismatch")).toBeInTheDocument();
   });
 

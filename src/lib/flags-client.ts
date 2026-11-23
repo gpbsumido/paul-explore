@@ -6,6 +6,7 @@
 import { z } from "zod";
 import { API_URL } from "@/lib/apiUrl";
 import { safeSegment } from "@/lib/safeSegment";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import {
   auditEntrySchema,
   environmentSchema,
@@ -60,7 +61,7 @@ export async function fetchFlagsFromApi(): Promise<
 > {
   const res = await fetch(BASE, {
     cache: "no-store",
-    signal: AbortSignal.timeout(8_000),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
   if (!res.ok) {
     throw new FlagsApiError(res.status);
@@ -72,7 +73,10 @@ export async function fetchFlagsFromApi(): Promise<
 export async function fetchAuditFromApi(): Promise<
   z.infer<typeof auditPayloadSchema>
 > {
-  const res = await fetch(`${BASE}/audit`, { cache: "no-store" });
+  const res = await fetch(`${BASE}/audit`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  });
   if (!res.ok) {
     throw new FlagsApiError(res.status);
   }
@@ -121,6 +125,17 @@ export class FlagsContractError extends Error {
   }
 }
 
+/**
+ * A flag write that got no answer before its deadline. It may have landed, so
+ * the seed store must not stand in for it the way it does for an outage.
+ */
+export class FlagsWriteTimeoutError extends Error {
+  constructor() {
+    super(`flags API write got no answer in ${UPSTREAM_TIMEOUT_MS} ms`);
+    this.name = "FlagsWriteTimeoutError";
+  }
+}
+
 export async function patchFlagOnApi(
   flagKey: string,
   body: UpdateFlagBody,
@@ -133,6 +148,12 @@ export async function patchFlagOnApi(
       ...authHeaders(auth),
     },
     body: JSON.stringify(updateFlagBodySchema.parse(body)),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  }).catch((err: unknown) => {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new FlagsWriteTimeoutError();
+    }
+    throw err;
   });
   if (!res.ok) {
     throw new FlagsApiError(res.status);

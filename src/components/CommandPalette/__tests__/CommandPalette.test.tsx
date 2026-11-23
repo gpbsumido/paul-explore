@@ -12,26 +12,31 @@ import CommandPalette from "../CommandPalette";
 import type { Command } from "@/lib/command-palette/types";
 
 const COMMANDS: Command[] = [
-  { id: "home", title: "Home", group: "Pages", href: "/", keywords: [] },
+  { id: "home", title: "Home", group: "Pages", kind: "link", href: "/", external: false, keywords: [] },
   {
     id: "calendar",
     title: "Calendar",
     group: "Pages",
+    kind: "link",
     href: "/calendar",
+    external: false,
     keywords: [],
   },
   {
     id: "toggle-theme",
     title: "Toggle theme",
     group: "Actions",
-    actionId: "toggle-theme",
+    kind: "action",
+    action: "toggle-theme",
     keywords: ["dark"],
   },
   {
     id: "note",
     title: "Testing",
     group: "Dev Notes",
+    kind: "link",
     href: "/thoughts/testing",
+    external: false,
     keywords: [],
   },
 ];

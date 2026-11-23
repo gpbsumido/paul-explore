@@ -2,12 +2,17 @@ import { describe, it, expect } from "vitest";
 import { rankCommands, groupRankedCommands } from "../filter";
 import type { Command } from "../types";
 
-function command(overrides: Partial<Command>): Command {
+type CommandFields = Partial<Pick<Command, "id" | "title" | "group" | "keywords">>;
+
+function command(overrides: CommandFields): Command {
   return {
     id: "id",
     title: "Title",
     group: "Pages",
     keywords: [],
+    kind: "link",
+    href: "/",
+    external: false,
     ...overrides,
   };
 }

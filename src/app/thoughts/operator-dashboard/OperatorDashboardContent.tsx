@@ -44,7 +44,6 @@ export default function OperatorDashboardContent() {
           "Product Performance still names the SKUs to cut without offering a way to cut them; the promotion endpoint is per-store, so a fleet-level action needs a store picker first.",
         ]}
         upcoming={[
-          "Give the route the error boundary the rest of the app just got — it was one of the twelve without one.",
           "Server-sent events for alerts, which are the only tier where fifteen seconds of staleness is genuinely too long.",
         ]}
       />
