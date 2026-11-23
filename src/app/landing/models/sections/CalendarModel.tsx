@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import type { Group } from "three";
 import HotspotDot from "../HotspotDot";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const MARKER_RADIUS = 0.85;
 const MAJOR_TICKS = new Set([0, 3, 6, 9]);
@@ -16,14 +18,6 @@ const MARKER_POSITIONS = Array.from({ length: 12 }, (_, i) => {
     number,
   ];
 });
-
-const getPrefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const getIsMobile = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(max-width: 767px)").matches;
 
 /**
  * Procedural alarm clock face. Uses volumetric geometry (cylinder body,
@@ -37,21 +31,8 @@ export default function CalendarModel() {
   const hourRef = useRef<Group>(null);
   const minuteRef = useRef<Group>(null);
 
-  const [prefersReduced, setPrefersReduced] = useState(getPrefersReduced);
-  const [isMobile, setIsMobile] = useState(getIsMobile);
-
-  useEffect(() => {
-    const mqMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const mqMobile = window.matchMedia("(max-width: 767px)");
-    const onMotion = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
-    const onMobile = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mqMotion.addEventListener("change", onMotion);
-    mqMobile.addEventListener("change", onMobile);
-    return () => {
-      mqMotion.removeEventListener("change", onMotion);
-      mqMobile.removeEventListener("change", onMobile);
-    };
-  }, []);
+  const prefersReduced = usePrefersReducedMotion();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const now = new Date();

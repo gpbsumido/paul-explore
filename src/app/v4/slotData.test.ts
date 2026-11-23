@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { buildSlots, shortestDelta, wrapIndex } from "./slotData";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
 import { DEPRECATED_GROUP } from "@/app/_shared/thoughtCategories";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 describe("buildSlots", () => {
   const categories = buildSlots();
@@ -123,9 +124,7 @@ describe("buildSlots", () => {
         continue;
       }
       expect(option.href.length, option.id).toBeGreaterThan(0);
-      expect(Boolean(option.external), option.id).toBe(
-        option.href.startsWith("http"),
-      );
+      expect(Boolean(option.external), option.id).toBe(isExternalHref(option.href));
     }
   });
 });

@@ -1,7 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { API_URL } from "@/lib/apiUrl";
 import { NextResponse, type NextRequest } from "next/server";
-import { auth0 } from "@/lib/auth0";
+import { getOptionalToken } from "@/lib/backendFetch";
 import { parseBody } from "@/lib/parseBody";
 import { vitalsBeaconSchema } from "@/lib/schemas";
 
@@ -32,12 +32,7 @@ export async function POST(request: NextRequest) {
 // site-wide, non-personal data. Forwards the visitor's token when they have
 // one; a signed-out request goes through unauthenticated.
 export async function GET(request: NextRequest) {
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch {
-    token = undefined;
-  }
+  const token = await getOptionalToken();
 
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
   const v = request.nextUrl.searchParams.get("v");

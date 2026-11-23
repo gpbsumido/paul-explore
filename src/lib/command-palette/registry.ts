@@ -1,5 +1,6 @@
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import type { Command } from "./types";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 /** A link command to one of this site's own routes. */
 function page(command: Omit<Extract<Command, { kind: "link" }>, "kind" | "external">): Command {
@@ -71,7 +72,7 @@ export function buildCommandRegistry(): Command[] {
     group: "Pages",
     kind: "link",
     href: feature.href,
-    external: feature.href.startsWith("http"),
+    external: isExternalHref(feature.href),
     color: feature.color,
     keywords: words(feature.title, feature.id),
   }));

@@ -564,10 +564,25 @@ onScrollRef.current = () => {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-31-routing-around",
+            date: "Aug 31, 2026",
+            title: "Routing around it, and the bug I shipped doing so",
+          },
+          {
+            id: "update-2026-08-30-catalog",
+            date: "Aug 30, 2026",
+            title: "A day of fixing the wrong thing, and the API that was never down",
+          },
+          {
             id: "update-2026-08-10-virtualised",
             date: "Aug 10, 2026",
             title:
               "Virtualising the lists, and putting the Pocket page behind a flag",
+          },
+          {
+            id: "update-2026-08-05-serve-tcg",
+            date: "Aug 5, 2026",
+            title: "The list routes now share one helper",
           },
         ]}
       />

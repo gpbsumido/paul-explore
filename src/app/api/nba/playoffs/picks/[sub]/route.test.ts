@@ -86,22 +86,22 @@ describe("GET /api/nba/playoffs/picks/:sub", () => {
     expect(await res.json()).toEqual({ picks: null });
   });
 
-  it("answers 404 with no picks even when the backend itself is failing", async () => {
+  it("answers 502 when the backend fails, rather than calling the bracket missing", async () => {
     upstreamAnswers({ error: "boom" }, 500);
 
     const res = await ask("paul");
 
-    expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ picks: null });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "Couldn't load these picks right now" });
   });
 
-  it("answers 404 with no picks when the backend's reply isn't JSON", async () => {
+  it("answers 502 when the backend's reply isn't JSON", async () => {
     upstreamAnswers("<html>", 200);
 
     const res = await ask("paul");
 
-    expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ picks: null });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "Couldn't load these picks right now" });
   });
 
   it("answers 504 when the backend times out and 502 when it can't be reached", async () => {

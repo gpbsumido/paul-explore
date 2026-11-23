@@ -29,6 +29,7 @@ import { copyText } from "@/lib/clipboard";
 import { useTransientValue } from "@/hooks/useTransientValue";
 import { useMe } from "@/hooks/useMe";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
+import { ResponseError, responseError } from "@/lib/responseError";
 
 // ---- TBD resolution ----
 
@@ -691,11 +692,15 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
       const res = await fetch(
         `/api/nba/playoffs/picks/${encodeURIComponent(viewUsername!)}`,
       );
-      if (!res.ok) throw new Error("Bracket not available");
+      if (!res.ok) throw await responseError(res, "Bracket not available");
       return res.json();
     },
     enabled: isViewMode,
     staleTime: 5 * 60_000,
+    // A 404 means the bracket is private or doesn't exist, and asking again
+    // won't change that. Retrying it only made the private line wait ~7s.
+    retry: (failureCount, error) =>
+      !(error instanceof ResponseError && error.status === 404) && failureCount < 3,
   });
 
   // Leaderboard — always loaded so we can resolve viewName
@@ -921,7 +926,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
             className="flex flex-col items-center gap-2 py-12 text-center"
           >
             <p className="text-[14px] text-muted">
-              This bracket isn&rsquo;t publicly available yet.
+              {viewPicksQuery.error instanceof ResponseError &&
+              viewPicksQuery.error.status === 404
+                ? "This bracket isn\u2019t publicly available yet."
+                : userFacingErrorMessage(viewPicksQuery.error, "Couldn't load this bracket.")}
             </p>
             <a
               href="/fantasy/nba/playoffs"

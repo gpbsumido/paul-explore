@@ -27,6 +27,17 @@ const files = sourceFiles(SRC).map((file) => ({
  * context in app/providers was a second copy of the same store that pulled
  * components into importing the app shell.
  */
+/**
+ * Files allowed to read the reduced-motion media query themselves, and why.
+ * PackOpener only mounts after a click opens a pack, so it never hydrates over
+ * server HTML. It reads the query once to pick its opening phase, so a
+ * reduced-motion reader starts on the reveal instead of the wheel.
+ */
+const READS_MATCHMEDIA_ON_PURPOSE = new Set([
+  path.join("hooks", "usePrefersReducedMotion.ts"),
+  path.join("app", "fantasy", "nba", "cards", "PackOpener.tsx"),
+]);
+
 describe("reduced motion has one source", () => {
   it("never reads framer-motion's useReducedMotion", () => {
     const offenders = files
@@ -39,6 +50,16 @@ describe("reduced motion has one source", () => {
     const offenders = files
       .filter(({ text }) => /\buseHubReducedMotion\b/.test(text))
       .map(({ file }) => file);
+    expect(offenders).toEqual([]);
+  });
+
+  it("is only read from matchMedia by the hook and the files allowed to", () => {
+    // A component reading matchMedia itself sees the real value on its first
+    // client render, while the server rendered full motion.
+    const offenders = files
+      .filter(({ text }) => /matchMedia\??\.?\(\s*["'`]\(prefers-reduced-motion/.test(text))
+      .map(({ file }) => file)
+      .filter((file) => !READS_MATCHMEDIA_ON_PURPOSE.has(file));
     expect(offenders).toEqual([]);
   });
 });

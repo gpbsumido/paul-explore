@@ -10,7 +10,8 @@ const UUID_RE =
 /**
  * GET /api/nba/playoffs/picks/[sub]
  * Public endpoint — accepts either a username (profiled users) or a bracket UUID
- * (anonymous users). Forwards the right query param to the backend.
+ * (anonymous users). Forwards the right query param to the backend. 404 means
+ * no bracket; anything else that goes wrong upstream is a 502 with a reason.
  */
 export async function GET(
   _request: NextRequest,
@@ -22,21 +23,21 @@ export async function GET(
     ? `bracketId=${encodeURIComponent(identifier)}`
     : `username=${encodeURIComponent(identifier)}`;
 
-  try {
-    const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}/public?${param}`,
-      { next: { revalidate: 60 } },
-    );
-    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
-    const res = upstreamResult.response;
+  const upstreamResult = await fetchUpstream(
+    `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}/public?${param}`,
+    { next: { revalidate: 60 } },
+  );
+  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+  const res = upstreamResult.response;
 
-    if (!res.ok) {
-      return NextResponse.json({ picks: null }, { status: 404 });
-    }
-
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch {
+  // Only the backend saying "no such bracket" is a 404. A failing backend used
+  // to come back as 404 too, which told the viewer the bracket didn't exist.
+  if (res.status === 404) {
     return NextResponse.json({ picks: null }, { status: 404 });
   }
+  const data: unknown = res.ok ? await res.json().catch(() => undefined) : undefined;
+  if (data === undefined) {
+    return NextResponse.json({ error: "Couldn't load these picks right now" }, { status: 502 });
+  }
+  return NextResponse.json(data);
 }

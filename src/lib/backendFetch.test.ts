@@ -14,6 +14,7 @@ import { InvalidSegmentError } from "@/lib/safeSegment";
 import {
   API_URL,
   buildHeaders,
+  getOptionalToken,
   proxyPublicList,
   withAdminBackend,
   withBackend,
@@ -350,5 +351,19 @@ describe("buildHeaders", () => {
       Authorization: "Bearer abc",
       "Content-Type": "application/json",
     });
+  });
+});
+
+describe("getOptionalToken", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns the visitor's token when they're signed in", async () => {
+    getAccessToken.mockResolvedValue({ token: "abc" });
+    expect(await getOptionalToken()).toBe("abc");
+  });
+
+  it("returns undefined for a signed-out visitor instead of throwing", async () => {
+    getAccessToken.mockRejectedValue(new Error("no session"));
+    expect(await getOptionalToken()).toBeUndefined();
   });
 });

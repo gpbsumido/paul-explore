@@ -108,6 +108,19 @@ export async function getBackendAuth(): Promise<{
 }
 
 /**
+ * The visitor's access token if they're signed in, undefined if not. For public
+ * routes that show more to a signed-in visitor but still answer everyone else.
+ */
+export async function getOptionalToken(): Promise<string | undefined> {
+  try {
+    return (await auth0.getAccessToken()).token;
+  } catch {
+    // No session is the normal case on a public route, not a failure.
+    return undefined;
+  }
+}
+
+/**
  * Public GET proxy that forwards the visitor's token when they have one and goes
  * through unauthenticated otherwise. Fetches `${API_URL}${path}`, and on success
  * returns `{ [key]: data[key] ?? [] }`. Transport failures map to the standard
@@ -119,12 +132,7 @@ export async function proxyPublicList(
   path: string,
   { errorLabel, key }: { errorLabel: string; key: string },
 ): Promise<NextResponse> {
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch {
-    token = undefined;
-  }
+  const token = await getOptionalToken();
 
   try {
     const result = await fetchUpstream(`${API_URL}${path}`, {

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-11-22 - version 9.3.5
+
+- The codebase-audit write-up has a dated update on the third stack: the shared bracket that called itself private during an outage, the two lower PRs a full test run caught me breaking after I'd only run each PR's own folders, the four write-up timelines that stopped partway down, why the hub's updates card stays typed by hand, and the audit items I left alone because they were wrong. It also says where I fell short: I meant to give every PR a full test run before writing its body, and three of them still went up with folder runs. The risk route's separate five-second timeout is written up as a decision rather than a fix; the route still calls `fetch` directly, and only the constant got a name. Its what's-next list drops the ZeroProof body item, which shipped, and the risk timeout, which stays as it is on purpose, and names the calendar GET question instead.
+
+## 2026-11-22 - version 9.3.4
+
+- A saved theme that isn't light, dark or system now falls back to system. The provider cast whatever was in localStorage to a theme, and the pre-paint script wrote it straight onto `data-theme`, so a stray value left the page in no theme at all. The storage key and the pre-paint script both live in one module now, and a test runs that script against a saved "blue" to check it lands on light or dark.
+- The memoization and hash-map demos flash with `useTransientValue` instead of a bare `setTimeout`. Clicking twice inside the flash used to let the first click's timer end the second flash early, and leaving the page left the timer running. The hook gains a `clear` for the demos' reset buttons. The 3D world's "token found" toast moves onto it too.
+- A `?w=` link on /world is checked against the weather dressing table instead of a list of six conditions typed out beside it.
+- Card Lab's nightly cards work again. ESPN started answering every scoreboard date range with `400 Failed to get events endpoint.`, so the scan back through twelve-day windows read nothing and the NBA view quietly fell back to season cards. It now reads a calendar month at a time, which ESPN still serves, with `limit=1000` because a month of NBA games runs past the default cap of 100.
+- When ESPN can't be reached, Card Lab says so instead of "No games with box scores on this slate yet". The NFL week reader and the nightly reader both treated an outage as a quiet night. The NBA landing view still falls back to season cards during an outage, since those come from the league read and usually still load; a night or the Nightly tab asked for by name shows the error.
+- Server plumbing, no visible change: the NFL and nightly readers share one ESPN JSON fetch, and the weekly NFL URL is built by the same helper as the league URL.
+
+## 2026-11-22 - version 9.3.3
+
+- The Updates card on the hub showed three entries from version 5, so it advertised a site two majors old. It now shows the three newest public updates. The list is still typed out by hand, because reading the changelog file from a client module would ship all 75 KB of it with the hub, so a test fails when a new entry lands and the card falls behind.
+- Four write-ups had a timeline at the top that missed updates further down: TCG listed one of its four, vitals three of six, the work portfolio two of four, deployment two of three. They list them all now, newest first, and a test checks every page with a timeline in both directions.
+- The budget card picks up its colour token like the other hub cards. The token was defined in tokens.css but nothing mapped the card to it; a test now checks every feature with a token is mapped, and every mapping points at a token that exists.
+
+## 2026-11-22 - version 9.3.2
+
+- A shared bracket link no longer says "This bracket isn't publicly available yet" when the backend is down. The public picks route treated any failure as a missing bracket, so an outage looked like a private one; now only a 404 means missing, anything else answers 502 with "Couldn't load these picks right now", and the view shows that instead. A 404 also isn't retried any more, so a private bracket says so straight away instead of after about seven seconds of retries that could never succeed. An outage still gets its three.
+- The admin ESPN leagues list shows the server's reason when loading fails, the same way the add and remove buttons already did.
+- Server plumbing, no visible change: the "token if signed in" lookup that three public routes, the vitals proxy and the vitals page each copied now lives once in `getOptionalToken`, the operator client reads the API URL from `apiUrl` instead of a module that pulls in auth0, the risk demo's 5 second timeout has a name, and the ZeroProof track route loses a catch that `fetchUpstream` made unreachable.
+
 ## 2026-11-22 - version 9.3.1
 
 - Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact. A refused body says which field was wrong in words, like "Max members must be a number", rather than "Invalid request body", since the forms put that sentence on screen. The forms also stop the two that were easy to send: Max members is required and at least 2, and a stake that rounds to nothing, like $0.001, says "Enter at least $0.01" beside it instead of going to the server.

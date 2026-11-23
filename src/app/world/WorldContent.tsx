@@ -33,7 +33,7 @@ import { seasonFor, SEASON_DRESSING, type Season } from "@/lib/world/seasons";
 import type { Vec2 } from "@/types/world";
 import type { InteractionKind } from "./WorldScene";
 import { useWeather, type WeatherCondition } from "@/hooks/useWeather";
-import { WEATHER_DRESSING } from "@/lib/world/weather";
+import { WEATHER_DRESSING, isWeatherCondition } from "@/lib/world/weather";
 import {
   COLLECTIBLES,
   REACHABLE_CELLS,
@@ -42,6 +42,7 @@ import {
 } from "@/lib/world/collectibles";
 
 import type { JoystickState, PlayerSnapshot } from "./refs";
+import { useTransientValue } from "@/hooks/useTransientValue";
 
 const COLLECTED_KEY = "world-collected";
 const VISITED_KEY = "world-visited";
@@ -353,15 +354,14 @@ export default function WorldContent() {
   const [ghostVisible, setGhostVisible] = useState(true);
   const [collected, setCollected] = useState<readonly string[]>([]);
   const [visited, setVisited] = useState<readonly string[]>([]);
-  const [lastFind, setLastFind] = useState<{
+  const [lastFind, showLastFind] = useTransientValue<{
     id: string;
     count: number;
-  } | null>(null);
+  }>(3000);
   const [unlockToast, setUnlockToast] = useState(false);
   const wembyUnlocked = isWembyUnlocked(collected);
   const collectedRef = useRef<readonly string[]>([]);
   const visitedRef = useRef<readonly string[]>([]);
-  const findToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordingRef = useRef<readonly GhostPoint[]>([]);
   const outfitIdRef = useRef(outfitId);
   useEffect(() => {
@@ -411,14 +411,7 @@ export default function WorldContent() {
         : currentTimeOfDay(),
     );
     const forcedW = new URLSearchParams(window.location.search).get("w");
-    if (
-      forcedW === "clear" ||
-      forcedW === "partly-cloudy" ||
-      forcedW === "fog" ||
-      forcedW === "rain" ||
-      forcedW === "snow" ||
-      forcedW === "storm"
-    ) {
+    if (isWeatherCondition(forcedW)) {
       setForcedWeather(forcedW);
     }
     const forcedSeason = new URLSearchParams(window.location.search).get(
@@ -476,21 +469,13 @@ export default function WorldContent() {
     // The token that completes the ground set is the one that earns the suit.
     if (!isWembyUnlocked(current) && isWembyUnlocked(next))
       setUnlockToast(true);
-    setLastFind({ id, count: next.length });
-    if (findToastTimer.current) clearTimeout(findToastTimer.current);
-    findToastTimer.current = setTimeout(() => setLastFind(null), 3000);
+    showLastFind({ id, count: next.length });
     try {
       window.localStorage.setItem(COLLECTED_KEY, JSON.stringify(next));
     } catch {
       // Storage full or blocked — progress just isn't remembered.
     }
-  }, []);
-  useEffect(
-    () => () => {
-      if (findToastTimer.current) clearTimeout(findToastTimer.current);
-    },
-    [],
-  );
+  }, [showLastFind]);
 
   const handleExplore = useCallback((explored: readonly string[]) => {
     setVisited(explored);

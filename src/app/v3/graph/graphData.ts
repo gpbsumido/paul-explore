@@ -1,5 +1,6 @@
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 /** What a node represents, which drives its size and styling. */
 export type GraphNodeKind = "root" | "hub" | "feature" | "category" | "thought";
@@ -111,7 +112,7 @@ export function buildGraphData(): GraphData {
       kind: "feature",
       label: feature.title,
       href: feature.href,
-      external: feature.href.startsWith("http"),
+      external: isExternalHref(feature.href),
       color: FEATURE_COLOR,
       blurb: feature.description,
       radius: 16,

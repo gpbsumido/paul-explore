@@ -2,8 +2,7 @@ import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
 import { createLeagueBodySchema } from "@/lib/zeroproof/schemas";
 import { type NextRequest, NextResponse } from "next/server";
-import { API_URL, buildHeaders, withBackend } from "@/lib/backendFetch";
-import { auth0 } from "@/lib/auth0";
+import { API_URL, buildHeaders, getOptionalToken, withBackend } from "@/lib/backendFetch";
 
 // GET /api/zeroproof/leagues — discover public leagues (?q=) or resolve one by
 // invite code (?code=). Public: the list renders for signed-out visitors; a
@@ -17,12 +16,7 @@ export async function GET(request: NextRequest) {
   }
   const suffix = qs.toString() ? `?${qs}` : "";
 
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch {
-    token = undefined;
-  }
+  const token = await getOptionalToken();
 
   try {
     const result = await fetchUpstream(`${API_URL}/api/zeroproof/leagues${suffix}`, {

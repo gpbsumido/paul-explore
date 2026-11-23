@@ -41,4 +41,12 @@ describe("useTransientValue", () => {
     unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it("clears straight away when asked, and the old timer doesn't fire later", () => {
+    const { result } = renderHook(() => useTransientValue<string>(1000));
+    act(() => result.current[1]("flashed"));
+    act(() => result.current[2]());
+    expect(result.current[0]).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });
