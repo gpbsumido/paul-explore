@@ -26,7 +26,9 @@ export default function About() {
             <h3 className={styles.role}>{entry.title}</h3>
             <span className={styles.place}>{entry.place}</span>
             {entry.summary ? <p className={styles.point}>{entry.summary}</p> : null}
-            {entry.points[0] ? <p className={styles.point}>{entry.points[0]}</p> : null}
+            {entry.points.map((point) => (
+              <p key={point} className={styles.point}>{point}</p>
+            ))}
           </li>
         ))}
       </ol>
