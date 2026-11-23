@@ -162,9 +162,22 @@ describe("GET /api/nba/schedule", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
-      "13": [{ date: "2026-01-06", opp: "BOS", home: true }],
-      "2": [{ date: "2026-01-06", opp: "LAL", home: false }],
+      "13": [{ date: "2026-01-05", opp: "BOS", home: true }],
+      "2": [{ date: "2026-01-05", opp: "LAL", home: false }],
     });
+  });
+
+  // A 7:30pm Eastern tip-off is 00:30Z the next day, so the UTC date put every
+  // evening game a day late: a Monday-to-Sunday week read Tuesday to Monday.
+  it("dates a game by the day it was asked for, not its UTC timestamp", async () => {
+    stubScoreboardDays({
+      "20260111": [game("2026-01-12T00:30:00Z", { id: "13", abbreviation: "LAL" }, { id: "2", abbreviation: "BOS" })],
+    });
+
+    const res = await scheduleGET(scheduleRequest("?start=20260105&end=20260111"));
+    const schedule = await res.json();
+
+    expect(schedule["13"]).toEqual([{ date: "2026-01-11", opp: "BOS", home: true }]);
   });
 
   it("lists a team's games day by day, whichever day ESPN answers first", async () => {
@@ -186,8 +199,8 @@ describe("GET /api/nba/schedule", () => {
     const schedule = await res.json();
 
     expect(schedule["13"]).toEqual([
-      { date: "2026-01-06", opp: "BOS", home: true },
-      { date: "2026-01-08", opp: "CLE", home: false },
+      { date: "2026-01-05", opp: "BOS", home: true },
+      { date: "2026-01-07", opp: "CLE", home: false },
     ]);
   });
 
