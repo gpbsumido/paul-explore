@@ -92,4 +92,14 @@ describe("accessibility media queries", () => {
     expect(blocks).toMatch(/\.hotspot-ring\s*\{[^}]*animation:\s*none/);
     expect(blocks).toMatch(/\.animate-scroll-hint\s*\{[^}]*animation:\s*none/);
   });
+
+  it("only drifts the backdrop grid when motion is allowed", () => {
+    // The grid sits behind nearly every page, so an ungated loop here would be
+    // the most widespread motion on the site.
+    const gated = mediaBlocks(source, /prefers-reduced-motion:\s*no-preference/).join("\n");
+    expect(gated).toMatch(/\.grid-backdrop::before\s*\{[^}]*animation:\s*grid-drift/);
+
+    const ungated = withoutMediaBlocks(source, /prefers-reduced-motion:\s*no-preference/);
+    expect(ungated).not.toMatch(/animation:\s*grid-drift/);
+  });
 });
