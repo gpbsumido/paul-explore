@@ -2,6 +2,7 @@ import Link from "next/link";
 import { type ReactNode } from "react";
 import HeaderMenu from "@/components/HeaderMenu";
 import FeatureThoughtsLink from "@/components/FeatureThoughtsLink";
+import FloatingHeaderFrame from "@/components/FloatingHeaderFrame";
 
 export interface BreadcrumbItem {
   /** Display text. */
@@ -66,9 +67,25 @@ function BackChevron() {
 }
 
 /**
+ * The site's wordmark. Used as the home link wherever a breadcrumb trail starts
+ * at `/`, so every page carries the same brand the landing does.
+ */
+export function Wordmark() {
+  return (
+    <span className="font-display text-[17px] font-bold tracking-[-0.02em] text-foreground whitespace-nowrap">
+      paul<span className="text-primary-600 dark:text-primary-400">—</span>explore
+    </span>
+  );
+}
+
+/**
  * Shared sticky page header used across all feature and thoughts pages.
  *
- * Renders a glassmorphic bar with a breadcrumb trail (or custom left content)
+ * Full width at the top of the page; once the page scrolls it lifts into a
+ * centered floating pill (see FloatingHeaderFrame). The pill lives inside the
+ * same 56px box, so sticky sub-bars pinned at top-14 never move.
+ *
+ * Renders a breadcrumb trail (or custom left content)
  * and optional extra content on the right, plus a dropdown menu that consolidates
  * theme switching, optional settings navigation, and optional logout.
  *
@@ -126,19 +143,15 @@ export default function PageHeader({
   overlay,
   as: Tag = "nav",
 }: PageHeaderProps) {
-  const glassStyle = {
-    background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-    backdropFilter: "blur(var(--blur-bar))",
-    WebkitBackdropFilter: "blur(var(--blur-bar))",
-  };
-
-  const navClassName = `sticky top-0 ${zIndex} min-h-14 border-b border-border`;
+  // At the top: a full-width frosted bar. Floating: the bar goes clear and
+  // click-through, and the inner row becomes the pill.
+  const frameClassName = `group/header sticky top-0 ${zIndex} min-h-14 border-b border-border bg-background/80 backdrop-blur-(--blur-bar) transition-[background-color,border-color] duration-300 data-[floating=true]:pointer-events-none data-[floating=true]:border-transparent data-[floating=true]:bg-transparent data-[floating=true]:backdrop-blur-none`;
 
   const content = (
     <>
       {overlay}
       <div
-        className={`relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4`}
+        className={`pointer-events-auto relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4 rounded-full border border-transparent transition-[max-width,margin,min-height,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none group-data-[floating=true]/header:my-1.5 group-data-[floating=true]/header:min-h-11 group-data-[floating=true]/header:max-w-3xl group-data-[floating=true]/header:border-border group-data-[floating=true]/header:bg-surface/80 group-data-[floating=true]/header:py-1 group-data-[floating=true]/header:pr-2 group-data-[floating=true]/header:pl-5 group-data-[floating=true]/header:shadow-[0_12px_32px_-16px_rgb(0_0_0/0.35)] group-data-[floating=true]/header:backdrop-blur-md group-data-[floating=true]/header:mx-3 sm:group-data-[floating=true]/header:mx-auto`}
       >
         {/* Left: breadcrumb trail or custom node */}
         {left ??
@@ -155,11 +168,19 @@ export default function PageHeader({
                       />
                     )}
 
-                    {i === 0 && item.href ? (
+                    {i === 0 && item.href === "/" ? (
+                      <Link
+                        href="/"
+                        onClick={item.onClick}
+                        className="flex min-h-11 shrink-0 items-center sm:min-h-0"
+                      >
+                        <Wordmark />
+                      </Link>
+                    ) : i === 0 && item.href ? (
                       <Link
                         href={item.href}
                         onClick={item.onClick}
-                        className="flex min-h-11 shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground sm:min-h-0"
+                        className="flex min-h-11 shrink-0 items-center gap-1.5 font-mono text-[13px] text-muted transition-colors hover:text-foreground sm:min-h-0"
                       >
                         <BackChevron />
                         {item.label}
@@ -168,21 +189,21 @@ export default function PageHeader({
                       <Link
                         href={item.href}
                         onClick={item.onClick}
-                        className="flex min-h-11 shrink-0 items-center truncate text-sm text-muted transition-colors hover:text-foreground max-w-[120px] sm:min-h-0"
+                        className="flex min-h-11 shrink-0 items-center truncate font-mono text-[13px] text-muted transition-colors hover:text-foreground max-w-[120px] sm:min-h-0"
                       >
                         {item.label}
                       </Link>
                     ) : item.badge ? (
                       <span
                         aria-current={isLast ? "page" : undefined}
-                        className="rounded-md bg-surface-raised px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted"
+                        className="rounded-full bg-primary-100 px-2.5 py-0.5 font-mono text-[12px] font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300"
                       >
                         {item.label}
                       </span>
                     ) : (
                       <span
                         aria-current={isLast ? "page" : undefined}
-                        className="text-xs font-black uppercase tracking-[0.15em] text-foreground truncate"
+                        className="font-mono text-[13px] font-medium text-foreground truncate"
                       >
                         {item.label}
                       </span>
@@ -206,19 +227,15 @@ export default function PageHeader({
     </>
   );
 
-  if (Tag === "header") {
-    return (
-      <header className={navClassName} style={glassStyle}>
-        {content}
-      </header>
-    );
-  }
-
   return (
-    // Named so it's distinguishable from any other nav on the page (e.g. a
-    // prev/next pager), which axe's landmark-unique rule requires.
-    <nav aria-label="Breadcrumb" className={navClassName} style={glassStyle}>
+    // A nav is named so it's distinguishable from any other nav on the page
+    // (e.g. a prev/next pager), which axe's landmark-unique rule requires.
+    <FloatingHeaderFrame
+      as={Tag}
+      ariaLabel={Tag === "nav" ? "Breadcrumb" : undefined}
+      className={frameClassName}
+    >
       {content}
-    </nav>
+    </FloatingHeaderFrame>
   );
 }
