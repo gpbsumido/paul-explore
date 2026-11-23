@@ -30,13 +30,15 @@ export function workTiles(): WorkTile[] {
 /** The projects listed in the hero editor's work.ts, the ones the grid below doesn't show. */
 export const EDITOR_WORK_IDS = ["zeroproof", "flags", "vitals", "gallery-wall", "fantasy-nba", "pokemon"] as const;
 
-export type EditorWorkLink = { title: string; href: string };
+export type EditorWorkLink = { title: string; href: string; note: string };
 
 /** work.ts's entries, resolved through the hub so a renamed feature fails loudly. */
 export function editorWorkLinks(): EditorWorkLink[] {
   return EDITOR_WORK_IDS.map((id) => {
+    const pick = PROJECT_PICKS.find((candidate) => candidate.id === id);
+    if (!pick) throw new Error(`v7 work.ts lists "${id}", which has no v6 pick note`);
     const { title, href } = featureFor(id);
-    return { title, href };
+    return { title, href, note: pick.note };
   });
 }
 

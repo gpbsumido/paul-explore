@@ -34,10 +34,9 @@ export default function Hero() {
   ];
 
   const workLines = [
-    <><span className={styles.comment}>{"// Some other things I've built. Each one opens."}</span></>,
     <><span className={styles.kw}>export const</span> work <span className={styles.pun}>= [</span></>,
-    ...editorWorkLinks().map(({ title, href }) => (
-      <Fragment key={href}>  <span className={styles.str}>&quot;<Link href={href} className={styles.codeLink}>{title}</Link>&quot;</span><span className={styles.pun}>,</span></Fragment>
+    ...editorWorkLinks().map(({ title, href, note }) => (
+      <Fragment key={href}>  <span className={styles.str}>&quot;<Link href={href} className={styles.codeLink}>{title}</Link>&quot;</span><span className={styles.pun}>,</span> <span className={styles.comment}>{`// ${note}`}</span></Fragment>
     )),
     <><span className={styles.pun}>]</span> <span className={styles.kw}>as const</span><span className={styles.pun}>;</span><span className={styles.caret} aria-hidden="true" /></>,
   ];
