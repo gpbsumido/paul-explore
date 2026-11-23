@@ -5,17 +5,15 @@ import { useSyncExternalStore } from "react";
 const QUERY = "(prefers-reduced-motion: reduce)";
 
 /**
- * Whether the reader has asked for less motion.
+ * Whether the reader has asked for less motion. The one source for that on the
+ * site: components, landing sections and the 3D scenes all read it here.
  *
- * The landing sections get this from framer-motion, but the 3D scenes animate
- * in a render loop that never touches a motion component, which is exactly why
- * they were the two places still ignoring the setting. A plain hook works in
- * both worlds and costs no dependency in a bundle where three.js is already the
- * expensive part.
- *
- * useSyncExternalStore rather than an effect so the value is read during
- * render, and false on the server -- an animated first paint that settles is
- * better than a hydration mismatch.
+ * Read through useSyncExternalStore rather than framer-motion's
+ * useReducedMotion. The server can't see the preference, so it renders full
+ * motion; framer's hook read matchMedia on the client's very first render,
+ * which made a reduced-motion visitor's hydration disagree with that HTML. The
+ * server snapshot below is what React uses while hydrating, so both sides
+ * agree, and the real preference lands on the render straight after.
  */
 function subscribe(onChange: () => void): () => void {
   if (typeof window === "undefined" || !window.matchMedia) return () => {};

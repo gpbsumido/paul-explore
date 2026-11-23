@@ -3,7 +3,6 @@ import {
   performancesFromLeague,
   cardsFromLeaguePayload,
   fantasyLeagueUrl,
-  nbaFantasyLeagueUrl,
   playoffTeamPlayerIds,
   rostersByPlayer,
   FANTASY_LEAGUES,
@@ -129,11 +128,7 @@ describe("fantasyLeagueUrl", () => {
   });
 });
 
-describe("nbaFantasyLeagueUrl", () => {
-  it("is the same url as the NBA league one, so the Card Lab and the nightly read one league", () => {
-    expect(nbaFantasyLeagueUrl("2025")).toBe(fantasyLeagueUrl("nba", "2025"));
-  });
-
+describe("fantasyLeagueUrl views", () => {
   it("asks for the teams, rosters and settings the parsers read", () => {
     const views = new URL(fantasyLeagueUrl("nba", "2025")).searchParams.getAll("view");
     expect(views).toEqual(["mTeam", "mRoster", "mSettings"]);

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { m } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // A template re-mounts on every navigation, so this wraps each page and gives
 // client-side navigations a short cross-fade. Two deliberate constraints:
@@ -16,7 +16,7 @@ import { useHubReducedMotion } from "@/app/providers";
 let hasMountedOnce = false;
 
 export default function Template({ children }: { children: React.ReactNode }) {
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   // Read the module flag once, in a lazy initializer (a pure read), to decide
   // whether this is the session's first mount; the effect flips it afterwards.
   const [isFirstLoad] = useState(() => !hasMountedOnce);

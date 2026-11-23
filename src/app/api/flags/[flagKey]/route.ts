@@ -4,7 +4,7 @@ import { parseBody } from "@/lib/parseBody";
 import { applyFlagPatch, patchSeedStore } from "@/lib/flags-bff";
 import { getFlag } from "@/lib/flags-data";
 import { auth0 } from "@/lib/auth0";
-import { isAllowedEmail } from "@/lib/emailAllowlist";
+import { isSiteAdmin } from "@/lib/emailAllowlist";
 import { accessOf, canChangeFlag } from "@/lib/flags-access";
 import { safeSegment, InvalidSegmentError } from "@/lib/safeSegment";
 
@@ -66,11 +66,7 @@ export async function PATCH(
   const flag = getFlag(flagKey);
   const access = accessOf({ key: flagKey, ...(flag ?? {}) });
   const isLoggedIn = Boolean(session);
-  const isAdmin = isAllowedEmail({
-    email: session?.user?.email,
-    emailVerified: session?.user?.email_verified === true,
-    allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,
-  });
+  const isAdmin = isSiteAdmin(session);
 
   if (!canChangeFlag({ access, isLoggedIn, isAdmin })) {
     // Distinguish "you are not signed in" from "you are, and it is still not

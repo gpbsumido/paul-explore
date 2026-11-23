@@ -50,3 +50,23 @@ export function isAllowedEmail({
   if (!email || !emailVerified) return false;
   return parseAllowlist(allowlist).includes(email.trim().toLowerCase());
 }
+
+/** The slice of an Auth0 session the admin check reads. */
+type SessionWithEmail = {
+  user?: { email?: string; email_verified?: boolean };
+} | null | undefined;
+
+/**
+ * Whether the signed-in person is me, the site admin.
+ *
+ * The list lives in FLAG_ADMIN_ALLOWED_EMAILS because flag writes were the first
+ * thing it gated. It has meant "site admin" since the admin pages, /to-do and
+ * the ZeroProof tools started reading it too.
+ */
+export function isSiteAdmin(session: SessionWithEmail): boolean {
+  return isAllowedEmail({
+    email: session?.user?.email,
+    emailVerified: session?.user?.email_verified === true,
+    allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,
+  });
+}

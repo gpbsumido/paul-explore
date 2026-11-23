@@ -2,7 +2,7 @@
 
 import { useId, useRef } from "react";
 import { m, useScroll, useTransform } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { blobPath } from "./blobPath";
 
 /** Viewbox the blobs are drawn in. Square keeps the maths simple. */
@@ -38,7 +38,7 @@ export default function BlobBackground({
   parallax = 40,
   className,
 }: BlobBackgroundProps) {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   // Gradient ids live in the whole page, so two backgrounds (a grid of cards)
   // must not both call theirs "blob-grad-3". useId is the same on the server
   // and the client; the colons are stripped so the id is safe inside url(#...).

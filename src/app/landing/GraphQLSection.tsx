@@ -3,7 +3,8 @@
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { m, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
   spring,
@@ -133,7 +134,7 @@ const HIGHLIGHTS = [
 export default function GraphQLSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = useReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (

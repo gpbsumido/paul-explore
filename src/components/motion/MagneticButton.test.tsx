@@ -6,8 +6,8 @@ import { LazyMotion, domAnimation } from "framer-motion";
 import MagneticButton from "./MagneticButton";
 
 const mocks = vi.hoisted(() => ({ reduced: false }));
-vi.mock("@/app/providers", () => ({
-  useHubReducedMotion: () => mocks.reduced,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reduced,
 }));
 
 beforeEach(() => {

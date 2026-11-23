@@ -4,7 +4,7 @@ import FantasyCard from "./FantasyCard";
 
 // Reduced motion makes the count-up points render their final value at once,
 // the same way AnimatedNumber's own test pins it, so the figure is assertable.
-vi.mock("@/app/providers", () => ({ useHubReducedMotion: () => true }));
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({ usePrefersReducedMotion: () => true }));
 
 describe("FantasyCard", () => {
   it("spells out the rarity, shows the points, and the player image", () => {

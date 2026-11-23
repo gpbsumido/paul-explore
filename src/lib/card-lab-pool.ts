@@ -1,7 +1,7 @@
 import { fetchUpstream } from "@/lib/upstream";
 import {
   cardsFromLeaguePayload,
-  nbaFantasyLeagueUrl,
+  fantasyLeagueUrl,
 } from "@/lib/espn-performances";
 import type { GeneratedCard } from "@/lib/fantasy-cards";
 
@@ -24,7 +24,7 @@ export const CARD_LAB_DEFAULT_SEASON = "2025";
 export async function loadNbaSeasonCards(
   season: string,
 ): Promise<{ cards: GeneratedCard[]; error: boolean }> {
-  const result = await fetchUpstream(nbaFantasyLeagueUrl(season), {
+  const result = await fetchUpstream(fantasyLeagueUrl("nba", season), {
     next: { revalidate: 3600 },
   });
   if (!result.ok || !result.response.ok) return { cards: [], error: true };

@@ -7,8 +7,8 @@ import AnimatedNumber from "./AnimatedNumber";
 // See useTextScramble.test.ts: stub the provider rather than resetting modules,
 // so the component keeps rendering against the one React instance.
 const mocks = vi.hoisted(() => ({ reduced: false, inView: true }));
-vi.mock("@/app/providers", () => ({
-  useHubReducedMotion: () => mocks.reduced,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reduced,
 }));
 
 // jsdom has no layout, so whether the number is on screen is the test's call.

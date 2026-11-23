@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import dynamic from "next/dynamic";
-import { m, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import Section from "./Section";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
@@ -19,7 +20,7 @@ const AuthSectionCanvas = dynamic(() => import("./models/AuthSectionCanvas"), {
 export default function AuthSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
 
   // Tween config for SVG stroke drawing — spring doesn't map to pathLength well.

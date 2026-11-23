@@ -13,7 +13,7 @@ describe("ChatThread", () => {
     expect(phone?.contains(screen.getByText("hello"))).toBe(true);
   });
 
-  it("defaults the phone min-height to the below-header viewport", () => {
+  it("sizes the phone to the below-header viewport", () => {
     const { container } = render(<ChatThread>x</ChatThread>);
     const withMinHeight = container.querySelector<HTMLElement>(
       '[style*="min-height"]',
@@ -21,15 +21,6 @@ describe("ChatThread", () => {
     expect(withMinHeight?.style.minHeight).toBe("calc(100dvh - 56px)");
   });
 
-  it("lets a caller override the min-height", () => {
-    const { container } = render(
-      <ChatThread minHeight="400px">x</ChatThread>,
-    );
-    const withMinHeight = container.querySelector<HTMLElement>(
-      '[style*="min-height"]',
-    );
-    expect(withMinHeight?.style.minHeight).toBe("400px");
-  });
 });
 
 describe("bubble position", () => {

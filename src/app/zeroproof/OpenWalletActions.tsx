@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import type { ZeroproofWallet } from "@/lib/zeroproof/schemas";
@@ -18,14 +19,7 @@ function useOpenWallet() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(
-          err?.error ?? "Couldn't open the wallet — please try again.",
-        );
-      }
+      if (!res.ok) throw await responseError(res, "Couldn't open the wallet — please try again.");
       return res.json();
     },
     onSuccess: () =>

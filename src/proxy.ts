@@ -17,7 +17,7 @@ import { buildCsp } from "@/lib/csp";
 import { workPortfolioRemote } from "@/lib/mfe/remotes";
 import { API_URL } from "@/lib/apiUrl";
 import { isSessionProtectedPath } from "@/lib/protectedPaths";
-import { RATE_LIMITS } from "@/lib/rateLimitRules";
+import { matchRateLimit, RATE_WINDOW_MS } from "@/lib/rateLimitRules";
 import {
   VISITOR_COOKIE,
   VISITOR_COOKIE_MAX_AGE,
@@ -72,8 +72,6 @@ const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   remoteOrigins: REMOTE ? [REMOTE.origin] : [],
 });
 
-const RATE_WINDOW_MS = 60_000;
-
 /**
  * Stamps the long-lived marker on an authenticated response. It outlives the
  * session cookie, so once the session has expired its lingering presence is how
@@ -115,11 +113,10 @@ export async function proxy(request: NextRequest) {
 
   // Rate limiting — checked before auth so we reject at the edge without
   // doing any session work. First matching rule wins.
-  const ip = clientIp(request);
-  for (const rule of RATE_LIMITS) {
-    if (!rule.match(pathname, request.method)) continue;
+  const rule = matchRateLimit(pathname, request.method);
+  if (rule) {
     const { allowed, resetAt } = checkRateLimit(
-      ip,
+      clientIp(request),
       rule.bucket,
       rule.limit,
       RATE_WINDOW_MS,
@@ -137,7 +134,6 @@ export async function proxy(request: NextRequest) {
         },
       );
     }
-    break;
   }
 
   // Auth0 OIDC routes — the SDK owns the full login / callback / logout flow.

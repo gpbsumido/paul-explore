@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import { TradeAnalyzer } from "./TradeContent";
 import type { TradePlayer, TradePool } from "@/lib/nfl/trade";
 
@@ -194,3 +196,40 @@ describe("TradeAnalyzer", () => {
   });
 });
 
+describe("TradeContent default season", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // The season is read when the module loads, so the clock has to be set before
+  // a fresh import. In January the calendar year is already 2027 but the league
+  // still being traded in is the one that kicked off in 2026.
+  it("loads the season that kicked off last year during the January playoffs", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2027, 0, 4));
+    vi.resetModules();
+    const requestedSeasons: string[] = [];
+    server.use(
+      http.get("/api/nfl/trade/:season", ({ params }) => {
+        requestedSeasons.push(String(params.season));
+        return HttpResponse.json({ ...pool, players: [] });
+      }),
+    );
+    // Imported after the reset too, so the page and its providers share one
+    // copy of each context.
+    const { default: TradeContent } = await import("./TradeContent");
+    const { ThemeProvider } = await import("@/components/ThemeProvider");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ThemeProvider>
+          <TradeContent />
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+
+    await screen.findByText("No rostered players for this season yet");
+    expect(requestedSeasons).toEqual(["2026"]);
+  });
+});

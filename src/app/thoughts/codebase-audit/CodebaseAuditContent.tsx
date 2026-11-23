@@ -534,6 +534,122 @@ Error: Expected 5 bindings, saw 0`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-22-one-way-in"
+        date="November 22, 2026"
+        title="The redesign started with the failures nobody could read"
+      >
+        <p>
+          The redesign half of the audit went out as seven stacked PRs, #724
+          to #730, each about one domain. Most of them were the same complaint
+          from the bug list, one level further up: the code knew what had gone
+          wrong and threw that away before anyone saw it.
+        </p>
+
+        <h3 className={beat}>
+          Every failure said &ldquo;Failed to&rdquo;, and the server had
+          already said why
+        </h3>
+        <pre className={pre}>
+          {`if (!res.ok) throw new Error("Failed to create event");`}
+        </pre>
+        <p>
+          The calendar client had ten of these, the calendar hooks another
+          nine, and the budget, practice, gallery and ZeroProof clients each
+          had their own version. The API answers a failed write with{" "}
+          <C>{`{ error: "..." }`}</C>, so the reason was sitting in the body
+          and every toast showed the fixed string instead. There is one{" "}
+          <C>responseError</C> now that reads the server&rsquo;s reason and
+          keeps the status, plus a <C>requestJson</C> for the clients that
+          were each wrapping <C>fetch</C> the same way. A test scans the
+          browser code for anyone parsing an error body by hand again.
+        </p>
+        <p>
+          I nearly took the status off the pack bar&rsquo;s message while
+          moving it over. Its test wanted <C>reason (503)</C>, and it was
+          right: a 503 and a 409 send the same words and need different
+          things from me when someone reports them.
+        </p>
+
+        <h3 className={beat}>
+          The rate-limit tests checked a function the proxy never called
+        </h3>
+        <pre className={pre}>
+          {`for (const rule of RATE_LIMITS) {
+  if (!rule.match(pathname, request.method)) continue;`}
+        </pre>
+        <p>
+          The rules had their own tests, run against <C>matchRateLimit</C>.
+          The proxy ran its own copy of that loop, so those tests could pass
+          while the proxy matched something else. The proxy calls{" "}
+          <C>matchRateLimit</C> now, and the new test floods{" "}
+          <C>proxy()</C> itself. ZeroProof telemetry also had a second
+          limiter inside its route, counting batches the proxy had already
+          counted. It&rsquo;s a rule in the table now.
+        </p>
+
+        <h3 className={beat}>
+          &ldquo;Try again&rdquo; cleared the error and showed the same
+          failure
+        </h3>
+        <pre className={pre}>
+          {`this.reset = ()=>{ this.setState({ error: null }); },
+this.retry = ()=>{ startTransition(()=>{ this.context?.refresh(); this.reset(); }); };`}
+        </pre>
+        <p>
+          That&rsquo;s Next 16.3&rsquo;s error boundary. All thirty of my
+          route boundaries passed <C>reset</C> to the shared error screen,
+          which re-renders the payload that just failed. Most of my pages fail
+          because an upstream API was down, which is exactly what the
+          screen&rsquo;s copy says, and the button couldn&rsquo;t do anything
+          about it short of a reload. They pass <C>retry</C> now. There was
+          also no root boundary, so a write-up that crashed got the
+          framework&rsquo;s bare screen. It has one, plus a{" "}
+          <C>global-error.tsx</C> for the root layout.
+        </p>
+
+        <h3 className={beat}>
+          Two copies of the same proxy had already drifted apart
+        </h3>
+        <p>
+          The test that failed first, with the backend mocked to answer a save
+          with 204:
+        </p>
+        <pre className={pre}>
+          {`[practice PUT] backend unavailable: TypeError: Response constructor: Invalid response status code 204`}
+        </pre>
+        <p>
+          Budget and practice each had a hand-copied catch-all proxy. The
+          budget copy had learned that a 204 can&rsquo;t carry a body. The
+          practice copy hadn&rsquo;t, so the first 204 would have come back as
+          a 502. It also dropped the query string. Neither had happened yet:
+          the practice API always answers with JSON and the page never sends a
+          query. And neither copy capped the body it forwarded. Two copies is
+          normally where I wait for a third before sharing anything, but these
+          had already disagreed, and the next change would have landed in one
+          and not the other. They share <C>signedInCatchAll</C> now. Budget
+          keeps the same 64 KB cap as the other write routes, and practice
+          takes up to 100 KB like the backend does, because importing every
+          problem reviewed in both modes comes to about 69 KB.
+        </p>
+
+        <h3 className={beat}>
+          robots.txt and the admin check each kept their own copy of a list
+        </h3>
+        <pre className={pre}>
+          {`disallow: ["/api/", "/dev/", "/settings", "/calendar", "/auth/"],
+
+allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,`}
+        </pre>
+        <p>
+          robots.txt kept its own list of private pages, which had fallen
+          behind the proxy&rsquo;s list. It reads the proxy&rsquo;s list now.
+          The admin check was spelled out in ten places, and is one{" "}
+          <C>isSiteAdmin</C> now. And a dead-code pass took out a streaming
+          hook, a stats helper and some props that no caller used.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An audit that only listed problems, with the bugs in their own table, so fixing them couldn't quietly turn into the redesign.",
@@ -541,15 +657,16 @@ Error: Expected 5 bindings, saw 0`}
           "Guards that keep the cross-cutting ones fixed: a route scan for encodeURIComponent path ids, a hue and contrast check on every feature colour, a mount count under reduced motion, and canonical URLs checked on rendered pages.",
           "A second pass over the fixes, which found seven more of the same shapes one level up: fallbacks that hid which data was showing, failures shown as empty states, eleven session queries, two season rules, a setup step that skipped instead of failing, an inherited og:url and a count-up that froze.",
           "The API half: calendar sync wired back up, the database tests running in CI, bets that can't overdraw or pay twice, a Google connect bound to the person finishing it, typed reads of the signed-in user, 4xx for caller mistakes, and card updates that bind.",
+          "The first redesign stack: one way to read a failed response in the browser, one rate-limit table the proxy actually uses, a Try again that refetches, root error boundaries, one signed-in catch-all proxy with a body cap, robots.txt and the admin check reading the lists they used to copy, and a dead-code pass.",
         ]}
         couldImprove={[
-          "The bugs share a cause the fixes don't remove: every client fetch decides on its own what a failure means. useMe settles it for the session, but everything else is still patched where it was found, so the next feature can make the same mistake.",
+          "Client fetches read a failure one way now, but the server side is only half done. The ZeroProof routes still forward request bodies without a schema, and the timeouts are set in four places.",
           "Screenshots of the visible fixes (the card colours, the bracket's failed-save alert) still need capturing.",
           "The calendar repository tests still mock knex. Only the card update compiles its SQL for real, so the next raw statement there can make the same mistake.",
           "I haven't checked the production ledger for a bet that was paid twice before settling checked the bet was still open.",
         ]}
         upcoming={[
-          "The redesign half of the audit, starting with one way to talk to portfolio_api: a single proxy helper on the server and a single request helper in the browser, so a non-ok response is handled once instead of in every queryFn.",
+          "The rest of the redesign: one reduced-motion hook instead of the site's own and framer's side by side, the ESPN and fantasy season rules in one place, and the hub archive's colour and preview tables brought up to date.",
         ]}
       />
     </ThoughtLayout>

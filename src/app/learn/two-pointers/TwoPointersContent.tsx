@@ -6,7 +6,7 @@ import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -469,7 +469,7 @@ function Section({
 // ---------------------------------------------------------------------------
 
 export default function TwoPointersContent() {
-  const prefersReduced = useHubReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const t = prefersReduced ? instantTransition : spring.smooth;
 
   return (

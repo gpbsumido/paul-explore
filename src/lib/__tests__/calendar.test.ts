@@ -583,6 +583,15 @@ describe("event helpers", () => {
     await expect(createEvent(draft)).rejects.toThrow("Failed to create event");
   });
 
+  it("createEvent passes on the reason the server gives", async () => {
+    answer("post", "/api/calendar/events", () =>
+      HttpResponse.json({ error: "You can only view this calendar" }, { status: 403 }),
+    );
+    const { id: _id, ...draft } = savedEvent;
+
+    await expect(createEvent(draft)).rejects.toThrow("You can only view this calendar");
+  });
+
   it("createEvent rejects an answer that isn't an event", async () => {
     answer("post", "/api/calendar/events", () => HttpResponse.json({ event: { id: 7 } }));
     const { id: _id, ...draft } = savedEvent;
@@ -775,5 +784,35 @@ describe("countdown helpers", () => {
     answer("delete", "/api/calendar/countdowns/cd-1", () => HttpResponse.json({}, { status: 500 }));
 
     await expect(deleteCountdown("cd-1")).rejects.toThrow("Failed to delete countdown");
+  });
+});
+
+/**
+ * Each helper has its own `throw`, so reverting any one of them to a fixed
+ * string has to fail a test, not just the two that were checked by hand.
+ */
+describe("every calendar helper passes on the server's reason", () => {
+  const { id: _eventId, ...eventDraft } = savedEvent;
+  const { id: _countdownId, createdAt: _createdAt, ...countdownDraft } = savedCountdown;
+
+  it.each([
+    ["createEvent", () => createEvent(eventDraft)],
+    ["updateEvent", () => updateEvent("event-9", { title: "x" })],
+    ["deleteEvent", () => deleteEvent("event-9")],
+    ["addCardToEvent", () => addCardToEvent("event-9", { cardId: "base1-4", cardName: "Charizard" })],
+    ["updateEventCard", () => updateEventCard("event-9", "entry-1", { quantity: 2 })],
+    ["removeCardFromEvent", () => removeCardFromEvent("event-9", "entry-1")],
+    ["fetchCountdowns", () => fetchCountdowns()],
+    ["createCountdown", () => createCountdown(countdownDraft)],
+    ["updateCountdown", () => updateCountdown("cd-1", { title: "x" })],
+    ["deleteCountdown", () => deleteCountdown("cd-1")],
+  ])("%s", async (_name, call) => {
+    server.use(
+      http.all("/api/calendar/*", () =>
+        HttpResponse.json({ error: "You can only view this calendar" }, { status: 403 }),
+      ),
+    );
+
+    await expect(call()).rejects.toThrow("You can only view this calendar");
   });
 });

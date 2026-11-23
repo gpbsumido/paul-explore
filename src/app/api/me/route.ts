@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { isAllowedEmail } from "@/lib/emailAllowlist";
+import { isSiteAdmin } from "@/lib/emailAllowlist";
 import { NextResponse } from "next/server";
 
 /**
@@ -28,10 +28,6 @@ export async function GET() {
     name: name ?? null,
     email: email ?? null,
     sub: sub ?? null,
-    isFlagAdmin: isAllowedEmail({
-      email,
-      emailVerified: session.user.email_verified === true,
-      allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,
-    }),
+    isFlagAdmin: isSiteAdmin(session),
   });
 }

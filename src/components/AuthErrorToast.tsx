@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * Messages for each ?authError the auth flow sends the user back with:
@@ -29,7 +29,7 @@ export default function AuthErrorToast() {
   const [message, setMessage] = useState<string | undefined>(undefined);
   const [dismissed, setDismissed] = useState(false);
   const handled = useRef(false);
-  const reduceMotion = useHubReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
 
   // Read ?authError once, hold its message in state, then strip the param from
   // the URL. Without this the toast is a pure function of the URL, so it fires

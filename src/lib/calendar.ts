@@ -20,6 +20,7 @@ import type {
   CountdownPage,
 } from "@/types/calendar";
 import { ACCENT_BAND } from "@/lib/accentBand";
+import { responseError } from "@/lib/responseError";
 import {
   eventResponseSchema,
   cardResponseSchema,
@@ -250,7 +251,7 @@ export async function createEvent(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(event),
   });
-  if (!res.ok) throw new Error("Failed to create event");
+  if (!res.ok) throw await responseError(res, "Failed to create event");
   const data = eventResponseSchema.parse(await res.json());
   return data.event;
 }
@@ -265,7 +266,7 @@ export async function updateEvent(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fields),
   });
-  if (!res.ok) throw new Error("Failed to update event");
+  if (!res.ok) throw await responseError(res, "Failed to update event");
   const data = eventResponseSchema.parse(await res.json());
   return data.event;
 }
@@ -273,7 +274,7 @@ export async function updateEvent(
 // delete event
 export async function deleteEvent(id: string): Promise<void> {
   const res = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete event");
+  if (!res.ok) throw await responseError(res, "Failed to delete event");
 }
 
 // attach card to event
@@ -294,7 +295,7 @@ export async function addCardToEvent(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(card),
   });
-  if (!res.ok) throw new Error("Failed to add card to event");
+  if (!res.ok) throw await responseError(res, "Failed to add card to event");
   const data = cardResponseSchema.parse(await res.json());
   return data.card;
 }
@@ -310,7 +311,7 @@ export async function updateEventCard(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fields),
   });
-  if (!res.ok) throw new Error("Failed to update card");
+  if (!res.ok) throw await responseError(res, "Failed to update card");
   const data = cardResponseSchema.parse(await res.json());
   return data.card;
 }
@@ -323,7 +324,7 @@ export async function removeCardFromEvent(
   const res = await fetch(`/api/calendar/events/${eventId}/cards/${entryId}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error("Failed to remove card from event");
+  if (!res.ok) throw await responseError(res, "Failed to remove card from event");
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +341,7 @@ export async function fetchCountdowns(cursor?: string): Promise<CountdownPage> {
     ? `/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
     : `/api/calendar/countdowns`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch countdowns");
+  if (!res.ok) throw await responseError(res, "Failed to fetch countdowns");
   return countdownPageResponseSchema.parse(await res.json());
 }
 
@@ -356,7 +357,7 @@ export async function createCountdown(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create countdown");
+  if (!res.ok) throw await responseError(res, "Failed to create countdown");
   const result = countdownResponseSchema.parse(await res.json());
   return result.countdown;
 }
@@ -374,7 +375,7 @@ export async function updateCountdown(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fields),
   });
-  if (!res.ok) throw new Error("Failed to update countdown");
+  if (!res.ok) throw await responseError(res, "Failed to update countdown");
   const data = countdownResponseSchema.parse(await res.json());
   return data.countdown;
 }
@@ -386,5 +387,5 @@ export async function deleteCountdown(id: string): Promise<void> {
   const res = await fetch(`/api/calendar/countdowns/${id}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error("Failed to delete countdown");
+  if (!res.ok) throw await responseError(res, "Failed to delete countdown");
 }

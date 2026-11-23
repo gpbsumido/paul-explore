@@ -6,7 +6,7 @@ import { m, AnimatePresence, useInView } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -391,7 +391,7 @@ const SNIPPETS: readonly Snippet[] = [
 
 function EventLoopSimulator() {
   const [snippetIdx, setSnippetIdx] = useState(0);
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const t = reduced ? instantTransition : hoverSpring;
 
   const snippet = SNIPPETS[snippetIdx];
@@ -538,7 +538,7 @@ function EventLoopSimulator() {
 function PromisePatternsVisual() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
 
   // each pattern: label, bars (start%, width%), resolution dot x%
   const patterns = [
@@ -709,7 +709,7 @@ function PromisePatternsVisual() {
 function SequentialVsParallel() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
 
   return (
     <div ref={ref}>
@@ -890,7 +890,7 @@ function SequentialVsParallel() {
 // ---------------------------------------------------------------------------
 
 export default function AsyncContent() {
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const t = reduced ? instantTransition : spring.smooth;
 
   return (

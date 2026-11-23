@@ -62,11 +62,6 @@ export function fantasyLeagueUrl(sport: Sport, season: string): string {
   return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?view=mTeam&view=mRoster&view=mSettings`;
 }
 
-/** The NBA league url, kept for the season Card Lab route. */
-export function nbaFantasyLeagueUrl(season: string): string {
-  return fantasyLeagueUrl("nba", season);
-}
-
 type Stat = z.infer<typeof statSchema>;
 
 /**

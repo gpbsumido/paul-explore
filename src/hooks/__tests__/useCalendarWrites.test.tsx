@@ -116,7 +116,7 @@ describe("useCalendars — a write that fails", () => {
     const fetches = countListFetches();
     server.use(
       http.post("/api/calendar/calendars", () =>
-        HttpResponse.json({ error: "boom" }, { status: 500 }),
+        HttpResponse.json({}, { status: 500 }),
       ),
     );
     const { result } = renderHook(() => useCalendars(), { wrapper: makeWrapper() });

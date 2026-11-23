@@ -2,7 +2,7 @@
 
 import { useRef, type PointerEvent, type ReactNode } from "react";
 import { m, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export type TiltCardProps = {
   /** The card. This wrapper never becomes an interactive element itself. */
@@ -29,7 +29,7 @@ export default function TiltCard({
   maxTiltDeg = 12,
   className,
 }: TiltCardProps) {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   // Pointer offset from the card centre, normalised to -0.5..0.5.
   const px = useMotionValue(0);

@@ -1,7 +1,7 @@
 "use client";
 
 import { createElement, type ElementType, type ReactNode } from "react";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /**
  * OriginKit-style shine: a specular bar sweeps diagonally across the element,
@@ -19,7 +19,7 @@ export default function ShineSweep({
   className?: string;
 }) {
   const Tag = (as ?? "span") as ElementType;
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   return createElement(
     Tag,
     { className: `relative inline-flex overflow-hidden ${className}`.trim() },

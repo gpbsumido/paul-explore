@@ -16,6 +16,7 @@ import {
   playerHandle,
 } from "@/lib/zeroproof/format";
 import AdminBackLink from "../AdminBackLink";
+import { controlClass, primaryButtonClass } from "../../controls";
 
 async function fetchAdminBets(q: string): Promise<ZeroproofAdminBet[]> {
   const suffix = q ? `?q=${encodeURIComponent(q)}` : "";
@@ -26,10 +27,6 @@ async function fetchAdminBets(q: string): Promise<ZeroproofAdminBet[]> {
 
 type StatusView = "all" | "live" | "resolved";
 
-const controlClass =
-  "h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
-const primaryButtonClass =
-  "inline-flex h-9 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-500 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
 
 /** A bet is live while it's open; anything settled (won/lost/push/void) is resolved. */
 function isLive(bet: ZeroproofAdminBet): boolean {

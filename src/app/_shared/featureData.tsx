@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { reveal } from "@/app/landing/Section";
 import { spring, cardFlipIn, instantTransition } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
@@ -569,7 +570,7 @@ function WpTickerRow({
 }
 
 export function WorkPortfolioPreview() {
-  const reduced = useReducedMotion();
+  const reduced = usePrefersReducedMotion();
   return (
     <div className="flex h-full flex-col justify-center gap-2">
       <WpTickerRow items={WP_TOP} direction="left" reduced={!!reduced} />

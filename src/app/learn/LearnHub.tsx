@@ -11,7 +11,7 @@ import {
   staggerContainer,
   instantTransition,
 } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ---------------------------------------------------------------------------
 // Topic data — the 14 topics across 2 categories
@@ -719,7 +719,7 @@ function TopicCard({
 // ---------------------------------------------------------------------------
 
 export default function LearnHub() {
-  const prefersReduced = useHubReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const t = prefersReduced ? instantTransition : spring.smooth;
 
   return (

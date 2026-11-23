@@ -2,7 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import AuthButton from "@/components/AuthButton";
 import HeaderMenu from "@/components/HeaderMenu";
 import { useTheme } from "@/components/ThemeProvider";
@@ -57,7 +58,7 @@ export default function HeroSection() {
     () => true,
     () => false,
   );
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
   const { theme } = useTheme();
   const isDark = theme === "dark";

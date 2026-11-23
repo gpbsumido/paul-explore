@@ -5,7 +5,7 @@ import { m, useInView } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { reveal } from "@/app/landing/Section";
 import { staggerContainer } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import {
   FEATURES,
   THOUGHTS,
@@ -29,7 +29,7 @@ type MeData = { name: string | null; email: string | null };
  * background and refreshes after 5 minutes.
  */
 export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
-  const prefersReduced = useHubReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
 
   // The server-read name covers the first paint. It stays local rather than
   // seeding the shared session cache, which every reader trusts for `sub`.

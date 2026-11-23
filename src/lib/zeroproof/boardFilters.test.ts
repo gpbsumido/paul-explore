@@ -62,6 +62,11 @@ describe("isFantasySport / fantasyLabel", () => {
     expect(fantasyLabel("fantasy_xyz")).toBe("Fantasy");
     expect(fantasyLabel("basketball_nba")).toBeNull();
   });
+
+  it("names every sport a league can be added for", () => {
+    expect(fantasyLabel("fantasy_flb")).toBe("Fantasy Baseball");
+    expect(fantasyLabel("fantasy_fhl")).toBe("Fantasy Hockey");
+  });
 });
 
 describe("sportLabel", () => {

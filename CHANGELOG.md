@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-11-22 - version 9.2.41
+
+- Reduced motion is read from one hook, `usePrefersReducedMotion`. 25 components still used framer-motion's `useReducedMotion`, which checks the preference on the first client render while the server can't see it. Anything those components rendered differently for reduced motion could disagree with the server HTML while hydrating, on the archived landings, the command palette, the slot machine, World and the pack opener. The app-root context was a second copy of the same store, and it made 33 files import the app shell to get one boolean. It's gone. A guard test fails if either one comes back. On the v2 landing a reduced-motion visitor still gets no hero bounce and no entrance motion: that hero mounts fresh on the client, so the hook already sees the real preference on its first render.
+
+## 2026-11-22 - version 9.2.40
+
+- A baseball or hockey league on the ZeroProof board is labelled "Fantasy Baseball" or "Fantasy Hockey". The board kept its own two-sport name list, so anything past football and basketball showed as plain "Fantasy" even though both add forms offered all four sports.
+- The ESPN sports live in one list, and the admin page and the league page share one add-league form. The two forms were line-for-line copies apart from the endpoint. The ZeroProof control styles, pasted into four files, are one module too.
+
+## 2026-11-22 - version 9.2.39
+
+- The NFL matchups and trade pages default to the season ESPN is actually running. They used the calendar year, but ESPN names a football season by the year it kicks off, so from New Year's (mid fantasy playoffs) until September they asked for a season with no games in it. `currentNflSeason()` rolls over on September 1, next to the NBA one that already rolls over in October. Both pages have a test that sets the clock to January and checks the season they ask for, so going back to the calendar year fails.
+
+## 2026-11-22 - version 9.2.38
+
+- The codebase-audit write-up has a dated update on the first redesign stack: why failures now carry the server's reason, why the rate-limit tests were checking a function the proxy never called, why "Try again" didn't, and how two copies of one proxy had drifted apart before either broke: the test that failed first shows a 204 that would have come back as a 502.
+
+## 2026-11-22 - version 9.2.37
+
+- The budget and practice proxies share one forwarder now. They were hand copies, and the practice one had drifted: it dropped the query string, and it had no 204 branch (a Response can't carry a body at that status, so building one throws). Neither had bitten yet, since the practice API always answers with JSON and the page never sends a query, but the first 204 would have come back as a 502.
+- Neither proxy capped the body it forwarded. Both refuse an oversized body with a 413 now, checked from the declared length before reading and from the real length after. Budget uses the 64 KB limit the other write routes use. Practice takes up to 100 KB, matching the backend, because importing every problem reviewed in both modes is about 69 KB and a 64 KB cap would have blocked the heaviest users on every load.
+
+## 2026-11-22 - version 9.2.36
+
+- "Try again" on a failed page fetches the page again. The 30 route error boundaries handed the shared error screen Next's `reset`, which clears the error and re-renders the same payload, so a page that failed because an API was down stayed failed until a full reload. They pass `retry` now, stable since Next 16.3, which refreshes the route first. A test checks every `error.tsx` for it.
+- A failure on a page outside the feature routes, such as a write-up, `/` or `/settings`, showed the framework's bare error screen, because there was no root `error.tsx`. There is now, plus a `global-error.tsx` for a failure in the root layout itself. That last one renders in the light theme, since the theme script lives in the layout it replaces.
+
+## 2026-11-22 - version 9.2.35
+
+- Every per-IP rate limit is enforced by the proxy from the one rule table. The proxy ran its own copy of the matching loop, so the rule tests checked `matchRateLimit`, a function the proxy never called, and the one-minute window lived in proxy.ts apart from the rules. It calls `matchRateLimit` now, and a new test floods the proxy itself. `/api/research/ask` keeps its own limit of 10 a minute on purpose, because it counts per signed-in account rather than per address.
+- ZeroProof telemetry had a second limiter inside its route, which ran after the proxy had already counted the batch against the general API cap. Its 60-a-minute cap is a rule in the table now, so a flood is refused before the body is read and the 429 carries the same `Retry-After` header as the rest.
+
+## 2026-11-22 - version 9.2.34
+
+- robots.txt reads its login-gated paths from the list the proxy enforces. The hand-kept copy named `/settings` and `/calendar` and missed the five added since, `/to-do`, `/interviewee`, `/zeroproof/admin`, `/check-in/sites` and `/check-in/display`, so crawlers spent their budget on login redirects. `/check-in` itself stays crawlable, since a volunteer arriving from a poster should find it.
+
+## 2026-11-22 - version 9.2.33
+
+- A failed request in the browser now shows the reason the server gave, through one helper, `responseError`, instead of twelve copies of `res.json().catch(() => null) as { error?: string }`. The calendar helpers used to throw a fixed "Failed to create event" even when the server said why, such as "You can only view this calendar", and they pass that sentence on now. The caller's own wording still shows when the body has no reason, or isn't JSON at all.
+- The shared route helpers answer with labels meant for the logs, like "Upstream timed out", "Invalid request body" and "Not authenticated". Passing every `{ error }` through would have put those on screen at all nineteen calendar call sites, so `responseError` treats them as no reason and shows the caller's wording. The test builds those responses from the real helpers, so renaming a label fails it.
+- Budget and practice had their own copies of the same request function. They use `requestJson` now, which sends JSON and throws the server's reason. Gallery walls keeps its `unwrap`, since it also sends uploads as form data, but reads a failure through `responseError`.
+- The two league-removal checks read `!res.ok && res.status !== 204`, and the second half could never be false when the first was true. They're plain `!res.ok` now.
+- A test scans the browser code for a hand-rolled `.json().catch(`, so the next fetch goes through the helper too. Check-in keeps its own parsing because its backend answers with `message`, not `error`.
+
 ## 2026-11-22 - version 9.2.32
 
 - These two entries were numbered 9.3.7 and 9.3.6 when they merged, which started a 9.3 line with no 9.3.0 release and no announcement behind it. Both are patch fixes and nothing past 9.2.28 has been released, so they're 9.2.31 and 9.2.32, in order. The PR screenshot folders keep the old numbers, since their links are pinned to the commits that hold them.
