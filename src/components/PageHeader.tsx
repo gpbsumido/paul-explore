@@ -78,6 +78,10 @@ export function Wordmark() {
   );
 }
 
+/** The menu trigger, rounded to sit concentric inside the floating pill rather than clipping its curve. */
+const MENU_TRIGGER_CLASS_NAME =
+  "flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised sm:min-h-0";
+
 /**
  * Shared sticky page header used across all feature and thoughts pages.
  *
@@ -151,7 +155,7 @@ export default function PageHeader({
     <>
       {overlay}
       <div
-        className={`pointer-events-auto relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4 rounded-full border border-transparent transition-[max-width,margin,min-height,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none group-data-[floating=true]/header:my-1.5 group-data-[floating=true]/header:min-h-11 group-data-[floating=true]/header:max-w-3xl group-data-[floating=true]/header:border-border group-data-[floating=true]/header:bg-surface/80 group-data-[floating=true]/header:py-1 group-data-[floating=true]/header:pr-2 group-data-[floating=true]/header:pl-5 group-data-[floating=true]/header:shadow-[0_12px_32px_-16px_rgb(0_0_0/0.35)] group-data-[floating=true]/header:backdrop-blur-md group-data-[floating=true]/header:mx-3 sm:group-data-[floating=true]/header:mx-auto`}
+        className={`pointer-events-auto relative mx-auto ${maxWidth} px-4 sm:px-6 min-h-14 py-1.5 flex items-center gap-4 rounded-full border border-transparent transition-[max-width,margin,min-height,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none group-data-[floating=true]/header:my-1.5 group-data-[floating=true]/header:min-h-11 group-data-[floating=true]/header:max-w-[min(48rem,calc(100%-1.5rem))] group-data-[floating=true]/header:border-border group-data-[floating=true]/header:bg-surface/80 group-data-[floating=true]/header:py-1 group-data-[floating=true]/header:pr-1 group-data-[floating=true]/header:pl-5 sm:group-data-[floating=true]/header:pr-2 group-data-[floating=true]/header:shadow-[0_12px_32px_-16px_rgb(0_0_0/0.35)] group-data-[floating=true]/header:backdrop-blur-md`}
       >
         {/* Left: breadcrumb trail or custom node */}
         {left ??
@@ -221,7 +225,7 @@ export default function PageHeader({
               since ThoughtLayout renders this same header. */}
           <FeatureThoughtsLink />
           {right}
-          <HeaderMenu showSettings={showSettings} showLogout={showLogout} />
+          <HeaderMenu showSettings={showSettings} showLogout={showLogout} triggerClassName={MENU_TRIGGER_CLASS_NAME} />
         </div>
       </div>
     </>
