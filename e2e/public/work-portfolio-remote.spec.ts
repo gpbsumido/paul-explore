@@ -13,6 +13,9 @@ const MANIFEST =
   "https://work-portfolio-mfe.vercel.app/mf-manifest.json";
 const REMOTE_ORIGIN = new URL(MANIFEST).origin;
 
+// The header's home crumb is the paul-explore wordmark, not a "Dashboard" label.
+const HOME_LINK = /^paul.explore$/;
+
 test.describe("work portfolio from the remote", () => {
   // No reduced-motion emulation here, unlike work-portfolio.spec.ts: these
   // never click the moving tickers, and under reduced motion template.tsx
@@ -74,7 +77,7 @@ test.describe("work portfolio from the remote", () => {
     // the failure stayed inside RemoteMount: nothing thrown on this page...
     expect(errors).toEqual([]);
     // ...and the header is the host's, and still works
-    await page.getByRole("link", { name: "Dashboard" }).click();
+    await page.getByRole("link", { name: HOME_LINK }).click();
     await expect(page).not.toHaveURL(/work-portfolio/);
   });
 
@@ -84,7 +87,7 @@ test.describe("work portfolio from the remote", () => {
     await page.goto("/work-portfolio?feature=chart-library");
     await expect(page.getByRole("heading", { name: "Chart Library" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Dashboard" }).click();
+    await page.getByRole("link", { name: HOME_LINK }).click();
     await expect(page).not.toHaveURL(/work-portfolio/);
     const url = page.url();
     await page.keyboard.press("ArrowRight");
