@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-24 - version 9.4.1
+
+- The agent-run demo on /learn/ai-agent-patterns now runs on an XState machine instead of a hand-written reducer. The old reducer opened nearly every case by checking the status and returning early, which is a transition table written as code. In the machine each state lists the events it accepts and drops the rest. `useAgentRun` keeps the same return value and the page is untouched. The 35 reducer cases run against the machine, and the identity checks became equality checks because a machine returns a new snapshot. Adds `xstate` and `@xstate/react`. The ai-agent-patterns write-up has a dated update on it.
+
 ## 2026-11-23 - version 9.4.0
 
 - A new home page, v7, built from my November mockup. A split hero puts the headline beside the same facts written as a TypeScript object in an editor panel. Under it a marquee lists the stack as package@version, with versions read from package.json. Four apps sit on an offset grid, their screenshots in grayscale until you point at one. A sticky about panel runs beside a timeline taken from my résumé, three figures are imported rather than typed, and the page closes on contact. v6 moves to the /discover archive.

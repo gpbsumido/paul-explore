@@ -1,5 +1,6 @@
-import { useReducer, useCallback, useRef } from "react";
-import { agentReducer, initialAgentState } from "@/lib/agent/agent-state";
+import { useCallback, useMemo, useRef } from "react";
+import { useMachine } from "@xstate/react";
+import { agentMachine, toRunState } from "@/lib/agent/agent-machine";
 import { createMockStream } from "@/lib/agent/mock-stream";
 import { createSSEParser } from "@/lib/agent/sse-parser";
 import type { Scenario, AgentRunState } from "@/lib/agent/types";
@@ -14,25 +15,25 @@ type AgentRunResult = {
 };
 
 /**
- * Orchestrator hook that wires together the agent state machine,
+ * Orchestrator hook that wires together the agent XState machine,
  * mock stream, SSE parser, and AbortController. Dispatches reducer
  * actions based on parsed SSE event types.
  */
 export function useAgentRun(): AgentRunResult {
-  const [state, dispatch] = useReducer(agentReducer, initialAgentState);
+  const [snapshot, send] = useMachine(agentMachine);
+  const state = useMemo(() => toRunState(snapshot), [snapshot]);
 
   const abortRef = useRef<AbortController | null>(null);
   const resumeRef = useRef<(() => void) | null>(null);
 
   const start = useCallback(
     (scenario: Scenario) => {
-      if (state.status === "running" || state.status === "awaiting_approval")
-        return;
+      if (!snapshot.can({ type: "START" })) return;
 
       const controller = new AbortController();
       abortRef.current = controller;
 
-      dispatch({ type: "START" });
+      send({ type: "START" });
 
       const { stream, resume } = createMockStream(scenario);
       resumeRef.current = resume;
@@ -54,19 +55,19 @@ export function useAgentRun(): AgentRunResult {
 
               switch (event.event) {
                 case "text_delta":
-                  dispatch({
+                  send({
                     type: "APPEND_TEXT",
                     content: data.content as string,
                   });
                   break;
                 case "thinking":
-                  dispatch({
+                  send({
                     type: "APPEND_THINKING",
                     text: data.text as string,
                   });
                   break;
                 case "tool_use_start":
-                  dispatch({
+                  send({
                     type: "ADD_TOOL_CALL",
                     id: data.id as string,
                     name: data.name as string,
@@ -74,7 +75,7 @@ export function useAgentRun(): AgentRunResult {
                   });
                   break;
                 case "tool_result":
-                  dispatch({
+                  send({
                     type: "COMPLETE_TOOL_CALL",
                     id: data.id as string,
                     result: data.is_error ? undefined : (data.output as string),
@@ -82,7 +83,7 @@ export function useAgentRun(): AgentRunResult {
                   });
                   break;
                 case "approval_request":
-                  dispatch({
+                  send({
                     type: "REQUEST_APPROVAL",
                     id: data.id as string,
                     action: data.action as string,
@@ -90,10 +91,10 @@ export function useAgentRun(): AgentRunResult {
                   });
                   break;
                 case "done":
-                  dispatch({ type: "COMPLETE" });
+                  send({ type: "COMPLETE" });
                   break;
                 case "error":
-                  dispatch({
+                  send({
                     type: "ERROR",
                     error: data.message as string,
                   });
@@ -108,30 +109,30 @@ export function useAgentRun(): AgentRunResult {
 
       void read();
     },
-    [state.status],
+    [snapshot, send],
   );
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-    dispatch({ type: "CANCEL" });
-  }, []);
+    send({ type: "CANCEL" });
+  }, [send]);
 
   const approve = useCallback(() => {
     resumeRef.current?.();
     resumeRef.current = null;
-    dispatch({ type: "RESOLVE_APPROVAL", approved: true });
-  }, []);
+    send({ type: "RESOLVE_APPROVAL", approved: true });
+  }, [send]);
 
   const deny = useCallback(() => {
-    dispatch({ type: "RESOLVE_APPROVAL", approved: false });
-  }, []);
+    send({ type: "RESOLVE_APPROVAL", approved: false });
+  }, [send]);
 
   const reset = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-    dispatch({ type: "RESET" });
-  }, []);
+    send({ type: "RESET" });
+  }, [send]);
 
   return { state, start, stop, approve, deny, reset };
 }
