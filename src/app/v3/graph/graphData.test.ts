@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildGraphData, buildLayeredLayout } from "./graphData";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 describe("buildGraphData", () => {
   const data = buildGraphData();
@@ -60,11 +61,53 @@ describe("buildGraphData", () => {
     }
   });
 
-  it("connects the root to the hub and to every category", () => {
-    const rootEdges = data.edges.filter((e) => e.source === "root");
-    const targets = rootEdges.map((e) => e.target);
-    expect(targets).toContain("hub:features");
-    expect(targets.some((t) => t.startsWith("cat:"))).toBe(true);
+  it("connects the root to the hub, the résumé and every category", () => {
+    const rootTargets = data.edges.filter((e) => e.source === "root").map((e) => e.target);
+    const categoryIds = data.nodes
+      .filter((n) => n.kind === "category" && n.id.startsWith("cat:"))
+      .map((n) => n.id);
+
+    expect(categoryIds.length).toBeGreaterThan(0);
+    expect(rootTargets).toContain("hub:features");
+    expect(rootTargets).toContain("resume");
+    for (const id of categoryIds) {
+      expect(rootTargets, id).toContain(id);
+    }
+  });
+
+  it("hangs every feature off the Apps hub and every write-up off its own category", () => {
+    for (const node of data.nodes.filter((n) => n.kind === "feature")) {
+      const parents = data.edges.filter((e) => e.target === node.id && !e.bridge);
+      expect(parents.map((e) => e.source), node.label).toEqual(["hub:features"]);
+    }
+    for (const node of data.nodes.filter((n) => n.kind === "thought")) {
+      const parents = data.edges.filter((e) => e.target === node.id && !e.bridge);
+      expect(parents, node.label).toHaveLength(1);
+      expect(byId.get(parents[0].source)?.kind, node.label).toBe("category");
+    }
+  });
+
+  it("sends each feature node to its own route, in a new tab only when it leaves the site", () => {
+    for (const feature of FEATURES) {
+      const node = byId.get(`feat:${feature.id}`);
+      expect(node?.href, feature.title).toBe(feature.href);
+      expect(node?.external, feature.title).toBe(isExternalHref(feature.href));
+    }
+    expect(data.nodes.some((n) => n.external)).toBe(true);
+  });
+
+  it("colours a write-up like the category it sits in, so each cluster reads as one group", () => {
+    for (const node of data.nodes.filter((n) => n.kind === "thought")) {
+      const parent = data.edges.find((e) => e.target === node.id && !e.bridge)!;
+      expect(node.color, node.label).toBe(byId.get(parent.source)?.color);
+    }
+  });
+
+  it("counts the write-ups in each category's blurb", () => {
+    for (const category of data.nodes.filter((n) => n.id.startsWith("cat:"))) {
+      const children = data.edges.filter((e) => e.source === category.id).length;
+      expect(category.blurb, category.label).toBe(`${children} write-ups`);
+    }
   });
 
   it("deep-links every thoughts category node to its section on the index, not the top", () => {
@@ -101,8 +144,39 @@ describe("buildLayeredLayout", () => {
     expect(root.y).toBeLessThan(hub.y);
   });
 
-  it("reports a positive canvas size", () => {
-    expect(layout.width).toBeGreaterThan(0);
-    expect(layout.height).toBeGreaterThan(0);
+  it("reports a canvas big enough to hold every node", () => {
+    for (const [id, pos] of layout.positions) {
+      expect(pos.x, id).toBeGreaterThan(0);
+      expect(pos.x, id).toBeLessThan(layout.width);
+      expect(pos.y, id).toBeGreaterThan(0);
+      expect(pos.y, id).toBeLessThan(layout.height);
+    }
+  });
+
+  it("gives every node its own spot", () => {
+    const spots = [...layout.positions.values()].map((p) => `${p.x},${p.y}`);
+    expect(new Set(spots).size).toBe(spots.length);
+  });
+
+  it("stacks each group's items in a column directly under its header", () => {
+    const groups = data.edges.filter((e) => e.source === "root").map((e) => e.target);
+    for (const groupId of groups) {
+      const header = layout.positions.get(groupId)!;
+      const kids = data.edges
+        .filter((e) => e.source === groupId && !e.bridge)
+        .map((e) => layout.positions.get(e.target)!);
+      kids.forEach((kid, index) => {
+        expect(kid.x, groupId).toBe(header.x);
+        expect(kid.y, groupId).toBeGreaterThan(index === 0 ? header.y : kids[index - 1].y);
+      });
+    }
+  });
+
+  it("centres the root over its columns", () => {
+    const columnXs = data.edges
+      .filter((e) => e.source === "root")
+      .map((e) => layout.positions.get(e.target)!.x);
+    const root = layout.positions.get("root")!;
+    expect(root.x).toBeCloseTo((Math.min(...columnXs) + Math.max(...columnXs)) / 2, 5);
   });
 });

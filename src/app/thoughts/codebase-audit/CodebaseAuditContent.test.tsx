@@ -72,4 +72,72 @@ describe("CodebaseAuditContent", () => {
       pasted.some((text) => text.includes("Expected 5 bindings, saw 0")),
     ).toBe(true);
   });
+
+  it("carries the first redesign stack as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-22-one-way-in"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes('throw new Error("Failed to create event")')),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("Invalid response status code 204")),
+    ).toBe(true);
+    expect(pasted.some((text) => text.includes("this.context?.refresh()"))).toBe(
+      true,
+    );
+  });
+
+  it("tells the proxy drift as a risk caught by a test, not a bug that shipped", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: "Two copies of the same proxy had already drifted apart",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/drifted into a bug/)).toBeNull();
+    const log = Array.from(document.querySelectorAll("pre")).find((pre) =>
+      pre.textContent?.includes("Invalid response status code 204"),
+    );
+    expect(log?.previousElementSibling?.textContent).toMatch(
+      /^The test that failed first/,
+    );
+  });
+
+  it("carries the second redesign stack as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-22-second-stack"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes("export const TEST_COUNT = 3499;")),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("OperatorWriteTimeoutError")),
+    ).toBe(true);
+  });
+
+  it("carries the third redesign stack as a dated update with its artifacts", () => {
+    render(<CodebaseAuditContent />);
+    expect(
+      document.getElementById("update-2026-11-22-third-stack"),
+    ).not.toBeNull();
+    const pasted = Array.from(document.querySelectorAll("pre")).map(
+      (pre) => pre.textContent ?? "",
+    );
+    expect(
+      pasted.some((text) => text.includes("This bracket isn’t publicly available yet.")),
+    ).toBe(true);
+    expect(
+      pasted.some((text) => text.includes("expected [ 'timeline' ] to deeply equal []")),
+    ).toBe(true);
+  });
 });

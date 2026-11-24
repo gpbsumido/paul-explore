@@ -11,6 +11,38 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-site-redesign-v7",
+    date: "2026-11-23",
+    version: "9.4.0",
+    category: "feature",
+    tags: ["landing", "design"],
+    title: "A new home page, and the rest of the site to match",
+    summary:
+      "The home page is rebuilt around a split hero with a code panel, a short list of four apps, a timeline and the numbers behind the site. Every other page now shares its header and background, so the whole domain reads as one site.",
+    body: [
+      "Scroll any page and the header lifts into a floating pill at the top of the window. Behind the content there's a faint grid that drifts slowly and fades out toward the edges. Headings across the site use the same display typeface as the home page.",
+      "On the home page the app screenshots sit in black and white until you point at one. On a touch screen they stay in colour, since there's no hover to reveal them. The previous home page is still at /discover with the older ones.",
+      "Everything that moves keeps still for anyone who prefers reduced motion.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
+    id: "e-landing-about",
+    date: "2026-11-22",
+    version: "9.3.0",
+    category: "feature",
+    tags: ["landing"],
+    title: "The landing says who built it",
+    summary:
+      "The home page has an About band after the projects: a heading that types itself out, a stack of screens from the site that fan out and open their apps, and a work and education timeline taken from my résumé.",
+    body: [
+      "The photo stack is three of the site's own screens rather than photos: the operator dashboard, the design system and the 3D world. Hover the stack or tab to a card and they spread out; each one opens its app.",
+      "Under the figures in Under the surface, the tools the site is built on now sit inside a phone frame as a rail of chips. It only moves when you scroll it or press its buttons, so there's nothing to pause.",
+      "Everything that moves has a still version for anyone who prefers reduced motion, and the typed heading reads as the full sentence to a screen reader from the start.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-mind-reader",
     date: "2026-11-11",
     version: "9.2.0",

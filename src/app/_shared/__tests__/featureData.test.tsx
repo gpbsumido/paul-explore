@@ -7,6 +7,7 @@ import {
   PREVIEW_MAP,
 } from "../featureData";
 
+const evar = FEATURES.find((f) => f.id === "evar")!;
 const workPortfolio = FEATURES.find((f) => f.id === "work-portfolio")!;
 const world = FEATURES.find((f) => f.id === "world")!;
 
@@ -59,5 +60,40 @@ describe("Explore Toronto hub card", () => {
       screen.getByRole("heading", { name: "Explore Toronto" }),
     ).toBeInTheDocument();
     expect(screen.getByText("walk the city")).toBeInTheDocument();
+  });
+});
+
+describe("FeatureCard links", () => {
+  it("opens an external feature in a new tab without leaking the opener", () => {
+    render(<FeatureCard feature={evar} prefersReduced={false} />);
+    const open = screen.getByRole("link", { name: /Open/ });
+    expect(open).toHaveAttribute("href", evar.href);
+    expect(open).toHaveAttribute("target", "_blank");
+    expect(open).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("opens an internal feature in the same tab", () => {
+    render(<FeatureCard feature={world} prefersReduced={false} />);
+    const open = screen.getByRole("link", { name: /Open/ });
+    expect(open).toHaveAttribute("href", "/world");
+    expect(open).not.toHaveAttribute("target");
+  });
+
+  it("links About to the write-up only when the feature has one", () => {
+    const { rerender } = render(
+      <FeatureCard feature={world} prefersReduced={false} />,
+    );
+    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute(
+      "href",
+      "/thoughts/world",
+    );
+
+    rerender(
+      <FeatureCard
+        feature={{ ...world, thoughtsHref: undefined }}
+        prefersReduced={false}
+      />,
+    );
+    expect(screen.queryByRole("link", { name: "About" })).toBeNull();
   });
 });

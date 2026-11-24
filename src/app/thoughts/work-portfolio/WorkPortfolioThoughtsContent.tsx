@@ -142,15 +142,25 @@ export default function WorkPortfolioThoughtsContent({
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-09-28-own-repo",
+            date: "Sep 28, 2026",
+            title: "The portfolio moved out, and took its history with it",
+          },
+          {
+            id: "update-2026-09-10-review",
+            date: "Sep 10, 2026",
+            title: "A live review pass, one screenshot at a time",
+          },
+          {
+            id: "update-2026-09-09-polish",
+            date: "Sep 9, 2026",
+            title: "A polish pass, from the visitor's chair",
+          },
+          {
             id: "update-2026-08-10-tickers",
             date: "Aug 10, 2026",
             title:
               "The tickers stopped being bespoke, and three bugs I had been ignoring",
-          },
-          {
-            id: "update-2026-09-28-own-repo",
-            date: "Sep 28, 2026",
-            title: "The portfolio moved out, and took its history with it",
           },
         ]}
       />

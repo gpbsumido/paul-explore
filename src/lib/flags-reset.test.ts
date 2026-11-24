@@ -35,6 +35,15 @@ describe("formatResetCountdown", () => {
     expect(formatResetCountdown(90_000)).toBe("2m");
   });
 
+  it("flips from the friendly label to minutes at exactly one minute", () => {
+    expect(formatResetCountdown(59_999)).toBe("under a minute");
+    expect(formatResetCountdown(60_000)).toBe("1m");
+  });
+
+  it("keeps the zero minutes on an exact hour", () => {
+    expect(formatResetCountdown(3_600_000)).toBe("1h 0m");
+  });
+
   it("collapses to a friendly label under a minute", () => {
     expect(formatResetCountdown(20_000)).toBe("under a minute");
   });

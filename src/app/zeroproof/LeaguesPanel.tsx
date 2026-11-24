@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import {
   type ZeroproofLeague,
   leaguesResponseSchema,
 } from "@/lib/zeroproof/schemas";
+import { controlClass, primaryButtonClass } from "./controls";
 
 /** Fetch and validate a leagues list; a 401 (signed out) reads as "no leagues". */
 async function fetchLeagues(url: string): Promise<ZeroproofLeague[]> {
@@ -26,12 +28,8 @@ function centsFromDollars(input: string): number | null {
   return Math.round(n * 100);
 }
 
-const controlClass =
-  "h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
 const buttonClass =
   "inline-flex h-9 items-center rounded-full border border-border bg-surface px-4 text-sm text-foreground transition-colors hover:border-primary-500/50 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
-const primaryButtonClass =
-  "inline-flex h-9 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-500 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
 
 function winConditionLabel(league: ZeroproofLeague): string {
   if (league.winCondition === "threshold" && league.thresholdCents != null) {
@@ -86,11 +84,13 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
     mutationFn: async () => {
       const startingBankrollCents = centsFromDollars(bankroll);
       if (startingBankrollCents == null) throw new Error("Enter a starting bankroll");
+      const maxMembersCount = Number.parseInt(maxMembers, 10);
+      if (Number.isNaN(maxMembersCount) || maxMembersCount < 2) throw new Error("Max members must be at least 2");
       const body: Record<string, unknown> = {
         name: name.trim(),
         visibility,
         startingBankrollCents,
-        maxMembers: Number.parseInt(maxMembers, 10),
+        maxMembers: maxMembersCount,
         winCondition,
       };
       if (winCondition === "threshold") {
@@ -106,10 +106,7 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't create the league (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't create the league (${res.status})`);
       return res.json();
     },
     onSuccess: () => {
@@ -184,7 +181,11 @@ function CreateLeagueForm({ onCreated }: { onCreated: () => void }) {
           </label>
           <input
             id="lg-max"
+            type="number"
             inputMode="numeric"
+            required
+            min={2}
+            step={1}
             value={maxMembers}
             onChange={(event) => setMaxMembers(event.target.value)}
             className={`${controlClass} w-24`}
@@ -269,10 +270,7 @@ function JoinButton({ league }: { league: ZeroproofLeague }) {
           league.joinCode ? { joinCode: league.joinCode } : {},
         ),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't join (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't join (${res.status})`);
       return res.json();
     },
     onSuccess: () => {

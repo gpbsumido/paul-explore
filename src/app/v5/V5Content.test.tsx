@@ -38,6 +38,13 @@ const renderPage = (
   );
 };
 
+/**
+ * The signed-in header waits on the /api/me round trip. Alone that's quick, but
+ * in a full run it went past findBy's one-second default and the axe test
+ * failed looking for a link that was still on its way.
+ */
+const SESSION_SETTLE = { timeout: 5_000 };
+
 const hrefs = () =>
   screen.getAllByRole("link").map((a) => a.getAttribute("href"));
 
@@ -104,9 +111,9 @@ describe("V5Content", () => {
     // collides with the proof figures the moment the page scrolls.
     renderPage();
     const banner = screen.getByRole("banner");
-    expect(banner.className).toContain("sticky");
-    expect(banner.className).toContain("top-0");
-    expect(banner.className).toContain("backdrop-blur");
+    // classList, not className: z-[var(--z-sticky)] would satisfy a substring
+    // match even with the bar no longer sticky.
+    expect(banner).toHaveClass("sticky", "top-0", "backdrop-blur-md");
   });
 
   it("shows the first tagline by default and the indexed one when told", () => {
@@ -116,6 +123,11 @@ describe("V5Content", () => {
 
     renderPage({ taglineIndex: 2 });
     expect(screen.getByText(HERO_TAGLINES[2])).toBeInTheDocument();
+  });
+
+  it("falls back to the first tagline when the index is out of range", () => {
+    renderPage({ taglineIndex: HERO_TAGLINES.length + 3 });
+    expect(screen.getByText(HERO_TAGLINES[0])).toBeInTheDocument();
   });
 
   it("argues the whole craft matrix, not a curated subset of it", () => {
@@ -225,6 +237,17 @@ describe("V5Content", () => {
     expect(rendered).toEqual(picks);
   });
 
+  it("skips a pick that is not a registered write-up instead of rendering a broken row", () => {
+    const [valid] = WRITING_POOL;
+    renderPage({ writingPicks: ["/thoughts/not-a-real-note", valid.href] });
+    const writing = document.getElementById("writing");
+    const rendered = within(writing as HTMLElement)
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"))
+      .filter((href) => href?.startsWith("/thoughts/"));
+    expect(rendered).toEqual([valid.href]);
+  });
+
   it("teases five pool write-ups when nobody picked, never a broken slug", () => {
     renderPage();
     const writing = document.getElementById("writing");
@@ -266,7 +289,7 @@ describe("V5Content", () => {
     );
     renderPage();
     expect(
-      await screen.findByRole("link", { name: /log out/i }),
+      await screen.findByRole("link", { name: /log out/i }, SESSION_SETTLE),
     ).toHaveAttribute("href", "/auth/logout");
     expect(screen.queryByText(/Back again/)).not.toBeInTheDocument();
     expect(hrefs()).not.toContain("/to-do");
@@ -285,7 +308,7 @@ describe("V5Content", () => {
     const { container } = renderPage();
     // Wait for the header CTA to settle in the signed-in state before scanning,
     // so axe sees the page a signed-in visitor actually gets.
-    await screen.findByRole("link", { name: /log out/i });
+    await screen.findByRole("link", { name: /log out/i }, SESSION_SETTLE);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

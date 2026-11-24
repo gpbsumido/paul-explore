@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   pointsIndex,
+  usGameDate,
   completedEventIds,
   latestCompletedSlate,
   performancesFromBoxscore,
@@ -12,6 +13,13 @@ const NBA_KEYS = [
 ];
 const WNBA_TAIL_KEYS = ["minutes", "rebounds", "assists", "points"];
 
+type Competitor = {
+  id: string;
+  homeAway: string;
+  winner?: boolean;
+  team: { abbreviation: string };
+};
+
 /** A minimal ESPN summary payload with two teams and given athlete lines. */
 const summary = (seasonType = 2) => ({
   header: {
@@ -21,7 +29,7 @@ const summary = (seasonType = 2) => ({
         competitors: [
           { id: "19", homeAway: "home", winner: true, team: { abbreviation: "ORL" } },
           { id: "30", homeAway: "away", winner: false, team: { abbreviation: "CHA" } },
-        ],
+        ] as Competitor[],
       },
     ],
   },
@@ -61,6 +69,21 @@ describe("pointsIndex", () => {
   });
   it("returns -1 when there is no points column", () => {
     expect(pointsIndex(["minutes", "rebounds"])).toBe(-1);
+  });
+});
+
+describe("usGameDate", () => {
+  it("reads an evening game on the day it was played, not the UTC day", () => {
+    expect(usGameDate("2026-04-18T00:30Z")).toBe("2026-04-17");
+  });
+
+  it("applies the winter offset too", () => {
+    // 07:30Z is 23:30 the night before in Pacific standard time.
+    expect(usGameDate("2026-01-01T07:30Z")).toBe("2025-12-31");
+  });
+
+  it("falls back to the date part when the timestamp won't parse", () => {
+    expect(usGameDate("2026-04-17 sometime")).toBe("2026-04-17");
   });
 });
 
@@ -114,6 +137,26 @@ describe("latestCompletedSlate", () => {
     expect(slate?.date).toBe("2026-08-24");
   });
 
+  it("skips a finished game that has no date", () => {
+    const slate = latestCompletedSlate({
+      events: [
+        { id: "undated", status: { type: { state: "post" } } },
+        { id: "dated", date: "2026-04-17T23:00Z", status: { type: { state: "post" } } },
+      ],
+    });
+    expect(slate).toEqual({ date: "2026-04-17", eventIds: ["dated"] });
+  });
+
+  it("picks the latest day however the games are ordered", () => {
+    const slate = latestCompletedSlate(
+      sb([
+        { id: "late", date: "2026-04-20T23:00Z", state: "post" },
+        { id: "early", date: "2026-04-10T23:00Z", state: "post" },
+      ]),
+    );
+    expect(slate).toEqual({ date: "2026-04-20", eventIds: ["late"] });
+  });
+
   it("returns null when no game has finished", () => {
     expect(
       latestCompletedSlate(sb([{ id: "a", date: "2026-10-03T23:00Z", state: "pre" }])),
@@ -129,6 +172,7 @@ describe("performancesFromBoxscore", () => {
   it("maps points, opponent, home/away, and who won from the summary", () => {
     const perfs = performancesFromBoxscore(summary(), { sport: "nba", date: "2026-04-17" });
     const star = perfs.find((p) => p.playerId === 111);
+    expect(star?.playerName).toBe("Home Star");
     expect(star?.points).toBe(41);
     expect(star?.opponent).toBe("CHA");
     expect(star?.home).toBe(true);
@@ -148,9 +192,71 @@ describe("performancesFromBoxscore", () => {
     expect(post[0].playoff).toBe(true);
   });
 
-  it("skips athletes who did not play", () => {
-    const perfs = performancesFromBoxscore(summary(), { sport: "nba", date: "2026-04-17" });
+  it("counts the play-in as postseason and a missing season type as regular season", () => {
+    const playIn = performancesFromBoxscore(summary(5), { sport: "nba", date: "2026-04-14" });
+    const { season: _season, ...headerWithoutSeason } = summary().header;
+    const noSeason = performancesFromBoxscore(
+      { ...summary(), header: headerWithoutSeason },
+      { sport: "nba", date: "2026-04-14" },
+    );
+    expect(playIn[0].playoff).toBe(true);
+    expect(noSeason[0].playoff).toBe(false);
+  });
+
+  it("skips athletes who did not play, even when ESPN sent them a stat line", () => {
+    const withDnpLine = summary();
+    withDnpLine.boxscore.players[0].statistics[0].athletes[1].stats = ["12", "9", "3-6", "0-1"];
+    const perfs = performancesFromBoxscore(withDnpLine, { sport: "nba", date: "2026-04-17" });
     expect(perfs.some((p) => p.playerId === 112)).toBe(false);
+    expect(perfs.some((p) => p.playerId === 111)).toBe(true);
+  });
+
+  it("drops a line whose points aren't a number but keeps the rest of the team", () => {
+    const withDash = summary();
+    withDash.boxscore.players[0].statistics[0].athletes[0].stats = ["--", "--", "--", "--"];
+    withDash.boxscore.players[0].statistics[0].athletes.push({
+      athlete: { id: "114", displayName: "Next Man" },
+      didNotPlay: false,
+      stats: ["20", "9", "4-8", "1-2"],
+    });
+    const perfs = performancesFromBoxscore(withDash, { sport: "nba", date: "2026-04-17" });
+    expect(perfs.map((p) => p.playerId).sort()).toEqual([113, 114]);
+  });
+
+  it("skips a team whose box score has no points column, keeping the other team", () => {
+    const noPoints = summary();
+    noPoints.boxscore.players[0].statistics[0].keys = ["minutes", "rebounds"];
+    const perfs = performancesFromBoxscore(noPoints, { sport: "nba", date: "2026-04-17" });
+    expect(perfs.map((p) => p.playerId)).toEqual([113]);
+  });
+
+  it("skips a team that has no stat block", () => {
+    const noBlock = summary();
+    noBlock.boxscore.players[0].statistics = [];
+    const perfs = performancesFromBoxscore(noBlock, { sport: "nba", date: "2026-04-17" });
+    expect(perfs.map((p) => p.playerId)).toEqual([113]);
+  });
+
+  it("skips a team the header doesn't list as a competitor", () => {
+    const stranger = summary();
+    stranger.boxscore.players[1].team.id = "99";
+    const perfs = performancesFromBoxscore(stranger, { sport: "nba", date: "2026-04-17" });
+    expect(perfs.map((p) => p.playerId)).toEqual([111]);
+  });
+
+  it("skips everyone when the header names only one team, so there is no opponent", () => {
+    const oneSided = summary();
+    oneSided.header.competitions[0].competitors.pop();
+    expect(performancesFromBoxscore(oneSided, { sport: "nba", date: "2026-04-17" })).toEqual([]);
+  });
+
+  it("doesn't credit a win when ESPN leaves the winner flag out", () => {
+    const unfinished = summary();
+    for (const competitor of unfinished.header.competitions[0].competitors) {
+      delete competitor.winner;
+    }
+    const perfs = performancesFromBoxscore(unfinished, { sport: "nba", date: "2026-04-17" });
+    expect(perfs.every((p) => p.wonGame === false)).toBe(true);
   });
 
   it("filters to the roster and stamps the owning team (NBA)", () => {
@@ -161,6 +267,16 @@ describe("performancesFromBoxscore", () => {
     });
     expect(perfs.map((p) => p.playerId)).toEqual([111]);
     expect(perfs[0].rosteredBy).toBe("Team Paul");
+  });
+
+  it("treats a blank owner name in the roster as unowned", () => {
+    const perfs = performancesFromBoxscore(summary(), {
+      sport: "nba",
+      date: "2026-04-17",
+      roster: new Map([[111, ""]]),
+    });
+    expect(perfs).toHaveLength(1);
+    expect(perfs[0].rosteredBy).toBeUndefined();
   });
 
   it("marks players on a fantasy playoff team", () => {

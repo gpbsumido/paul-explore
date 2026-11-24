@@ -85,7 +85,7 @@ describe("the pattern catalogue", () => {
 
   it("links deep-dives only to learn pages that exist", () => {
     for (const pattern of PATTERNS.filter((p) => p.deepDive)) {
-      const page = join(process.cwd(), "src/app", pattern.deepDive!, "page.tsx");
+      const page = join(import.meta.dirname, "../../app", pattern.deepDive!, "page.tsx");
       expect(existsSync(page), pattern.deepDive).toBe(true);
     }
   });

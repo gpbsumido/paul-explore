@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
+import { OG_IMAGE } from "@/lib/site";
 
-export const alt = "paul-explore — personal playground and portfolio";
+export const alt = OG_IMAGE.alt;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -48,7 +49,7 @@ export default function OGImage() {
             lineHeight: 1.15,
           }}
         >
-          Personal playground and portfolio.
+          Lead front-end developer.
         </span>
         <span
           style={{
@@ -57,7 +58,7 @@ export default function OGImage() {
             fontFamily: "sans-serif",
           }}
         >
-          NBA stats · Pokémon TCG · GraphQL Pokédex · Calendar
+          Working apps · Architecture write-ups · Live Core Web Vitals
         </span>
       </div>
     </div>,

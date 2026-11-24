@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fetchStore, patchDismiss, postRestock, OperatorContractError } from "@/lib/operator-client";
+import * as client from "@/lib/operator-client";
+import {
+  fetchStore,
+  fetchStores,
+  patchDismiss,
+  postRestock,
+  OperatorApiError,
+  OperatorContractError,
+  OperatorWriteTimeoutError,
+} from "@/lib/operator-client";
+import { buildStore } from "@/test/factories/operator";
+import { hangEveryFetchUntilItsDeadline, watchSettling } from "@/test/hungUpstream";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import { InvalidSegmentError } from "@/lib/safeSegment";
 
 // These calls carry OPERATOR_SERVICE_TOKEN and are reachable unauthenticated,
@@ -56,6 +68,134 @@ describe("operator-client path-segment guard", () => {
   });
 });
 
+/** Every call that puts a caller-supplied id into the upstream path. */
+const ID_TAKING_CALLS: ReadonlyArray<readonly [string, () => Promise<unknown>]> = [
+  ["fetchStore", () => client.fetchStore("a/b")],
+  ["fetchInventory", () => client.fetchInventory("a/b")],
+  ["fetchAlerts", () => client.fetchAlerts("a/b")],
+  ["fetchActivity", () => client.fetchActivity("a/b")],
+  ["fetchSales", () => client.fetchSales("a/b")],
+  ["fetchPlanogram", () => client.fetchPlanogram("a/b")],
+  ["postRestock", () => client.postRestock("a/b", [])],
+  ["patchDismiss", () => client.patchDismiss("a/b")],
+  ["patchPlanogram", () => client.patchPlanogram("a/b", { resyncItemId: "x" })],
+  ["postRestockSession", () => client.postRestockSession("a/b")],
+  ["fetchRestockSessions", () => client.fetchRestockSessions("a/b")],
+  ["fetchRestockSession", () => client.fetchRestockSession("a/b")],
+  [
+    "putRestockLine (session id)",
+    () =>
+      client.putRestockLine("a/b", "item", {
+        expectedQty: 1,
+        countedQty: 1,
+        added: 0,
+        removed: 0,
+        removalReason: null,
+      }),
+  ],
+  [
+    "putRestockLine (item id)",
+    () =>
+      client.putRestockLine("session", "a/b", {
+        expectedQty: 1,
+        countedQty: 1,
+        added: 0,
+        removed: 0,
+        removalReason: null,
+      }),
+  ],
+  ["postCompleteRestock", () => client.postCompleteRestock("a/b", null)],
+  ["fetchPromotions", () => client.fetchPromotions("a/b")],
+  [
+    "postPromotion",
+    () =>
+      client.postPromotion("a/b", {
+        productName: null,
+        percent: 10,
+        startsAt: "2026-07-01T00:00:00.000Z",
+        endsAt: null,
+      }),
+  ],
+  ["patchEndPromotion", () => client.patchEndPromotion("a/b")],
+  ["fetchPromotionPerformance", () => client.fetchPromotionPerformance("a/b")],
+];
+
+describe("every id-taking call refuses a path separator before fetch runs", () => {
+  it.each(ID_TAKING_CALLS)("%s", async (_name, call) => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(call()).rejects.toBeInstanceOf(InvalidSegmentError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("operator-client responses", () => {
+  it("returns the parsed body of a good read", async () => {
+    const store = buildStore({ name: "Downtown" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ stores: [store] }), { status: 200 })),
+    );
+
+    const stores = await fetchStores();
+
+    expect(stores.map((row) => row.name)).toEqual(["Downtown"]);
+  });
+
+  it("surfaces a non-2xx read as an OperatorApiError carrying the status", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("nope", { status: 404 })));
+
+    await expect(fetchStores()).rejects.toMatchObject({ name: "OperatorApiError", status: 404 });
+  });
+
+  it("surfaces a non-2xx write as an OperatorApiError, not a contract error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 409 })));
+
+    const failure = await patchDismiss("alert-1").catch((err: unknown) => err);
+
+    expect(failure).toBeInstanceOf(OperatorApiError);
+    expect(failure).not.toBeInstanceOf(OperatorContractError);
+    expect(failure).toMatchObject({ status: 409 });
+  });
+
+  it("encodes the product-performance range into the query string", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await client.fetchProductPerformance("7d&x=1").catch(() => {
+      // the body doesn't match the schema; only the request url matters here
+    });
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain("range=7d%26x%3D1");
+  });
+});
+
+describe("operator-client service token", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  async function headersSentOnWrite(): Promise<Headers> {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await patchDismiss("alert-1").catch(() => {
+      // the body doesn't match the schema; only the headers matter here
+    });
+    return new Headers((fetchMock.mock.calls[0][1] as RequestInit).headers);
+  }
+
+  it("sends OPERATOR_SERVICE_TOKEN on a write when it is set", async () => {
+    vi.stubEnv("OPERATOR_SERVICE_TOKEN", "s3cret");
+
+    expect((await headersSentOnWrite()).get("x-operator-token")).toBe("s3cret");
+  });
+
+  it("sends no token header when it isn't set", async () => {
+    vi.stubEnv("OPERATOR_SERVICE_TOKEN", "");
+
+    expect((await headersSentOnWrite()).has("x-operator-token")).toBe(false);
+  });
+});
+
 describe("operator-client read timeout", () => {
   it("bounds a read with an abort signal, so a hung upstream can't stall the page", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
@@ -91,5 +231,43 @@ describe("operator-client unreadable write responses", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("<html>", { status: 200 })));
 
     await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorContractError);
+  });
+});
+
+/**
+ * Writes had no deadline at all, so a hung API held the route open until the
+ * platform killed it. A write that runs out of time may still have applied
+ * upstream, so it's named as its own error rather than looking like an outage
+ * the seed could answer.
+ */
+describe("operator-client write timeout", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("gives up on a hung write at UPSTREAM_TIMEOUT_MS and not before", async () => {
+    hangEveryFetchUntilItsDeadline();
+
+    const write = patchDismiss("alert-1");
+    const watch = watchSettling(write);
+
+    await vi.advanceTimersByTimeAsync(UPSTREAM_TIMEOUT_MS - 1);
+    expect(watch.settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(write).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+  });
+
+  it("names a write that ran out of time as its own error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+  });
+
+  it("leaves a refused connection as it was, so the seed can still stand in", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    await expect(patchDismiss("alert-1")).rejects.toBeInstanceOf(TypeError);
   });
 });

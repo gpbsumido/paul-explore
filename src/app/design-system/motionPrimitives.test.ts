@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { MOTION_PRIMITIVES } from "./motionPrimitives";
 
 /**
@@ -41,6 +43,10 @@ describe("MOTION_PRIMITIVES", () => {
       expect(primitive.importPath).toBe(
         `@/components/motion/${primitive.name}`,
       );
+      // The path is only worth documenting if the component is really there.
+      expect(
+        existsSync(join(process.cwd(), "src/components/motion", `${primitive.name}.tsx`)),
+      ).toBe(true);
     }
   });
 

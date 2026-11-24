@@ -42,6 +42,17 @@ describe("SpotlightCard", () => {
     expect(style).toMatch(/color-mix\(in srgb, var\(--color-secondary-500\) 2\d%, transparent\)/);
   });
 
+  it("adds no glow colour and no accent when none is given", () => {
+    const { container } = render(
+      <SpotlightCard>
+        <p>copy</p>
+      </SpotlightCard>,
+    );
+    const style = container.firstElementChild?.getAttribute("style") ?? "";
+    expect(style).not.toContain("color-mix");
+    expect(style).not.toContain("--glass-accent");
+  });
+
   it("tints from the accent it is given", () => {
     const { container } = render(
       <SpotlightCard accent="var(--color-feature-craft)">

@@ -4,6 +4,7 @@ import {
   cardsFromLeaguePayload,
   fantasyLeagueUrl,
   playoffTeamPlayerIds,
+  rostersByPlayer,
   FANTASY_LEAGUES,
 } from "../espn-performances";
 
@@ -45,6 +46,52 @@ describe("performancesFromLeague", () => {
     expect(a?.sport).toBe("nba");
   });
 
+  it("carries the player's pro team through", () => {
+    const [perf] = performancesFromLeague(league([entry(1, "A", 40)]), { season: "2024" });
+    expect(perf.proTeamId).toBe(5);
+  });
+
+  describe("season total", () => {
+    const withStats = (stats: unknown[] | undefined) =>
+      league([
+        { playerPoolEntry: { player: { id: 1, fullName: "A", stats } } },
+      ]);
+    const pointsOf = (stats: unknown[] | undefined) =>
+      performancesFromLeague(withStats(stats), { season: "2024" })[0].points;
+
+    it("prefers the actual season split over a split for a single game or week", () => {
+      expect(
+        pointsOf([
+          { statSourceId: 0, statSplitTypeId: 1, appliedTotal: 7 },
+          { statSourceId: 0, statSplitTypeId: 0, appliedTotal: 40 },
+        ]),
+      ).toBe(40);
+    });
+
+    it("falls back to any actual line when there is no season split", () => {
+      expect(
+        pointsOf([
+          { statSourceId: 1, statSplitTypeId: 0, appliedTotal: 999 },
+          { statSourceId: 0, statSplitTypeId: 1, appliedTotal: 7 },
+        ]),
+      ).toBe(7);
+    });
+
+    it("falls back to the first line when none is an actual", () => {
+      expect(
+        pointsOf([
+          { statSourceId: 1, statSplitTypeId: 0, appliedTotal: 12 },
+          { statSourceId: 1, statSplitTypeId: 1, appliedTotal: 99 },
+        ]),
+      ).toBe(12);
+    });
+
+    it("is zero for a player with no stats", () => {
+      expect(pointsOf([])).toBe(0);
+      expect(pointsOf(undefined)).toBe(0);
+    });
+  });
+
   it("skips entries that don't match the ESPN shape without throwing", () => {
     const perfs = performancesFromLeague(
       league([entry(1, "A", 40), { junk: true }, { playerPoolEntry: {} }]),
@@ -68,10 +115,68 @@ describe("fantasyLeagueUrl", () => {
     expect(url).toContain(`/leagues/${FANTASY_LEAGUES.nba.leagueId}`);
   });
 
+  it("builds the NFL (ffl) league url", () => {
+    const url = fantasyLeagueUrl("nfl", "2025");
+    expect(url).toContain("/games/ffl/seasons/2025/");
+    expect(url).toContain(`/leagues/${FANTASY_LEAGUES.nfl.leagueId}`);
+  });
+
   it("builds the WNBA (wfba) league url", () => {
     const url = fantasyLeagueUrl("wnba", "2026");
     expect(url).toContain("/games/wfba/seasons/2026/");
     expect(url).toContain("/leagues/886603882");
+  });
+
+  it("asks for teams, rosters and settings by default", () => {
+    expect(new URL(fantasyLeagueUrl("nba", "2026")).searchParams.getAll("view")).toEqual([
+      "mTeam",
+      "mRoster",
+      "mSettings",
+    ]);
+  });
+
+  it("asks for other views and one scoring period when the caller needs a week", () => {
+    const url = new URL(
+      fantasyLeagueUrl("nfl", "2026", { views: ["mRoster", "mMatchup"], scoringPeriodId: 7 }),
+    );
+    expect(url.searchParams.getAll("view")).toEqual(["mRoster", "mMatchup"]);
+    expect(url.searchParams.get("scoringPeriodId")).toBe("7");
+  });
+});
+
+describe("fantasyLeagueUrl views", () => {
+  it("asks for the teams, rosters and settings the parsers read", () => {
+    const views = new URL(fantasyLeagueUrl("nba", "2025")).searchParams.getAll("view");
+    expect(views).toEqual(["mTeam", "mRoster", "mSettings"]);
+  });
+});
+
+describe("rostersByPlayer", () => {
+  it("maps each rostered player to the team that holds them", () => {
+    const roster = rostersByPlayer({
+      teams: [
+        { name: "Team One", roster: { entries: [entry(1, "A", 10), entry(2, "B", 10)] } },
+        { name: "Team Two", roster: { entries: [entry(3, "C", 10)] } },
+      ],
+    });
+    expect(Object.fromEntries(roster)).toEqual({ 1: "Team One", 2: "Team One", 3: "Team Two" });
+  });
+
+  it("uses a blank name for a team ESPN didn't name", () => {
+    const roster = rostersByPlayer({ teams: [{ roster: { entries: [entry(1, "A", 10)] } }] });
+    expect(roster.get(1)).toBe("");
+  });
+
+  it("skips entries that aren't players and keeps the rest", () => {
+    const roster = rostersByPlayer({
+      teams: [{ name: "Team One", roster: { entries: [{ junk: true }, entry(1, "A", 10)] } }],
+    });
+    expect([...roster.keys()]).toEqual([1]);
+  });
+
+  it("is empty for a payload that isn't a league", () => {
+    expect(rostersByPlayer({ error: "not authorized" }).size).toBe(0);
+    expect(rostersByPlayer(null).size).toBe(0);
   });
 });
 
@@ -89,6 +194,32 @@ describe("playoffTeamPlayerIds", () => {
     const ids = playoffTeamPlayerIds(payload);
     expect(ids.has(1)).toBe(true);
     expect(ids.has(2)).toBe(false);
+  });
+
+  it("includes the team seeded exactly on the cutoff and leaves out one seed past it", () => {
+    const edge = {
+      settings: { scheduleSettings: { playoffTeamCount: 2 } },
+      teams: [
+        { id: 1, playoffSeed: 2, roster: { entries: [entry(1, "Last in", 30)] } },
+        { id: 2, playoffSeed: 3, roster: { entries: [entry(2, "First out", 30)] } },
+      ],
+    };
+    expect([...playoffTeamPlayerIds(edge)]).toEqual([1]);
+  });
+
+  it("ignores a team with no seed or a seed of zero", () => {
+    const unseeded = {
+      settings: { scheduleSettings: { playoffTeamCount: 4 } },
+      teams: [
+        { id: 1, roster: { entries: [entry(1, "No seed", 30)] } },
+        { id: 2, playoffSeed: 0, roster: { entries: [entry(2, "Zero seed", 30)] } },
+      ],
+    };
+    expect(playoffTeamPlayerIds(unseeded).size).toBe(0);
+  });
+
+  it("is empty for a payload that isn't a league", () => {
+    expect(playoffTeamPlayerIds("nope").size).toBe(0);
   });
 
   it("is empty when the league has no playoff cutoff", () => {
@@ -109,6 +240,6 @@ describe("cardsFromLeaguePayload", () => {
     const star = cards.find((c) => c.playerId === 1);
     const bench = cards.find((c) => c.playerId === 2);
     expect(star?.points).toBe(60);
-    expect(RANK[star!.rarity]).toBeGreaterThan(RANK[bench!.rarity]);
+    expect(RANK[star?.rarity ?? "common"]).toBeGreaterThan(RANK[bench?.rarity ?? "sir"]);
   });
 });

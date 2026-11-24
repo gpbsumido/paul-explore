@@ -30,6 +30,13 @@ describe("hero taglines", () => {
     }
   });
 
+  it("can land on every tagline, first to last", () => {
+    const reached = new Set(
+      Array.from({ length: 200 }, (_, i) => pickTaglineIndex(() => i / 200)),
+    );
+    expect(reached.size).toBe(HERO_TAGLINES.length);
+  });
+
   it("is deterministic for a fixed draw", () => {
     expect(pickTaglineIndex(() => 0.42)).toBe(pickTaglineIndex(() => 0.42));
   });

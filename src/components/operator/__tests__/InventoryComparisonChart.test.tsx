@@ -44,4 +44,13 @@ describe("axisLabel", () => {
       "Reception Snacks",
     );
   });
+
+  it("keeps a name of exactly the budget whole and trims one character over", () => {
+    expect(axisLabel("Seventeen chars!!")).toBe("Seventeen chars!!");
+    expect(axisLabel("Eighteen chars!!!!")).toBe("Eighteen chars!!\u2026");
+  });
+
+  it("falls back to the whole name when nothing sits before the separator", () => {
+    expect(axisLabel(" - Floor 3")).toBe(" - Floor 3");
+  });
 });

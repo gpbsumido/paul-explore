@@ -107,6 +107,52 @@ describe("InterviewContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("does not nag about a topic reviewed just now", () => {
+    window.localStorage.setItem(
+      "interviewee-answered",
+      JSON.stringify({ reviewed: { "general/system-design": Date.now() } }),
+    );
+    render(<InterviewContent interview={interview} />);
+
+    const reviewed = screen.getByRole("region", { name: /reviewed/i });
+    expect(
+      within(reviewed).getByRole("link", { name: /System Design/ }),
+    ).toBeInTheDocument();
+    expect(within(reviewed).queryByText(/due to revisit/i)).not.toBeInTheDocument();
+  });
+
+  it("lists stale reviewed topics before fresh ones", () => {
+    window.localStorage.setItem(
+      "interviewee-answered",
+      JSON.stringify({
+        reviewed: { "general/system-design": Date.now(), "general/testing": 1000 },
+      }),
+    );
+    render(<InterviewContent interview={interview} />);
+
+    const reviewed = screen.getByRole("region", { name: /reviewed/i });
+    const titles = within(reviewed)
+      .getAllByRole("link")
+      .map((link) => link.textContent ?? "");
+    expect(titles[0]).toContain("Testing");
+    expect(titles[1]).toContain("System Design");
+  });
+
+  it("says so when every topic has been reviewed", () => {
+    window.localStorage.setItem(
+      "interviewee-answered",
+      JSON.stringify({
+        reviewed: {
+          "general/system-design": 1000,
+          "general/apis": 1000,
+          "general/testing": 1000,
+        },
+      }),
+    );
+    render(<InterviewContent interview={interview} />);
+    expect(screen.getByText(/all caught up/i)).toBeInTheDocument();
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = render(<InterviewContent interview={interview} />);
     expect(await axe(container)).toHaveNoViolations();

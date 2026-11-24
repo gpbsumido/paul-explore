@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
@@ -44,7 +44,43 @@ describe("DisplayContent", () => {
 
   it("says how long the code has left", async () => {
     renderPage();
-    expect(await screen.findByText(/1:24|84/)).toBeInTheDocument();
+    expect(await screen.findByText("New code in 1:24")).toBeInTheDocument();
+  });
+
+  it("counts down each second and asks the server for the next code when it runs out", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const codes = ["482917", "559031"];
+      let requests = 0;
+      server.use(
+        http.get(`/api/check-in/sites/${SITE}/code`, () =>
+          HttpResponse.json({
+            siteName: "Riverside Food Bank",
+            code: codes[Math.min(requests++, codes.length - 1)],
+            secondsRemaining: 2,
+            periodSeconds: 120,
+          }),
+        ),
+      );
+      renderPage();
+
+      expect(await screen.findByText("482917")).toBeInTheDocument();
+      expect(screen.getByText("New code in 0:02")).toBeInTheDocument();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(screen.getByText("New code in 0:01")).toBeInTheDocument();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(await screen.findByText("559031")).toBeInTheDocument();
+      expect(screen.queryByText("482917")).not.toBeInTheDocument();
+      expect(requests).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("says so rather than showing a stale code when the refresh fails", async () => {
@@ -64,11 +100,11 @@ describe("DisplayContent", () => {
   it("explains a site you do not own instead of showing an empty screen", async () => {
     server.use(
       http.get(`/api/check-in/sites/${SITE}/code`, () =>
-        HttpResponse.json({ message: "Site not found" }, { status: 404 }),
+        HttpResponse.json({}, { status: 404 }),
       ),
     );
     renderPage();
-    expect(await screen.findByRole("alert")).toHaveTextContent(/not found|don.?t own/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/not found, or you don.t own it/i);
   });
 
   it("says which link to use when no site is given", async () => {

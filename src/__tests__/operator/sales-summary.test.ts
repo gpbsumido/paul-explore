@@ -82,6 +82,19 @@ describe("topSellingProducts", () => {
     expect(top[1].productName).toBe("Cola");
   });
 
+  it("returns five products by default", () => {
+    const sales = ["A", "B", "C", "D", "E", "F"].map((productName, i) =>
+      buildSale({ productName, total: 10 - i }),
+    );
+    expect(topSellingProducts(sales).map((p) => p.productName)).toEqual([
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+    ]);
+  });
+
   it("limits the number of products returned", () => {
     const sales = [
       buildSale({ productName: "A", total: 5 }),
@@ -123,10 +136,34 @@ describe("salesByDay", () => {
     expect(totalCharted).toBe(0);
   });
 
-  it("labels each bucket with a weekday", () => {
-    for (const bucket of salesByDay([], now)) {
-      expect(bucket.day).toBeTruthy();
-      expect(typeof bucket.day).toBe("string");
-    }
+  it("labels each bucket with its weekday, oldest first", () => {
+    // 15 July 2026 is a Wednesday, so the window opens on Thursday 9 July
+    expect(salesByDay([], now).map((bucket) => bucket.day)).toEqual([
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+    ]);
+  });
+
+  it("rounds a day's revenue to the cent", () => {
+    const sales = [
+      buildSale({ total: 0.1, timestamp: "2026-07-15T09:00:00Z" }),
+      buildSale({ total: 0.2, timestamp: "2026-07-15T10:00:00Z" }),
+    ];
+    expect(salesByDay(sales, now)[6].revenue).toBe(0.3);
+  });
+
+  it("keeps sales from different days apart", () => {
+    const sales = [
+      buildSale({ total: 5, timestamp: "2026-07-09T00:00:00Z" }),
+      buildSale({ total: 7, timestamp: "2026-07-12T12:00:00Z" }),
+    ];
+    expect(salesByDay(sales, now).map((b) => b.revenue)).toEqual([
+      5, 0, 0, 7, 0, 0, 0,
+    ]);
   });
 });

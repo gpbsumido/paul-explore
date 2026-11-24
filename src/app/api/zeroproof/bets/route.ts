@@ -1,4 +1,6 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
+import { placeBetBodySchema } from "@/lib/zeroproof/schemas";
 import { NextResponse } from "next/server";
 import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 
@@ -6,13 +8,14 @@ import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 // ({ walletId, eventId, market, selection, stakeCents }) names the outcome; the
 // backend freezes the current line and checks the balance inside the transaction.
 export const POST = withBackend("zeroproof place bet", async ({ token }, request) => {
-  const body = await request.json().catch(() => ({}));
+  const parsed = await parseBody(request, placeBetBodySchema, DEFAULT_MAX_BYTES, { explainFirstIssue: true });
+  if (!parsed.ok) return parsed.response;
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/bets`, {
     method: "POST",
     // JSON content-type required, or the backend's express.json() leaves the
     // body unparsed and every field reads as missing.
     headers: buildHeaders(token, null, { "Content-Type": "application/json" }),
-    body: JSON.stringify(body),
+    body: JSON.stringify(parsed.data),
   });
   if (!result.ok) return upstreamErrorResponse(result);
   const payload = await result.response.json().catch(() => null);

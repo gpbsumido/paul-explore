@@ -9,9 +9,13 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import {
+  THEME_STORAGE_KEY,
+  toThemePreference,
+  type ThemePreference,
+} from "@/lib/themePreference";
 
 type Theme = "light" | "dark";
-type ThemePreference = Theme | "system";
 
 interface ThemeContextValue {
   /** currently applied ("light" or "dark") */
@@ -24,7 +28,6 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = "theme-preference";
 const THEME_CHANGE_EVENT = "theme-preference-change";
 
 // --- Preference (localStorage) external store ---
@@ -39,7 +42,7 @@ function subscribeToPreference(callback: () => void) {
 }
 
 function getPreferenceSnapshot(): ThemePreference {
-  return (localStorage.getItem(STORAGE_KEY) as ThemePreference) ?? "system";
+  return toThemePreference(localStorage.getItem(THEME_STORAGE_KEY));
 }
 
 function getPreferenceServerSnapshot(): ThemePreference {
@@ -85,7 +88,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const setPreference = useCallback((pref: ThemePreference) => {
-    localStorage.setItem(STORAGE_KEY, pref);
+    localStorage.setItem(THEME_STORAGE_KEY, pref);
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, []);
 

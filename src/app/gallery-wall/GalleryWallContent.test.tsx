@@ -6,7 +6,7 @@ import {
   fireEvent,
   waitFor,
 } from "@testing-library/react";
-import { axe } from "vitest-axe";
+import { axe } from "@/test/a11y";
 import type { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -342,11 +342,14 @@ describe("GalleryWallContent", () => {
     expect(screen.getByRole("button", { name: /float panel/i })).toBeDisabled();
   });
 
-  it("switches the auto layout to masonry", () => {
-    render(<GalleryWallContent initialState={seededState()} />);
+  it("switches the auto layout to masonry and re-lays the frames", () => {
+    const { container } = render(<GalleryWallContent initialState={seededState()} />);
+    const xs = () => ["a", "b"].map((id) => frameRectX(container, id));
+    const rowsLayout = xs();
     const masonry = screen.getByRole("button", { name: /masonry/i });
     fireEvent.click(masonry);
     expect(masonry).toHaveAttribute("aria-pressed", "true");
+    expect(xs()).not.toEqual(rowsLayout);
   });
 
   it("shows a printable hang sheet with a measured row per photo", () => {

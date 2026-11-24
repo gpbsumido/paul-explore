@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import { queryKeys } from "@/lib/queryKeys";
+import { userFacingErrorMessage } from "@/lib/userFacingError";
 import type { Rarity } from "@/lib/fantasy-cards";
 import { sortCards, type CardSort, type RarityFilter } from "@/lib/card-view";
 import FantasyNav from "../../FantasyNav";
@@ -78,7 +79,14 @@ export default function CollectionContent() {
           My Collection
         </h1>
 
-        {collection.isLoading ? null : !collection.data ? (
+        {collection.isLoading ? null : collection.isError ? (
+          <p
+            role="alert"
+            className="rounded-xl border border-border bg-surface px-4 py-6 text-[15px] text-muted"
+          >
+            {userFacingErrorMessage(collection.error, "Could not load your collection")}
+          </p>
+        ) : !collection.data ? (
           <p className="rounded-xl border border-border bg-surface px-4 py-6 text-[15px] text-muted">
             <a href="/auth/login" className="font-semibold text-foreground underline">
               Sign in

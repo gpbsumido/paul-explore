@@ -1,5 +1,6 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import Link from "next/link";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 const code =
@@ -410,6 +411,48 @@ export default function GreenChecksContent() {
           me looking at the workflows at all.
         </p>
       </section>
+
+      <Update
+        id="update-2026-11-21-tests-that-cant-fail"
+        date="November 21, 2026"
+        title="The same four checks, this time in the app, and I hit the first one myself"
+      >
+        <p>
+          Everything above was about a design system repo. I went looking for
+          the same shape in this one, by running every test file alone in a
+          random order and judging each test on whether it would fail if the
+          code broke. It was all still here: tests that tested themselves, a
+          guard that returned early on every patch version, three files that
+          only passed in order. The write-up is{" "}
+          <Link
+            href="/thoughts/tests-that-cant-fail"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            Tests that can&apos;t fail
+          </Link>
+          .
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I read the first line and called it green.
+        </h3>
+        <p className="text-muted">
+          I wrote a test for the new reporter config, ran it, and checked the
+          count. Four passed. The run had also failed:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {` Tests  4 passed (4)
+ Errors  1 error
+exit=1`}
+        </pre>
+        <p className="mt-3 text-muted">
+          An unhandled <code className={code}>NetworkError</code> from loading
+          the config in a browser-like environment. A count of passed tests is
+          one of the things that can be true while the run is red, which is the
+          point of this page applied to me, and the reason that write-up ends
+          on reading the log instead of the summary.
+        </p>
+      </Update>
 
       <WhatsNext
         nowShipped={[

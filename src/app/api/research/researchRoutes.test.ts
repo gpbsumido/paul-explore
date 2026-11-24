@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { NextRequest } from "next/server";
 import { server } from "@/test/server";
-import { TOPICS, DEMOGRAPHICS } from "@/lib/research/data";
+import { TOPICS, DEMOGRAPHICS, ALL_VASCULAR_QUERY } from "@/lib/research/data";
 import { GET as topicsGET } from "./topics/route";
 import { GET as publicationsGET } from "./publications/route";
 import { GET as demographicsGET } from "./demographics/route";
@@ -46,6 +46,12 @@ const countHandler = () =>
   });
 
 beforeEach(() => server.use(countHandler(), epmcHandler()));
+
+/** The routes read the calendar year for their windows, so the clock is pinned rather than trusted. */
+const TODAY = new Date("2026-11-19T12:00:00Z");
+const pinClock = () => vi.useFakeTimers({ now: TODAY, toFake: ["Date"] });
+
+afterEach(() => vi.useRealTimers());
 
 describe("GET /api/research/topics", () => {
   it("returns an evidence status for every curated topic with a day-long cache", async () => {
@@ -191,6 +197,62 @@ describe("GET /api/research/publications", () => {
     expect(body.publications[0].source).toBe("pubmed");
   });
 
+  it("leaves Europe PMC out when only PubMed is asked for", async () => {
+    let europeCalls = 0;
+    server.use(
+      http.get(ESEARCH, () => HttpResponse.json(esearchJson(1, ["11"]))),
+      summaryHandler,
+      http.get(EPMC, () => {
+        europeCalls += 1;
+        return HttpResponse.json({ hitCount: 0, resultList: { result: [] } });
+      }),
+    );
+    const res = await publicationsGET(
+      new NextRequest(
+        `http://localhost/api/research/publications?topic=${TOPICS[0].id}&sources=pubmed`,
+      ),
+    );
+    const body = await res.json();
+    expect(europeCalls).toBe(0);
+    expect(body.sources).toEqual(["pubmed"]);
+  });
+
+  it("narrows the PubMed search to the demographic facets chosen", async () => {
+    const terms: string[] = [];
+    // a facet the topic's own query does not already mention, or the check proves nothing
+    const facet = DEMOGRAPHICS.find((d) => !TOPICS[0].query.includes(d.clause))!;
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(0));
+      }),
+    );
+    await publicationsGET(
+      new NextRequest(
+        `http://localhost/api/research/publications?topic=${TOPICS[0].id}&demo=${facet.id}`,
+      ),
+    );
+    expect(terms.length).toBeGreaterThan(0);
+    expect(terms.every((t) => t.includes(facet.clause))).toBe(true);
+  });
+
+  it("keeps PubMed results when Europe PMC answers with something unreadable", async () => {
+    server.use(
+      http.get(ESEARCH, () => HttpResponse.json(esearchJson(1, ["11"]))),
+      summaryHandler,
+      epmcHandler({ unexpected: "shape" }),
+    );
+    const res = await publicationsGET(
+      new NextRequest(
+        `http://localhost/api/research/publications?topic=${TOPICS[0].id}`,
+      ),
+    );
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.sources).toEqual(["pubmed"]);
+    expect(body.publications).toHaveLength(1);
+  });
+
   it("still serves PubMed results when Europe PMC is down", async () => {
     server.use(
       http.get(ESEARCH, () => HttpResponse.json(esearchJson(1, ["11"]))),
@@ -253,13 +315,21 @@ describe("GET /api/research/demographics", () => {
   });
 
   it("covers all of vascular surgery when no topic is given", async () => {
-    server.use(http.get(ESEARCH, () => HttpResponse.json(esearchJson(3))));
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(3));
+      }),
+    );
     const res = await demographicsGET(
       new NextRequest("http://localhost/api/research/demographics"),
     );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.facets[0].count).toBe(3);
+    expect(terms.length).toBeGreaterThan(0);
+    expect(terms.every((t) => t.includes(ALL_VASCULAR_QUERY))).toBe(true);
   });
 
   it("400s on an unknown topic id", async () => {
@@ -341,6 +411,78 @@ describe("GET /api/research/discover", () => {
     );
   });
 
+  it("only offers a heading that recurs across the sample, not one that appears twice", async () => {
+    const paperWith = (id: string, ...headings: string[]) => ({
+      id,
+      source: "MED",
+      title: id,
+      meshHeadingList: {
+        meshHeading: headings.map((descriptorName) => ({ descriptorName })),
+      },
+    });
+    server.use(
+      epmcHandler({
+        hitCount: 5,
+        resultList: {
+          result: [
+            paperWith("p1", "Sarcopenia", "Hand Strength"),
+            paperWith("p2", "Sarcopenia", "Hand Strength"),
+            paperWith("p3", "Sarcopenia"),
+          ],
+        },
+      }),
+    );
+    const res = await discoverGET();
+    const names = (await res.json()).topics.map((t: { name: string }) => t.name);
+    expect(names).toContain("Sarcopenia");
+    expect(names).not.toContain("Hand Strength");
+  });
+
+  it("answers an empty list without counting anything when the sample has no headings", async () => {
+    let esearchCalls = 0;
+    server.use(
+      epmcHandler({ hitCount: 0, resultList: { result: [] } }),
+      http.get(ESEARCH, () => {
+        esearchCalls += 1;
+        return HttpResponse.json(esearchJson(1));
+      }),
+    );
+    const res = await discoverGET();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ topics: [] });
+    expect(esearchCalls).toBe(0);
+  });
+
+  it("scores each derived topic over the last five years", async () => {
+    pinClock();
+    const terms: string[] = [];
+    server.use(
+      epmcHandler(meshPayload),
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(1));
+      }),
+    );
+    await discoverGET();
+    expect(terms.some((t) => t.includes("2021:3000[dp]"))).toBe(true);
+  });
+
+  it("samples recent MeSH-indexed vascular papers that have abstracts", async () => {
+    let sampled = "";
+    let pageSize = "";
+    server.use(
+      http.get(EPMC, ({ request }) => {
+        sampled = new URL(request.url).searchParams.get("query") ?? "";
+        pageSize = new URL(request.url).searchParams.get("pageSize") ?? "";
+        return HttpResponse.json({ hitCount: 0, resultList: { result: [] } });
+      }),
+    );
+    await discoverGET();
+    expect(sampled).toContain('MESH:"Aortic Aneurysm"');
+    expect(sampled).toContain('HAS_ABSTRACT:"Y"');
+    expect(pageSize).toBe("200");
+  });
+
   it("502s when Europe PMC cannot be reached for the discovery scan", async () => {
     server.use(http.get(EPMC, () => HttpResponse.error()));
     const res = await discoverGET();
@@ -363,6 +505,7 @@ describe("GET /api/research/topics?demo=", () => {
     );
     expect(res.status).toBe(200);
     const facet = DEMOGRAPHICS.find((d) => d.id === "female");
+    expect(terms.length).toBeGreaterThan(0);
     expect(terms.every((t) => t.includes(facet!.clause))).toBe(true);
     const body = await res.json();
     expect(body.topics).toHaveLength(TOPICS.length);
@@ -393,6 +536,7 @@ describe("GET /api/research/topics?demo=", () => {
 
 describe("GET /api/research/demographics?window=", () => {
   it("bounds every facet count to the window asked for", async () => {
+    pinClock();
     const terms: string[] = [];
     server.use(
       http.get(ESEARCH, ({ request }) => {
@@ -406,8 +550,21 @@ describe("GET /api/research/demographics?window=", () => {
       ),
     );
     expect(res.status).toBe(200);
+    expect(terms.length).toBeGreaterThan(0);
     expect(terms.every((t) => /\d{4}:3000\[dp\]/.test(t))).toBe(true);
   });
+
+  it.each(["0", "-3", "abc", "Infinity"])(
+    "400s on a window of %s instead of counting with it",
+    async (window) => {
+      const res = await demographicsGET(
+        new NextRequest(
+          `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&window=${window}`,
+        ),
+      );
+      expect(res.status).toBe(400);
+    },
+  );
 
   it("counts all of time when no window is given", async () => {
     const terms: string[] = [];
@@ -428,25 +585,23 @@ describe("GET /api/research/demographics?window=", () => {
 
 describe("data coverage is reported, not implied", () => {
   it("topics says which years the recent count covers", async () => {
+    pinClock();
     const res = await topicsGET(
       new NextRequest("http://localhost/api/research/topics"),
     );
     const body = await res.json();
-    const thisYear = new Date().getFullYear();
-    expect(body.window).toEqual({ fromYear: thisYear - 5, toYear: thisYear });
+    expect(body.window).toEqual({ fromYear: 2021, toYear: 2026 });
   });
 
   it("demographics reports the window it actually applied", async () => {
+    pinClock();
     const res = await demographicsGET(
       new NextRequest(
         `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&window=5`,
       ),
     );
     const body = await res.json();
-    expect(body.window).toEqual({
-      fromYear: new Date().getFullYear() - 5,
-      toYear: new Date().getFullYear(),
-    });
+    expect(body.window).toEqual({ fromYear: 2021, toYear: 2026 });
   });
 
   it("demographics reports no window when counting all of time", async () => {
@@ -476,7 +631,51 @@ describe("GET /api/research/demographics with facets already chosen", () => {
       ),
     );
     expect(res.status).toBe(200);
+    expect(terms.length).toBeGreaterThan(0);
     expect(terms.every((t) => t.includes(female.clause))).toBe(true);
+  });
+
+  it("stacks several chosen facets, all of which must hold", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(1));
+      }),
+    );
+    const [first, second] = DEMOGRAPHICS;
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&demo=${first.id}, ${second.id}`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(terms.length).toBeGreaterThan(0);
+    expect(
+      terms.every((t) => t.includes(first.clause) && t.includes(second.clause)),
+    ).toBe(true);
+  });
+
+  it("caches the facet counts for a day", async () => {
+    server.use(http.get(ESEARCH, () => HttpResponse.json(esearchJson(1))));
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}`,
+      ),
+    );
+    expect(res.headers.get("Cache-Control")).toBe(
+      "public, s-maxage=86400, stale-while-revalidate=604800",
+    );
+  });
+
+  it("fails loudly when PubMed is unreachable instead of reporting zero counts", async () => {
+    server.use(http.get(ESEARCH, () => HttpResponse.error()));
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}`,
+      ),
+    );
+    expect(res.status).toBe(502);
   });
 
   it("400s when an already-selected facet is unknown", async () => {
@@ -502,6 +701,7 @@ describe("GET /api/research/demographics with facets already chosen", () => {
       ),
     );
     expect(res.status).toBe(200);
+    expect(terms.length).toBeGreaterThan(0);
     expect(terms.every((t) => t.includes('"Sarcopenia"[mh]'))).toBe(true);
   });
 
@@ -537,6 +737,7 @@ describe("custom phrase topics", () => {
     ]);
     // The phrase becomes word-by-word title/abstract clauses, always scoped to
     // the field, so a custom topic can never scan all of PubMed.
+    expect(terms.length).toBeGreaterThan(0);
     terms.forEach((t) => {
       expect(t).toContain(
         "mesenteric[tiab] AND ischemia[tiab] AND thrombolysis[tiab]",
@@ -597,6 +798,7 @@ describe("custom phrase topics", () => {
     expect(body.publications.map((p: { title: string }) => p.title)).toContain(
       "Thrombolysis outcomes.",
     );
+    expect(terms.length).toBeGreaterThan(0);
     expect(
       terms.every((t) => t.includes("mesenteric[tiab] AND ischemia[tiab]")),
     ).toBe(true);
@@ -616,6 +818,7 @@ describe("custom phrase topics", () => {
       ),
     );
     expect(res.status).toBe(200);
+    expect(terms.length).toBeGreaterThan(0);
     expect(
       terms.every((t) => t.includes("popliteal[tiab] AND aneurysm[tiab]")),
     ).toBe(true);
@@ -640,6 +843,7 @@ describe("custom MeSH topics", () => {
     expect(body.topics).toEqual([
       { id: "custom", total: 14, recent: 5, status: "sparse" },
     ]);
+    expect(terms.length).toBeGreaterThan(0);
     terms.forEach((t) => {
       expect(t).toContain('"Sarcopenia"[mh]');
       expect(t).toContain("vascular");

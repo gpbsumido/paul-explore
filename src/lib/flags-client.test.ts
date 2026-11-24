@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+  FLAGS_TOKEN_HEADER,
+  FlagsApiError,
+  FlagsContractError,
+  FlagsWriteTimeoutError,
   fetchFlagsFromApi,
   fetchAuditFromApi,
   patchFlagOnApi,
 } from "./flags-client";
+import { InvalidSegmentError } from "./safeSegment";
 import { buildFlag } from "@/test/factories/flags";
+import { hangEveryFetchUntilItsDeadline, watchSettling } from "@/test/hungUpstream";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import type { AuditEntry } from "@/types/flags";
 
 function mockFetch(status: number, body: unknown) {
@@ -17,7 +24,10 @@ function mockFetch(status: number, body: unknown) {
   return fn;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 const auditEntry: AuditEntry = {
   id: "audit-001",
@@ -46,7 +56,18 @@ describe("flags-client", () => {
 
   it("throws when the flags endpoint responds with an error status", async () => {
     mockFetch(503, { error: "unavailable" });
-    await expect(fetchFlagsFromApi()).rejects.toThrow();
+    await expect(fetchFlagsFromApi()).rejects.toMatchObject({
+      name: "FlagsApiError",
+      status: 503,
+    });
+  });
+
+  it("asks for a fresh copy every time rather than a cached fleet", async () => {
+    const fetchMock = mockFetch(200, { flags: [], environments: [] });
+
+    await fetchFlagsFromApi();
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ cache: "no-store" });
   });
 
   it("gives up on a stalled API so the gate can fall back to the seed", { timeout: 1000 }, async () => {
@@ -69,12 +90,14 @@ describe("flags-client", () => {
 
     await expect(fetchFlagsFromApi()).rejects.toThrow(/timed out/);
     expect(deadline).toHaveBeenCalledWith(8_000);
-    deadline.mockRestore();
   });
 
   it("throws when the payload does not match the flag contract", async () => {
     mockFetch(200, { flags: [{ key: "broken" }], environments: [] });
-    await expect(fetchFlagsFromApi()).rejects.toThrow();
+    const failure = await fetchFlagsFromApi().catch((err: unknown) => err);
+    expect(failure).toBeInstanceOf(Error);
+    expect(failure).not.toBeInstanceOf(FlagsApiError);
+    expect((failure as Error).name).toBe("ZodError");
   });
 
   it("fetches the audit log from the audit endpoint", async () => {
@@ -87,6 +110,11 @@ describe("flags-client", () => {
     expect(String(fetchMock.mock.calls[0][0])).toMatch(
       /\/api\/feature-flags\/audit$/,
     );
+  });
+
+  it("raises a FlagsApiError with the status when the audit endpoint refuses", async () => {
+    mockFetch(500, { error: "boom" });
+    await expect(fetchAuditFromApi()).rejects.toMatchObject({ name: "FlagsApiError", status: 500 });
   });
 
   it("patches a flag and returns the updated flag", async () => {
@@ -112,7 +140,60 @@ describe("flags-client", () => {
     mockFetch(404, { error: "Flag not found" });
     await expect(
       patchFlagOnApi("missing", { environment: "production", enabled: true }),
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({ name: "FlagsApiError", status: 404 });
+  });
+});
+
+describe("patchFlagOnApi credentials and guards", () => {
+  const body = { environment: "production", enabled: true } as const;
+  const headersSent = (fetchMock: ReturnType<typeof mockFetch>) =>
+    fetchMock.mock.calls[0][1].headers as Record<string, string>;
+
+  it("sends a visitor's token as a bearer", async () => {
+    const fetchMock = mockFetch(200, { flag: buildFlag() });
+
+    await patchFlagOnApi("new-checkout", body, { bearer: "visitor-token" });
+
+    expect(headersSent(fetchMock)).toMatchObject({
+      authorization: "Bearer visitor-token",
+      "content-type": "application/json",
+    });
+    expect(headersSent(fetchMock)).not.toHaveProperty(FLAGS_TOKEN_HEADER);
+  });
+
+  it("sends the server's shared secret in its own header, never as a bearer", async () => {
+    const fetchMock = mockFetch(200, { flag: buildFlag() });
+
+    await patchFlagOnApi("new-checkout", body, { serviceToken: "shared-secret" });
+
+    expect(headersSent(fetchMock)[FLAGS_TOKEN_HEADER]).toBe("shared-secret");
+    expect(headersSent(fetchMock)).not.toHaveProperty("authorization");
+  });
+
+  it("sends no credential when the caller has none", async () => {
+    const fetchMock = mockFetch(200, { flag: buildFlag() });
+
+    await patchFlagOnApi("new-checkout", body);
+
+    expect(Object.keys(headersSent(fetchMock))).toEqual(["content-type"]);
+  });
+
+  it("refuses a flag key that would change the upstream path, before any request", async () => {
+    const fetchMock = mockFetch(200, { flag: buildFlag() });
+
+    await expect(patchFlagOnApi("../admin", body, { bearer: "t" })).rejects.toBeInstanceOf(
+      InvalidSegmentError,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a body that changes nothing, before any request", async () => {
+    const fetchMock = mockFetch(200, { flag: buildFlag() });
+
+    await expect(
+      patchFlagOnApi("new-checkout", { environment: "production" }),
+    ).rejects.toThrow(/at least one of enabled or fallthrough/);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
@@ -179,6 +260,40 @@ describe("patchFlagOnApi response shape", () => {
     stubJson({ nonsense: true });
     await expect(
       patchFlagOnApi("dark-mode", { environment: "production", enabled: false }),
-    ).rejects.toThrow();
+    ).rejects.toBeInstanceOf(FlagsContractError);
+  });
+});
+
+/**
+ * The audit read and the flag write had no deadline, unlike the fleet read.
+ * A write that runs out of time may have landed, so it gets its own error.
+ */
+describe("flags-client deadlines", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("bounds the audit read with an abort signal", async () => {
+    const fetchMock = mockFetch(200, { audit: [] });
+    await fetchAuditFromApi();
+    expect((fetchMock.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("gives up on a hung flag write at UPSTREAM_TIMEOUT_MS and not before", async () => {
+    hangEveryFetchUntilItsDeadline();
+
+    const write = patchFlagOnApi("new-checkout", { environment: "production", enabled: true });
+    const watch = watchSettling(write);
+
+    await vi.advanceTimersByTimeAsync(UPSTREAM_TIMEOUT_MS - 1);
+    expect(watch.settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(write).rejects.toBeInstanceOf(FlagsWriteTimeoutError);
+  });
+
+  it("names a flag write that ran out of time as its own error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+    await expect(
+      patchFlagOnApi("new-checkout", { environment: "production", enabled: true }),
+    ).rejects.toBeInstanceOf(FlagsWriteTimeoutError);
   });
 });

@@ -16,7 +16,7 @@ export const appHandlers = [
   // GET /api/me — the session probe. Signed out is the honest default for a
   // suite that does not authenticate.
   http.get("/api/me", () =>
-    HttpResponse.json({ name: null, email: null, sub: null }),
+    HttpResponse.json({ name: null, email: null, sub: null, isFlagAdmin: false }),
   ),
 
   // GET /api/geo — visitor location, proxied through the backend in production.

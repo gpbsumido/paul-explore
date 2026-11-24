@@ -6,6 +6,7 @@ import { server } from "@/test/server";
 import { z } from "zod";
 import { useOperatorResource } from "../useOperatorResource";
 import type { ReactNode } from "react";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 
 const widgetSchema = z.object({ id: z.string() });
 type Widget = z.infer<typeof widgetSchema>;
@@ -23,10 +24,11 @@ function makeWrapper() {
   };
 }
 
-function renderWidgets() {
+function renderWidgets(refetchInterval?: number) {
   return renderHook(
     () =>
       useOperatorResource<Widget>({
+        refetchInterval,
         queryKey: ["operator", "widgets"],
         url: URL,
         select: (json) =>
@@ -64,6 +66,41 @@ describe("useOperatorResource", () => {
     );
     const { result } = renderWidgets();
     await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.error).toBe("Failed to load widgets.");
     expect(result.current.data).toBeUndefined();
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("[unexpected response] ZodError"),
+    ]);
+  });
+
+  it("keeps re-reading the endpoint when a polling interval is given", async () => {
+    let reads = 0;
+    server.use(
+      http.get(URL, () => {
+        reads += 1;
+        return HttpResponse.json({ widgets: [{ id: `read-${reads}` }] });
+      }),
+    );
+    const { result } = renderWidgets(40);
+    // Later reads reach the caller, not just the network.
+    await waitFor(() => {
+      const latestRead = Number(result.current.data?.[0]?.id.replace("read-", ""));
+      expect(latestRead).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  it("reads once when no polling interval is given", async () => {
+    let reads = 0;
+    server.use(
+      http.get(URL, () => {
+        reads += 1;
+        return HttpResponse.json({ widgets: [] });
+      }),
+    );
+    const { result } = renderWidgets();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    // Long enough for a polling hook at 40ms to have read several more times.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(reads).toBe(1);
   });
 });

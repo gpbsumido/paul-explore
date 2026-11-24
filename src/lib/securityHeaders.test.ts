@@ -21,6 +21,12 @@ describe("securityHeaders", () => {
     expect(policy).toContain("geolocation=()");
   });
 
+  it("tells browsers to stay on https for two years, subdomains included", () => {
+    const policy = valueOf("Strict-Transport-Security");
+    expect(policy).toContain("max-age=63072000");
+    expect(policy).toContain("includeSubDomains");
+  });
+
   it("does not restate CSP-owned protections (framing, object-src)", () => {
     const keys = securityHeaders().map((h) => h.key.toLowerCase());
     expect(keys).not.toContain("x-frame-options");

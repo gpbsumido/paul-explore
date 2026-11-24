@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { server } from "@/test/server";
 import LocationPlanner from "@/components/operator/LocationPlanner";
-import { DEFAULT_PLANNER_INPUTS } from "@/lib/operator-planner";
+import { DEFAULT_PLANNER_INPUTS, projectLocation } from "@/lib/operator-planner";
 
 function makeWrapper() {
   const queryClient = new QueryClient({
@@ -106,5 +106,112 @@ describe("LocationPlanner", () => {
     expect(view.getByLabelText("Gross margin")).toBeInTheDocument();
     // The projection panel announces updates without stealing focus.
     expect(view.getByRole("status")).toBeInTheDocument();
+  });
+});
+
+describe("LocationPlanner presets and projection", () => {
+  const slider = (view: ReturnType<typeof within>, name: string) =>
+    view.getByLabelText(name) as HTMLInputElement;
+
+  it("sets the conversion rate from the location type", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    await userEvent.click(view.getByRole("button", { name: "Workplace" }));
+
+    expect(slider(view, "Conversion rate").value).toBe("9");
+    expect(view.getByRole("button", { name: "Workplace" })).toHaveAttribute("aria-pressed", "true");
+    expect(view.getByRole("button", { name: "Residential" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("sets the gross margin from the product mix", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    await userEvent.click(view.getByRole("button", { name: "Specialty" }));
+
+    expect(slider(view, "Gross margin").value).toBe("55");
+  });
+
+  it("puts every assumption back to the defaults on reset", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+    await userEvent.click(view.getByRole("button", { name: "Workplace" }));
+    await userEvent.click(view.getByRole("button", { name: "Retail" }));
+
+    await userEvent.click(view.getByRole("button", { name: /reset to defaults/i }));
+
+    expect(slider(view, "Conversion rate").value).toBe(String(DEFAULT_PLANNER_INPUTS.conversionRate));
+    expect(slider(view, "Basket price").value).toBe(String(DEFAULT_PLANNER_INPUTS.avgItemPrice));
+  });
+
+  it("charges the bulk hardware price from three units", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+    const hardwareCost = () =>
+      view.getByText("Hardware cost").closest("div")?.querySelector("dd")?.textContent;
+    await waitFor(() => expect(hardwareCost()).toBe("$6,295.00"));
+
+    fireEvent.change(slider(view, "Units at this location"), { target: { value: "3" } });
+
+    await waitFor(() => expect(hardwareCost()).toBe("$17,985.00"));
+  });
+
+  it("multiplies revenue by the number of units but keeps revenue per unit the same", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+    const figure = (label: string) =>
+      view.getByText(label).closest("div")?.querySelector("dd")?.textContent;
+    await waitFor(() => expect(figure("Gross revenue / year")).toBe("$11,542.56"));
+
+    fireEvent.change(slider(view, "Units at this location"), { target: { value: "3" } });
+
+    await waitFor(() => expect(figure("Gross revenue / year")).toBe("$34,627.56"));
+    // A third of that, to the cent.
+    expect(figure("Revenue / unit / year")).toBe("$11,542.52");
+  });
+
+  it("shows the payback the projection works out for a location that earns its keep", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+    const { paybackMonths } = projectLocation(DEFAULT_PLANNER_INPUTS);
+
+    expect(paybackMonths).not.toBeNull();
+    expect(await view.findByText(`${paybackMonths} months`)).toBeInTheDocument();
+    expect(view.queryByText(/never pays back/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps the address bar in step with the assumptions so the plan can be shared", async () => {
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    fireEvent.change(slider(view, "Daily foot traffic"), { target: { value: "150" } });
+
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("ft")).toBe("150"));
+  });
+
+  it("only offers the fleet's averages when it has been asked to prefill", async () => {
+    const { container } = render(
+      <LocationPlanner prefillFromFleet={false} />,
+      { wrapper: makeWrapper() },
+    );
+    const view = within(container);
+
+    // The benchmarks request would have landed by now; give it a beat to be sure.
+    await expect(
+      view.findByRole("button", { name: /use fleet averages/i }, { timeout: 300 }),
+    ).rejects.toThrow();
+  });
+
+  it("offers no fleet averages when the fleet has no sales to learn from", async () => {
+    server.use(
+      http.get("/api/operator/planner/benchmarks", () => HttpResponse.json({ benchmarks: null })),
+    );
+    const { container } = render(<LocationPlanner />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    await expect(
+      view.findByRole("button", { name: /use fleet averages/i }, { timeout: 300 }),
+    ).rejects.toThrow();
   });
 });

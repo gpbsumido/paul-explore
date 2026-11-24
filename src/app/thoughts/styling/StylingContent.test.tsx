@@ -7,7 +7,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("StylingContent", () => {
   it("renders the write-up heading", () => {
     render(<StylingContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Styling Decisions" })).toBeInTheDocument();
   });
 
   it("records the chat stylesheet relocation and the ordering that made it cheap", () => {

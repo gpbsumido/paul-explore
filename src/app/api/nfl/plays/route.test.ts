@@ -98,4 +98,86 @@ describe("NFL plays proxy route", () => {
     expect((await call("teamIds=4&week=0&season=2026")).status).toBe(400);
     expect((await call("teamIds=4&week=3&season=26")).status).toBe(400);
   });
+
+  it("fetches the summary only for the games of the teams asked about", async () => {
+    const twoGames = new Response(
+      JSON.stringify({
+        events: [
+          {
+            id: "111",
+            competitions: [
+              {
+                competitors: [
+                  { team: { abbreviation: "JAX" } },
+                  { team: { abbreviation: "CIN" } },
+                ],
+              },
+            ],
+          },
+          {
+            id: "222",
+            competitions: [
+              {
+                competitors: [
+                  { team: { abbreviation: "CLE" } },
+                  { team: { abbreviation: "PIT" } },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+      { status: 200 },
+    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(twoGames)
+      .mockResolvedValue(summaryResponse());
+    vi.stubGlobal("fetch", fetchMock);
+
+    // 4 is CIN, 5 is CLE, 30 is JAX. CIN and JAX share a game.
+    await call("teamIds=4,30&week=3&season=2026");
+
+    const summaryCalls = fetchMock.mock.calls
+      .map(([url]) => String(url))
+      .filter((url) => url.includes("/summary?"));
+    expect(summaryCalls).toEqual([
+      "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=111",
+    ]);
+  });
+
+  it("returns nothing for a team id it has no abbreviation for", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(scoreboardResponse());
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await call("teamIds=999&week=3&season=2026");
+
+    expect((await res.json()).plays).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a teamIds list with a zero, a fraction or an empty entry", async () => {
+    expect((await call("teamIds=0&week=3&season=2026")).status).toBe(400);
+    expect((await call("teamIds=4,1.5&week=3&season=2026")).status).toBe(400);
+    expect((await call("teamIds=4,&week=3&season=2026")).status).toBe(400);
+  });
+
+  it("accepts the last week of the regular season but not the one after", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => Promise.resolve(scoreboardResponse())),
+    );
+    expect((await call("teamIds=4&week=18&season=2026")).status).toBe(200);
+    expect((await call("teamIds=4&week=19&season=2026")).status).toBe(400);
+  });
+
+  it("passes a scoreboard failure status through", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce(new Response("nope", { status: 503 })),
+    );
+    const res = await call("teamIds=4&week=3&season=2026");
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "Failed to fetch NFL scoreboard" });
+  });
 });

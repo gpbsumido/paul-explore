@@ -47,3 +47,8 @@ export function precipitationCount(condition: WeatherCondition, fidelity: number
   const scale = 0.35 + Math.min(Math.max(fidelity, 0), 1) * 0.65;
   return Math.round(MAX_PARTICLES * density * scale);
 }
+
+/** Whether a value, like a ?w= query param, names a condition the city can dress for. */
+export function isWeatherCondition(value: string | null): value is WeatherCondition {
+  return value !== null && Object.hasOwn(WEATHER_DRESSING, value);
+}

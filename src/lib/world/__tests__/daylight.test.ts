@@ -42,4 +42,9 @@ describe("currentTimeOfDay", () => {
     expect(currentTimeOfDay(new Date(2026, 6, 28, 22, 30))).toBe("night");
     expect(currentTimeOfDay(new Date(2026, 6, 28, 18, 45))).toBe("dusk");
   });
+
+  it("counts the minutes, so half past five is already dusk", () => {
+    expect(currentTimeOfDay(new Date(2026, 6, 28, 17, 29))).toBe("day");
+    expect(currentTimeOfDay(new Date(2026, 6, 28, 17, 30))).toBe("dusk");
+  });
 });

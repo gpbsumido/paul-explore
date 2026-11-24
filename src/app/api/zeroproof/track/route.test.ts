@@ -71,15 +71,58 @@ describe("POST /api/zeroproof/track", () => {
     expect(fetchUpstream).not.toHaveBeenCalled();
   });
 
-  it("rate-limits a flood from one IP", async () => {
+  it("sends the validated events on to the backend as JSON", async () => {
     vi.mocked(fetchUpstream).mockResolvedValue(upstreamOk({ accepted: 1, deduped: 0 }));
     const { POST } = await import("./route");
-    const ip = "203.0.113.99";
 
-    let last = 0;
-    for (let i = 0; i < 65; i++) {
-      last = (await POST(post({ events: [event()] }, ip))).status;
-    }
-    expect(last).toBe(429);
+    await POST(post({ events: [event({ seq: 7 })] }, "198.51.100.30"));
+
+    const [, init] = vi.mocked(fetchUpstream).mock.calls[0];
+    expect(init?.headers).toEqual({ "Content-Type": "application/json" });
+    expect(JSON.parse(String(init?.body)).events[0]).toMatchObject({
+      eventUuid: "11111111-1111-4111-8111-111111111111",
+      seq: 7,
+    });
+  });
+
+  it("refuses a body over 64 KB without calling the backend", async () => {
+    const { POST } = await import("./route");
+    const request = new NextRequest("http://localhost:3000/api/zeroproof/track", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "content-length": "70000",
+        "x-forwarded-for": "198.51.100.40",
+      },
+      body: JSON.stringify({ events: [event()] }),
+    });
+
+    const res = await POST(request);
+
+    expect(res.status).toBe(413);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("passes the backend's status through", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue(upstreamOk({ error: "bad" }, 422));
+    const { POST } = await import("./route");
+
+    const res = await POST(post({ events: [event()] }, "198.51.100.50"));
+
+    expect(res.status).toBe(422);
+  });
+
+  it("answers 502 when the backend cannot be reached", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: false,
+      cause: "unreachable",
+      message: "down",
+    });
+    const { POST } = await import("./route");
+
+    const res = await POST(post({ events: [event()] }, "198.51.100.60"));
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ cause: "unreachable" });
   });
 });

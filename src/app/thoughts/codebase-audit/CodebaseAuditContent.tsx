@@ -534,6 +534,392 @@ Error: Expected 5 bindings, saw 0`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-22-one-way-in"
+        date="November 22, 2026"
+        title="The redesign started with the failures nobody could read"
+      >
+        <p>
+          The redesign half of the audit went out as seven stacked PRs, #724
+          to #730, each about one domain. Most of them were the same complaint
+          from the bug list, one level further up: the code knew what had gone
+          wrong and threw that away before anyone saw it.
+        </p>
+
+        <h3 className={beat}>
+          Every failure said &ldquo;Failed to&rdquo;, and the server had
+          already said why
+        </h3>
+        <pre className={pre}>
+          {`if (!res.ok) throw new Error("Failed to create event");`}
+        </pre>
+        <p>
+          The calendar client had ten of these, the calendar hooks another
+          nine, and the budget, practice, gallery and ZeroProof clients each
+          had their own version. The API answers a failed write with{" "}
+          <C>{`{ error: "..." }`}</C>, so the reason was sitting in the body
+          and every toast showed the fixed string instead. There is one{" "}
+          <C>responseError</C> now that reads the server&rsquo;s reason and
+          keeps the status, plus a <C>requestJson</C> for the clients that
+          were each wrapping <C>fetch</C> the same way. A test scans the
+          browser code for anyone parsing an error body by hand again.
+        </p>
+        <p>
+          I nearly took the status off the pack bar&rsquo;s message while
+          moving it over. Its test wanted <C>reason (503)</C>, and it was
+          right: a 503 and a 409 send the same words and need different
+          things from me when someone reports them.
+        </p>
+
+        <h3 className={beat}>
+          The rate-limit tests checked a function the proxy never called
+        </h3>
+        <pre className={pre}>
+          {`for (const rule of RATE_LIMITS) {
+  if (!rule.match(pathname, request.method)) continue;`}
+        </pre>
+        <p>
+          The rules had their own tests, run against <C>matchRateLimit</C>.
+          The proxy ran its own copy of that loop, so those tests could pass
+          while the proxy matched something else. The proxy calls{" "}
+          <C>matchRateLimit</C> now, and the new test floods{" "}
+          <C>proxy()</C> itself. ZeroProof telemetry also had a second
+          limiter inside its route, counting batches the proxy had already
+          counted. It&rsquo;s a rule in the table now.
+        </p>
+
+        <h3 className={beat}>
+          &ldquo;Try again&rdquo; cleared the error and showed the same
+          failure
+        </h3>
+        <pre className={pre}>
+          {`this.reset = ()=>{ this.setState({ error: null }); },
+this.retry = ()=>{ startTransition(()=>{ this.context?.refresh(); this.reset(); }); };`}
+        </pre>
+        <p>
+          That&rsquo;s Next 16.3&rsquo;s error boundary. All thirty of my
+          route boundaries passed <C>reset</C> to the shared error screen,
+          which re-renders the payload that just failed. Most of my pages fail
+          because an upstream API was down, which is exactly what the
+          screen&rsquo;s copy says, and the button couldn&rsquo;t do anything
+          about it short of a reload. They pass <C>retry</C> now. There was
+          also no root boundary, so a write-up that crashed got the
+          framework&rsquo;s bare screen. It has one, plus a{" "}
+          <C>global-error.tsx</C> for the root layout.
+        </p>
+
+        <h3 className={beat}>
+          Two copies of the same proxy had already drifted apart
+        </h3>
+        <p>
+          The test that failed first, with the backend mocked to answer a save
+          with 204:
+        </p>
+        <pre className={pre}>
+          {`[practice PUT] backend unavailable: TypeError: Response constructor: Invalid response status code 204`}
+        </pre>
+        <p>
+          Budget and practice each had a hand-copied catch-all proxy. The
+          budget copy had learned that a 204 can&rsquo;t carry a body. The
+          practice copy hadn&rsquo;t, so the first 204 would have come back as
+          a 502. It also dropped the query string. Neither had happened yet:
+          the practice API always answers with JSON and the page never sends a
+          query. And neither copy capped the body it forwarded. Two copies is
+          normally where I wait for a third before sharing anything, but these
+          had already disagreed, and the next change would have landed in one
+          and not the other. They share <C>signedInCatchAll</C> now. Budget
+          keeps the same 64 KB cap as the other write routes, and practice
+          takes up to 100 KB like the backend does, because importing every
+          problem reviewed in both modes comes to about 69 KB.
+        </p>
+
+        <h3 className={beat}>
+          robots.txt and the admin check each kept their own copy of a list
+        </h3>
+        <pre className={pre}>
+          {`disallow: ["/api/", "/dev/", "/settings", "/calendar", "/auth/"],
+
+allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,`}
+        </pre>
+        <p>
+          robots.txt kept its own list of private pages, which had fallen
+          behind the proxy&rsquo;s list. It reads the proxy&rsquo;s list now.
+          The admin check was spelled out in ten places, and is one{" "}
+          <C>isSiteAdmin</C> now. And a dead-code pass took out a streaming
+          hook, a stats helper and some props that no caller used.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-11-22-second-stack"
+        date="November 22, 2026"
+        title="The number that couldn't go stale, and the thirty files I fixed and then deleted"
+      >
+        <p>
+          The second stack ran from #732 to #746, still one domain per PR. The
+          small ones went quickly. The NFL pages default to the kickoff
+          season, and one ESPN league form serves both pages that had a copy.
+          Reduced motion reads from one hook now, every palette command is
+          either a link or an action, and a copy button says so when the
+          clipboard refuses. The ones worth writing down are where I found
+          the code had been quietly lying, and one where I was the one who
+          was wrong.
+        </p>
+
+        <h3 className={beat}>
+          The landing said 3,499 tests, and the comment said that couldn&rsquo;t
+          go stale
+        </h3>
+        <pre className={pre}>
+          {`// AUTO-GENERATED by scripts/count-tests.mjs — do not edit by hand.
+// Regenerated on every build via the \`prebuild\` script.
+export const UNIT_TEST_COUNT = 3432;
+export const E2E_TEST_COUNT = 67;
+export const TEST_COUNT = 3499;`}
+        </pre>
+        <p>
+          The repo has over 6,400. The counter was wired up as a{" "}
+          <C>prebuild</C> script, and pnpm doesn&rsquo;t run pre and post
+          hooks unless you turn them on, so <C>pnpm build</C> went straight
+          to <C>next build</C> and every deploy shipped whatever number was
+          last committed. The stats strip&rsquo;s own doc comment promised it
+          couldn&rsquo;t go stale, and I believed it, because the script was
+          right there and the hook name looked right. The counter runs inside{" "}
+          <C>build</C> now, and a test fails if it ever moves back into a
+          hook.
+        </p>
+
+        <h3 className={beat}>
+          I fixed thirty error boundaries, then deleted twenty-eight of them
+        </h3>
+        <pre className={pre}>
+          {`expect(layoutBetween(dir, enclosingBoundary(dir))).toBe(true);
+// 28 failed. lab/particles and zeroproof passed.`}
+        </pre>
+        <p>
+          The first stack switched all thirty route boundaries from{" "}
+          <C>reset</C> to <C>retry</C> and added a root one. That was the
+          moment the thirty stopped mattering. A boundary renders inside every
+          layout above it, so a nested copy only changes what anyone sees when
+          a layout sits between it and the next boundary out. Twenty-eight of
+          them had none and were byte-identical to the root. They were left
+          over from a test that required one per feature, written back when
+          there was no root to fall through to. I spent a PR making them
+          consistent before asking whether they needed to exist. The guard
+          now asks that question instead.
+        </p>
+
+        <h3 className={beat}>
+          A write that timed out was treated like the API being down
+        </h3>
+        <pre className={pre}>
+          {`export class OperatorWriteTimeoutError extends Error {
+  constructor(readonly path: string) {
+    super(\`operator write \${path} got no answer in \${UPSTREAM_TIMEOUT_MS} ms\`);
+    this.name = "OperatorWriteTimeoutError";
+  }
+}`}
+        </pre>
+        <p>
+          The operator writes had no deadline, and when one failed the BFF fell
+          back to the seed. For a read that&rsquo;s fine. A write that got no
+          answer may well have applied upstream, so replaying it against the
+          seed reported a success that wasn&rsquo;t one. Writes time out on
+          their own error now, and the route tells the dashboard to reload
+          rather than try again. The same PRs keep the server&rsquo;s reason
+          on a refused write, and report it once. Each tab had its own error
+          toast on top of the app-wide one, so a single failure showed up
+          twice.
+        </p>
+
+        <h3 className={beat}>
+          The NBA pages guessed the response shape, and a wrong guess looked
+          like an empty league
+        </h3>
+        <pre className={pre}>
+          {`const list: Team[] = json.data?.data ?? json.data ?? [];`}
+        </pre>
+        <p>
+          The API wraps teams one level deeper than a roster, and both pages
+          covered that with a chain of fallbacks. Any other shape, including
+          an error body, became an empty team picker with nothing to say what
+          went wrong. One pair of queries parses exactly what the API sends,
+          and anything else is an error the page can show.
+        </p>
+
+        <h3 className={beat}>
+          The proxy set its security header by hand on seven exits
+        </h3>
+        <pre className={pre}>
+          {`res.headers.set("Content-Security-Policy", CSP);   // x7
+if (isSessionTimeout(false, marker)) {               // always false`}
+        </pre>
+        <p>
+          Nothing was missing yet. But an eighth exit would have needed
+          someone to remember, and nothing would have noticed if they forgot.
+          Every pass-through goes through <C>withCsp</C> or{" "}
+          <C>rollSession</C> now, and a test pins what every exit carries
+          before the refactor touched anything. The parameter that was always{" "}
+          <C>false</C> is gone.
+        </p>
+
+        <h3 className={beat}>Two tests that passed whatever the code did</h3>
+        <pre className={pre}>
+          {`expect(
+  !needsEntry || shipped.has(version),
+  \`\${version} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts\`,
+).toBe(true); // true on every patch`}
+        </pre>
+        <p>
+          The feed guard only checked anything on an X.Y.0 version, so for
+          every patch in between it was a pass. It checks the release the
+          current line started from now. The keyboard guard counted how many
+          demos used the shared hook instead of asking whether each stepped
+          demo did. I made sure both can fail by breaking the code they
+          watch, which is the step I skipped the first time around.
+        </p>
+        <p>
+          Partway through, I also took the landing&rsquo;s project shelf out
+          of the sideways scroll and gave each project its own row. That
+          story is on the{" "}
+          <Link href="/thoughts/v5-redesign" className={linkClass}>
+            v5 redesign write-up
+          </Link>
+          , where the shelf was first written up.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-11-22-third-stack"
+        date="November 22, 2026"
+        title="Finishing the leftovers, and the two PRs the full suite caught me breaking"
+      >
+        <p>
+          The third stack picked up what the first two left: ZeroProof write
+          bodies checked before they leave the site (#756), the rest of the
+          proxy cleanup (#757), registries that had drifted from what they
+          describe (#758), and four small sharing passes, covering the external
+          link check, the theme key and a few timers, the 3D models&rsquo;
+          motion hook, and the ESPN readers (#759 to #762). I re-read each audit
+          item against the current code before starting it, and some of them
+          turned out smaller than the audit said, or wrong.
+        </p>
+
+        <h3 className={beat}>
+          A shared bracket called itself private whenever the backend was down
+        </h3>
+        <pre className={pre}>
+          {`if (!res.ok) {
+  return NextResponse.json({ picks: null }, { status: 404 });
+}
+// ...
+} catch {
+  return NextResponse.json({ picks: null }, { status: 404 });
+}
+
+// and on the page, for any error at all:
+This bracket isn’t publicly available yet.`}
+        </pre>
+        <p>
+          The public picks route turned any non-ok answer from the backend,
+          and any body it couldn&rsquo;t parse, into a 404. A timeout already
+          came back as a 502 through the shared helper, but the view showed
+          one fixed sentence for any error, so an outage read as someone
+          keeping their bracket to themselves either way. Only a real 404
+          means missing now. Anything else is a 502 with{" "}
+          <C>Couldn&rsquo;t load these picks right now</C>, and the view shows
+          whatever reason it was given. It&rsquo;s the same bug as the
+          empty-state ones from the first pass, just on a page I hadn&rsquo;t
+          looked at.
+        </p>
+
+        <h3 className={beat}>
+          I ran each PR&rsquo;s own tests, and the full suite found two PRs I
+          had broken further down
+        </h3>
+        <pre className={pre}>
+          {`FAIL src/app/api/authedProxyRoutes.test.ts > POST /api/zeroproof/wallets
+  > sends an empty object, not a crash, when the body isn't JSON
+FAIL src/app/api/routePathSegments.test.ts
+  > 'POST zeroproof/leagues/:id/espn-leagu…' rejects \`..\` with a 400
+FAIL src/app/design-system/catalog.test.ts
+  > never claims 'not adopted here' for a component the app already imports
+AssertionError: expected [ 'timeline' ] to deeply equal []`}
+        </pre>
+        <p>
+          While building each PR I ran the tests for the folders it touched.
+          That felt thorough and wasn&rsquo;t. The body checks in #756 made two
+          older tests wrong: one still expected a non-JSON body to reach the
+          API as <C>{"{}"}</C>, and the other sent a body the new schema
+          rejected before the path check it was meant to test ever ran. The
+          experience timeline in #755 used the design system&rsquo;s Timeline,
+          and the catalog still said nothing on the site imported it. None of
+          those tests sit near the code that broke them, which is the whole
+          point of having them. I fixed each on the branch that broke it and
+          carried the fix up the stack, and meant to give every PR a full run
+          before writing its body from then on. I didn&rsquo;t manage it:
+          #759, #761 and #762 still went up quoting folder runs of 2,985, 178
+          and 100 tests. The full suite does run on the top of the stack, so
+          a break would still show up there, just later and further from the
+          PR that caused it.
+        </p>
+
+        <h3 className={beat}>
+          Four write-ups had timelines that stopped partway down the page
+        </h3>
+        <pre className={pre}>
+          {`× 'deployment' lists every update it has, and only those
+× 'tcg' lists every update it has, and only those
+× 'vitals' lists every update it has, and only those
+× 'work-portfolio' lists every update it has, and only those`}
+        </pre>
+        <p>
+          The audit named one: the TCG timeline listed one of its four
+          updates. A fix for that page alone would have left the other three,
+          so the test reads every write-up with a timeline and compares it to
+          the update anchors in that folder, both ways. Vitals was missing
+          three of six. The work portfolio was also out of order.
+        </p>
+
+        <h3 className={beat}>
+          The hub&rsquo;s updates card is still typed out, and that&rsquo;s the
+          fix
+        </h3>
+        <p>
+          The card showed three entries from version 5. The obvious fix is to
+          read the newest entries from the feed, but the feed is a 75 KB file
+          and the card lives in a client module that most of the hub imports,
+          so the whole changelog would ship with it. The three rows stay
+          written by hand, and a test fails when a new entry lands and the
+          card falls behind. Budget had the same kind of gap: its colour token
+          existed and nothing mapped the card to it.
+        </p>
+
+        <h3 className={beat}>
+          Some of the audit was wrong, and I left those alone
+        </h3>
+        <p>
+          It flagged three hand-written <C>Request failed</C> errors in
+          ZeroProof. All three feed an error box with fixed copy, so the
+          message never reaches the screen, and changing them would change
+          nothing. The leaderboard and vitals catches looked redundant around a
+          fetch that never throws, but they still catch a non-JSON body. The
+          two ESPN roster schemas looked like copies, but one requires a field
+          the other treats as optional. Merging them would quietly change what
+          one of the readers accepts.
+        </p>
+        <p>
+          The risk route&rsquo;s own five-second timeout is the one I kept on
+          purpose rather than fixed. Scoring one transaction is a single
+          lookup behind a button someone is waiting on, so it should give up
+          sooner than the shared default. #757 only gave the number a name
+          and the reason a comment. The route still calls <C>fetch</C> with{" "}
+          <C>AbortSignal.timeout(RISK_TIMEOUT_MS)</C> instead of going
+          through <C>fetchUpstream</C>, so it doesn&rsquo;t share that
+          helper&rsquo;s timeout handling yet.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An audit that only listed problems, with the bugs in their own table, so fixing them couldn't quietly turn into the redesign.",
@@ -541,15 +927,18 @@ Error: Expected 5 bindings, saw 0`}
           "Guards that keep the cross-cutting ones fixed: a route scan for encodeURIComponent path ids, a hue and contrast check on every feature colour, a mount count under reduced motion, and canonical URLs checked on rendered pages.",
           "A second pass over the fixes, which found seven more of the same shapes one level up: fallbacks that hid which data was showing, failures shown as empty states, eleven session queries, two season rules, a setup step that skipped instead of failing, an inherited og:url and a count-up that froze.",
           "The API half: calendar sync wired back up, the database tests running in CI, bets that can't overdraw or pay twice, a Google connect bound to the person finishing it, typed reads of the signed-in user, 4xx for caller mistakes, and card updates that bind.",
+          "The first redesign stack: one way to read a failed response in the browser, one rate-limit table the proxy actually uses, a Try again that refetches, root error boundaries, one signed-in catch-all proxy with a body cap, robots.txt and the admin check reading the lists they used to copy, and a dead-code pass.",
+          "The second stack: a test count that regenerates on every build, three error boundaries where thirty-one said the same thing, write timeouts that never replay against the seed, NBA queries that parse what the API sends, a proxy whose exits share two helpers, and guards that can fail.",
+          "The third stack: ZeroProof write bodies checked before they leave the site, a shared bracket that says when the backend is down, one optional-token lookup, timelines checked against their updates, a hub card that keeps up with the feed, and shared helpers for links, the theme key, timers, motion and ESPN reads.",
         ]}
         couldImprove={[
-          "The bugs share a cause the fixes don't remove: every client fetch decides on its own what a failure means. useMe settles it for the session, but everything else is still patched where it was found, so the next feature can make the same mistake.",
+          "The calendar events GET logs the backend's reason and answers with a generic one, while the PUT routes forward it. I haven't decided which of the two is right for a read.",
           "Screenshots of the visible fixes (the card colours, the bracket's failed-save alert) still need capturing.",
           "The calendar repository tests still mock knex. Only the card update compiles its SQL for real, so the next raw statement there can make the same mistake.",
           "I haven't checked the production ledger for a bet that was paid twice before settling checked the bet was still open.",
         ]}
         upcoming={[
-          "The redesign half of the audit, starting with one way to talk to portfolio_api: a single proxy helper on the server and a single request helper in the browser, so a non-ok response is handled once instead of in every queryFn.",
+          "The rest of the redesign: the hub archive's colour and preview tables brought up to date from the feature manifest, ZeroProofContent split by tab around one query module, and the operator resources each defined once instead of across six folders.",
         ]}
       />
     </ThoughtLayout>

@@ -48,6 +48,25 @@ describe("promotionStatus", () => {
     ).toBe("ended");
   });
 
+  it("turns active at the exact start instant and ended at the exact end instant", () => {
+    const window = promo({
+      startsAt: "2026-08-10T12:00:00.000Z",
+      endsAt: "2026-08-20T12:00:00.000Z",
+    });
+    expect(promotionStatus(window, new Date("2026-08-10T11:59:59.999Z"))).toBe(
+      "scheduled",
+    );
+    expect(promotionStatus(window, new Date("2026-08-10T12:00:00.000Z"))).toBe(
+      "active",
+    );
+    expect(promotionStatus(window, new Date("2026-08-20T11:59:59.999Z"))).toBe(
+      "active",
+    );
+    expect(promotionStatus(window, new Date("2026-08-20T12:00:00.000Z"))).toBe(
+      "ended",
+    );
+  });
+
   it("stays active indefinitely with no end date", () => {
     const open = promo({ endsAt: null });
     expect(promotionStatus(open, new Date("2030-01-01T00:00:00.000Z"))).toBe(
@@ -100,6 +119,13 @@ describe("bestDiscountFor", () => {
   it("ignores promotions that have finished", () => {
     const promos = [
       promo({ id: "a", percent: 40, endsAt: "2026-08-02T00:00:00.000Z" }),
+    ];
+    expect(bestDiscountFor(promos, "Energy Bar", NOW)).toBe(0);
+  });
+
+  it("ignores a running promotion on a different product", () => {
+    const promos = [
+      promo({ id: "a", productName: "Coca-Cola 355ml", percent: 50 }),
     ];
     expect(bestDiscountFor(promos, "Energy Bar", NOW)).toBe(0);
   });
@@ -187,12 +213,20 @@ describe("measurementWindow", () => {
     expect(win.clamped).toBe(false);
   });
 
+  it("leaves a window of exactly the maximum alone, and clamps one millisecond longer", () => {
+    const to = new Date("2026-08-10T12:00:00.000Z");
+    const maxMs = 180 * 86_400_000;
+    const exact = measurementWindow(new Date(to.getTime() - maxMs), to);
+    const over = measurementWindow(new Date(to.getTime() - maxMs - 1), to);
+    expect(exact.clamped).toBe(false);
+    expect(over.clamped).toBe(true);
+  });
+
   it("clamps a promotion that has run for years, keeping the end fixed", () => {
     const to = new Date("2026-08-10T12:00:00.000Z");
     const win = measurementWindow(new Date("2024-01-01T00:00:00.000Z"), to);
-    expect((win.end.getTime() - win.start.getTime()) / 86_400_000).toBe(
-      MAX_MEASURE_DAYS,
-    );
+    expect(MAX_MEASURE_DAYS).toBe(180);
+    expect((win.end.getTime() - win.start.getTime()) / 86_400_000).toBe(180);
     expect(win.end.toISOString()).toBe(to.toISOString());
     expect(win.clamped).toBe(true);
   });
@@ -226,6 +260,50 @@ describe("comparePerformance", () => {
     expect(r.baseline).toEqual({ units: 5, revenue: 25 });
     expect(r.unitsChangePercent).toBe(60);
     expect(r.revenueChangePercent).toBe(-20);
+  });
+
+  it("counts a sale at the window start in the window and one at the window end in neither", () => {
+    const edges = [
+      sale("2026-08-01T00:00:00.000Z", 10, 2),
+      sale("2026-08-11T00:00:00.000Z", 99, 99),
+    ];
+    const r = comparePerformance(
+      promo({ productName: "Energy Bar" }),
+      edges,
+      windowStart,
+      windowEnd,
+    );
+    expect(r.window).toEqual({ units: 2, revenue: 10 });
+    expect(r.baseline).toEqual({ units: 0, revenue: 0 });
+  });
+
+  it("starts the baseline exactly one window length before the window", () => {
+    const edges = [
+      sale("2026-07-22T00:00:00.000Z", 10, 3),
+      sale("2026-07-21T23:59:59.999Z", 99, 99),
+    ];
+    const r = comparePerformance(
+      promo({ productName: "Energy Bar" }),
+      edges,
+      windowStart,
+      windowEnd,
+    );
+    expect(r.baseline).toEqual({ units: 3, revenue: 10 });
+  });
+
+  it("rounds the change to the nearest whole percent", () => {
+    const tight = [
+      sale("2026-07-25T10:00:00.000Z", 3, 3),
+      sale("2026-08-02T10:00:00.000Z", 5, 5),
+    ];
+    const r = comparePerformance(
+      promo({ productName: "Energy Bar" }),
+      tight,
+      windowStart,
+      windowEnd,
+    );
+    // 3 -> 5 is +66.67%
+    expect(r.unitsChangePercent).toBe(67);
   });
 
   it("returns null rather than dividing by a zero baseline", () => {

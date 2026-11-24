@@ -86,9 +86,9 @@ export default function ComponentExplorer({
     const sortParam = params.get("sort");
     if (q) setQuery(q); // eslint-disable-line react-hooks/set-state-in-effect -- one-time adoption of a shared URL after hydration; the URL is browser-only, and reading it during render desyncs the static HTML
     if (cat && categoryIds.has(cat as CategoryId)) {
-      setCategory(cat as CategoryId); // eslint-disable-line react-hooks/set-state-in-effect -- same one-time URL adoption
+      setCategory(cat as CategoryId);
     }
-    if (sortParam && isSortOrder(sortParam)) setSort(sortParam); // eslint-disable-line react-hooks/set-state-in-effect -- same one-time URL adoption
+    if (sortParam && isSortOrder(sortParam)) setSort(sortParam);
     hydratedFromUrl.current = true;
   }, [categoryIds]);
 

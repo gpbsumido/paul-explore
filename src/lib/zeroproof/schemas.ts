@@ -242,6 +242,49 @@ export const addEspnLeagueBodySchema = z.object({
   label: z.string().max(80).optional(),
 });
 
+// Write bodies, copied from portfolio_api src/modules/zeroproof/schemas.ts so a
+// body the backend would refuse is turned away here, before the round trip.
+// Cross-field rules (league targets, deadlines, the $20 minimum) stay in the
+// backend's service, where every field is known.
+//
+// These are hand copies and nothing checks them against the backend. A field
+// or market added there gets refused here until it's copied over too, so
+// change both in the same breath.
+
+/** POST /api/zeroproof/bets. */
+export const placeBetBodySchema = z.object({
+  walletId: z.string().min(1),
+  eventId: z.string().min(1),
+  market: z.enum(["h2h", "spread", "total"]),
+  selection: z.string().min(1).max(120),
+  stakeCents: z.number().int().positive(),
+});
+
+/** POST /api/zeroproof/wallets. */
+export const openWalletBodySchema = z.object({
+  mode: z.enum(["season", "challenge"]),
+  depositCents: z.number().int().positive().optional(),
+});
+
+/** POST /api/zeroproof/leagues. */
+export const createLeagueBodySchema = z.object({
+  name: z.string().min(1).max(80),
+  visibility: z.enum(["public", "invite"]),
+  startingBankrollCents: z.number().int().positive(),
+  maxMembers: z.number().int().positive(),
+  winCondition: z.enum(["threshold", "timeline"]),
+  thresholdCents: z.number().int().positive().optional(),
+  endsAt: z.iso.datetime().optional(),
+  espnGame: z.string().min(1).max(8).optional(),
+  espnLeagueId: z.string().min(1).max(40).optional(),
+  espnSeason: z.string().regex(/^\d{4}$/).optional(),
+});
+
+/** POST /api/zeroproof/leagues/:id/join. A code only matters for invite leagues. */
+export const joinLeagueBodySchema = z.object({
+  joinCode: z.string().min(1).max(40).optional(),
+});
+
 export type EspnLeague = z.infer<typeof espnLeagueSchema>;
 
 // Ops ingest health (admin): which sports and ESPN leagues are (not) resolving.

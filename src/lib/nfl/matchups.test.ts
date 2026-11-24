@@ -251,6 +251,12 @@ describe("parseNflScoreboard", () => {
     expect(parseNflScoreboard(payload(3), { season: 2026, week: 3 }).totalWeeks).toBe(4);
   });
 
+  it("takes the season's length from its latest week, however the schedule is ordered", () => {
+    const base = payload(3);
+    const jumbled = [base.schedule[1], { ...base.schedule[0], matchupPeriodId: 9 }, { ...base.schedule[0], matchupPeriodId: 2 }];
+    expect(parseNflScoreboard({ ...base, schedule: jumbled }, { season: 2026, week: 3 }).totalWeeks).toBe(9);
+  });
+
   it("reads no regular season when the schedule settings are missing", () => {
     const board = parseNflScoreboard({ ...payload(3), settings: {} }, { season: 2026, week: 3 });
     expect(board.regularSeasonWeeks).toBe(0);
@@ -298,8 +304,26 @@ describe("parseNflScoreboard", () => {
     // Week 3 viewed from week 4: Bijan finished 3 under his projection, but his
     // game is done, so those 3 points are never coming.
     const board = parseNflScoreboard(payload(3, 4), { season: 2026, week: 3 });
+    expect(board.currentWeek).toBe(4);
+    expect(board.matchups.map((m) => [m.id, m.matchupPeriodId])).toEqual([[10, 3]]);
     expect(board.matchups[0].away.remaining).toBe(0);
     expect(board.matchups[0].home.remaining).toBe(0);
+  });
+
+  it("shows the week that was asked for even when the league is on a later one", () => {
+    const board = parseNflScoreboard(payload(3, 5), { season: 2026, week: 4 });
+    expect(board.matchups.map((m) => m.id)).toEqual([11]);
+  });
+
+  it("skips a scheduled game that is missing a side, such as a bye", () => {
+    const base = payload(3);
+    const { away: _away, ...bye } = base.schedule[0];
+    const board = parseNflScoreboard({ ...base, schedule: [bye, base.schedule[0]] }, { season: 2026, week: 3 });
+    expect(board.matchups).toHaveLength(1);
+    const { home: _home, ...noHome } = base.schedule[0];
+    expect(
+      parseNflScoreboard({ ...base, schedule: [noHome] }, { season: 2026, week: 3 }).matchups,
+    ).toEqual([]);
   });
 
   it("until game clocks are known, counts each live-week starter's unmet projection", () => {
@@ -331,6 +355,30 @@ describe("applyGameProgress", () => {
   it("projects nothing for a starter whose team has no game this week", () => {
     const [m] = applyGameProgress(board().matchups, { BUF: 1 });
     expect(m.home.remaining).toBe(0);
+  });
+
+  it("projects nothing for a starter ESPN gave no known NFL team", () => {
+    const base = payload(3);
+    const teamless = (id: number) => {
+      const row = entry({ id, name: "Free Agent", slot: 0, position: 1, actual: 0, projected: 12, week: 3 });
+      return { ...row, playerPoolEntry: { player: { ...row.playerPoolEntry.player, proTeamId: undefined } } };
+    };
+    const matchups = parseNflScoreboard(
+      {
+        ...base,
+        schedule: [
+          {
+            ...base.schedule[0],
+            away: { teamId: 1, totalPoints: 0, rosterForCurrentScoringPeriod: { entries: [teamless(400)] } },
+          },
+        ],
+      },
+      { season: 2026, week: 3 },
+    ).matchups;
+
+    const [m] = applyGameProgress(matchups, { CIN: 1 });
+    expect(m.away.starters).toHaveLength(1);
+    expect(m.away.remaining).toBe(0);
   });
 
   it("leaves scores and rosters untouched", () => {

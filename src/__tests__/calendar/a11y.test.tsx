@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
@@ -13,8 +13,11 @@ import type { CalendarEvent } from "@/types/calendar";
 // Mocks
 // ---------------------------------------------------------------------------
 
+/** What the mocked card search query hands back; each test sets its own. */
+const searchState = vi.hoisted(() => ({ results: [] as { id: string; name: string }[] }));
+
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: () => ({ data: [], isLoading: false }),
+  useQuery: () => ({ data: searchState.results, isLoading: false }),
   useQueryClient: () => ({
     invalidateQueries: vi.fn(),
     getQueriesData: () => [],
@@ -45,14 +48,16 @@ describe("CountdownModal accessibility", () => {
     isDeleting: false,
   };
 
+  // The modal renders into a portal on document.body, so the render's own
+  // container is empty. Axe has to look at baseElement or it checks nothing.
   it("has no axe violations in create mode", async () => {
-    const { container } = render(<CountdownModal {...defaultProps} />);
-    const results = await axe(container);
+    const { baseElement } = render(<CountdownModal {...defaultProps} />);
+    const results = await axe(baseElement);
     expect(results).toHaveNoViolations();
   });
 
   it("has no axe violations in edit mode", async () => {
-    const { container } = render(
+    const { baseElement } = render(
       <CountdownModal
         {...defaultProps}
         countdown={{
@@ -65,7 +70,7 @@ describe("CountdownModal accessibility", () => {
         }}
       />,
     );
-    const results = await axe(container);
+    const results = await axe(baseElement);
     expect(results).toHaveNoViolations();
   });
 
@@ -83,6 +88,10 @@ describe("CountdownModal accessibility", () => {
 // ---------------------------------------------------------------------------
 
 describe("CardSearch accessibility", () => {
+  afterEach(() => {
+    searchState.results = [];
+  });
+
   it("has no axe violations in default state", async () => {
     const { container } = render(<CardSearch onSelectCard={vi.fn()} />);
     const results = await axe(container);
@@ -95,15 +104,37 @@ describe("CardSearch accessibility", () => {
     expect(input).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("announces result count via live region", async () => {
+  it("announces how many results are available through the live region", async () => {
+    searchState.results = [
+      { id: "sv1-1", name: "Bulbasaur" },
+      { id: "sv1-4", name: "Charmander" },
+      { id: "sv1-7", name: "Squirtle" },
+    ];
     const user = userEvent.setup();
     render(<CardSearch onSelectCard={vi.fn()} />);
 
-    const input = screen.getByRole("combobox");
-    await user.type(input, "pikachu");
+    await user.type(screen.getByRole("combobox"), "saur");
 
-    const liveRegion = document.querySelector("[aria-live='polite']");
-    expect(liveRegion).toBeTruthy();
+    expect(document.querySelector("[aria-live='polite']")).toHaveTextContent("3 results available");
+  });
+
+  it("says '1 result' in the singular", async () => {
+    searchState.results = [{ id: "sv1-1", name: "Bulbasaur" }];
+    const user = userEvent.setup();
+    render(<CardSearch onSelectCard={vi.fn()} />);
+
+    await user.type(screen.getByRole("combobox"), "saur");
+
+    expect(document.querySelector("[aria-live='polite']")).toHaveTextContent("1 result available");
+  });
+
+  it("announces nothing before there is anything to choose", async () => {
+    const user = userEvent.setup();
+    render(<CardSearch onSelectCard={vi.fn()} />);
+
+    await user.type(screen.getByRole("combobox"), "saur");
+
+    expect(document.querySelector("[aria-live='polite']")).toBeEmptyDOMElement();
   });
 });
 
@@ -143,18 +174,24 @@ describe("DayView accessibility", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("time slots are keyboard accessible", async () => {
+  it("clicking a time slot opens that hour", async () => {
     const onSlotClick = vi.fn();
     render(<DayView {...defaultProps} onSlotClick={onSlotClick} />);
 
-    const slots = screen.getAllByRole("button", {
-      name: /Create event at/,
-    });
-    expect(slots.length).toBeGreaterThan(0);
+    await userEvent.click(screen.getByRole("button", { name: "Create event at 14:00" }));
 
-    slots[0].focus();
-    await userEvent.keyboard("{Enter}");
-    expect(onSlotClick).toHaveBeenCalled();
+    expect(onSlotClick).toHaveBeenCalledWith(new Date(2026, 6, 10, 14, 0));
+  });
+
+  it.each(["{Enter}", " "])("time slots open that hour from the keyboard (%j)", async (key) => {
+    const onSlotClick = vi.fn();
+    render(<DayView {...defaultProps} onSlotClick={onSlotClick} />);
+
+    screen.getByRole("button", { name: "Create event at 9:00" }).focus();
+    await userEvent.keyboard(key);
+
+    expect(onSlotClick).toHaveBeenCalledTimes(1);
+    expect(onSlotClick).toHaveBeenCalledWith(new Date(2026, 6, 10, 9, 0));
   });
 });
 
@@ -176,18 +213,25 @@ describe("WeekView accessibility", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("time slots are keyboard accessible", async () => {
+  it("clicking a time slot opens that hour on that day", async () => {
     const onSlotClick = vi.fn();
     render(<WeekView {...defaultProps} onSlotClick={onSlotClick} />);
 
-    const slots = screen.getAllByRole("button", {
-      name: /Create event at/,
-    });
-    expect(slots.length).toBeGreaterThan(0);
+    await userEvent.click(screen.getAllByRole("button", { name: "Create event at 14:00" })[0]);
 
-    slots[0].focus();
-    await userEvent.keyboard("{Enter}");
-    expect(onSlotClick).toHaveBeenCalled();
+    expect(onSlotClick).toHaveBeenCalledWith(new Date(2026, 6, 5, 14, 0));
+  });
+
+  it.each(["{Enter}", " "])("time slots open that hour from the keyboard (%j)", async (key) => {
+    const onSlotClick = vi.fn();
+    render(<WeekView {...defaultProps} onSlotClick={onSlotClick} />);
+
+    // Seven days share each hour label, so take the first one: Sunday July 5.
+    screen.getAllByRole("button", { name: "Create event at 9:00" })[0].focus();
+    await userEvent.keyboard(key);
+
+    expect(onSlotClick).toHaveBeenCalledTimes(1);
+    expect(onSlotClick).toHaveBeenCalledWith(new Date(2026, 6, 5, 9, 0));
   });
 });
 
@@ -221,6 +265,7 @@ describe("CalendarGrid accessibility", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /\+\d+ more/ }));
     expect(onShowMore).toHaveBeenCalledTimes(1);
+    expect(onShowMore.mock.calls[0][0].getDate()).toBe(10);
     expect(onDayClick).not.toHaveBeenCalled();
   });
 
@@ -258,11 +303,19 @@ describe("CalendarGrid accessibility", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("today cell has aria-label indicating today", () => {
-    const { container } = render(
-      <CalendarGrid {...defaultProps} currentDate={new Date()} />,
-    );
-    const todayCell = container.querySelector("[aria-label*='(today)']");
-    expect(todayCell).toBeTruthy();
+  describe("on a fixed day", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date(2026, 6, 15, 12));
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it("marks today's cell, and only that one, as today in its label", () => {
+      render(<CalendarGrid {...defaultProps} currentDate={new Date()} />);
+
+      const todayCells = screen.getAllByLabelText(/\(today\)/);
+      expect(todayCells).toHaveLength(1);
+      expect(todayCells[0]).toHaveAccessibleName("Wednesday, July 15 (today)");
+    });
   });
 });

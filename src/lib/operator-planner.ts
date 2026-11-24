@@ -201,7 +201,7 @@ export function plannerInputsFromParams(
   const read = (key: keyof PlannerInputs): number => {
     const raw = params[PARAM_KEYS[key]];
     const value = Array.isArray(raw) ? raw[0] : raw;
-    const parsed = value == null ? NaN : Number(value);
+    const parsed = value == null || value.trim() === "" ? NaN : Number(value);
     return Number.isFinite(parsed) ? parsed : DEFAULT_PLANNER_INPUTS[key];
   };
   const hasQuery = (Object.keys(PARAM_KEYS) as (keyof PlannerInputs)[]).some(

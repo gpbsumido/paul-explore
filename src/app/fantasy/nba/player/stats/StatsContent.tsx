@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { Button, FilterBar, Select } from "@/components/ui";
-import type { Team, Player, PlayerStats, PlayerRow, SortKey } from "./types";
+import type { PlayerStats, PlayerRow, SortKey } from "./types";
 import { queryKeys } from "@/lib/queryKeys";
+import { useNbaPlayers, useNbaTeams } from "@/hooks/useNbaRoster";
 import { COLUMNS, getSortValue } from "@/lib/nba";
 import FantasyNav from "../../FantasyNav";
 import ErrorRowModal from "./ErrorRowModal";
@@ -35,17 +36,7 @@ export default function StatsContent() {
   const queryClient = useQueryClient();
 
   /** Full list of NBA teams, sorted alphabetically for the selector. */
-  const teamsQuery = useQuery({
-    queryKey: queryKeys.nba.teams(),
-    queryFn: async (): Promise<Team[]> => {
-      const res = await fetch("/api/nba/teams");
-      if (!res.ok) throw new Error("Failed to load teams");
-      const json = await res.json();
-      const list: Team[] = json.data?.data ?? json.data ?? [];
-      return [...list].sort((a, b) => a.full_name.localeCompare(b.full_name));
-    },
-    staleTime: 5 * 60_000,
-  });
+  const teamsQuery = useNbaTeams();
 
   const teams = teamsQuery.data ?? [];
 
@@ -54,17 +45,7 @@ export default function StatsContent() {
   const selectedTeamId = explicitTeamId ?? teamsQuery.data?.[0]?.id ?? null;
 
   /** Roster for the selected team. Stays disabled until a team is chosen. */
-  const playersQuery = useQuery({
-    queryKey: queryKeys.nba.players(selectedTeamId!),
-    queryFn: async (): Promise<Player[]> => {
-      const res = await fetch(`/api/nba/players/${selectedTeamId}`);
-      if (!res.ok) throw new Error("Failed to load players");
-      const json = await res.json();
-      return json.data?.data ?? json.data ?? [];
-    },
-    enabled: !!selectedTeamId,
-    staleTime: 5 * 60_000,
-  });
+  const playersQuery = useNbaPlayers(selectedTeamId);
 
   const players = playersQuery.data ?? [];
 

@@ -2,88 +2,14 @@ import { test } from "@playwright/test";
 import { checkA11y } from "../helpers/axe";
 import { disableTours } from "../helpers/tours";
 import { waitForPageToSettle } from "../helpers/settle";
+import { A11Y_ROUTES } from "../helpers/a11yRoutes";
 
 /**
  * Accessibility coverage for the public routes, scanned at WCAG 2.1 AA + axe
  * best-practice via checkA11y. Structural fixes (landmarks, control names,
  * focusable regions) plus the colour-contrast pass mean every public route
- * here is clean.
+ * in the list is clean. The list lives in helpers/a11yRoutes.ts.
  */
-const ROUTES = [
-  // The landing itself. It was only ever covered by the smoke axe scan, in
-  // whichever theme happened to be default, and it is now the page carrying the
-  // most new colour on the site.
-  "/",
-  "/learn",
-  // Public volunteer entry point. The organizer surfaces sit behind a session
-  // and are covered by the authenticated suite instead.
-  "/check-in",
-  "/learn/binary-search",
-  "/work-portfolio",
-  "/tcg/pocket",
-  "/tcg/pokemon/sets",
-  "/lab/particles",
-  "/lab/motion",
-  "/graphql",
-  "/operator",
-  "/fantasy/nba/court-vision",
-  "/fantasy/nba/player/stats",
-  "/fantasy/nba/matchups",
-  "/fantasy/nba/league-history",
-  "/fantasy/nba/playoffs",
-  "/fantasy/nfl/matchups",
-  "/fantasy/nfl/trade",
-  // Every public feature page below was missing from the scan. Most of them
-  // fetch on mount, and the scan reads whatever the page shows by the time its
-  // main landmark is up, so a slow backend scans the loading state rather
-  // than failing the route.
-  "/zeroproof",
-  "/fantasy/nba",
-  "/fantasy/nba/cards",
-  "/fantasy/nba/cards/collection",
-  "/fantasy/nfl",
-  "/budget",
-  "/craft",
-  "/mind-reader",
-  "/design-system",
-  "/flags",
-  "/gallery-wall",
-  "/lab",
-  "/pokemon",
-  "/research",
-  "/resume",
-  "/surprise",
-  "/vitals",
-  "/world",
-  "/updates",
-  "/updates/tickets",
-  "/privacy",
-  "/operator/finance",
-  "/operator/loss",
-  "/operator/planner",
-  "/operator/products",
-  "/operator/search",
-  "/learn/ai-agent-patterns",
-  "/learn/async-patterns",
-  "/learn/debounce-throttle",
-  "/learn/dynamic-programming",
-  "/learn/event-delegation",
-  "/learn/from-scratch",
-  "/learn/hash-maps",
-  "/learn/interview-prep",
-  "/learn/interview-prep/drill",
-  "/learn/interview-prep/sliding-window",
-  "/learn/memoization",
-  "/learn/recursion-backtracking",
-  "/learn/sliding-window",
-  "/learn/stacks-queues",
-  "/learn/trees-graphs",
-  "/learn/two-pointers",
-  // Every write-up shares ThoughtLayout, so the index and one long page with
-  // updates, code and screenshots stand in for the rest.
-  "/thoughts",
-  "/thoughts/zeroproof",
-];
 
 /**
  * Both themes, because they are two different palettes rather than one palette
@@ -116,7 +42,7 @@ test.describe("Public route accessibility @a11y", () => {
         await disableTours(page);
       });
 
-      for (const route of ROUTES) {
+      for (const route of A11Y_ROUTES) {
         test(`${route} has no axe violations`, async ({ page }) => {
           await page.goto(route);
           await waitForPageToSettle(page);

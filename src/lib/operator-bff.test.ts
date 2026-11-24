@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { forgiveUnexpectedOutput } from "@/test/unexpectedOutput";
 import {
   loadStores,
   loadFleetSummary,
@@ -12,9 +13,14 @@ import {
   createPromotion,
   stopPromotion,
 } from "./operator-bff";
-import { OperatorApiError, OperatorContractError } from "./operator-client";
+import {
+  OperatorApiError,
+  OperatorContractError,
+  OperatorWriteTimeoutError,
+} from "./operator-client";
 import * as seed from "./operator-data";
 import { buildStore, buildAlert } from "@/test/factories/operator";
+import { DROPPED_CONNECTIONS, REFUSED_CONNECTIONS } from "@/test/factories/fetchFailures";
 
 vi.mock("./operator-client", async () => {
   const actual =
@@ -51,7 +57,10 @@ import {
   patchEndPromotion,
 } from "./operator-client";
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.restoreAllMocks();
+});
 
 describe("loadStores", () => {
   it("returns the live API stores when the API answers", async () => {
@@ -68,7 +77,10 @@ describe("loadStores", () => {
 
     const stores = await loadStores();
 
-    expect(stores.length).toBeGreaterThan(0);
+    expect(stores.map((s) => s.id)).toEqual(seed.getStores().map((s) => s.id));
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("loadStores fell back to seed data: ECONNREFUSED"),
+    ]);
   });
 });
 
@@ -103,8 +115,13 @@ describe("loadFleetSummary", () => {
 
     const summary = await loadFleetSummary();
 
-    expect(summary.summaries.length).toBeGreaterThan(0);
+    expect(summary.summaries.map((row) => row.storeId)).toEqual(
+      seed.getStores().map((store) => store.id),
+    );
     expect(summary.alertTrend.length).toBeGreaterThan(0);
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("loadFleetSummary fell back to seed data: down"),
+    ]);
   });
 });
 
@@ -115,7 +132,12 @@ describe("loadSalesAnalytics", () => {
     const result = await loadSalesAnalytics("month", "America/Toronto");
 
     expect(result.granularity).toBe("month");
-    expect(result.byStore.length).toBeGreaterThan(0);
+    expect(result.byStore.map((row) => row.storeId).sort()).toEqual(
+      seed.getStores().map((store) => store.id).sort(),
+    );
+    expect(forgiveUnexpectedOutput()).toEqual([
+      expect.stringContaining("loadSalesAnalytics fell back to seed data: down"),
+    ]);
   });
 });
 
@@ -184,16 +206,40 @@ describe("a write the API answered never falls back to the seed", () => {
     expect(isDismissedInSeed(alert.id)).toBe(false);
   });
 
-  it("still falls back to the seed when the API never answered", async () => {
-    const alert = undismissedSeedAlert(1);
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.mocked(patchDismiss).mockRejectedValue(new TypeError("fetch failed"));
+  it("reports a write that ran out of time instead of replaying it against the seed", async () => {
+    const alert = undismissedSeedAlert(0);
+    vi.mocked(patchDismiss).mockRejectedValue(new OperatorWriteTimeoutError("/alerts/x/dismiss"));
 
-    const result = await applyDismiss(alert.id);
-
-    expect(result?.acknowledged).toBe(true);
-    expect(isDismissedInSeed(alert.id)).toBe(true);
+    await expect(applyDismiss(alert.id)).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+    expect(isDismissedInSeed(alert.id)).toBe(false);
   });
+
+  it.each(REFUSED_CONNECTIONS)(
+    "still falls back to the seed when the connection was never made ($label)",
+    async ({ error }) => {
+      const alert = undismissedSeedAlert(1);
+      vi.mocked(patchDismiss).mockRejectedValue(error);
+
+      const result = await applyDismiss(alert.id);
+
+      expect(result?.acknowledged).toBe(true);
+      expect(isDismissedInSeed(alert.id)).toBe(true);
+      expect(forgiveUnexpectedOutput()).toEqual([
+        expect.stringContaining("applyDismiss fell back to seed data: fetch failed"),
+      ]);
+    },
+  );
+
+  it.each(DROPPED_CONNECTIONS)(
+    "reports a write whose connection failed some other way instead of replaying it ($label)",
+    async ({ error }) => {
+      const alert = undismissedSeedAlert(0);
+      vi.mocked(patchDismiss).mockRejectedValue(error);
+
+      await expect(applyDismiss(alert.id)).rejects.toBeInstanceOf(OperatorWriteTimeoutError);
+      expect(isDismissedInSeed(alert.id)).toBe(false);
+    },
+  );
 
   const WRITES = [
     { name: "applyRestock", client: postRestock, run: () => applyRestock("store", ["item"]) },

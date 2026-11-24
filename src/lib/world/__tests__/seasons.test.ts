@@ -13,6 +13,12 @@ describe("seasonFor", () => {
     expect(seasonFor(new Date(2026, 4, 30))).toBe("spring");
   });
 
+  it("hands summer over to fall on the first of September", () => {
+    expect(seasonFor(new Date(2026, 7, 31))).toBe("summer");
+    expect(seasonFor(new Date(2026, 8, 1))).toBe("fall");
+    expect(seasonFor(new Date(2026, 10, 30))).toBe("fall");
+  });
+
   it("gets a summer and a fall", () => {
     expect(seasonFor(new Date(2026, 6, 1))).toBe("summer");
     expect(seasonFor(new Date(2026, 9, 12))).toBe("fall");

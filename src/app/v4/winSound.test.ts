@@ -14,6 +14,8 @@ type Ctx = {
   destination: object;
   resumes: number;
   oscillatorsStarted: number;
+  /** Closes the underlying context, the way a browser can under memory pressure. */
+  closeNow: () => void;
 };
 
 const built: Ctx[] = [];
@@ -38,6 +40,9 @@ class FakeAudioContext {
       destination: this.destination,
       resumes: 0,
       oscillatorsStarted: 0,
+      closeNow: () => {
+        void this.close();
+      },
     };
     built.push(this.record);
   }
@@ -68,6 +73,7 @@ class FakeAudioContext {
 
   close() {
     this.state = "closed";
+    this.record.state = "closed";
     return Promise.resolve();
   }
 }
@@ -94,6 +100,11 @@ describe("winSound", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    Reflect.deleteProperty(
+      window as unknown as Record<string, unknown>,
+      "webkitAudioContext",
+    );
   });
 
   it("unlocks the audio context during the gesture, so a later jingle is not born suspended", async () => {
@@ -140,5 +151,106 @@ describe("winSound", () => {
       unlockWinAudio();
       playWinSound();
     }).not.toThrow();
+  });
+
+  it("resumes a suspended context at jingle time when the unlock never ran", async () => {
+    const { playWinSound } = await loadSound();
+
+    playWinSound();
+
+    expect(built).toHaveLength(1);
+    expect(built[0].resumes).toBeGreaterThan(0);
+  });
+
+  it("plays the four-note run plus the shimmer on the octave", async () => {
+    const { playWinSound } = await loadSound();
+
+    playWinSound();
+
+    expect(built[0].oscillatorsStarted).toBe(5);
+  });
+
+  it("builds a fresh context once the shared one has been closed", async () => {
+    const { unlockWinAudio, playWinSound } = await loadSound();
+    unlockWinAudio();
+    built[0].closeNow();
+
+    playWinSound();
+
+    expect(built).toHaveLength(2);
+    expect(built[1].oscillatorsStarted).toBeGreaterThan(0);
+  });
+
+  it("falls back to webkitAudioContext on older Safari", async () => {
+    vi.stubGlobal("AudioContext", undefined);
+    Object.defineProperty(window, "webkitAudioContext", {
+      value: FakeAudioContext,
+      configurable: true,
+    });
+    const { playWinSound } = await loadSound();
+
+    playWinSound();
+
+    expect(built).toHaveLength(1);
+    expect(built[0].oscillatorsStarted).toBeGreaterThan(0);
+  });
+
+  it("never throws when the browser refuses to build a context", async () => {
+    vi.stubGlobal(
+      "AudioContext",
+      class {
+        constructor() {
+          throw new Error("blocked by autoplay policy");
+        }
+      },
+    );
+    const { unlockWinAudio, playWinSound } = await loadSound();
+
+    expect(() => {
+      unlockWinAudio();
+      playWinSound();
+    }).not.toThrow();
+  });
+});
+
+describe("sound preference", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    installAudio();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("is on until the visitor turns it off", async () => {
+    const { soundEnabled } = await loadSound();
+
+    expect(soundEnabled()).toBe(true);
+  });
+
+  it("remembers a mute across page loads, and an unmute undoes it", async () => {
+    const first = await loadSound();
+    first.setSoundEnabled(false);
+
+    const afterReload = await loadSound();
+    expect(afterReload.soundEnabled()).toBe(false);
+
+    afterReload.setSoundEnabled(true);
+    expect(afterReload.soundEnabled()).toBe(true);
+  });
+
+  it("stays on, and the toggle does not throw, when localStorage is blocked", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("storage blocked");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("storage blocked");
+    });
+    const { soundEnabled, setSoundEnabled } = await loadSound();
+
+    expect(() => setSoundEnabled(false)).not.toThrow();
+    expect(soundEnabled()).toBe(true);
   });
 });

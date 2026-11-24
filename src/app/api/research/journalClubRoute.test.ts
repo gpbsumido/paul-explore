@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { NextRequest } from "next/server";
 import { server } from "@/test/server";
@@ -22,6 +22,11 @@ const paper = {
 };
 
 let queries: string[] = [];
+
+/** The route reads the calendar year, so the clock is pinned rather than trusted. */
+const TODAY = new Date("2026-11-19T12:00:00Z");
+
+afterEach(() => vi.useRealTimers());
 
 beforeEach(() => {
   queries = [];
@@ -56,27 +61,109 @@ describe("GET /api/research/journal-club", () => {
   });
 
   it("only asks for the last two years", async () => {
+    vi.useFakeTimers({ now: TODAY, toFake: ["Date"] });
     await journalClubGET(
       new NextRequest(
         `http://localhost/api/research/journal-club?topic=${TOPICS[6].id}`,
       ),
     );
-    const thisYear = new Date().getFullYear();
-    expect(queries[0]).toContain(`${thisYear - 2}-01-01`);
+    expect(queries[0]).toContain("FIRST_PDATE:[2024-01-01 TO 2026-12-31]");
     expect(queries[0]).toContain('HAS_ABSTRACT:"Y"');
   });
 
   it("reports the window it used", async () => {
+    vi.useFakeTimers({ now: TODAY, toFake: ["Date"] });
     const res = await journalClubGET(
       new NextRequest(
         `http://localhost/api/research/journal-club?topic=${TOPICS[6].id}`,
       ),
     );
     const body = await res.json();
-    expect(body.window).toEqual({
-      fromYear: new Date().getFullYear() - 2,
-      toYear: new Date().getFullYear(),
-    });
+    expect(body.window).toEqual({ fromYear: 2024, toYear: 2026 });
+  });
+
+  it("shapes a paper's title, authors, link and cache window for the page", async () => {
+    server.use(
+      http.get(EPMC, () =>
+        HttpResponse.json({
+          hitCount: 1,
+          resultList: {
+            result: [
+              {
+                ...paper,
+                title: "Limb <i>salvage</i>   on dialysis.",
+                authorString: "Doe A, Roe B, .",
+                doi: undefined,
+                source: "PPR",
+              },
+            ],
+          },
+        }),
+      ),
+    );
+    const res = await journalClubGET(
+      new NextRequest(
+        `http://localhost/api/research/journal-club?topic=${TOPICS[6].id}`,
+      ),
+    );
+    const [p] = (await res.json()).papers;
+
+    expect(res.headers.get("cache-control")).toContain("s-maxage=21600");
+    expect(p.id).toBe("europepmc-PMC9");
+    expect(p.title).toBe("Limb salvage on dialysis.");
+    expect(p.authors).toEqual(["Doe A", "Roe B"]);
+    expect(p.doi).toBeNull();
+    expect(p.journal).toBe("Annals of Vascular Surgery");
+    expect(p.pubDate).toBe("2025-04-02");
+    expect(p.url).toBe("https://europepmc.org/article/PPR/PMC9");
+  });
+
+  it("falls back to the publication year when there is no full date", async () => {
+    server.use(
+      http.get(EPMC, () =>
+        HttpResponse.json({
+          hitCount: 1,
+          resultList: {
+            result: [
+              { ...paper, firstPublicationDate: undefined, pubYear: "2025" },
+            ],
+          },
+        }),
+      ),
+    );
+    const res = await journalClubGET(
+      new NextRequest(
+        `http://localhost/api/research/journal-club?topic=${TOPICS[6].id}`,
+      ),
+    );
+    expect((await res.json()).papers[0].pubDate).toBe("2025");
+  });
+
+  it("searches by a MeSH term when there is no curated topic", async () => {
+    await journalClubGET(
+      new NextRequest(
+        "http://localhost/api/research/journal-club?mesh=Aortic%20Aneurysm",
+      ),
+    );
+    expect(queries[0]).toContain("Aortic Aneurysm");
+  });
+
+  it("400s when neither a topic nor a MeSH term is given", async () => {
+    const res = await journalClubGET(
+      new NextRequest("http://localhost/api/research/journal-club"),
+    );
+    expect(res.status).toBe(400);
+    expect(queries).toEqual([]);
+  });
+
+  it("passes an upstream failure through as an error", async () => {
+    server.use(http.get(EPMC, () => new HttpResponse("nope", { status: 500 })));
+    const res = await journalClubGET(
+      new NextRequest(
+        `http://localhost/api/research/journal-club?topic=${TOPICS[6].id}`,
+      ),
+    );
+    expect(res.status).toBeGreaterThanOrEqual(500);
   });
 
   it("400s on a topic the curated layer does not define", async () => {

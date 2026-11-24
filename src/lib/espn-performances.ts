@@ -56,15 +56,22 @@ export const FANTASY_LEAGUES: Record<Sport, LeagueConfig> = {
   nfl: { game: "ffl", leagueId: 836777691 },
 };
 
-/** The ESPN read endpoint for a league's teams, rosters, and settings. */
-export function fantasyLeagueUrl(sport: Sport, season: string): string {
+/**
+ * The ESPN read endpoint for a league. Teams, rosters and settings by default;
+ * a caller reading one week passes its own views and the scoring period.
+ */
+export function fantasyLeagueUrl(
+  sport: Sport,
+  season: string,
+  {
+    views = ["mTeam", "mRoster", "mSettings"],
+    scoringPeriodId,
+  }: { views?: readonly string[]; scoringPeriodId?: number } = {},
+): string {
   const { game, leagueId } = FANTASY_LEAGUES[sport];
-  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?view=mTeam&view=mRoster&view=mSettings`;
-}
-
-/** The NBA league url, kept for the season Card Lab route. */
-export function nbaFantasyLeagueUrl(season: string): string {
-  return fantasyLeagueUrl("nba", season);
+  const query = views.map((view) => `view=${view}`);
+  const params = scoringPeriodId === undefined ? query : [...query, `scoringPeriodId=${scoringPeriodId}`];
+  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?${params.join("&")}`;
 }
 
 type Stat = z.infer<typeof statSchema>;

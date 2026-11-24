@@ -18,6 +18,13 @@ const upstreamOk = () =>
     }),
   }) as unknown as Awaited<ReturnType<typeof fetchUpstream>>;
 
+/** The upstream answering with a given status and a raw body. */
+const upstreamReplies = (status: number, rawBody: string) =>
+  ({
+    ok: true as const,
+    response: new Response(rawBody, { status }),
+  }) as unknown as Awaited<ReturnType<typeof fetchUpstream>>;
+
 function post(body: unknown) {
   return new Request("http://localhost:3000/api/graphql", {
     method: "POST",
@@ -38,7 +45,10 @@ describe("POST /api/graphql", () => {
     const res = await POST(post({ query: LIST_QUERY, variables }));
 
     expect(res.status).toBe(200);
-    expect(fetchUpstream).toHaveBeenCalled();
+    expect(await res.json()).toEqual({ data: { pokemon_v2_pokemon: [] } });
+    const [url, init] = vi.mocked(fetchUpstream).mock.calls[0];
+    expect(url).toBe("https://beta.pokeapi.co/graphql/v1beta");
+    expect(JSON.parse(String(init?.body))).toEqual({ query: LIST_QUERY, variables });
   });
 
   it("forwards the by-type query the app actually sends", async () => {
@@ -48,7 +58,12 @@ describe("POST /api/graphql", () => {
     const res = await POST(post({ query: LIST_BY_TYPE_QUERY, variables }));
 
     expect(res.status).toBe(200);
-    expect(fetchUpstream).toHaveBeenCalled();
+    expect(res.headers.get("cache-control")).toBe("private, max-age=60");
+    const [, init] = vi.mocked(fetchUpstream).mock.calls[0];
+    expect(JSON.parse(String(init?.body))).toEqual({
+      query: LIST_BY_TYPE_QUERY,
+      variables,
+    });
   });
 
   it("ignores incidental whitespace differences in a known query", async () => {
@@ -59,6 +74,7 @@ describe("POST /api/graphql", () => {
     const res = await POST(post({ query: reindented, variables }));
 
     expect(res.status).toBe(200);
+    expect(fetchUpstream).toHaveBeenCalledTimes(1);
   });
 
   it("refuses a query the app never sends, without calling upstream", async () => {
@@ -109,5 +125,68 @@ describe("POST /api/graphql", () => {
     );
 
     expect(res.status).toBe(400);
+  });
+
+  it("refuses an oversized body with 413 before reading it", async () => {
+    const { POST } = await import("@/app/api/graphql/route");
+
+    const res = await POST(
+      new Request("http://localhost:3000/api/graphql", {
+        method: "POST",
+        headers: { "content-type": "application/json", "content-length": "70000" },
+        body: JSON.stringify({ query: LIST_QUERY, variables }),
+      }),
+    );
+
+    expect(res.status).toBe(413);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("refuses a body that is large once read, whatever its header says", async () => {
+    const { POST } = await import("@/app/api/graphql/route");
+
+    const res = await POST(
+      post({ query: LIST_QUERY, variables: { name: "x".repeat(70_000) } }),
+    );
+
+    expect(res.status).toBe(413);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("passes an upstream error status through with its body", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue(
+      upstreamReplies(429, JSON.stringify({ error: "slow down" })),
+    );
+    const { POST } = await import("@/app/api/graphql/route");
+
+    const res = await POST(post({ query: LIST_QUERY, variables }));
+
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: "slow down" });
+  });
+
+  it("does not throw when the upstream error body is not JSON", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue(
+      upstreamReplies(503, "<html>Service Unavailable</html>"),
+    );
+    const { POST } = await import("@/app/api/graphql/route");
+
+    const res = await POST(post({ query: LIST_QUERY, variables }));
+
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "Upstream error" });
+  });
+
+  it("answers 504 when PokeAPI times out", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: false,
+      cause: "timeout",
+      message: "timed out",
+    });
+    const { POST } = await import("@/app/api/graphql/route");
+
+    const res = await POST(post({ query: LIST_QUERY, variables }));
+
+    expect(res.status).toBe(504);
   });
 });

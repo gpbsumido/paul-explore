@@ -38,6 +38,10 @@ describe("zoneLabel", () => {
     expect(zoneLabel("America/St_Johns")).toBe("St Johns");
   });
 
+  it("turns every underscore into a space", () => {
+    expect(zoneLabel("America/Port_of_Spain")).toBe("Port of Spain");
+  });
+
   it("leaves a zone with no region alone", () => {
     expect(zoneLabel("UTC")).toBe("UTC");
   });

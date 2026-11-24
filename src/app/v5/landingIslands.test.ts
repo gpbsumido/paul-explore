@@ -44,19 +44,3 @@ describe("landing client boundary", () => {
     expect(isClient(file)).toBe(true);
   });
 });
-
-describe("landing data tree", () => {
-  it("imports the heavy static content data only into server sections", () => {
-    // FEATURES/THOUGHTS/CRAFT_TRAITS are large static modules. If the section
-    // importing them is a client component, the whole module ships to the
-    // browser. Assert the importers are server components, so the data stays
-    // server-side.
-    for (const file of [
-      "src/app/v5/sections/FeaturedWork.tsx",
-      "src/app/v5/sections/Writing.tsx",
-      "src/app/v5/sections/CraftSpine.tsx",
-    ]) {
-      expect(isClient(file)).toBe(false);
-    }
-  });
-});

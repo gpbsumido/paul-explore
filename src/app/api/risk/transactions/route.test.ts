@@ -96,4 +96,70 @@ describe("risk transactions proxy", () => {
     const body = await res.json();
     expect(body.error).toMatch(/unreachable/i);
   });
+
+  it.each([
+    ["a zero amount", { ...validBody(), amount: 0 }],
+    ["a negative amount", { ...validBody(), amount: -5 }],
+    ["an amount sent as text", { ...validBody(), amount: "42.5" }],
+    ["an empty user id", { ...validBody(), user_id: "" }],
+    ["a missing device id", { ...validBody(), device_id: undefined }],
+  ])("rejects %s before calling the backend", async (_label, body) => {
+    vi.stubEnv("RISK_API_URL", "http://risk.example");
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await post(body);
+
+    expect(res.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("tolerates trailing slashes on the configured backend URL", async () => {
+    vi.stubEnv("RISK_API_URL", "http://risk.example//");
+    const fetchSpy = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await post(validBody());
+
+    expect(String(fetchSpy.mock.calls[0][0])).toBe("http://risk.example/v1/transactions");
+  });
+
+  it("does not forward fields the scorer was never meant to see", async () => {
+    vi.stubEnv("RISK_API_URL", "http://risk.example");
+    const fetchSpy = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await post({ ...validBody(), is_admin: true });
+
+    const sent = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string);
+    expect(sent).not.toHaveProperty("is_admin");
+  });
+
+  it("passes the backend's own error status and body through", async () => {
+    vi.stubEnv("RISK_API_URL", "http://risk.example");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "unknown currency" }), { status: 422 }),
+      ),
+    );
+
+    const res = await post(validBody());
+
+    expect(res.status).toBe(422);
+    expect(await res.json()).toEqual({ error: "unknown currency" });
+  });
+
+  it("explains a backend reply that is not JSON instead of crashing", async () => {
+    vi.stubEnv("RISK_API_URL", "http://risk.example");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("<html>bad gateway</html>", { status: 502 })),
+    );
+
+    const res = await post(validBody());
+
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toMatch(/non-JSON/i);
+  });
 });

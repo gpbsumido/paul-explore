@@ -44,10 +44,10 @@ export function isLogoutPath(pathname: string): boolean {
   return pathname === LOGOUT_PATH;
 }
 
-/** True when the session is gone but the marker says there recently was one. */
-export function isSessionTimeout(
-  hasSession: boolean,
-  markerCookie: string | undefined,
-): boolean {
-  return !hasSession && Boolean(markerCookie);
+/**
+ * Asked once the session is known to be gone: true when the marker says there
+ * recently was one.
+ */
+export function isSessionTimeout(markerCookie: string | undefined): boolean {
+  return Boolean(markerCookie);
 }

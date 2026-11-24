@@ -7,14 +7,20 @@ import { ARCHIVED_VERSIONS, archiveLabel, isArchived } from "./archive";
  * banner is a caption on all of them rather than a warning on some of them.
  */
 describe("the /discover archive", () => {
-  it("holds every retired generation, v5 included", () => {
-    expect(ARCHIVED_VERSIONS).toEqual(["v1", "v2", "v3", "v4", "v5"]);
+  it("holds every retired generation, v6 included", () => {
+    expect(ARCHIVED_VERSIONS).toEqual(["v1", "v2", "v3", "v4", "v5", "v6"]);
   });
 
   it("treats every version it holds as history", () => {
     for (const version of ARCHIVED_VERSIONS) {
       expect(isArchived(version)).toBe(true);
     }
+  });
+
+  it("does not claim a version it has never held", () => {
+    expect(isArchived("v7")).toBe(false);
+    expect(isArchived("")).toBe(false);
+    expect(isArchived("V1")).toBe(false);
   });
 
   it("labels each one as landing-page history rather than as stale", () => {

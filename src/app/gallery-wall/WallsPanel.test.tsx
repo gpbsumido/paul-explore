@@ -142,12 +142,34 @@ describe("WallsPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens a saved wall and hands its state back", async () => {
+  it("opens a saved wall and hands back the state that was saved with it", async () => {
+    // Not the panel's own state: a wall that is open replaces what is on screen.
+    const savedState: GalleryState = { ...initialGalleryState, gap: 7 };
+    vi.mocked(getWall).mockResolvedValue({
+      id: "w1",
+      name: "Hallway",
+      state: savedState,
+      createdAt: "t",
+      updatedAt: "t",
+    });
     const onOpen = vi.fn();
     renderPanel({ onOpen });
     await openMenu("hallway");
     fireEvent.click(screen.getByRole("menuitem", { name: /open hallway/i }));
-    await waitFor(() => expect(onOpen).toHaveBeenCalledWith(seeded));
+    await waitFor(() => expect(onOpen).toHaveBeenCalledWith(savedState));
+    expect(getWall).toHaveBeenCalledWith("w1");
+    expect(screen.getByLabelText(/wall name/i)).toHaveValue("Hallway");
+  });
+
+  it("names an unnamed save Untitled wall", async () => {
+    renderPanel();
+    await screen.findByRole("button", { name: /actions for hallway/i });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    await waitFor(() =>
+      expect(createWall).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Untitled wall" }),
+      ),
+    );
   });
 
   it("saves a new wall under a name typed by the user", async () => {
@@ -197,6 +219,44 @@ describe("WallsPanel", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: /delete hallway/i }));
     fireEvent.click(screen.getByRole("button", { name: /^confirm delete$/i }));
     await waitFor(() => expect(deleteWall).toHaveBeenCalledWith("w1"));
+  });
+
+  it("leaves a wall alone when the delete is not confirmed", async () => {
+    renderPanel();
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /delete hallway/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+    expect(deleteWall).not.toHaveBeenCalled();
+    expect(await screen.findByRole("button", { name: /actions for hallway/i })).toBeInTheDocument();
+  });
+
+  it("clears the editor when the wall that is open gets deleted", async () => {
+    const onNew = vi.fn();
+    renderPanel({ onNew });
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /open hallway/i }));
+    await waitFor(() => expect(screen.getByLabelText(/wall name/i)).toHaveValue("Hallway"));
+
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /delete hallway/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^confirm delete$/i }));
+
+    await waitFor(() => expect(onNew).toHaveBeenCalled());
+    expect(screen.getByLabelText(/wall name/i)).toHaveValue("");
+  });
+
+  it("does not rewrite a wall when it is renamed to what it already is", async () => {
+    renderPanel();
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /rename hallway/i }));
+    fireEvent.change(screen.getByLabelText(/new name for hallway/i), {
+      target: { value: "  Hallway " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^confirm rename$/i }));
+    await waitFor(() =>
+      expect(screen.queryByLabelText(/new name for hallway/i)).not.toBeInTheDocument(),
+    );
+    expect(updateWall).not.toHaveBeenCalled();
   });
 
   it("starts a new wall, clearing the open one", async () => {

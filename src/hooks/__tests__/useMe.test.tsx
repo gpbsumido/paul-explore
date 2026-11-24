@@ -24,10 +24,17 @@ const meAnswers = (response: () => Response) => {
 describe("useMe", () => {
   it("reads a signed-in session", async () => {
     const { result } = meAnswers(() =>
-      HttpResponse.json({ name: "Paul", email: "p@example.com", sub: "auth0|p", isFlagAdmin: false }),
+      HttpResponse.json({ name: "Paul", email: "p@example.com", sub: "auth0|p", isFlagAdmin: true }),
     );
 
-    await waitFor(() => expect(result.current.data?.sub).toBe("auth0|p"));
+    await waitFor(() =>
+      expect(result.current.data).toEqual({
+        name: "Paul",
+        email: "p@example.com",
+        sub: "auth0|p",
+        isFlagAdmin: true,
+      }),
+    );
   });
 
   it("reads signed out as a session with no sub", async () => {
@@ -42,6 +49,18 @@ describe("useMe", () => {
   it("reports a failed check as an error, never as signed out", async () => {
     const { result } = meAnswers(() =>
       HttpResponse.json({ error: "boom" }, { status: 500 }),
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("reports a failed response as an error even when the body reads as a valid session", async () => {
+    const { result } = meAnswers(() =>
+      HttpResponse.json(
+        { name: "Paul", email: "p@example.com", sub: "auth0|p", isFlagAdmin: true },
+        { status: 502 },
+      ),
     );
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -65,10 +84,30 @@ describe("useMe", () => {
     ["a body with no sub", { name: "Paul" }],
     ["a sub that isn't a string", { sub: 42 }],
     ["a flag that isn't a boolean", { sub: null, isFlagAdmin: "yes" }],
+    ["a name that isn't a string", { sub: null, name: 42 }],
+    ["an email that isn't a string", { sub: null, email: false }],
     ["something that isn't an object", ["auth0|p"]],
   ])("rejects %s rather than guessing", async (_label, body) => {
     const { result } = meAnswers(() => HttpResponse.json(body));
 
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+});
+
+describe("useMe when disabled", () => {
+  it("doesn't ask /api/me at all", async () => {
+    let asked = 0;
+    server.use(
+      http.get("/api/me", () => {
+        asked += 1;
+        return HttpResponse.json({ sub: null });
+      }),
+    );
+    const { result } = renderHook(() => useMe({ enabled: false }), { wrapper });
+
+    // Give a stray request time to land before checking none went out.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(asked).toBe(0);
+    expect(result.current.fetchStatus).toBe("idle");
   });
 });

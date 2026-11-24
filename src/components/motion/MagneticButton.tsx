@@ -2,7 +2,7 @@
 
 import { useRef, type PointerEvent, type ReactNode } from "react";
 import { m, useMotionValue, useSpring } from "framer-motion";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export type MagneticButtonProps = {
   /** The real control. This wrapper never becomes one itself. */
@@ -27,7 +27,7 @@ export default function MagneticButton({
   strength = 0.35,
   className,
 }: MagneticButtonProps) {
-  const reducedMotion = useHubReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);

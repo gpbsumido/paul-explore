@@ -5,6 +5,7 @@ import {
 } from "../open-event";
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
@@ -14,8 +15,14 @@ describe("openCommandPalette", () => {
     window.addEventListener(COMMAND_PALETTE_OPEN_EVENT, listener);
 
     openCommandPalette();
+    window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, listener);
 
     expect(listener).toHaveBeenCalledTimes(1);
-    window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, listener);
+  });
+
+  it("does nothing on the server, where there is no window to dispatch on", () => {
+    vi.stubGlobal("window", undefined);
+
+    expect(() => openCommandPalette()).not.toThrow();
   });
 });

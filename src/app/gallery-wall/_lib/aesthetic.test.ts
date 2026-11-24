@@ -83,9 +83,27 @@ describe("arrangeAesthetic", () => {
     expect(b.right).toBeLessThanOrEqual(100);
   });
 
+  it("reports no overflow when the frames sit comfortably on the wall", () => {
+    expect(arrangeAesthetic(input(mixed())).overflows).toBe(false);
+  });
+
   it("reports an overflow when the frames cannot fit the wall", () => {
     const huge = Array.from({ length: 12 }, (_, i) => frame(`f${i}`, 40, 40));
     expect(arrangeAesthetic(input(huge)).overflows).toBe(true);
+  });
+
+  it("stacks a set of frames into a block shaped like the wall, not one long row", () => {
+    const wideWall = {
+      wallWidth: 200,
+      wallHeight: 100,
+      gap: 2,
+      frames: Array.from({ length: 12 }, (_, i) => frame(`s${i}`, 10, 10)),
+    };
+    const b = bounds(arrangeAesthetic(wideWall).placements);
+    // Twelve 10-inch frames would sit in a single 144-inch row if the pack ran
+    // the wall's full width; they should pile up into several rows instead.
+    expect(b.bottom - b.top).toBeGreaterThan(25);
+    expect(b.right - b.left).toBeLessThan(100);
   });
 
   it("keeps every frame, placing each exactly once", () => {

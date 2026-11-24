@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
@@ -53,13 +54,11 @@ export default function PackBar({ slate }: { slate: RipSlate }) {
           week: slate.week ?? undefined,
         }),
       });
+      if (res.status === 402) throw new Error("Not enough coins — claim your daily first.");
+      if (res.status === 409) throw await responseError(res, "No cards on this slate to rip.");
       if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as { error?: string } | null;
-        if (res.status === 402) throw new Error("Not enough coins — claim your daily first.");
-        if (res.status === 409) throw new Error(body?.error ?? "No cards on this slate to rip.");
-        throw new Error(
-          body?.error ? `${body.error} (${res.status})` : `Couldn't open a pack (${res.status}).`,
-        );
+        const { message } = await responseError(res, "Couldn't open a pack");
+        throw new Error(`${message} (${res.status})`);
       }
       return res.json();
     },

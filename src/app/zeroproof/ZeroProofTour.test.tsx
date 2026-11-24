@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { http, HttpResponse } from "msw";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { server } from "@/test/server";
 import ZeroProofContent from "./ZeroProofContent";
 
 const TOUR_KEY = "zeroproof-tour-seen";
@@ -19,7 +21,17 @@ function renderLobby(ui: ReactNode) {
 }
 
 describe("ZeroProof guided tour", () => {
-  beforeEach(() => window.localStorage.clear());
+  // The lobby behind the tour loads the board, the leaderboard and the leagues.
+  // A signed-out visitor with nothing on any of them is all the tour needs.
+  beforeEach(() => {
+    window.localStorage.clear();
+    server.use(
+      http.get("/api/zeroproof/events", () => HttpResponse.json({ events: [] })),
+      http.get("/api/zeroproof/leaderboard", () => HttpResponse.json({ entries: [] })),
+      http.get("/api/zeroproof/me", () => new HttpResponse(null, { status: 401 })),
+      http.get("/api/zeroproof/leagues", () => HttpResponse.json({ leagues: [] })),
+    );
+  });
 
   it("auto-opens the consent step on a first visit and asks before touring", () => {
     renderLobby(<ZeroProofContent />);
@@ -64,9 +76,38 @@ describe("ZeroProof guided tour", () => {
 
     // Walk to the last step and finish
     fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // leaderboard
+    expect(
+      screen.getByRole("tab", { name: "Leaderboard" }),
+    ).toHaveAttribute("aria-selected", "true");
     fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // record
+    expect(
+      screen.getByRole("tab", { name: "Your record" }),
+    ).toHaveAttribute("aria-selected", "true");
     fireEvent.click(within(tour()).getByRole("button", { name: /finish/i }));
     expect(screen.queryByRole("dialog", { name: /tour/i })).toBeNull();
+  });
+
+  it("brings the board back when the tour steps onto it from another tab", () => {
+    window.localStorage.setItem(TOUR_KEY, "true");
+    renderLobby(<ZeroProofContent />);
+    fireEvent.click(screen.getByRole("tab", { name: "Leaderboard" }));
+    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    const tour = () => screen.getByRole("dialog", { name: /tour/i });
+
+    fireEvent.click(within(tour()).getByRole("button", { name: /^next$/i })); // intro
+    fireEvent.click(within(tour()).getByRole("button", { name: /next/i })); // board
+
+    expect(screen.getByRole("tab", { name: "Board" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("remembers the tour was seen, whether it was finished or skipped", () => {
+    renderLobby(<ZeroProofContent />);
+    fireEvent.click(screen.getByRole("button", { name: /^skip$/i }));
+
+    expect(window.localStorage.getItem(TOUR_KEY)).toBe("true");
   });
 
   it("closes immediately when the visitor declines", () => {

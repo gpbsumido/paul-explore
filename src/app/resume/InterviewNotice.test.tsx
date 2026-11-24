@@ -21,7 +21,13 @@ describe("InterviewNotice", () => {
     expect(dialog).toHaveTextContent(/email/i);
     expect(
       screen.getByRole("link", { name: /psumido@gmail\.com/i }),
-    ).toHaveAttribute("href", expect.stringContaining("mailto:"));
+    ).toHaveAttribute("href", expect.stringContaining("mailto:psumido@gmail.com"));
+  });
+
+  it("stays closed for a link that carries some other reason to visit", () => {
+    params.mockReturnValue(new URLSearchParams("from=linkedin"));
+    render(<InterviewNotice />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("closes when the reader dismisses it", async () => {

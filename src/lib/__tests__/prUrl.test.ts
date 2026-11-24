@@ -38,4 +38,9 @@ describe("linking a to-do to its pull request", () => {
       "https://github.com/gpbsumido/paul.design.system/pull/4",
     );
   });
+
+  it("refuses a repo name made only of dots", () => {
+    expect(pullRequestUrl("..", 1)).toBeNull();
+    expect(pullRequestUrl(".", 1)).toBeNull();
+  });
 });

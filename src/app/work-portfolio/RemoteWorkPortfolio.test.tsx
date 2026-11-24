@@ -23,6 +23,7 @@ vi.mock("@/lib/mfe/federation", () => ({
 
 import RemoteWorkPortfolio from "./RemoteWorkPortfolio";
 import RemoteReleaseChip from "./RemoteReleaseChip";
+import { setRemoteRelease } from "./remoteRelease";
 
 const REMOTE = {
   name: "workPortfolio",
@@ -32,6 +33,9 @@ const REMOTE = {
 
 beforeEach(() => {
   mounted.length = 0;
+  // The release store lives at module level, so one test's mount would
+  // otherwise leave a chip behind for the next.
+  setRemoteRelease(null);
   window.history.replaceState(null, "", "/work-portfolio");
 });
 
@@ -65,6 +69,23 @@ describe("RemoteWorkPortfolio (the host side of the boundary)", () => {
     expect(window.location.search).toBe("");
   });
 
+  it("starts the remote with no feature selected when the URL names none", async () => {
+    render(<RemoteWorkPortfolio remote={REMOTE} />);
+    expect((await mountedContext()).initialFeature).toBeNull();
+  });
+
+  it("leaves the rest of the query string alone when it updates ?feature=", async () => {
+    window.history.replaceState(null, "", "/work-portfolio?ref=abc&feature=old");
+    render(<RemoteWorkPortfolio remote={REMOTE} />);
+    const ctx = await mountedContext();
+
+    ctx.onFeatureChange("new");
+    expect(window.location.search).toBe("?ref=abc&feature=new");
+
+    ctx.onFeatureChange(null);
+    expect(window.location.search).toBe("?ref=abc");
+  });
+
   it("lends the remote the host's referral service", async () => {
     render(<RemoteWorkPortfolio remote={REMOTE} />);
     const { services } = await mountedContext();
@@ -78,6 +99,7 @@ describe("RemoteWorkPortfolio (the host side of the boundary)", () => {
         <RemoteWorkPortfolio remote={REMOTE} />
       </>,
     );
+    expect(screen.queryByRole("link", { name: /remote v/i })).toBeNull();
     const chip = await screen.findByRole("link", { name: /remote v1\.4\.0/i });
     expect(chip).toHaveAttribute("href", "/thoughts/micro-frontends");
   });

@@ -1,4 +1,5 @@
 import type { Budget, Expense, Split } from "./types";
+import { requestJson } from "@/lib/responseError";
 
 /**
  * Client wrappers over the budget BFF (`/api/budget/*`), which proxies to
@@ -29,17 +30,7 @@ export type BudgetDto = {
 
 export type BudgetSummary = { id: string; name: string; role: "owner" | "member" };
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api/budget${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(body?.error ?? `Request failed (${res.status})`);
-  }
-  return (await res.json()) as T;
-}
+const call = <T,>(path: string, init?: RequestInit) => requestJson<T>(`/api/budget${path}`, init);
 
 /** Adapt a server DTO to the Budget shape the components render. */
 export function toBudget(dto: BudgetDto, activePersonId: string): Budget {

@@ -37,6 +37,18 @@ describe("buildSearchIndex", () => {
     expect(coffees[0].href).toBe("/operator/products");
   });
 
+  it("labels a store with its status, or plain 'Store' when it has none", () => {
+    const index = buildSearchIndex({
+      stores: [
+        { id: "s1", name: "With Status", status: "online" },
+        { id: "s2", name: "Without Status" },
+      ],
+      products: [],
+    });
+    expect(index.find((i) => i.id === "store-s1")?.sublabel).toBe("online");
+    expect(index.find((i) => i.id === "store-s2")?.sublabel).toBe("Store");
+  });
+
   it("always includes the operator tools", () => {
     const index = buildSearchIndex({ stores: [], products: [] });
     for (const tool of OPERATOR_TOOLS) {
@@ -56,16 +68,75 @@ describe("searchItems", () => {
     expect(results[0].label).toBe("Gym Vending - Rec Center");
   });
 
-  it("ranks a prefix match above a mid-word match", () => {
+  it("ranks a prefix above a word start, then a mid-word hit, then a subsequence, then a sublabel hit", () => {
+    // Listed so that label length would give the opposite order: only the
+    // match quality can put the longest label first.
     const index = buildSearchIndex({
       stores: [],
       products: [
-        { name: "Energy Bar", category: "snacks" },
-        { name: "Blueberry Energy Drink", category: "beverages" },
+        { name: "Zed", category: "snack bar" },
+        { name: "Banner", category: "misc" },
+        { name: "Crowbar", category: "misc" },
+        { name: "Energy Bar", category: "misc" },
+        { name: "Bar Nuts Deluxe Edition", category: "misc" },
       ],
     });
-    const results = searchItems(index, "energy");
-    expect(results[0].label).toBe("Energy Bar");
+    expect(searchItems(index, "bar").map((r) => r.label)).toEqual([
+      "Bar Nuts Deluxe Edition",
+      "Energy Bar",
+      "Crowbar",
+      "Banner",
+      "Zed",
+    ]);
+  });
+
+  it("treats the letter after a hyphen as the start of a word", () => {
+    const index = buildSearchIndex({
+      stores: [],
+      products: [
+        { name: "Cold-Brew Concentrate Pack", category: "misc" },
+        { name: "Newbrew", category: "misc" },
+      ],
+    });
+    expect(searchItems(index, "brew").map((r) => r.label)).toEqual([
+      "Cold-Brew Concentrate Pack",
+      "Newbrew",
+    ]);
+  });
+
+  it("matches regardless of case", () => {
+    const index = buildSearchIndex(INDEX_INPUT);
+    expect(searchItems(index, "GYM")[0].label).toBe("Gym Vending - Rec Center");
+  });
+
+  it("finds a store by its status", () => {
+    const index = buildSearchIndex(INDEX_INPUT);
+    expect(searchItems(index, "degraded").map((r) => r.label)).toEqual([
+      "Lobby Fridge - Building A",
+    ]);
+  });
+
+  it("returns nothing when the query matches no label", () => {
+    const index = buildSearchIndex(INDEX_INPUT);
+    expect(searchItems(index, "zzzz")).toEqual([]);
+  });
+
+  it("puts the shorter label first, then alphabetical, when matches tie", () => {
+    const index = buildSearchIndex({
+      stores: [],
+      products: [
+        { name: "Cola Alpha Pack", category: "misc" },
+        { name: "Cola Zed", category: "misc" },
+        { name: "Cola Mix", category: "misc" },
+        { name: "Cola Max", category: "misc" },
+      ],
+    });
+    expect(searchItems(index, "cola").map((r) => r.label)).toEqual([
+      "Cola Max",
+      "Cola Mix",
+      "Cola Zed",
+      "Cola Alpha Pack",
+    ]);
   });
 
   it("matches a subsequence for fast typing", () => {
@@ -78,6 +149,17 @@ describe("searchItems", () => {
   it("returns the tools as a launcher when the query is empty", () => {
     const index = buildSearchIndex(INDEX_INPUT);
     expect(searchItems(index, "  ")).toEqual(OPERATOR_TOOLS);
+  });
+
+  it("shows eight results by default", () => {
+    const index = buildSearchIndex({
+      stores: Array.from({ length: 20 }, (_, i) => ({
+        id: `s${i}`,
+        name: `Store ${i}`,
+      })),
+      products: [],
+    });
+    expect(searchItems(index, "store")).toHaveLength(8);
   });
 
   it("caps the number of results", () => {

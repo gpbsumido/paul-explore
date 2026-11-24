@@ -16,6 +16,10 @@ import { fleetShrinkResponseSchema } from "@/lib/operator-shrink";
 import { searchIndexResponseSchema } from "@/lib/operator-search";
 import { financeResponseSchema } from "@/lib/operator-finance";
 import { z } from "zod";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
+import { API_URL } from "@/lib/apiUrl";
+import { aggregateFleetSales } from "@/lib/operator-sales";
 
 function makeRequest(
   path: string,
@@ -183,7 +187,7 @@ describe("GET /api/operator/stores/:storeId/alerts", () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(Array.isArray(body.alerts)).toBe(true);
+    expect(body.alerts.length).toBeGreaterThan(0);
     const result = z.array(alertSchema).safeParse(body.alerts);
     expect(result.success).toBe(true);
     for (const alert of body.alerts) {
@@ -482,7 +486,7 @@ describe("POST /api/operator/stores/:storeId/restock", () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(Array.isArray(body.items)).toBe(true);
+    expect(body.items.map((i: { id: string }) => i.id)).toEqual(itemIds);
     for (const item of body.items) {
       expect(item.currentStock).toBe(item.capacity);
     }
@@ -680,14 +684,176 @@ describe("GET /api/operator/fleet-summary", () => {
     expect(body.alertTrend).toHaveLength(24);
   });
 
-  it("returns fleet stats with non-negative values", async () => {
+  it("counts the unacknowledged critical and warning alerts across every store", async () => {
+    const { GET: storesGET } = await import("@/app/api/operator/stores/route");
+    const { stores } = await (await storesGET()).json();
+    const { GET: alertsGET } =
+      await import("@/app/api/operator/stores/[storeId]/alerts/route");
+    const open: { severity: string }[] = [];
+    for (const store of stores) {
+      const { alerts } = await (
+        await alertsGET(
+          makeRequest(`/api/operator/stores/${store.id}/alerts`),
+          makeParams({ storeId: store.id }),
+        )
+      ).json();
+      open.push(...alerts.filter((a: { acknowledged: boolean }) => !a.acknowledged));
+    }
+
     const { GET } = await import("@/app/api/operator/fleet-summary/route");
+    const { fleetStats } = await (await GET()).json();
+
+    expect(open.length).toBeGreaterThan(0);
+    expect(fleetStats.criticalAlerts).toBe(open.filter((a) => a.severity === "critical").length);
+    expect(fleetStats.warningAlerts).toBe(open.filter((a) => a.severity === "warning").length);
+    expect(fleetStats.avgInventoryHealth).toBeGreaterThan(0);
+    expect(fleetStats.avgInventoryHealth).toBeLessThanOrEqual(100);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// What the BFF does when the API answers badly, or not at all
+// ---------------------------------------------------------------------------
+
+describe("when the operator API misbehaves", () => {
+  const restockRequest = (storeId: string) =>
+    makeRequest(`/api/operator/stores/${storeId}/restock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemIds: ["item-001"] }),
+    });
+
+  it("reports a token mismatch instead of pretending the write worked when the API answers 401", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    server.use(
+      http.post(`${API_URL}/api/operator/stores/:id/restock`, () =>
+        new HttpResponse(null, { status: 401 }),
+      ),
+    );
+    const { POST } = await import("@/app/api/operator/stores/[storeId]/restock/route");
+
+    const res = await POST(restockRequest("store-1"), makeParams({ storeId: "store-1" }));
+
+    expect(res.status).toBe(503);
+    expect(res.headers.get("x-operator-config")).toBe("token-mismatch");
+    expect((await res.json()).error).toMatch(/OPERATOR_SERVICE_TOKEN/);
+  });
+
+  it("passes a 4xx the API gave a write straight through", async () => {
+    server.use(
+      http.post(`${API_URL}/api/operator/stores/:id/restock`, () =>
+        new HttpResponse(null, { status: 422 }),
+      ),
+    );
+    const { POST } = await import("@/app/api/operator/stores/[storeId]/restock/route");
+
+    const res = await POST(restockRequest("store-1"), makeParams({ storeId: "store-1" }));
+
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toMatch(/rejected this write \(422\)/);
+  });
+
+  it("answers 502 when the API fails a write with a 5xx, and does not fall back to the seed", async () => {
+    server.use(
+      http.post(`${API_URL}/api/operator/stores/:id/restock`, () =>
+        new HttpResponse(null, { status: 500 }),
+      ),
+    );
+    const { POST } = await import("@/app/api/operator/stores/[storeId]/restock/route");
+
+    const res = await POST(restockRequest("store-1"), makeParams({ storeId: "store-1" }));
+
+    expect(res.status).toBe(502);
+  });
+
+  it("answers 502 and warns that the write may have landed when the API's reply is unreadable", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    server.use(
+      http.post(`${API_URL}/api/operator/stores/:id/restock`, () =>
+        HttpResponse.json({ nonsense: true }),
+      ),
+    );
+    const { POST } = await import("@/app/api/operator/stores/[storeId]/restock/route");
+
+    const res = await POST(restockRequest("store-1"), makeParams({ storeId: "store-1" }));
+
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toMatch(/may have been saved/i);
+  });
+
+  it("still lists the seeded stores when the API can't be reached at all", async () => {
+    expectSeedFallback();
+    server.use(
+      http.get(`${API_URL}/api/operator/stores`, () => HttpResponse.error()),
+    );
+    const { GET } = await import("@/app/api/operator/stores/route");
+
     const res = await GET();
-    const body = await res.json();
-    expect(body.fleetStats.criticalAlerts).toBeGreaterThanOrEqual(0);
-    expect(body.fleetStats.warningAlerts).toBeGreaterThanOrEqual(0);
-    expect(body.fleetStats.lowStockItems).toBeGreaterThanOrEqual(0);
-    expect(body.fleetStats.avgInventoryHealth).toBeGreaterThanOrEqual(0);
-    expect(body.fleetStats.avgInventoryHealth).toBeLessThanOrEqual(100);
+
+    expect(res.status).toBe(200);
+    const { stores } = await res.json();
+    expect(stores.length).toBeGreaterThan(0);
+    expect(z.array(storeSchema).safeParse(stores).success).toBe(true);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("loadStores fell back to seed data"));
+  });
+
+  it("refuses a store id that tries to climb out of the path with a 400", async () => {
+    expectSeedFallback();
+    const { GET } = await import("@/app/api/operator/stores/[storeId]/inventory/route");
+
+    const res = await GET(
+      makeRequest("/api/operator/stores/x/inventory"),
+      makeParams({ storeId: "../alerts" }),
+    );
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("Invalid identifier");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Query parameters the routes forward
+// ---------------------------------------------------------------------------
+
+describe("sales-analytics time zone", () => {
+  /** Answers the API call and records the zone it was asked for. */
+  const recordZoneSentToApi = () => {
+    const zones: (string | null)[] = [];
+    server.use(
+      http.get(`${API_URL}/api/operator/sales-analytics`, ({ request }) => {
+        zones.push(new URL(request.url).searchParams.get("tz"));
+        return HttpResponse.json(aggregateFleetSales([], "month"));
+      }),
+    );
+    return zones;
+  };
+
+  it("asks the API for the zone it was given", async () => {
+    const zones = recordZoneSentToApi();
+    const { GET } = await import("@/app/api/operator/sales-analytics/route");
+
+    await GET(makeRequest("/api/operator/sales-analytics?tz=America/Toronto"));
+
+    expect(zones).toEqual(["America/Toronto"]);
+  });
+
+  it("drops a zone that isn't one and asks for UTC instead of failing the chart", async () => {
+    const zones = recordZoneSentToApi();
+    const { GET } = await import("@/app/api/operator/sales-analytics/route");
+
+    const res = await GET(makeRequest("/api/operator/sales-analytics?tz=Mars/Olympus"));
+
+    expect(res.status).toBe(200);
+    expect(zones).toEqual(["UTC"]);
+  });
+});
+
+describe("product-performance range", () => {
+  it("uses the 30-day range when none is asked for", async () => {
+    const { GET } = await import("@/app/api/operator/product-performance/route");
+    const body = await (await GET(makeRequest("/api/operator/product-performance"))).json();
+
+    expect(body.rangeId).toBe("30d");
+    expect(body.days).toBe(30);
   });
 });

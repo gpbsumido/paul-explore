@@ -5,7 +5,7 @@ import { m } from "framer-motion";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Sheet from "@/components/ui/Sheet";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { spring } from "@/lib/animations";
 import { CATEGORIES, PRESET_TAGS, categoryById } from "@/lib/budget/categories.data";
 import { formatCents, parseAmountToCents } from "@/lib/budget/format";
@@ -34,7 +34,7 @@ export default function AddExpenseFlow({
   const [whenLocal, setWhenLocal] = useState("");
   const [note, setNote] = useState("");
   const [vendor, setVendor] = useState("");
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
 
   const amountRef = useRef<HTMLInputElement>(null);
   useEffect(() => {

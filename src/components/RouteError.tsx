@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Button from "@/components/ui/Button";
 
 interface RouteErrorProps {
-  reset: () => void;
+  retry: () => void;
 }
 
 // Simple circle-with-exclamation icon — just enough visual weight to signal
@@ -37,11 +37,12 @@ function ErrorIcon() {
 /**
  * Shared error UI for Next.js route-segment error boundaries.
  *
- * Rendered by each route's error.tsx. Calling `reset` asks Next.js to
- * re-render the segment from scratch — same as a soft refresh of just
- * the failing subtree, without reloading the whole page.
+ * Rendered by the root error.tsx, and by the two nested ones (zeroproof and
+ * lab/particles) that keep their layout on screen around it. `retry` fetches the segment again and
+ * re-renders it, so a page that failed because an API was briefly down can
+ * recover without reloading the whole page.
  */
-export default function RouteError({ reset }: RouteErrorProps) {
+export default function RouteError({ retry }: RouteErrorProps) {
   // A page that throws never produces its metadata, so the document can be
   // left with no title at all — axe rates that serious, and a tab reading
   // "localhost" tells someone with twenty tabs open nothing about which one
@@ -67,7 +68,7 @@ export default function RouteError({ reset }: RouteErrorProps) {
           request timed out.
         </p>
       </div>
-      <Button variant="outline" size="sm" onClick={reset}>
+      <Button variant="outline" size="sm" onClick={retry}>
         Try again
       </Button>
     </main>

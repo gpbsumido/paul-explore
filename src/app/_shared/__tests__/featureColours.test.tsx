@@ -50,6 +50,22 @@ function hueDistance(a: number, b: number): number {
 
 const tokenised = FEATURES.filter((feature) => FEATURE_TOKEN[feature.id]);
 
+describe("feature colour tokens", () => {
+  it("points every mapping at a token tokens.css defines", () => {
+    const undefinedTokens = Object.values(FEATURE_TOKEN).filter(
+      (token) => !tokensCss.includes(`${token}:`),
+    );
+    expect(undefinedTokens).toEqual([]);
+  });
+
+  it("maps every feature that has a token named after it", () => {
+    const unmapped = FEATURES.filter(
+      (feature) => tokensCss.includes(`--color-feature-${feature.id}:`) && !FEATURE_TOKEN[feature.id],
+    ).map((feature) => feature.id);
+    expect(unmapped).toEqual([]);
+  });
+});
+
 describe("feature colours", () => {
   it.each(tokenised.map((f) => [f.id, f] as const))(
     "%s has the same hue in its data colour as in its token",

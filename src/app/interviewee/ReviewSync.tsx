@@ -6,6 +6,7 @@ import {
   parseReviewState,
 } from "@/lib/interviewee/reviewState";
 import { useAnswered } from "./useAnswered";
+import { copyText } from "@/lib/clipboard";
 
 /**
  * Move review progress between machines without a server. Reviewed state is
@@ -20,9 +21,13 @@ export default function ReviewSync() {
 
   const exported = serializeReviewState(reviewed);
 
-  const onCopy = () => {
-    void navigator.clipboard?.writeText(exported);
-    setStatus("Copied to clipboard.");
+  const onCopy = async () => {
+    const copied = await copyText(exported);
+    setStatus(
+      copied
+        ? "Copied to clipboard."
+        : "Couldn't copy. Select the text above and copy it by hand.",
+    );
   };
 
   const onApply = () => {

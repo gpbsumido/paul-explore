@@ -84,6 +84,25 @@ describe("the playbook hub", () => {
     expect(screen.getByRole("status", { name: /complexity budget/i })).toHaveTextContent("O(n log n)");
   });
 
+  it("marks the budget row that covers the size entered", () => {
+    renderPage(<LeetCodeHub />);
+    const current = screen.getByRole("row", { current: true });
+    expect(current).toHaveTextContent("O(n log n)");
+    expect(current).toHaveTextContent("(yours)");
+    expect(screen.getAllByRole("row", { current: true })).toHaveLength(1);
+  });
+
+  it.each(["", "0", "-5"])("asks for a real input size instead of a budget when it is %j", (value) => {
+    renderPage(<LeetCodeHub />);
+    fireEvent.change(screen.getByRole("spinbutton", { name: /largest input size/i }), {
+      target: { value },
+    });
+    expect(screen.getByRole("status", { name: /complexity budget/i })).toHaveTextContent(
+      /enter the largest n/i,
+    );
+    expect(screen.queryByRole("row", { current: true })).not.toBeInTheDocument();
+  });
+
   it("lists problems that are due for a re-solve", () => {
     localStorage.setItem(
       REVIEW_KEY,
@@ -200,6 +219,18 @@ describe("a pattern page", () => {
     vi.mocked(console.error).mockRestore();
   });
 
+  it.each([
+    ["a step that is not a whole number", { step: 0.5, due: 1, lastReviewed: 0, reviews: 1 }],
+    ["a due time that is not a number", { step: 0, due: "soon", lastReviewed: 0, reviews: 1 }],
+    ["no last-reviewed time", { step: 0, due: 1, reviews: 1 }],
+    ["a negative review count", { step: 0, due: 1, lastReviewed: 0, reviews: -1 }],
+  ])("refuses stored progress with %s", (_label, entry) => {
+    localStorage.setItem(REVIEW_KEY, JSON.stringify({ "two-sum": entry }));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => renderPage(<PatternContent {...patternPageProps(pattern.id)} />)).toThrow(/not in the expected shape/);
+    vi.mocked(console.error).mockRestore();
+  });
+
   it("has no axe violations", async () => {
     const { container } = renderPage(<PatternContent {...patternPageProps(pattern.id)} />);
     expect(await axe(container)).toHaveNoViolations();
@@ -234,6 +265,35 @@ describe("the recognition drill", () => {
     expect(screen.getByRole("status")).toHaveTextContent(answerName);
     const stored = JSON.parse(localStorage.getItem(DRILL_KEY) ?? "{}");
     expect(stored[firstCard.problem.slug]).toMatchObject({ step: 0 });
+  });
+
+  it("sends a missed card back to the start of the ladder and moves a known one up", async () => {
+    const seed = (step: number) =>
+      localStorage.setItem(
+        DRILL_KEY,
+        JSON.stringify({
+          [firstCard.problem.slug]: { step, due: Date.now() - 1000, lastReviewed: 0, reviews: step + 1 },
+        }),
+      );
+
+    seed(2);
+    const missed = renderPage(<DrillContent />);
+    let options = screen.getByRole("group", { name: /which pattern/i });
+    await waitFor(() => expect(within(options).getByRole("button", { name: answerName })).toBeEnabled());
+    fireEvent.click(
+      within(options)
+        .getAllByRole("button")
+        .find((b) => b.textContent !== answerName)!,
+    );
+    expect(JSON.parse(localStorage.getItem(DRILL_KEY) ?? "{}")[firstCard.problem.slug]).toMatchObject({ step: 0 });
+    missed.unmount();
+
+    seed(2);
+    renderPage(<DrillContent />);
+    options = screen.getByRole("group", { name: /which pattern/i });
+    await waitFor(() => expect(within(options).getByRole("button", { name: answerName })).toBeEnabled());
+    fireEvent.click(within(options).getByRole("button", { name: answerName }));
+    expect(JSON.parse(localStorage.getItem(DRILL_KEY) ?? "{}")[firstCard.problem.slug]).toMatchObject({ step: 3 });
   });
 
   it("moves on to a different card", async () => {

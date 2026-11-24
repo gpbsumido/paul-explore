@@ -52,7 +52,7 @@ export const FEATURES: FeatureItem[] = [
     title: "Volunteer Check-in",
     description:
       "Proof that someone actually turned up: a display at the entrance shows a code that rotates every two minutes, volunteers type it on their phone, and the arrival is recorded against their account rather than a name they typed.",
-    href: "/check-in/sites",
+    href: "/check-in",
     color: "#2d8f66",
     thoughtsHref: "/thoughts/volunteer-check-in",
   },
@@ -230,6 +230,13 @@ export const FEATURES: FeatureItem[] = [
 ];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "One mockup, the whole site",
+    href: "/thoughts/site-redesign",
+    preview:
+      "Taking a one-page mockup across seventy routes by changing four shared pieces: a header that floats into a pill without a second nav, a drifting grid that loops because it's one cell too big, the cyan the palette sweep rejected, and numbers the build computes instead of typed ones",
+    color: "#3f8f8a",
+  },
   {
     title: "My first Svelte, inside a Next app",
     href: "/thoughts/mind-reader",
@@ -506,6 +513,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Four green checks in the design system that were each measuring something other than what they claimed — the suite nothing ran, the visual gate with no quota, the contrast figure taken under the gloss, and the count that moved when you built",
     color: "#6f9440",
+  },
+  {
+    title: "Tests That Can't Fail",
+    href: "/thoughts/tests-that-cant-fail",
+    preview:
+      "Every test file run alone in a random order and every test judged on whether it would fail if the code broke: three files that only passed in order, tests that tested themselves, the ways a green run hid it, and what to verify when an AI wrote the tests or reported on them",
+    color: "#3e8f84",
   },
   {
     title: "Operator Dashboard",

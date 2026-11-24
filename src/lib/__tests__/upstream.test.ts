@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 /** A fetch that never settles, which is what a stalled upstream looks like. */
 function hangingFetch() {
@@ -73,6 +76,27 @@ describe("fetchUpstream", () => {
     expect(result.response.status).toBe(404);
   });
 
+  it("calls the url it was given with the init the caller passed", async () => {
+    const spy = vi.fn(
+      (_url: string, _init?: RequestInit) => Promise.resolve(new Response("{}")),
+    );
+    vi.stubGlobal("fetch", spy);
+
+    await fetchUpstream("http://api.test/x", {
+      method: "POST",
+      headers: { Authorization: "Bearer abc" },
+      body: "{}",
+    });
+
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("http://api.test/x");
+    expect(init).toMatchObject({
+      method: "POST",
+      headers: { Authorization: "Bearer abc" },
+      body: "{}",
+    });
+  });
+
   it("passes an abort signal so the request is actually cancelled", async () => {
     const spy = vi.fn(
       (_url: string, _init?: RequestInit) => Promise.resolve(new Response("{}")),
@@ -82,6 +106,55 @@ describe("fetchUpstream", () => {
     await fetchUpstream("http://api.test/x");
 
     expect(spy.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("gives every call an eight second deadline unless told otherwise", async () => {
+    const deadline = vi.spyOn(AbortSignal, "timeout");
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("{}"))));
+
+    await fetchUpstream("http://api.test/x");
+    await fetchUpstream("http://api.test/x", { timeoutMs: 1500 });
+
+    expect(deadline.mock.calls.map(([ms]) => ms)).toEqual([8000, 1500]);
+  });
+
+  it("keeps the caller's own signal instead of adding a second deadline", async () => {
+    const spy = vi.fn(
+      (_url: string, _init?: RequestInit) => Promise.resolve(new Response("{}")),
+    );
+    vi.stubGlobal("fetch", spy);
+    const controller = new AbortController();
+
+    await fetchUpstream("http://api.test/x", { signal: controller.signal });
+
+    expect(spy.mock.calls[0][1]?.signal).toBe(controller.signal);
+  });
+
+  it("counts an aborted request as a timeout too", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+      ),
+    );
+
+    const result = await fetchUpstream("http://api.test/x");
+
+    expect(result).toEqual({ ok: false, cause: "timeout", message: "aborted" });
+  });
+
+  it("keeps the failure message for the log, and copes with a thrown string", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new TypeError("getaddrinfo ENOTFOUND api.test"))));
+    const refused = await fetchUpstream("http://api.test/x");
+    expect(refused).toEqual({
+      ok: false,
+      cause: "unreachable",
+      message: "getaddrinfo ENOTFOUND api.test",
+    });
+
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject("socket hang up")));
+    const odd = await fetchUpstream("http://api.test/x");
+    expect(odd).toEqual({ ok: false, cause: "unreachable", message: "socket hang up" });
   });
 });
 
@@ -94,7 +167,10 @@ describe("upstreamErrorResponse", () => {
     });
 
     expect(res.status).toBe(504);
-    await expect(res.json()).resolves.toMatchObject({ cause: "timeout" });
+    await expect(res.json()).resolves.toEqual({
+      error: "Upstream timed out",
+      cause: "timeout",
+    });
   });
 
   it("answers 502 when the upstream could not be reached", async () => {
@@ -105,6 +181,9 @@ describe("upstreamErrorResponse", () => {
     });
 
     expect(res.status).toBe(502);
-    await expect(res.json()).resolves.toMatchObject({ cause: "unreachable" });
+    await expect(res.json()).resolves.toEqual({
+      error: "Backend unavailable",
+      cause: "unreachable",
+    });
   });
 });

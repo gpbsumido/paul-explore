@@ -1,7 +1,8 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { DEFAULT_MAX_BYTES, parseBody } from "@/lib/parseBody";
+import { createLeagueBodySchema } from "@/lib/zeroproof/schemas";
 import { type NextRequest, NextResponse } from "next/server";
-import { API_URL, buildHeaders, withBackend } from "@/lib/backendFetch";
-import { auth0 } from "@/lib/auth0";
+import { API_URL, buildHeaders, getOptionalToken, withBackend } from "@/lib/backendFetch";
 
 // GET /api/zeroproof/leagues — discover public leagues (?q=) or resolve one by
 // invite code (?code=). Public: the list renders for signed-out visitors; a
@@ -15,12 +16,7 @@ export async function GET(request: NextRequest) {
   }
   const suffix = qs.toString() ? `?${qs}` : "";
 
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch {
-    token = undefined;
-  }
+  const token = await getOptionalToken();
 
   try {
     const result = await fetchUpstream(`${API_URL}/api/zeroproof/leagues${suffix}`, {
@@ -40,13 +36,14 @@ export async function GET(request: NextRequest) {
 
 // POST /api/zeroproof/leagues — create a league (commissioner). Auth required.
 export const POST = withBackend("zeroproof create league", async ({ token }, request) => {
-  const body = await request.json().catch(() => ({}));
+  const parsed = await parseBody(request, createLeagueBodySchema, DEFAULT_MAX_BYTES, { explainFirstIssue: true });
+  if (!parsed.ok) return parsed.response;
   const result = await fetchUpstream(`${API_URL}/api/zeroproof/leagues`, {
     method: "POST",
     // JSON content-type required, or the backend's express.json() leaves the
     // body unparsed and every field reads as missing.
     headers: buildHeaders(token, null, { "Content-Type": "application/json" }),
-    body: JSON.stringify(body),
+    body: JSON.stringify(parsed.data),
   });
   if (!result.ok) return upstreamErrorResponse(result);
   const payload = await result.response.json().catch(() => null);

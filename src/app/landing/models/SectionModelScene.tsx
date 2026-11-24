@@ -3,7 +3,7 @@
 import { useEffect, useRef, Suspense, type ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import * as THREE from "three";
 import type { OrbitControls as ThreeOrbitControls } from "three-stdlib";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -33,7 +33,7 @@ export default function SectionModelScene({
   autoRotateSpeed = 0.8,
   camera = DEFAULT_CAMERA,
 }: Props) {
-  const prefersReduced = useReducedMotion() ?? false;
+  const prefersReduced = usePrefersReducedMotion();
   const isMobile = useIsMobile();
   const orbitRef = useRef<ThreeOrbitControls>(null);
 

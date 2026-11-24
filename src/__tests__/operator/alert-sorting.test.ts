@@ -44,7 +44,7 @@ describe("sortAlertsBySeverity", () => {
     expect(sortAlertsBySeverity([])).toEqual([]);
   });
 
-  it("places critical alerts with different categories in priority order", () => {
+  it("keeps same-severity alerts of different categories in input order, behind the criticals", () => {
     const tempCritical = buildAlert({
       id: "a-temp",
       severity: "critical",
@@ -62,10 +62,8 @@ describe("sortAlertsBySeverity", () => {
       tempCritical,
       sensorCritical,
     ]);
-    // both criticals before info, relative order preserved
-    expect(sorted[0].severity).toBe("critical");
-    expect(sorted[1].severity).toBe("critical");
-    expect(sorted[2].severity).toBe("info");
+    // both criticals before info, and the two criticals keep their input order
+    expect(sorted.map((a) => a.id)).toEqual(["a-temp", "a-sensor", "a-info"]);
   });
 });
 

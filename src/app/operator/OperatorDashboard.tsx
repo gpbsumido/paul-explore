@@ -19,7 +19,6 @@ import type {
   AlertTrendBucket,
   FleetSummaryResponse,
   StoreSummary,
-  StoreStatus,
 } from "@/types/operator";
 import AlertSummaryBanner from "@/components/operator/AlertSummaryBanner";
 import FleetStatsBar from "@/components/operator/FleetStatsBar";

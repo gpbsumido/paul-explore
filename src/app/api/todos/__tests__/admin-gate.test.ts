@@ -94,4 +94,102 @@ describe("todos BFF admin gate", () => {
       (init?.headers as Record<string, string>)?.Authorization,
     ).toBe("Bearer user-token");
   });
+
+  it("passes a backend failure on the list through with its status", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(auth0.getSession).mockResolvedValue(admin);
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: true,
+      response: new Response("boom", { status: 500 }),
+    });
+    const { GET } = await import("@/app/api/todos/route");
+
+    const res = await GET(req(), undefined);
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Failed to load todos" });
+  });
+
+  it("lets an admin add a todo and answers 201 with what the backend stored", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(admin);
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: true,
+      response: new Response(JSON.stringify({ id: "t2", title: "Ship it" }), {
+        status: 201,
+      }),
+    });
+    const { POST } = await import("@/app/api/todos/route");
+
+    const res = await POST(
+      new NextRequest("http://localhost/api/todos", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ title: "Ship it", project: "portfolio" }),
+      }),
+      undefined,
+    );
+
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({ id: "t2", title: "Ship it" });
+    const [, init] = vi.mocked(fetchUpstream).mock.calls[0];
+    expect(JSON.parse(String(init?.body))).toMatchObject({ title: "Ship it", project: "portfolio" });
+  });
+
+  it("rejects an invalid new todo with 400 before calling upstream", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(admin);
+    const { POST } = await import("@/app/api/todos/route");
+
+    const res = await POST(
+      new NextRequest("http://localhost/api/todos", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      }),
+      undefined,
+    );
+
+    expect(res.status).toBe(400);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+});
+
+describe("every todos handler sits behind the admin gate", () => {
+  const ids = { params: Promise.resolve({ id: "t1", commentId: "c1" }) };
+  const body = (method: string) =>
+    new NextRequest("http://localhost/api/todos", {
+      method,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: "x" }),
+    });
+
+  const handlers: [string, () => Promise<Response>][] = [
+    ["GET /api/todos", async () => (await import("@/app/api/todos/route")).GET(req(), undefined)],
+    ["POST /api/todos", async () => (await import("@/app/api/todos/route")).POST(body("POST"), undefined)],
+    ["PATCH /api/todos/:id", async () => (await import("@/app/api/todos/[id]/route")).PATCH(body("PATCH"), ids)],
+    ["DELETE /api/todos/:id", async () => (await import("@/app/api/todos/[id]/route")).DELETE(req(), ids)],
+    ["GET /api/todos/:id/comments", async () => (await import("@/app/api/todos/[id]/comments/route")).GET(req(), ids)],
+    ["POST /api/todos/:id/comments", async () => (await import("@/app/api/todos/[id]/comments/route")).POST(body("POST"), ids)],
+    ["GET /api/todos/:id/revisions", async () => (await import("@/app/api/todos/[id]/revisions/route")).GET(req(), ids)],
+    ["POST /api/todos/:id/revert", async () => (await import("@/app/api/todos/[id]/revert/route")).POST(body("POST"), ids)],
+    ["PATCH /api/todos/comments/:commentId", async () => (await import("@/app/api/todos/comments/[commentId]/route")).PATCH(body("PATCH"), ids)],
+    ["DELETE /api/todos/comments/:commentId", async () => (await import("@/app/api/todos/comments/[commentId]/route")).DELETE(req(), ids)],
+  ];
+
+  it.each(handlers)("%s answers a non-admin with 404 and never calls upstream", async (_name, call) => {
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+
+    const res = await call();
+
+    expect(res.status).toBe(404);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it.each(handlers)("%s answers a signed-out caller with 404 and never calls upstream", async (_name, call) => {
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+
+    const res = await call();
+
+    expect(res.status).toBe(404);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
 });

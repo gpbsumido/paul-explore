@@ -1,5 +1,6 @@
 "use client";
 
+import { responseError } from "@/lib/responseError";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
@@ -9,22 +10,14 @@ import {
   formatSignedPct,
   playerHandle,
 } from "@/lib/zeroproof/format";
-import { useState } from "react";
 import {
   type LeagueDetail,
   type LeagueEspnLeague,
   leagueDetailResponseSchema,
 } from "@/lib/zeroproof/schemas";
-
-const controlClass =
-  "h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none";
-
-const GAME_LABEL: Record<string, string> = {
-  ffl: "Football",
-  fba: "Basketball",
-  flb: "Baseball",
-  fhl: "Hockey",
-};
+import { espnGameSport } from "@/lib/zeroproof/espnGames";
+import EspnLeagueForm from "../../EspnLeagueForm";
+import { primaryButtonClass } from "../../controls";
 
 async function fetchLeagueDetail(id: string): Promise<LeagueDetail> {
   const res = await fetch(`/api/zeroproof/leagues/${id}`);
@@ -46,8 +39,6 @@ function ruleLine(detail: LeagueDetail): string {
   )} to start`;
 }
 
-const primaryButtonClass =
-  "inline-flex h-9 items-center rounded-full bg-primary-600 px-4 text-sm font-medium text-white transition-colors hover:bg-primary-500 focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none disabled:opacity-60";
 
 function JoinAction({ detail }: { detail: LeagueDetail }) {
   const queryClient = useQueryClient();
@@ -59,10 +50,7 @@ function JoinAction({ detail }: { detail: LeagueDetail }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(league.joinCode ? { joinCode: league.joinCode } : {}),
       });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't join (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't join (${res.status})`);
       return res.json();
     },
     onSuccess: () => {
@@ -96,7 +84,7 @@ function JoinAction({ detail }: { detail: LeagueDetail }) {
 }
 
 function espnLeagueLine(row: LeagueEspnLeague): string {
-  const game = GAME_LABEL[row.game] ?? row.game;
+  const game = espnGameSport(row.game) ?? row.game;
   const label = row.label ? ` — ${row.label}` : "";
   return `${game} · ${row.leagueId} (${row.season})${label}`;
 }
@@ -109,116 +97,6 @@ function formatWhen(iso: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function AddEspnLeagueForm({ leagueId }: { leagueId: string }) {
-  const queryClient = useQueryClient();
-  const [game, setGame] = useState("ffl");
-  const [espnLeagueId, setEspnLeagueId] = useState("");
-  const [season, setSeason] = useState("");
-  const [label, setLabel] = useState("");
-
-  const add = useMutation({
-    mutationFn: async () => {
-      const body: Record<string, unknown> = {
-        game,
-        leagueId: espnLeagueId.trim(),
-        season: season.trim(),
-      };
-      if (label.trim()) body.label = label.trim();
-      const res = await fetch(`/api/zeroproof/leagues/${leagueId}/espn-leagues`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? `Couldn't add the league (${res.status})`);
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.league(leagueId) });
-      setEspnLeagueId("");
-      setSeason("");
-      setLabel("");
-    },
-  });
-
-  return (
-    <form
-      className="mt-3 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-surface-raised p-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        add.mutate();
-      }}
-    >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="lg-add-game" className="text-xs text-muted">
-          Sport
-        </label>
-        <select
-          id="lg-add-game"
-          value={game}
-          onChange={(event) => setGame(event.target.value)}
-          className={`${controlClass} w-32`}
-        >
-          <option value="ffl">Football</option>
-          <option value="fba">Basketball</option>
-          <option value="flb">Baseball</option>
-          <option value="fhl">Hockey</option>
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="lg-add-id" className="text-xs text-muted">
-          ESPN league id
-        </label>
-        <input
-          id="lg-add-id"
-          inputMode="numeric"
-          required
-          value={espnLeagueId}
-          onChange={(event) => setEspnLeagueId(event.target.value)}
-          placeholder="836777691"
-          className={`${controlClass} w-40`}
-        />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="lg-add-season" className="text-xs text-muted">
-          Season
-        </label>
-        <input
-          id="lg-add-season"
-          inputMode="numeric"
-          required
-          value={season}
-          onChange={(event) => setSeason(event.target.value)}
-          placeholder="2026"
-          className={`${controlClass} w-24`}
-        />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="lg-add-label" className="text-xs text-muted">
-          Label (optional)
-        </label>
-        <input
-          id="lg-add-label"
-          value={label}
-          onChange={(event) => setLabel(event.target.value)}
-          placeholder="The office league"
-          className={`${controlClass} w-52`}
-        />
-      </div>
-      <button type="submit" disabled={add.isPending} className={primaryButtonClass}>
-        {add.isPending ? "Adding…" : "Add league"}
-      </button>
-      {add.isError && (
-        <p className="w-full text-xs text-error-600 dark:text-error-300">
-          {(add.error as Error).message}
-        </p>
-      )}
-    </form>
-  );
 }
 
 function RemoveEspnLeagueButton({
@@ -235,9 +113,7 @@ function RemoveEspnLeagueButton({
         `/api/zeroproof/leagues/${leagueId}/espn-leagues/${row.id}`,
         { method: "DELETE" },
       );
-      if (!res.ok && res.status !== 204) {
-        throw new Error(`Couldn't remove the league (${res.status})`);
-      }
+      if (!res.ok) throw await responseError(res, `Couldn't remove the league (${res.status})`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.zeroproof.league(leagueId) });
@@ -295,7 +171,13 @@ function EspnLeaguesSection({ detail }: { detail: LeagueDetail }) {
           ))}
         </ul>
       )}
-      {isCommissioner && <AddEspnLeagueForm leagueId={league.id} />}
+      {isCommissioner && (
+        <EspnLeagueForm
+          endpoint={`/api/zeroproof/leagues/${league.id}/espn-leagues`}
+          listQueryKey={queryKeys.zeroproof.league(league.id)}
+          idPrefix="lg-add"
+        />
+      )}
     </section>
   );
 }

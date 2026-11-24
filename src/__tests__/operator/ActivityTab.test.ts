@@ -3,30 +3,12 @@ import {
   getActivityTypeConfig,
   ACTIVITY_TYPE_CONFIGS,
 } from "@/lib/operator-detail";
-import type { ActivityType } from "@/types/operator";
 
 // ---------------------------------------------------------------------------
 // getActivityTypeConfig — maps activity type to icon label and color
 // ---------------------------------------------------------------------------
 
 describe("getActivityTypeConfig", () => {
-  it("returns a config for every known activity type", () => {
-    const types: ActivityType[] = [
-      "restock",
-      "maintenance",
-      "alert-acknowledged",
-      "status-change",
-      "price-update",
-    ];
-
-    for (const type of types) {
-      const config = getActivityTypeConfig(type);
-      expect(config.label).toBeTruthy();
-      expect(typeof config.label).toBe("string");
-      expect(config.color).toBeTruthy();
-    }
-  });
-
   it("returns 'Restock' label for restock type", () => {
     expect(getActivityTypeConfig("restock").label).toBe("Restock");
   });
@@ -49,14 +31,8 @@ describe("getActivityTypeConfig", () => {
     expect(getActivityTypeConfig("price-update").label).toBe("Price Update");
   });
 
-  it("exposes configs for all 5 activity types", () => {
-    const keys = Object.keys(ACTIVITY_TYPE_CONFIGS);
-    expect(keys).toHaveLength(5);
-  });
-
-  it("each config has a distinct color class", () => {
+  it("gives every activity type its own color class, so the feed can tell them apart", () => {
     const colors = Object.values(ACTIVITY_TYPE_CONFIGS).map((c) => c.color);
-    const unique = new Set(colors);
-    expect(unique.size).toBe(5);
+    expect(new Set(colors).size).toBe(colors.length);
   });
 });

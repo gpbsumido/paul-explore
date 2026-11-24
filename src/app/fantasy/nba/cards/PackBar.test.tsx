@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PACK_COST } from "@/lib/fantasy-cards";
 import PackBar, { type RipSlate } from "./PackBar";
 
 const slate: RipSlate = { sport: "nba", mode: "nightly", season: "2025", date: "2026-04-17", week: null };
@@ -41,6 +42,54 @@ describe("PackBar", () => {
     renderWithClient(<PackBar slate={slate} />);
     expect(await screen.findByText("50")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Rip a pack/i })).toBeDisabled();
+  });
+
+  it("lets a rip through at exactly the pack price, and not a coin below it", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => res(200, { balance: PACK_COST, lastClaimDate: null })));
+    const { unmount } = renderWithClient(<PackBar slate={slate} />);
+    expect(await screen.findByRole("button", { name: /Rip a pack/i })).toBeEnabled();
+    unmount();
+
+    vi.stubGlobal("fetch", vi.fn(async () => res(200, { balance: PACK_COST - 1, lastClaimDate: null })));
+    renderWithClient(<PackBar slate={slate} />);
+    expect(await screen.findByRole("button", { name: /Rip a pack/i })).toBeDisabled();
+  });
+
+  it("claims the daily coins and shows the new balance", async () => {
+    let balance = 50;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/wallet/claim") && init?.method === "POST") {
+        balance = 150;
+        return res(200, { balance });
+      }
+      return res(200, { balance, lastClaimDate: null });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithClient(<PackBar slate={slate} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: /Claim daily/i }));
+
+    expect(await screen.findByText("150")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Rip a pack/i })).toBeEnabled();
+  });
+
+  it.each([
+    [402, { error: "ignored" }, /not enough coins/i],
+    [409, { error: "Nothing to draw from" }, /nothing to draw from/i],
+    [409, null, /no cards on this slate/i],
+    [500, null, /couldn.t open a pack \(500\)/i],
+  ])("explains a %i from the pack endpoint in words", async (status, body, message) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) =>
+        url.endsWith("/packs/open") ? res(status, body) : res(200, { balance: 300, lastClaimDate: null }),
+      ),
+    );
+    renderWithClient(<PackBar slate={slate} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: /Rip a pack/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
   });
 
   it("surfaces the real reason a rip fails, with the status", async () => {

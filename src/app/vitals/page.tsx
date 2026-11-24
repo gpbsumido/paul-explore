@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { API_URL } from "@/lib/apiUrl";
-import { auth0 } from "@/lib/auth0";
+import { getOptionalToken } from "@/lib/backendFetch";
 import { fetchUpstream } from "@/lib/upstream";
 import { resolveVitalsFilter } from "@/lib/vitalsFilter";
 import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
@@ -125,14 +125,8 @@ export default async function VitalsPage({
 }) {
   // Web Vitals is public. Forward the visitor's token when they have one so a
   // signed-in request stays authenticated, but a signed-out visitor is not
-  // redirected — getAccessToken throws with no session, so it degrades to an
-  // anonymous request and the fetches fall back to empty data.
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch {
-    token = undefined;
-  }
+  // redirected, it just goes through as an anonymous request.
+  const token = await getOptionalToken();
 
   const { v: urlVersion } = await searchParams;
 

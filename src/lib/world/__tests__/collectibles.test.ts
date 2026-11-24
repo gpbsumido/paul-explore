@@ -73,6 +73,15 @@ describe("findCollectible", () => {
     ).toBeNull();
   });
 
+  it("grabs a token within reach and leaves one just beyond it", () => {
+    expect(findCollectible({ x: token.x + PICKUP_RADIUS * 0.9, z: token.z }, 0, [])).toBe(token);
+    expect(findCollectible({ x: token.x + PICKUP_RADIUS * 1.1, z: token.z }, 0, [])).toBeNull();
+  });
+
+  it("lets a taller player reach an elevated token without leaving the ground", () => {
+    expect(findCollectible({ x: highToken.x, z: highToken.z }, 0, [], 1)).toBe(highToken);
+  });
+
   it("requires being airborne for an elevated token", () => {
     expect(findCollectible({ x: highToken.x, z: highToken.z }, 0, [])).toBeNull();
     expect(findCollectible({ x: highToken.x, z: highToken.z }, 1.2, [])).toBe(highToken);
@@ -92,12 +101,25 @@ describe("exploration", () => {
     expect(markVisited(first, { x: -16.4, z: -4.2 })).toBe(first);
   });
 
-  it("ignores positions outside any reachable cell bookkeeping", () => {
+  // The middle of the Rogers Centre is solid, so no one can ever stand there.
+  const insideStadium = { x: -58, z: 44 };
+
+  it("never records a cell nobody can stand in", () => {
+    expect(REACHABLE_CELLS.has(cellAt(insideStadium))).toBe(false);
+    const visited: readonly string[] = [];
+    expect(markVisited(visited, insideStadium)).toBe(visited);
+  });
+
+  it("does not credit an unreachable cell toward the percentage", () => {
+    expect(explorationPercent([cellAt(insideStadium)])).toBe(0);
+  });
+
+  it("starts the player in a reachable cell", () => {
     const spawn = cellAt({ x: -18, z: -6 });
     expect(REACHABLE_CELLS.has(spawn)).toBe(true);
   });
 
-  it("grows the percentage monotonically to a real 100", () => {
+  it("scores a partial walk above zero and a full walk at exactly 100", () => {
     const some = markVisited([], { x: -18, z: -6 });
     expect(explorationPercent(some)).toBeGreaterThan(0);
     const everywhere = [...REACHABLE_CELLS];

@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import { NflMatchupCard } from "./MatchupContent";
 import type { NflMatchup } from "@/types/espn-nfl";
 
@@ -79,10 +81,18 @@ describe("NflMatchupCard", () => {
 
   it("lists starters with their actual and projected points", () => {
     render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
-    expect(screen.getByText("Josh Allen")).toBeInTheDocument();
-    expect(screen.getByText("Bijan Robinson")).toBeInTheDocument();
-    // projected points surfaced somewhere on the card
-    expect(screen.getAllByText(/proj/i).length).toBeGreaterThan(0);
+    const allen = screen.getByText("Josh Allen").closest("[data-player-id]");
+    expect(allen).toHaveTextContent("24.5");
+    expect(allen).toHaveTextContent("proj 21");
+    const robinson = screen.getByText("Bijan Robinson").closest("[data-player-id]");
+    expect(robinson).toHaveTextContent("12");
+    expect(robinson).toHaveTextContent("proj 15");
+  });
+
+  it("projects each side's final score as points so far plus points still to play", () => {
+    render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
+    // away 24.5 + 10 remaining, home 30 + 8 remaining
+    expect(screen.getByText("proj 34.5–38")).toBeInTheDocument();
   });
 
   it("carries each full name in a title, so a truncated name reads on hover", () => {
@@ -108,5 +118,45 @@ describe("NflMatchupCard", () => {
   it("marks nobody when no play is selected", () => {
     render(<NflMatchupCard matchup={matchup} winProb={{ home: 0.62, away: 0.38 }} />);
     expect(screen.queryByText("In selected play")).not.toBeInTheDocument();
+  });
+});
+
+describe("MatchupContent default season", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // The season list is built when the module loads, so the clock has to be set
+  // before a fresh import. In January the calendar year is already 2027 but the
+  // season still running, playoffs and all, is the one that kicked off in 2026.
+  it("asks for the season that kicked off last year during the January playoffs", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2027, 0, 4));
+    vi.resetModules();
+    const requestedSeasons: string[] = [];
+    server.use(
+      http.get("/api/nfl/scoreboard/:season", ({ params }) => {
+        requestedSeasons.push(String(params.season));
+        // Failing keeps the page from going on to ask for live game clocks.
+        return new HttpResponse(null, { status: 503 });
+      }),
+    );
+    // Imported after the reset too, so the page and its providers share one
+    // copy of each context.
+    const { default: MatchupContent } = await import("./MatchupContent");
+    const { ThemeProvider } = await import("@/components/ThemeProvider");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ThemeProvider>
+          <MatchupContent />
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByLabelText("Season")).toHaveValue("2026");
+    await screen.findByRole("button", { name: "Retry" });
+    expect(requestedSeasons).toEqual(["2026"]);
   });
 });

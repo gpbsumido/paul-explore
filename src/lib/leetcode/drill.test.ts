@@ -12,6 +12,17 @@ function sequenceRandom(values: readonly number[]) {
   return () => values[index++ % values.length];
 }
 
+/** A small seeded generator (mulberry32), so a spread of shuffles is repeatable. */
+function seededRandom(seed: number) {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 describe("drillDeck", () => {
   it("has one card per problem, answered by the pattern that owns it", () => {
     const problemCount = PATTERNS.reduce((sum, p) => sum + p.problems.length, 0);
@@ -46,6 +57,28 @@ describe("nextDrillCard", () => {
       [first.problem.slug]: { step: 1, due: NOW + DAY, lastReviewed: 0, reviews: 2 },
     };
     expect(nextDrillCard({ deck, states, now: NOW })?.problem.slug).toBe(third.problem.slug);
+  });
+
+  it("treats a card that is due exactly now as due", () => {
+    const [first, second] = deck;
+    const states = {
+      [first.problem.slug]: { step: 1, due: NOW, lastReviewed: 0, reviews: 2 },
+    };
+    // second has never been seen; the due card still comes first
+    expect(deck.indexOf(second)).toBeGreaterThan(deck.indexOf(first));
+    expect(nextDrillCard({ deck, states, now: NOW })?.problem.slug).toBe(first.problem.slug);
+    expect(nextDrillCard({ deck: [second, first], states, now: NOW })?.problem.slug).toBe(
+      first.problem.slug,
+    );
+  });
+
+  it("does not skip unseen cards just because study ahead is on", () => {
+    const [first, second] = deck;
+    const states = {
+      [first.problem.slug]: { step: 1, due: NOW + DAY, lastReviewed: 0, reviews: 2 },
+    };
+    const card = nextDrillCard({ deck: [first, second], states, now: NOW, studyAhead: true });
+    expect(card?.problem.slug).toBe(second.problem.slug);
   });
 
   it("keeps to the chosen patterns", () => {
@@ -88,13 +121,42 @@ describe("buildDrillOptions", () => {
     expect(options.filter((o) => alternates.includes(o))).toEqual([]);
   });
 
-  it("does not always put the answer in the same place", () => {
+  it("puts the answer in every one of the four slots across shuffles", () => {
     const positions = new Set(
-      [0.01, 0.3, 0.6, 0.99].map((r) =>
-        buildDrillOptions({ card, patterns: PATTERNS, random: sequenceRandom([r, 0.5, r, 0.25]) }).findIndex((p) => p.id === "arrays-hashing"),
+      Array.from({ length: 60 }, (_, seed) =>
+        buildDrillOptions({ card, patterns: PATTERNS, random: seededRandom(seed) }).findIndex(
+          (p) => p.id === "arrays-hashing",
+        ),
       ),
     );
-    expect(positions.size).toBeGreaterThan(1);
+    expect([...positions].sort()).toEqual([0, 1, 2, 3]);
+  });
+
+  it("draws different distractors from the whole catalogue, not the first few", () => {
+    const seen = new Set(
+      Array.from({ length: 60 }, (_, seed) =>
+        buildDrillOptions({ card, patterns: PATTERNS, random: seededRandom(seed) }).map((p) => p.id),
+      ).flat(),
+    );
+    expect(seen.size).toBeGreaterThan(10);
+  });
+
+  it("never offers a listed alternative across any shuffle", () => {
+    const answer = PATTERNS[0];
+    const alternative = PATTERNS[1];
+    const alternateCard = {
+      patternId: answer.id,
+      problem: { ...answer.problems[0], alsoAccept: [alternative.id] },
+    };
+    for (let seed = 0; seed < 60; seed++) {
+      const options = buildDrillOptions({
+        card: alternateCard,
+        patterns: PATTERNS.slice(0, 6),
+        random: seededRandom(seed),
+      }).map((p) => p.id);
+      expect(options, `seed ${seed}`).not.toContain(alternative.id);
+      expect(options, `seed ${seed}`).toContain(answer.id);
+    }
   });
 });
 

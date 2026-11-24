@@ -56,6 +56,21 @@ function makeWrapper() {
   };
 }
 
+/**
+ * A client that keeps the real retry count and only drops the backoff. The
+ * wrapper above turns retries off, which is exactly what hid a private bracket
+ * sitting through three of them, and a query with its own retry rule ignores
+ * that setting anyway.
+ */
+function makeRetryingWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retryDelay: 0 } },
+  });
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  };
+}
+
 function setupDefaultHandlers() {
   server.use(
     http.get("/api/me", () => HttpResponse.json({ sub: "auth0|me" })),
@@ -83,19 +98,26 @@ describe("PlayoffBracketContent — submit button", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls PUT /api/nba/playoffs/picks when submit is clicked", async () => {
+  it("sends the picks that were made when submit is clicked", async () => {
     const user = userEvent.setup();
-    const handlePut = vi.fn(() => HttpResponse.json({ ok: true }));
-
+    const bodies: unknown[] = [];
     setupDefaultHandlers();
-    server.use(http.put("/api/nba/playoffs/picks", handlePut));
+    server.use(
+      http.put("/api/nba/playoffs/picks", async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json({ ok: true });
+      }),
+    );
 
     render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
 
-    await screen.findByRole("button", { name: /submit bracket/i });
+    await user.click(await screen.findByRole("button", { name: /DET/ }));
     await user.click(screen.getByRole("button", { name: /submit bracket/i }));
 
-    await waitFor(() => expect(handlePut).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toMatchObject({
+      picks: { E_R1_M1: { winner: "DET" } },
+    });
   });
 
   it("shows submitting state while PUT is in flight", async () => {
@@ -134,14 +156,21 @@ describe("PlayoffBracketContent — submit button", () => {
     ).toBeInTheDocument();
   });
 
-  it("clears the saving indicator when submit succeeds", async () => {
+  it("clears a pending saving indicator when submit succeeds", async () => {
     const user = userEvent.setup();
 
     setupDefaultHandlers();
 
     render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
 
-    await screen.findByRole("button", { name: /submit bracket/i });
+    // Auto-save marks the pick as saving straight away. Turning it back off
+    // before the debounce fires leaves "Saving…" up with nothing to resolve
+    // it, which is exactly the state a manual submit has to clean up.
+    await user.click(await screen.findByRole("checkbox", { name: /auto-save/i }));
+    await user.click(screen.getByRole("button", { name: /DET/ }));
+    expect(await screen.findByText("Saving…")).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: /auto-save/i }));
+
     await user.click(screen.getByRole("button", { name: /submit bracket/i }));
 
     await screen.findByRole("button", { name: "Submitted!" });
@@ -231,5 +260,176 @@ describe("PlayoffBracketContent — signed out", () => {
 
     await screen.findByText(/Detroit Pistons|DET/);
     expect(pickReads).toBe(0);
+  });
+});
+
+describe("PlayoffBracketContent — share link", () => {
+  function withUsername() {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/leaderboard", () =>
+        HttpResponse.json({
+          entries: [
+            {
+              rank: 1,
+              sub: "auth0|me",
+              bracketId: "b1",
+              username: "paul",
+              displayName: "Paul",
+              score: 0,
+              maxScore: 0,
+              roundBreakdown: [],
+            },
+          ],
+        }),
+      ),
+    );
+  }
+
+  it("says the link was copied", async () => {
+    withUsername();
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText");
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+
+    await user.click(await screen.findByTitle("Copy bracket link"));
+
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/fantasy/nba/playoffs?view=paul`,
+    );
+    expect(await screen.findByText("Copied!")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Link copied.");
+    expect(
+      screen.queryByRole("textbox", { name: /copy it by hand/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says the copy failed when the clipboard refuses", async () => {
+    withUsername();
+    const user = userEvent.setup();
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+
+    await user.click(await screen.findByTitle("Copy bracket link"));
+
+    expect(await screen.findByText("Copy failed")).toBeInTheDocument();
+    expect(screen.queryByText("Copied!")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/couldn.t copy/i);
+  });
+
+  it("puts the link in a field to copy by hand when the clipboard refuses", async () => {
+    withUsername();
+    const user = userEvent.setup();
+    render(<PlayoffBracketContent />, { wrapper: makeWrapper() });
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+
+    await user.click(await screen.findByTitle("Copy bracket link"));
+
+    const field = await screen.findByRole("textbox", { name: /copy it by hand/i });
+    expect(field).toHaveValue(
+      `${window.location.origin}/fantasy/nba/playoffs?view=paul`,
+    );
+    expect(field).toHaveAttribute("readonly");
+  });
+});
+
+describe("PlayoffBracketContent — viewing someone else's bracket", () => {
+  function viewingPaul() {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/paul", () =>
+        HttpResponse.json({ picks: {} }),
+      ),
+    );
+  }
+
+  it("says Copy Link failed, out loud, and offers the link by hand", async () => {
+    viewingPaul();
+    const user = userEvent.setup();
+    render(<PlayoffBracketContent viewUsername="paul" />, {
+      wrapper: makeWrapper(),
+    });
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("denied", "NotAllowedError"),
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Copy Link" }));
+
+    expect(
+      await screen.findByRole("button", { name: "Copy failed" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/couldn.t copy/i);
+    expect(
+      screen.getByRole("textbox", { name: /copy it by hand/i }),
+    ).toHaveValue(window.location.href);
+  });
+});
+
+describe("PlayoffBracketContent — viewing someone else's bracket", () => {
+  it("says the bracket isn't public when there isn't one", async () => {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/:sub", () =>
+        HttpResponse.json({ picks: null }, { status: 404 }),
+      ),
+    );
+    render(<PlayoffBracketContent viewUsername="paul" />, { wrapper: makeWrapper() });
+
+    expect(
+      await screen.findByText("This bracket isn’t publicly available yet."),
+    ).toBeInTheDocument();
+  });
+
+  it("says the picks couldn't load when the backend is down, not that they're private", async () => {
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/:sub", () =>
+        HttpResponse.json({ error: "Couldn't load these picks right now" }, { status: 502 }),
+      ),
+    );
+    render(<PlayoffBracketContent viewUsername="paul" />, { wrapper: makeRetryingWrapper() });
+
+    expect(await screen.findByText("Couldn't load these picks right now")).toBeInTheDocument();
+    expect(screen.queryByText("This bracket isn’t publicly available yet.")).not.toBeInTheDocument();
+  });
+});
+
+describe("PlayoffBracketContent — retrying someone else's picks", () => {
+  function countPickReads(status: number, body: object) {
+    const reads = { count: 0 };
+    setupDefaultHandlers();
+    server.use(
+      http.get("/api/nba/playoffs/picks/:sub", () => {
+        reads.count += 1;
+        return HttpResponse.json(body, { status });
+      }),
+    );
+    return reads;
+  }
+
+  it("asks once for a private bracket, since asking again won't make it public", async () => {
+    const reads = countPickReads(404, { picks: null });
+    render(<PlayoffBracketContent viewUsername="paul" />, {
+      wrapper: makeRetryingWrapper(),
+    });
+
+    expect(
+      await screen.findByText("This bracket isn’t publicly available yet."),
+    ).toBeInTheDocument();
+    expect(reads.count).toBe(1);
+  });
+
+  it("still retries an outage before saying the picks couldn't load", async () => {
+    const reads = countPickReads(502, { error: "Couldn't load these picks right now" });
+    render(<PlayoffBracketContent viewUsername="paul" />, {
+      wrapper: makeRetryingWrapper(),
+    });
+
+    expect(await screen.findByText("Couldn't load these picks right now")).toBeInTheDocument();
+    expect(reads.count).toBe(4);
   });
 });

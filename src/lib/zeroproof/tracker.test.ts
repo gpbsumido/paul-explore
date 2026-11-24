@@ -15,12 +15,15 @@ import {
 function harness(overrides?: {
   send?: (events: TrackEvent[]) => Promise<number>;
   limits?: Partial<{ maxEvents: number; maxBytes: number; maxAgeMs: number }>;
+  /** Events already persisted, as if restored after a reload. */
+  initialQueue?: TrackEvent[];
 }) {
   const timers: { fn: () => void; ms: number }[] = [];
   const saved: TrackEvent[][] = [];
-  let stored: TrackEvent[] = [];
+  let stored: TrackEvent[] = overrides?.initialQueue ?? [];
   const store: QueueStore = {
-    load: () => stored,
+    // A copy, like localStorage hands back, so the tracker can't mutate what is persisted.
+    load: () => [...stored],
     save: (events) => {
       stored = [...events];
       saved.push(stored);
@@ -55,10 +58,32 @@ function harness(overrides?: {
     send,
     beacon,
     timers,
+    persisted: () => stored,
     advance: (ms: number) => {
       clock += ms;
     },
   };
+}
+
+const persistedEvent = (seq: number): TrackEvent => ({
+  eventUuid: `restored-${seq}`,
+  name: "page_view",
+  page: "/zeroproof",
+  seq,
+  sessionId: "sess-1",
+  anonId: "anon-hash",
+  clientTs: "2026-09-29T00:00:00.000Z",
+  appVersion: "7.9.3",
+});
+
+/** A send the test settles by hand, to hold a request in flight. */
+function deferredSend() {
+  const resolvers: ((status: number) => void)[] = [];
+  const send = (): Promise<number> =>
+    new Promise((resolve) => {
+      resolvers.push(resolve);
+    });
+  return { send, settle: (index: number, status: number) => resolvers[index]?.(status) };
 }
 
 describe("isRetryableStatus", () => {
@@ -70,6 +95,7 @@ describe("isRetryableStatus", () => {
     expect(isRetryableStatus(400)).toBe(false);
     expect(isRetryableStatus(413)).toBe(false);
     expect(isRetryableStatus(200)).toBe(false);
+    expect(isRetryableStatus(600)).toBe(false);
   });
 });
 
@@ -173,10 +199,97 @@ describe("tracker", () => {
   });
 
   it("resumes the sequence from a queue restored across a reload", () => {
+    const { tracker } = harness({
+      limits: { maxEvents: 100 },
+      initialQueue: [persistedEvent(6), persistedEvent(7)],
+    });
+    tracker.track("page_view", "/zeroproof/leagues");
+    // Continues after the restored events instead of restarting at 1.
+    expect(tracker.pending().map((e) => e.seq)).toEqual([6, 7, 8]);
+  });
+
+  it("clears the persisted copy once the server has accepted the batch", async () => {
+    const { tracker, persisted } = harness({ limits: { maxEvents: 100 } });
+    tracker.track("page_view", "/zeroproof");
+    await tracker.flush();
+    expect(persisted()).toEqual([]);
+  });
+
+  it("persists each event as it is tracked, so a reload keeps it", () => {
+    const { tracker, persisted } = harness({ limits: { maxEvents: 100 } });
+    tracker.track("page_view", "/zeroproof");
+    expect(persisted().map((e) => e.name)).toEqual(["page_view"]);
+  });
+
+  it("stamps the client time from the injected clock", () => {
     const { tracker } = harness({ limits: { maxEvents: 100 } });
     tracker.track("page_view", "/zeroproof");
-    tracker.track("page_view", "/zeroproof/leagues");
-    // A fresh tracker over the same store (a reload) continues, not restarts.
-    expect(tracker.pending().map((e) => e.seq)).toEqual([1, 2]);
+    expect(tracker.pending()[0]?.clientTs).toBe(new Date(1_000).toISOString());
+  });
+
+  it("does not resend a batch that is already in flight", async () => {
+    const pending = deferredSend();
+    const { tracker, send } = harness({ send: pending.send });
+    tracker.track("page_view", "/zeroproof");
+    const first = tracker.flush();
+    const second = tracker.flush();
+    pending.settle(0, 202);
+    await Promise.all([first, second]);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it("removes only the batch that was sent, not events tracked while it was in flight", async () => {
+    const pending = deferredSend();
+    const { tracker } = harness({ send: pending.send, limits: { maxEvents: 100 } });
+    tracker.track("page_view", "/zeroproof");
+    const flushing = tracker.flush();
+    tracker.track("cta_click", "/zeroproof");
+    pending.settle(0, 202);
+    await flushing;
+    expect(tracker.pending().map((e) => e.name)).toEqual(["cta_click"]);
+  });
+
+  it("sends what piled up behind a batch as soon as it lands, if that is already a full batch", async () => {
+    const pending = deferredSend();
+    const { tracker, send } = harness({ send: pending.send, limits: { maxEvents: 2 } });
+    tracker.track("page_view", "/a");
+    tracker.track("page_view", "/b");
+    expect(send).toHaveBeenCalledTimes(1);
+    tracker.track("page_view", "/c");
+    tracker.track("page_view", "/d");
+    pending.settle(0, 202);
+    await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2));
+    expect(send.mock.calls[1]?.[0].map((e) => e.page)).toEqual(["/c", "/d"]);
+  });
+
+  it("backs off further on each consecutive failure, and starts over after a success", async () => {
+    const statuses = [503, 503, 202, 503];
+    const { tracker, timers } = harness({ send: async () => statuses.shift() ?? 202 });
+    tracker.track("page_view", "/zeroproof");
+    await tracker.flush();
+    // random() is 0, so the delay is half the ceiling: 1s base doubled once.
+    expect(timers.at(-1)?.ms).toBe(1_000);
+    await tracker.flush();
+    expect(timers.at(-1)?.ms).toBe(2_000);
+    await tracker.flush();
+    tracker.track("page_view", "/zeroproof");
+    await tracker.flush();
+    expect(timers.at(-1)?.ms).toBe(1_000);
+  });
+
+  it("starts the age clock fresh for events tracked after the queue emptied", async () => {
+    const { tracker, send, advance } = harness();
+    tracker.track("page_view", "/zeroproof");
+    await tracker.flush();
+    advance(60_000);
+    tracker.track("page_view", "/zeroproof");
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it("counts the age of restored events from when the tracker started", () => {
+    const { tracker, send, advance } = harness({ initialQueue: [persistedEvent(1)] });
+    advance(6_000);
+    tracker.track("page_view", "/zeroproof");
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });

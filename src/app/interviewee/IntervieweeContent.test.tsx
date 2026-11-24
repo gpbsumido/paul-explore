@@ -16,11 +16,27 @@ vi.mock("@/components/PageShell", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const topic = { id: "t1", title: "Topic One", summary: "s", entries: [{ question: "q", points: ["p"] }], related: [] };
+const topic = {
+  id: "t1",
+  title: "Topic One",
+  summary: "s",
+  entries: [{ question: "q", points: ["p"] }],
+  related: [],
+};
 
 const INTERVIEWS: Interview[] = [
-  { id: "sardine-2-hiring-manager", title: "Sardine Interview 2: Hiring manager", summary: "Senior frontend deep dive.", topics: [topic] },
-  { id: "general", title: "General practice", summary: "Warm-up.", topics: [topic, { ...topic, id: "t2" }] },
+  {
+    id: "sardine-2-hiring-manager",
+    title: "Sardine Interview 2: Hiring manager",
+    summary: "Senior frontend deep dive.",
+    topics: [topic],
+  },
+  {
+    id: "general",
+    title: "General practice",
+    summary: "Warm-up.",
+    topics: [topic, { ...topic, id: "t2" }],
+  },
 ];
 
 beforeEach(() => {
@@ -55,6 +71,18 @@ describe("IntervieweeContent", () => {
     expect(screen.getByText("0/2 reviewed")).toBeInTheDocument();
   });
 
+  it("counts only the topics marked reviewed, per interview", () => {
+    window.localStorage.setItem(
+      "interviewee-answered",
+      JSON.stringify({
+        reviewed: { "general/t2": 1000, "other-interview/t1": 1000 },
+      }),
+    );
+    render(<IntervieweeContent interviews={INTERVIEWS} />);
+    expect(screen.getByText("1/2 reviewed")).toBeInTheDocument();
+    expect(screen.getByText("0/1 reviewed")).toBeInTheDocument();
+  });
+
   it("offers the search combobox and the review-sync panel", () => {
     render(<IntervieweeContent interviews={INTERVIEWS} />);
     expect(screen.getByRole("combobox")).toBeInTheDocument();
@@ -64,7 +92,9 @@ describe("IntervieweeContent", () => {
   });
 
   it("has no accessibility violations", async () => {
-    const { container } = render(<IntervieweeContent interviews={INTERVIEWS} />);
+    const { container } = render(
+      <IntervieweeContent interviews={INTERVIEWS} />,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 });

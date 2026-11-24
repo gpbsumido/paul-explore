@@ -130,7 +130,7 @@ export function useCalendarEvents({
       const tempEvent: CalendarEvent = { ...event, id: crypto.randomUUID() };
       queryClient.setQueryData(
         eventsKey,
-        (prev: CalendarEvent[] | undefined) => [...(prev ?? []), tempEvent],
+        (prev: CalendarEvent[] | undefined) => [...(prev ?? initialEvents ?? []), tempEvent],
       );
       return { snapshot };
     },
@@ -162,7 +162,7 @@ export function useCalendarEvents({
       queryClient.setQueryData(
         eventsKey,
         (prev: CalendarEvent[] | undefined) =>
-          (prev ?? []).map((e) => (e.id === id ? { ...e, ...fields } : e)),
+          (prev ?? initialEvents ?? []).map((e) => (e.id === id ? { ...e, ...fields } : e)),
       );
       return { snapshot };
     },
@@ -188,7 +188,7 @@ export function useCalendarEvents({
       queryClient.setQueryData(
         eventsKey,
         (prev: CalendarEvent[] | undefined) =>
-          (prev ?? []).filter((e) => e.id !== id),
+          (prev ?? initialEvents ?? []).filter((e) => e.id !== id),
       );
       return { snapshot };
     },

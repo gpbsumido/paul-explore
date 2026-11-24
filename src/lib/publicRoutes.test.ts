@@ -34,6 +34,11 @@ describe("isIndexableRoute", () => {
   it("drops the dev-only skeleton pages", () => {
     expect(isIndexableRoute("/dev/skeletons")).toBe(false);
     expect(isIndexableRoute("/dev/v4")).toBe(false);
+    expect(isIndexableRoute("/dev")).toBe(false);
+  });
+
+  it("only treats /dev as dev when it is a whole path segment", () => {
+    expect(isIndexableRoute("/developers")).toBe(true);
   });
 
   it("drops anything behind a login, which a crawler can only ever get a redirect from", () => {

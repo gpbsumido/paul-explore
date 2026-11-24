@@ -1,8 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { counterpartFor } from "./featureThoughts";
 import { FEATURES } from "@/app/_shared/featureData";
 
 const paired = FEATURES.filter((f) => f.thoughtsHref);
+
+afterEach(() => {
+  vi.doUnmock("@/app/_shared/featureData.data");
+  vi.resetModules();
+});
 
 describe("counterpartFor", () => {
   it("sends a feature page to its write-up", () => {
@@ -42,8 +47,26 @@ describe("counterpartFor", () => {
     expect(counterpartFor("/")).toBeNull();
   });
 
-  it("has no counterpart for a feature without a write-up", () => {
-    const unpaired = FEATURES.find((f) => !f.thoughtsHref);
-    if (unpaired) expect(counterpartFor(unpaired.href)).toBeNull();
+  it("has no counterpart for a feature without a write-up", async () => {
+    // Every real feature has a write-up today, so give the lookup one that doesn't.
+    vi.resetModules();
+    vi.doMock("@/app/_shared/featureData.data", () => ({
+      FEATURES: [
+        { id: "bare", title: "Bare", href: "/bare", description: "", color: "#000000" },
+      ],
+    }));
+    const { counterpartFor: isolatedCounterpartFor } = await import("./featureThoughts");
+
+    expect(isolatedCounterpartFor("/bare")).toBeNull();
+    expect(isolatedCounterpartFor("/thoughts/bare")).toBeNull();
+  });
+
+  it.each([
+    { path: "/to-do", expected: { href: "/thoughts/to-do", title: "The To-Do List", direction: "to-thoughts" } },
+    { path: "/thoughts/to-do", expected: { href: "/to-do", title: "The To-Do List", direction: "to-feature" } },
+    { path: "/graphql", expected: { href: "/thoughts/graphql", title: "GraphQL Pok\u00e9dex", direction: "to-thoughts" } },
+    { path: "/thoughts/interviewee", expected: { href: "/interviewee", title: "Interviewee", direction: "to-feature" } },
+  ])("pairs the unlisted page $path with its counterpart", ({ path, expected }) => {
+    expect(counterpartFor(path)).toEqual(expected);
   });
 });

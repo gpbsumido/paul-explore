@@ -1,98 +1,107 @@
-import { describe, it, expect } from "vitest";
+import { createElement } from "react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   categorizeStock,
   computeInventorySummary,
-  type StockStatus,
 } from "@/lib/operator-detail";
+import InventoryRow from "@/components/operator/InventoryRow";
 import { buildInventoryItem } from "@/test/factories/operator";
 import type { InventoryItem } from "@/types/operator";
 
+vi.mock("recharts", async (importOriginal) => {
+  const { withFixedChartSize } = await import("@/test/chartSize");
+  return withFixedChartSize(await importOriginal<typeof import("recharts")>());
+});
+
 // ---------------------------------------------------------------------------
-// These tests verify the integration-level behavior that the InventoryTab
-// component relies on: which items qualify for restocking, which get visual
-// urgency treatment, and how summary stats reflect a realistic inventory mix.
+// These tests verify the behavior the InventoryTab rows rely on: which items
+// qualify for restocking, which get visual urgency treatment, and how summary
+// stats reflect a realistic inventory mix. The row cases render the real
+// InventoryRow, so a change to its button, badge or border is what fails.
 // ---------------------------------------------------------------------------
 
-// mirrors the component's restock button disable logic
-function isRestockDisabled(item: InventoryItem): boolean {
-  return categorizeStock(item.currentStock, item.capacity) === "healthy";
+/** Renders one row and hands back the spy that watches its Restock button. */
+function renderRow(
+  item: InventoryItem,
+  props: { isRestocking?: boolean; isRestocked?: boolean } = {},
+) {
+  const onRestock = vi.fn();
+  const { container } = render(
+    createElement(InventoryRow, {
+      item,
+      onRestock,
+      isRestocking: false,
+      ...props,
+    }),
+  );
+  return { onRestock, row: container.firstElementChild };
 }
 
-// mirrors the component's red left border logic
-function hasUrgentBorder(item: InventoryItem): boolean {
-  const status = categorizeStock(item.currentStock, item.capacity);
-  return status === "critical" || status === "out-of-stock";
-}
-
-const BADGE_LABELS: Record<StockStatus, string> = {
-  healthy: "Healthy",
-  low: "Low",
-  critical: "Critical",
-  "out-of-stock": "Out of Stock",
-};
-
 // ---------------------------------------------------------------------------
-// Restock button eligibility
+// One row per stock status
 // ---------------------------------------------------------------------------
 
-describe("restock button eligibility", () => {
-  it("is enabled for out-of-stock items", () => {
-    const item = buildInventoryItem({ currentStock: 0, capacity: 12 });
-    expect(isRestockDisabled(item)).toBe(false);
+describe("inventory row by stock status", () => {
+  it.each([
+    ["out of stock", 0, "Out of Stock", true, true],
+    ["critical", 1, "Critical", true, true],
+    ["low", 4, "Low", true, false],
+    ["healthy", 10, "Healthy", false, false],
+  ])(
+    "an item that is %s shows its badge, offers a restock only if it needs one, and flags urgency only when critical",
+    (_name, currentStock, badge, canRestock, hasUrgentBorder) => {
+      const { row } = renderRow(buildInventoryItem({ currentStock, capacity: 12 }));
+
+      expect(screen.getByText(badge)).toBeInTheDocument();
+      const restock = screen.getByRole("button", { name: "Restock" });
+      if (canRestock) expect(restock).toBeEnabled();
+      else expect(restock).toBeDisabled();
+      if (hasUrgentBorder) expect(row).toHaveClass("border-l-error-500");
+      else expect(row).not.toHaveClass("border-l-error-500");
+    },
+  );
+
+  it("asks to restock the item it shows when Restock is clicked", async () => {
+    const { onRestock } = renderRow(
+      buildInventoryItem({ id: "item-7", currentStock: 1, capacity: 12 }),
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Restock" }));
+
+    expect(onRestock).toHaveBeenCalledExactlyOnceWith("item-7");
   });
 
-  it("is enabled for critical items", () => {
-    const item = buildInventoryItem({ currentStock: 1, capacity: 12 });
-    expect(isRestockDisabled(item)).toBe(false);
+  it("disables the button while that restock is in flight", () => {
+    renderRow(buildInventoryItem({ currentStock: 1, capacity: 12 }), { isRestocking: true });
+
+    expect(screen.getByRole("button", { name: "Restocking..." })).toBeDisabled();
   });
 
-  it("is enabled for low items", () => {
-    const item = buildInventoryItem({ currentStock: 4, capacity: 12 });
-    expect(isRestockDisabled(item)).toBe(false);
-  });
+  it("swaps the button for a Restocked note once it is done", () => {
+    renderRow(buildInventoryItem({ currentStock: 12, capacity: 12 }), { isRestocked: true });
 
-  it("is disabled for healthy items", () => {
-    const item = buildInventoryItem({ currentStock: 10, capacity: 12 });
-    expect(isRestockDisabled(item)).toBe(true);
+    expect(screen.getByText("Restocked")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /restock/i })).not.toBeInTheDocument();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Urgent border treatment
+// Where one status turns into the next
 // ---------------------------------------------------------------------------
 
-describe("urgent border treatment", () => {
-  it("applies to out-of-stock items", () => {
-    const item = buildInventoryItem({ currentStock: 0, capacity: 12 });
-    expect(hasUrgentBorder(item)).toBe(true);
-  });
-
-  it("applies to critical items", () => {
-    const item = buildInventoryItem({ currentStock: 1, capacity: 12 });
-    expect(hasUrgentBorder(item)).toBe(true);
-  });
-
-  it("does not apply to low items", () => {
-    const item = buildInventoryItem({ currentStock: 4, capacity: 12 });
-    expect(hasUrgentBorder(item)).toBe(false);
-  });
-
-  it("does not apply to healthy items", () => {
-    const item = buildInventoryItem({ currentStock: 10, capacity: 12 });
-    expect(hasUrgentBorder(item)).toBe(false);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Badge label assignment
-// ---------------------------------------------------------------------------
-
-describe("badge label assignment", () => {
-  it("maps each stock status to a user-facing label", () => {
-    expect(BADGE_LABELS["healthy"]).toBe("Healthy");
-    expect(BADGE_LABELS["low"]).toBe("Low");
-    expect(BADGE_LABELS["critical"]).toBe("Critical");
-    expect(BADGE_LABELS["out-of-stock"]).toBe("Out of Stock");
+describe("categorizeStock thresholds", () => {
+  it.each([
+    [0, 12, "out-of-stock"],
+    [1, 12, "critical"],
+    [19, 100, "critical"],
+    [2, 10, "low"],
+    [5, 12, "low"],
+    [6, 12, "healthy"],
+    [12, 12, "healthy"],
+  ])("%i of %i is %s", (currentStock, capacity, status) => {
+    expect(categorizeStock(currentStock, capacity)).toBe(status);
   });
 });
 
@@ -126,5 +135,13 @@ describe("summary with realistic inventory mix", () => {
   it("counts all items regardless of status", () => {
     const summary = computeInventorySummary(realisticInventory);
     expect(summary.totalItems).toBe(6);
+  });
+
+  it("reports zeros, not NaN, for a store with no inventory", () => {
+    expect(computeInventorySummary([])).toEqual({
+      totalItems: 0,
+      needsRestock: 0,
+      fillPercentage: 0,
+    });
   });
 });

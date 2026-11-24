@@ -8,6 +8,10 @@ import { parseBody } from "@/lib/parseBody";
  * server-side in RISK_API_URL and the browser never deals with CORS.
  */
 
+// Shorter than UPSTREAM_TIMEOUT_MS: scoring one transaction is a single lookup,
+// and the demo is a button someone is waiting on.
+const RISK_TIMEOUT_MS = 5_000;
+
 const riskTransactionBodySchema = z.object({
   id: z.string().optional(),
   user_id: z.string().min(1),
@@ -37,7 +41,7 @@ export async function POST(request: NextRequest) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyResult.data),
       cache: "no-store",
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(RISK_TIMEOUT_MS),
     });
     const data = await res
       .json()

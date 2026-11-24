@@ -39,6 +39,15 @@ function pairState(
 const dist = (s: SimState) =>
   Math.hypot(s.nodes[0].x - s.nodes[1].x, s.nodes[0].y - s.nodes[1].y);
 
+/** Default physics with every force switched off except the ones named. */
+const only = (...forces: ("repulsion" | "spring" | "gravity" | "collision")[]) => ({
+  ...DEFAULT_PARAMS,
+  repulsion: forces.includes("repulsion") ? DEFAULT_PARAMS.repulsion : 0,
+  spring: forces.includes("spring") ? DEFAULT_PARAMS.spring : 0,
+  gravity: forces.includes("gravity") ? DEFAULT_PARAMS.gravity : 0,
+  collision: forces.includes("collision") ? DEFAULT_PARAMS.collision : 0,
+});
+
 describe("createSimState", () => {
   it("pins the root at the origin with no velocity", () => {
     const s = createSimState(data);
@@ -161,6 +170,102 @@ describe("forces", () => {
   });
 });
 
+describe("each force on its own", () => {
+  it("repulsion alone pushes two nodes apart, and more gently the further apart they are", () => {
+    const near = pairState(0, 0, 100, 0);
+    const far = pairState(0, 0, 400, 0);
+    stepSimulation(near, only("repulsion"));
+    stepSimulation(far, only("repulsion"));
+
+    expect(dist(near)).toBeGreaterThan(100);
+    expect(dist(far)).toBeGreaterThan(400);
+    expect(dist(near) - 100).toBeGreaterThan(dist(far) - 400);
+  });
+
+  it("collision alone pushes overlapping nodes apart and leaves clear ones where they are", () => {
+    const overlapping = pairState(0, 0, 10, 0);
+    const clear = pairState(0, 0, 500, 0);
+    stepSimulation(overlapping, only("collision"));
+    stepSimulation(clear, only("collision"));
+
+    expect(dist(overlapping)).toBeGreaterThan(10);
+    expect(dist(clear)).toBeCloseTo(500, 10);
+  });
+
+  it("collision keeps a bigger gap on a screen that is zoomed in", () => {
+    const zoomedOut = pairState(0, 0, 10, 0);
+    const zoomedIn = pairState(0, 0, 10, 0);
+    stepSimulation(zoomedOut, only("collision"), 0.5);
+    stepSimulation(zoomedIn, only("collision"), 2);
+
+    // The same on-screen padding is a bigger span of sim space when zoomed out.
+    expect(dist(zoomedOut)).toBeGreaterThan(dist(zoomedIn));
+  });
+
+  it("collision gives a labelled node room for its label, and the hovered node extra", () => {
+    const plain = pairState(0, 0, 40, 0);
+    const labelled = pairState(0, 0, 40, 0);
+    labelled.nodes[0].labelHalf = 80;
+    labelled.labeled.add(0);
+    const focused = pairState(0, 0, 40, 0);
+    focused.focus = 0;
+
+    stepSimulation(plain, only("collision"));
+    stepSimulation(labelled, only("collision"));
+    stepSimulation(focused, only("collision"));
+
+    expect(dist(labelled)).toBeGreaterThan(dist(plain));
+    expect(dist(focused)).toBeGreaterThan(dist(plain));
+  });
+
+  it("a spring pushes two connected nodes that are closer than its rest length apart", () => {
+    const s = pairState(0, 0, 20, 0, true); // rest length is 100
+    stepSimulation(s, only("spring"));
+    expect(dist(s)).toBeGreaterThan(20);
+  });
+
+  it("a spring pulls far-apart connected nodes together", () => {
+    const s = pairState(-400, 0, 400, 0, true);
+    stepSimulation(s, only("spring"));
+    expect(dist(s)).toBeLessThan(800);
+  });
+
+  it("a spring leaves two connected nodes at their rest length alone", () => {
+    const s = pairState(0, 0, 100, 0, true);
+    stepSimulation(s, only("spring"));
+    expect(dist(s)).toBeCloseTo(100, 10);
+  });
+
+  it("gravity alone pulls a node toward the origin from any side", () => {
+    for (const [x, y] of [[300, 0], [-300, 0], [0, 300], [0, -300]]) {
+      const s = pairState(x, y, 5000, 5000);
+      stepSimulation(s, only("gravity"));
+      expect(Math.hypot(s.nodes[0].x, s.nodes[0].y), `${x},${y}`).toBeLessThan(300);
+    }
+  });
+
+  it("sets a node that is past the edge heading back inward, not just snapped onto it", () => {
+    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    const s = pairState(900, 0, -2000, -2000);
+
+    stepSimulation(s, only(), 1, null, bounds);
+
+    expect(s.nodes[0].x).toBe(bounds.xMax);
+    expect(s.nodes[0].vx).toBeLessThan(0);
+  });
+
+  it("clamps a node that overshoots the bounds back onto the edge, and stops it moving outward", () => {
+    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    const s = pairState(390, 0, -2000, -2000);
+    s.nodes[0].vx = 500; // flung hard at the right edge
+
+    stepSimulation(s, only(), 1, null, bounds);
+
+    expect(s.nodes[0].x).toBe(bounds.xMax);
+    expect(s.nodes[0].vx).toBe(0);
+  });
+});
+
 describe("cooling and pinning", () => {
   it("decays alpha toward its floor and keeps positions finite", () => {
     const s = createSimState(data);
@@ -170,6 +275,16 @@ describe("cooling and pinning", () => {
       expect(Number.isFinite(n.x)).toBe(true);
       expect(Number.isFinite(n.y)).toBe(true);
     }
+  });
+
+  it("cools by exactly the decay rate each tick, and never below the floor", () => {
+    const s = createSimState(data);
+    stepSimulation(s, DEFAULT_PARAMS);
+    expect(s.alpha).toBeCloseTo(1 - DEFAULT_PARAMS.alphaDecay, 10);
+
+    s.alpha = DEFAULT_PARAMS.minAlpha;
+    stepSimulation(s, DEFAULT_PARAMS);
+    expect(s.alpha).toBe(DEFAULT_PARAMS.minAlpha);
   });
 
   it("never moves the pinned root", () => {
@@ -212,5 +327,41 @@ describe("radialLayout", () => {
     const points = s.nodes.map((n) => `${Math.round(n.x)},${Math.round(n.y)}`);
     // the vast majority land on unique coordinates
     expect(new Set(points).size).toBeGreaterThan(s.nodes.length * 0.8);
+  });
+
+  it("puts every hub and category on one inner ring and their leaves on a wider outer ring", () => {
+    const s = createSimState(data);
+    radialLayout(s, data);
+    const radiusOf = (id: string) => {
+      const node = s.nodes[s.index.get(id)!];
+      return Math.hypot(node.x, node.y);
+    };
+
+    const hubs = data.nodes.filter((n) => n.kind === "hub" || n.kind === "category");
+    for (const hub of hubs) {
+      expect(radiusOf(hub.id), hub.label).toBeCloseTo(200, 5);
+      for (const edge of data.edges.filter((e) => e.source === hub.id)) {
+        expect(radiusOf(edge.target), `${hub.label} > ${edge.target}`).toBeCloseTo(460, 5);
+      }
+    }
+  });
+
+  it("starts the first hub at the top and spaces the hubs evenly around the ring", () => {
+    const s = createSimState(data);
+    radialLayout(s, data);
+    const hubs = data.nodes.filter((n) => n.kind === "hub" || n.kind === "category");
+    const first = s.nodes[s.index.get(hubs[0].id)!];
+    expect(first.x).toBeCloseTo(0, 5);
+    expect(first.y).toBeCloseTo(-200, 5);
+
+    const angles = hubs.map((hub) => {
+      const node = s.nodes[s.index.get(hub.id)!];
+      return Math.atan2(node.y, node.x);
+    });
+    const step = (2 * Math.PI) / hubs.length;
+    angles.slice(1).forEach((angle, i) => {
+      const gap = (((angle - angles[i]) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      expect(gap).toBeCloseTo(step, 5);
+    });
   });
 });

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act, renderHook } from "@testing-library/react";
 import { scrambleFrame, useTextScramble } from "./useTextScramble";
 
 // Reduced motion comes from a context provider, so the honest way to flip it in
@@ -7,13 +7,25 @@ import { scrambleFrame, useTextScramble } from "./useTextScramble";
 // reachable from the hoisted factory without resetting the module registry,
 // which would pull in a second React copy and break every hook call.
 const mocks = vi.hoisted(() => ({ reduced: false }));
-vi.mock("@/app/providers", () => ({
-  useHubReducedMotion: () => mocks.reduced,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reduced,
 }));
 
 beforeEach(() => {
   mocks.reduced = false;
+  vi.useFakeTimers();
 });
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+/** Moves the fake clock, and the animation frames that ride on it, forward. */
+const advance = (ms: number) =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
 
 const CHARSET = "ABC";
 
@@ -95,13 +107,86 @@ describe("scrambleFrame", () => {
   });
 });
 
+describe("scrambleFrame glyph choice", () => {
+  it("maps each random draw onto its own charset position, all the way to the last glyph", () => {
+    const draws = [0, 0.4, 0.999];
+    const frame = scrambleFrame({
+      text: "xyz",
+      revealed: 0,
+      charset: "ABC",
+      random: () => draws.shift() ?? 0,
+    });
+    expect(frame).toBe("ABC");
+  });
+});
+
 describe("useTextScramble", () => {
-  it("settles on the source text", async () => {
+  it("churns the unsettled letters, then settles on the source text", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
     const { result } = renderHook(() =>
-      useTextScramble({ text: "ember", trigger: "mount", speedMs: 1 }),
+      useTextScramble({ text: "ember", trigger: "mount", speedMs: 100 }),
     );
 
-    await waitFor(() => expect(result.current.display).toBe("ember"));
+    // 150ms in, one letter has settled and the rest are glyphs from the charset.
+    await advance(150);
+    expect(result.current.isScrambling).toBe(true);
+    expect(result.current.display).toBe("eAAAA");
+
+    await advance(1000);
+    expect(result.current.display).toBe("ember");
+    expect(result.current.isScrambling).toBe(false);
+  });
+
+  it("draws from a charset of its own when given one", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const { result } = renderHook(() =>
+      useTextScramble({ text: "ember", trigger: "mount", speedMs: 100, charset: "#" }),
+    );
+    await advance(150);
+    expect(result.current.display).toBe("e####");
+  });
+
+  it("settles one more letter every speedMs", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const { result } = renderHook(() =>
+      useTextScramble({ text: "ember", trigger: "mount", speedMs: 100 }),
+    );
+    await advance(350);
+    expect(result.current.display).toBe("embAA");
+  });
+
+  it("starts on start() when the trigger is inView, and not before", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const { result } = renderHook(() =>
+      useTextScramble({ text: "ember", trigger: "inView", speedMs: 100 }),
+    );
+    await advance(500);
+    expect(result.current.display).toBe("ember");
+
+    act(() => result.current.start());
+    await advance(150);
+    expect(result.current.display).toBe("eAAAA");
+  });
+
+  it("ignores start() under reduced motion", async () => {
+    mocks.reduced = true;
+    const { result } = renderHook(() =>
+      useTextScramble({ text: "ember", trigger: "inView", speedMs: 100 }),
+    );
+    act(() => result.current.start());
+    await advance(150);
+    expect(result.current.isScrambling).toBe(false);
+    expect(result.current.display).toBe("ember");
+  });
+
+  it("stops its animation frames when it unmounts mid-decode", async () => {
+    const cancel = vi.spyOn(globalThis, "cancelAnimationFrame");
+    const { unmount } = renderHook(() =>
+      useTextScramble({ text: "ember", trigger: "mount", speedMs: 100 }),
+    );
+    await advance(50);
+    unmount();
+    expect(cancel).toHaveBeenCalled();
   });
 
   it("returns the final text immediately under reduced motion", () => {

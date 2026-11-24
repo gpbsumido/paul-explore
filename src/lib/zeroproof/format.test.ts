@@ -10,6 +10,7 @@ import {
   formatNetCents,
   formatSignedPct,
   formatStreak,
+  betMatchup,
 } from "./format";
 import { eventsResponseSchema, leaderboardResponseSchema } from "./schemas";
 import type { ZeroproofMarket } from "./schemas";
@@ -26,6 +27,10 @@ describe("formatPoint", () => {
     expect(formatPoint(3.5)).toBe("+3.5");
     expect(formatPoint(-3.5)).toBe("-3.5");
     expect(formatPoint(undefined)).toBe("");
+  });
+
+  it("writes a pick'em line as 0, not as a moneyline's blank", () => {
+    expect(formatPoint(0)).toBe("0");
   });
 });
 
@@ -53,6 +58,27 @@ describe("sortMarkets", () => {
       "props",
     ]);
   });
+
+  it("returns a new list and leaves the caller's order alone", () => {
+    const markets = [
+      { market: "total", fetchedAt: "", outcomes: [] },
+      { market: "h2h", fetchedAt: "", outcomes: [] },
+    ] satisfies ZeroproofMarket[];
+    sortMarkets(markets);
+    expect(markets.map((m) => m.market)).toEqual(["total", "h2h"]);
+  });
+});
+
+describe("betMatchup", () => {
+  it("reads away @ home when the bet carries its matchup", () => {
+    expect(betMatchup({ away: "Celtics", home: "Lakers" })).toBe("Celtics @ Lakers");
+  });
+
+  it("is null when either side is missing, so an older payload shows nothing instead of 'undefined @ x'", () => {
+    expect(betMatchup({ away: "Celtics" })).toBeNull();
+    expect(betMatchup({ home: "Lakers", away: null })).toBeNull();
+    expect(betMatchup({})).toBeNull();
+  });
 });
 
 describe("playerHandle", () => {
@@ -62,6 +88,12 @@ describe("playerHandle", () => {
     expect(handle).toBe(playerHandle(sub));
     expect(handle).toMatch(/^P-[0-9A-Z]{5}$/);
     expect(handle).not.toContain("abc123");
+  });
+
+  it("keeps a player's handle the same across releases", () => {
+    // A golden value: changing the hash would silently rename every row on the board.
+    expect(playerHandle("auth0|abc123def456")).toBe("P-BER28");
+    expect(playerHandle("auth0|a1")).toBe("P-8PZ6C");
   });
 
   it("distinguishes different subs", () => {

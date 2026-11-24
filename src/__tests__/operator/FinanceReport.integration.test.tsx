@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
@@ -88,5 +89,88 @@ describe("FinanceReport", () => {
     expect(
       view.getByRole("columnheader", { name: "Net payout" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("FinanceReport totals and exports", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows gross revenue and the combined fees as their own figures", async () => {
+    const { container } = render(<FinanceReport />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    const gross = (await view.findByText("Gross revenue")).parentElement as HTMLElement;
+    expect(within(gross).getByText("$1,800.00")).toBeInTheDocument();
+    // 108 transaction fees + 28 platform fees
+    const fees = view.getByText("transaction + platform").parentElement as HTMLElement;
+    expect(within(fees).getByText("$136.00")).toBeInTheDocument();
+  });
+
+  it("styles a loss as a loss rather than good news", async () => {
+    server.use(
+      http.get("/api/operator/finance", () =>
+        HttpResponse.json({
+          ...financePayload(),
+          totals: { ...financePayload().totals, netPayout: -120 },
+        }),
+      ),
+    );
+    const { container } = render(<FinanceReport />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    const headline = (await view.findByText(/net payout \(8 weeks\)/i)).parentElement as HTMLElement;
+
+    expect(within(headline).getByText("-$120.00")).toHaveClass("text-error-700");
+    expect(headline).not.toHaveClass("bg-success-50");
+  });
+
+  it("says the finance data failed to load, with a retry, instead of showing an empty report", async () => {
+    let requests = 0;
+    server.use(
+      http.get("/api/operator/finance", () => {
+        requests += 1;
+        return requests === 1
+          ? HttpResponse.json({ error: "down" }, { status: 500 })
+          : HttpResponse.json(financePayload());
+      }),
+    );
+    const user = userEvent.setup();
+    const { container } = render(<FinanceReport />, { wrapper: makeWrapper() });
+    const view = within(container);
+
+    expect(await view.findByText(/could not load finance/i)).toBeInTheDocument();
+    await user.click(view.getByRole("button", { name: /try again/i }));
+
+    expect(await view.findByText("$1,664.00")).toBeInTheDocument();
+  });
+
+  it("downloads the weekly payouts as a CSV with every column", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<FinanceReport />, { wrapper: makeWrapper() });
+    const download = await within(container).findByRole("button", { name: "Download CSV" });
+
+    // Stubbed only now: swapping URL out earlier would break the fetch above.
+    const blobs: Blob[] = [];
+    const downloads: string[] = [];
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: (blob: Blob) => {
+        blobs.push(blob);
+        return "blob:finance";
+      },
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      downloads.push(this.download);
+    });
+    await user.click(download);
+
+    expect(downloads).toEqual(["fleet-finance-weekly.csv"]);
+    const lines = (await blobs[0].text()).split("\r\n");
+    expect(lines[0]).toBe("Week of,Gross revenue,Transactions,Transaction fees,Platform fees,Net payout");
+    expect(lines).toHaveLength(3);
+    // The week label is local-date text, so only the numbers are pinned.
+    expect(lines[1]).toMatch(/,1000,200,60,14,926$/);
+    expect(lines[2]).toMatch(/,800,160,48,14,738$/);
   });
 });

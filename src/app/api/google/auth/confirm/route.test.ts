@@ -12,6 +12,7 @@ vi.mock("@/lib/auth0", () => ({
 
 import { NextRequest } from "next/server";
 import { fetchUpstream } from "@/lib/upstream";
+import { auth0 } from "@/lib/auth0";
 
 const upstream = (status: number, body: unknown) =>
   ({
@@ -54,6 +55,45 @@ describe("POST /api/google/auth/confirm", () => {
 
     expect(res.status).toBe(400);
     expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a missing state", { code: "the-code" }],
+    ["an empty code", { code: "", state: "the-state" }],
+    ["an empty state", { code: "the-code", state: "" }],
+    ["an oversized code", { code: "x".repeat(2049), state: "the-state" }],
+  ])("refuses %s before calling the API", async (_label, body) => {
+    const { POST } = await import("./route");
+
+    const res = await POST(confirm(body), undefined);
+
+    expect(res.status).toBe(400);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("answers 401 without calling the API when nobody is signed in", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(auth0.getAccessToken).mockRejectedValueOnce(new Error("no session"));
+    const { POST } = await import("./route");
+
+    const res = await POST(confirm({ code: "the-code", state: "the-state" }), undefined);
+
+    expect(res.status).toBe(401);
+    expect(fetchUpstream).not.toHaveBeenCalled();
+  });
+
+  it("answers 502 when the API cannot be reached", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: false,
+      cause: "unreachable",
+      message: "ECONNREFUSED",
+    });
+    const { POST } = await import("./route");
+
+    const res = await POST(confirm({ code: "the-code", state: "the-state" }), undefined);
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ cause: "unreachable" });
   });
 
   it("passes the API's refusal through, so the page can explain it", async () => {

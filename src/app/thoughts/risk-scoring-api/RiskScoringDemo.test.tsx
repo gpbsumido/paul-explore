@@ -103,4 +103,71 @@ describe("RiskScoringDemo", () => {
       await screen.findByText(/RISK_API_URL is not configured/i),
     ).toBeInTheDocument();
   });
+
+  it("sends the values in the form, with the amount as a number, to the proxy as a POST", async () => {
+    const user = userEvent.setup();
+    const spy = stubFetch(200, scoreResponse());
+    render(<RiskScoringDemo />);
+
+    await user.clear(screen.getByLabelText(/amount/i));
+    await user.type(screen.getByLabelText(/amount/i), "120.5");
+    await user.clear(screen.getByLabelText(/user/i));
+    await user.type(screen.getByLabelText(/user/i), "u-42");
+    await user.clear(screen.getByLabelText(/device/i));
+    await user.type(screen.getByLabelText(/device/i), "d-7");
+    await user.clear(screen.getByLabelText(/country/i));
+    await user.type(screen.getByLabelText(/country/i), "GB");
+    await user.click(screen.getByRole("button", { name: /score/i }));
+
+    await screen.findByText(/amber/i);
+    const [, init] = spy.mock.calls[0];
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({
+      user_id: "u-42",
+      device_id: "d-7",
+      amount: 120.5,
+      currency: "USD",
+      country: "GB",
+    });
+  });
+
+  it("says it could not reach the proxy when the request itself fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
+    render(<RiskScoringDemo />);
+
+    await submitDefaults();
+
+    expect(await screen.findByText(/could not reach the proxy/i)).toBeInTheDocument();
+  });
+
+  it("still says something when the backend fails without giving a reason", async () => {
+    stubFetch(500, {});
+    render(<RiskScoringDemo />);
+
+    await submitDefaults();
+
+    expect(await screen.findByText(/scoring failed, no reason given/i)).toBeInTheDocument();
+  });
+
+  it("holds the button while a score is on its way, then shows the result", async () => {
+    let finish: (response: Response) => void = () => {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockReturnValue(new Promise<Response>((resolve) => (finish = resolve))),
+    );
+    render(<RiskScoringDemo />);
+
+    await submitDefaults();
+    expect(screen.getByRole("button", { name: /scoring/i })).toBeDisabled();
+
+    finish(
+      new Response(JSON.stringify(scoreResponse({ band: "red", value: 90 })), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    expect(await screen.findByText(/red/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /score this transaction/i })).toBeEnabled();
+  });
 });
+

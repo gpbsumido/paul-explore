@@ -51,6 +51,14 @@ describe("proxy: the landing history lives at /discover", () => {
     expect(res.headers.get("location")).toBe(
       "https://paulsumido.com/discover?version=v1",
     );
+    expect(getSession).not.toHaveBeenCalled();
+  });
+
+  it("does not redirect /discover to itself when it carries a ?version=", async () => {
+    const res = await proxy(request("/discover?version=v2"));
+
+    expect(res.status).not.toBe(308);
+    expect(res.headers.get("location")).toBeNull();
   });
 
   it("keeps a signed-in visitor's session rolling on /discover", async () => {

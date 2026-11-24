@@ -6,7 +6,7 @@ import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -1047,7 +1047,7 @@ function Section({
 // ---------------------------------------------------------------------------
 
 export default function TreesGraphsContent() {
-  const prefersReduced = useHubReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const t = prefersReduced ? instantTransition : spring.smooth;
 
   return (

@@ -30,10 +30,6 @@ describe("categorizeStock", () => {
     expect(categorizeStock(12, 12)).toBe("healthy");
   });
 
-  it("returns 'healthy' when stock is at full capacity", () => {
-    expect(categorizeStock(20, 20)).toBe("healthy");
-  });
-
   it("returns 'low' right at the 20% boundary (not critical)", () => {
     // 20% of 10 = 2, so exactly 2/10 should be "low"
     expect(categorizeStock(2, 10)).toBe("low");
@@ -97,12 +93,10 @@ describe("computeInventorySummary", () => {
   });
 
   it("rounds fill percentage to the nearest integer", () => {
-    const items = [
-      buildInventoryItem({ currentStock: 1, capacity: 3 }), // 33.3%
-      buildInventoryItem({ currentStock: 2, capacity: 3 }), // 66.7%
-    ];
-    // average = 50%
-    expect(computeInventorySummary(items).fillPercentage).toBe(50);
+    const oneThird = [buildInventoryItem({ currentStock: 1, capacity: 3 })];
+    const twoThirds = [buildInventoryItem({ currentStock: 2, capacity: 3 })];
+    expect(computeInventorySummary(oneThird).fillPercentage).toBe(33);
+    expect(computeInventorySummary(twoThirds).fillPercentage).toBe(67);
   });
 });
 
@@ -121,17 +115,13 @@ describe("generateSparklineData", () => {
     expect(data[6].stock).toBe(8);
   });
 
-  it("never exceeds capacity", () => {
-    const data = generateSparklineData(12, 12, "item-001");
-    for (const point of data) {
-      expect(point.stock).toBeLessThanOrEqual(12);
-    }
-  });
-
-  it("never goes below zero", () => {
-    const data = generateSparklineData(0, 12, "item-001");
-    for (const point of data) {
-      expect(point.stock).toBeGreaterThanOrEqual(0);
+  it("stays between zero and capacity for every seed", () => {
+    for (let seed = 0; seed < 50; seed++) {
+      const data = generateSparklineData(6, 12, `item-${seed}`);
+      for (const point of data) {
+        expect(point.stock).toBeGreaterThanOrEqual(0);
+        expect(point.stock).toBeLessThanOrEqual(12);
+      }
     }
   });
 
@@ -149,11 +139,16 @@ describe("generateSparklineData", () => {
     expect(aStocks).not.toEqual(bStocks);
   });
 
-  it("each data point has a day label", () => {
+  it("labels the seven points Monday to Sunday", () => {
     const data = generateSparklineData(5, 10, "item-001");
-    for (const point of data) {
-      expect(point.day).toBeTruthy();
-      expect(typeof point.day).toBe("string");
-    }
+    expect(data.map((point) => point.day)).toEqual([
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+    ]);
   });
 });

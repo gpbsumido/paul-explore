@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import { ToolCallCard } from "./ToolCallCard";
@@ -26,7 +26,7 @@ describe("ToolCallCard", () => {
   it("shows a loading indicator when status is running", () => {
     render(<ToolCallCard step={makeStep({ status: "running" })} />);
 
-    expect(screen.getByTestId("status-running")).toBeInTheDocument();
+    expect(screen.getByLabelText("Running")).toBeInTheDocument();
   });
 
   it("shows a checkmark indicator when status is done", () => {
@@ -34,7 +34,7 @@ describe("ToolCallCard", () => {
       <ToolCallCard step={makeStep({ status: "done", result: "result" })} />,
     );
 
-    expect(screen.getByTestId("status-done")).toBeInTheDocument();
+    expect(screen.getByLabelText("Completed")).toBeInTheDocument();
   });
 
   it("shows an error indicator when status is error", () => {
@@ -44,7 +44,7 @@ describe("ToolCallCard", () => {
       />,
     );
 
-    expect(screen.getByTestId("status-error")).toBeInTheDocument();
+    expect(screen.getByLabelText("Error")).toBeInTheDocument();
   });
 
   it("clicking the header toggles expanded state", async () => {
@@ -53,6 +53,7 @@ describe("ToolCallCard", () => {
 
     const toggle = screen.getByRole("button");
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText(/"query"/)).not.toBeInTheDocument();
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
@@ -60,6 +61,52 @@ describe("ToolCallCard", () => {
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await waitFor(() =>
+      expect(screen.queryByText(/"query"/)).not.toBeInTheDocument(),
+    );
+  });
+
+  it("only shows an indicator for its own status", () => {
+    render(<ToolCallCard step={makeStep({ status: "done", result: "ok" })} />);
+
+    expect(screen.queryByLabelText("Running")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Error")).not.toBeInTheDocument();
+  });
+
+  it("keeps a result out of the card unless the call finished", () => {
+    render(
+      <ToolCallCard
+        step={makeStep({ status: "running", result: "partial" })}
+        defaultExpanded
+      />,
+    );
+
+    expect(screen.queryByText("partial")).not.toBeInTheDocument();
+  });
+
+  it("keeps an error out of the card unless the call failed", () => {
+    render(
+      <ToolCallCard
+        step={makeStep({ status: "done", result: "fine", error: "stale" })}
+        defaultExpanded
+      />,
+    );
+
+    expect(screen.getByText("fine")).toBeInTheDocument();
+    expect(screen.queryByText("stale")).not.toBeInTheDocument();
+  });
+
+  it("shows nested input as indented JSON", () => {
+    render(
+      <ToolCallCard
+        step={makeStep({ input: { filter: { year: 2025 } } })}
+        defaultExpanded
+      />,
+    );
+
+    expect(document.querySelector("pre")?.textContent).toBe(
+      JSON.stringify({ filter: { year: 2025 } }, null, 2),
+    );
   });
 
   it("when expanded, renders the input as formatted JSON", async () => {
@@ -91,17 +138,6 @@ describe("ToolCallCard", () => {
     const errorEl = screen.getByText("connection timeout");
     expect(errorEl).toBeInTheDocument();
     expect(errorEl.closest("[data-error]")).toBeInTheDocument();
-  });
-
-  it("header button has aria-expanded matching the expanded state", async () => {
-    const user = userEvent.setup();
-    render(<ToolCallCard step={makeStep()} />);
-
-    const toggle = screen.getByRole("button");
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-
-    await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
   });
 
   it("keyboard accessible: Enter/Space toggles expanded state", async () => {

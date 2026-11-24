@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-2026-11-22-espn-ranges", date: "Nov 22, 2026", title: "The scan read nothing, and the page said nothing was played" },
   { id: "update-rip-pool", date: "Nov 18, 2026", title: "A pack from a slate you weren't looking at" },
   { id: "update-scarcity", date: "Aug 24, 2026", title: "Making a night feel scarce" },
   { id: "update-living-cards", date: "Aug 24, 2026", title: "Cards that come alive" },
@@ -425,17 +426,79 @@ async function loadPool(
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-22-espn-ranges"
+        date="November 22, 2026"
+        title="The scan read nothing, and the page said nothing was played"
+      >
+        <p>
+          I was tidying the two ESPN readers into one when I noticed the nightly
+          view had nothing on it, in the middle of the NBA season. Two things
+          were wrong, and the first one hid the second.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          An outage looked exactly like a quiet night
+        </h3>
+        <p className="text-muted">
+          Every reader turned a failed fetch into <C>null</C> and then carried
+          on to the next window, so when nothing answered the result was
+          &ldquo;no cards, no error&rdquo;. Card Lab said &ldquo;No games with
+          box scores on this slate yet&rdquo;, and the &ldquo;Couldn&rsquo;t
+          reach the live ESPN data&rdquo; message it already had could never
+          show. Both the nightly and the NFL week readers now flag an error when
+          not a single request answered. A night that answers with nothing
+          played is still a plain empty state.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It wasn&rsquo;t an outage. ESPN stopped taking date ranges.
+        </h3>
+        <p className="text-muted">
+          Once the error showed, I went looking for the outage and there
+          wasn&rsquo;t one. The scan asked for twelve days at a time, and ESPN
+          now refuses any range, on both hosts and for both leagues:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`dates=20251110-20251121   400 {"code":400,"message":"Failed to get events endpoint."}
+dates=20251121            200  9 events
+dates=202511              200  100 events
+dates=202511&limit=1000   200  219 events`}
+        </pre>
+        <p className="text-muted">
+          So the scan reads a calendar month at a time now, eighteen months
+          back, which covers the same stretch the forty-five twelve-day windows
+          did in far fewer requests. The <C>limit=1000</C> matters: without it a
+          month quietly stops at 100 games, and a busy NBA month has more than
+          twice that, so the most recent night could be the one cut off.
+        </p>
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Being honest about the outage made the landing page worse
+        </h3>
+        <p className="text-muted">
+          The NBA default view already fell back to season cards when there was
+          no night to show, but only when the slate wasn&rsquo;t an error. With
+          the error now reported, a scoreboard outage turned a page full of
+          season cards into an error message. The season cards come from the
+          league read, not the scoreboard, so they usually still load. The
+          landing view falls back to them either way now, and shows the error
+          only if the season read fails too. A specific night, or the Nightly
+          tab asked for by name, still says ESPN can&rsquo;t be reached,
+          because that&rsquo;s what was asked for.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A pure, relative-rarity engine with a boost layer and a weighted pack draw, fully tested against synthetic pools.",
           "Real cards across three leagues: NBA and WNBA nightly from box scores, NFL weekly from fantasy scoring, with previous-season history and a season view.",
           "An economy — coin wallet, daily claim, server-drawn pack ripping, and a collection — front end and API both built.",
           "A ripped pack comes from the season and mode on screen, with the pool loaded from one module the page and the rip share.",
+          "An ESPN outage reads as an outage, and the nightly scan reads whole months now that ESPN refuses date ranges.",
         ]}
         couldImprove={[
           "Basketball gets a season-level playoff-team boost from the final seeding; the finer per-week win/finals signal still needs a date-to-matchup mapping this league's data doesn't cleanly give.",
           "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
           "A packed slate fans out into many box-score fetches; fine with caching, but a single feed would be cheaper.",
+          "The Fantasy NBA schedule route still asks ESPN for a Monday-to-Sunday range, so it gets the same 400.",
         ]}
         upcoming={[
           "Deploy the economy API and verify the earn-buy-rip-collect loop end to end.",

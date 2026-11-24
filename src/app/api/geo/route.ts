@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { API_URL } from "@/lib/apiUrl";
+import { UPSTREAM_TIMEOUT_MS } from "@/lib/upstream";
 import { clientIp } from "@/lib/clientIp";
 
 /**
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
   let res: Response;
   try {
     res = await fetch(`${API_URL}/api/geo`, {
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       headers: {
         Accept: "application/json",
         "X-Forwarded-For": ip,

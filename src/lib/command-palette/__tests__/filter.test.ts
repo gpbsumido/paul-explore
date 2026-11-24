@@ -2,12 +2,17 @@ import { describe, it, expect } from "vitest";
 import { rankCommands, groupRankedCommands } from "../filter";
 import type { Command } from "../types";
 
-function command(overrides: Partial<Command>): Command {
+type CommandFields = Partial<Pick<Command, "id" | "title" | "group" | "keywords">>;
+
+function command(overrides: CommandFields): Command {
   return {
     id: "id",
     title: "Title",
     group: "Pages",
     keywords: [],
+    kind: "link",
+    href: "/",
+    external: false,
     ...overrides,
   };
 }
@@ -61,6 +66,19 @@ describe("rankCommands", () => {
     expect(ranked[0].ranges).toEqual([]);
   });
 
+  it("orders title matches best score first", () => {
+    const scattered = command({ id: "scattered", title: "Xcxaxl" });
+    const prefix = command({ id: "prefix", title: "Calendar" });
+    const ranked = rankCommands([scattered, prefix], "cal");
+    expect(ranked.map((r) => r.command.id)).toEqual(["prefix", "scattered"]);
+  });
+
+  it("scores a keyword match at half of what the same text would score as a title", () => {
+    const asTitle = rankCommands([command({ title: "appearance" })], "appearance")[0];
+    const asKeyword = rankCommands([theme], "appearance")[0];
+    expect(asKeyword.score).toBe(asTitle.score * 0.5);
+  });
+
   it("keeps input order for commands that tie on score", () => {
     const a = command({ id: "a", title: "Match" });
     const b = command({ id: "b", title: "Match" });
@@ -81,6 +99,19 @@ describe("groupRankedCommands", () => {
     expect(grouped[1].commands.map((c) => c.command.id)).toEqual([
       "toggle-theme",
     ]);
+  });
+
+  it("lists Dev Notes after Actions and Pages, however the commands arrive", () => {
+    const note = command({ id: "note", title: "Note", group: "Dev Notes" });
+    const grouped = groupRankedCommands(rankCommands([note, theme, calendar], ""));
+    expect(grouped.map((g) => g.group)).toEqual(["Pages", "Actions", "Dev Notes"]);
+  });
+
+  it("keeps the better match first inside each group", () => {
+    const weak = command({ id: "weak", title: "Xcxaxl" });
+    const strong = command({ id: "strong", title: "Calendar" });
+    const grouped = groupRankedCommands(rankCommands([weak, strong], "cal"));
+    expect(grouped[0].commands.map((c) => c.command.id)).toEqual(["strong", "weak"]);
   });
 
   it("drops groups with no matching commands", () => {

@@ -30,6 +30,30 @@ describe("loginReturnToFromReferer", () => {
     expect(loginReturnToFromReferer(`${ORIGIN}/auth/login`, ORIGIN)).toBe(null);
   });
 
+  it.each([
+    ["a look-alike host", "https://paulsumido.com.evil.example/calendar"],
+    ["a host with ours as a prefix of the user part", "https://paulsumido.com@evil.example/calendar"],
+    ["plain http", "http://paulsumido.com/calendar"],
+    ["another port", "https://paulsumido.com:8443/calendar"],
+  ])("returns null for %s", (_label, referer) => {
+    expect(loginReturnToFromReferer(referer, ORIGIN)).toBeNull();
+  });
+
+  it("keeps a page whose path merely starts with the letters 'auth'", () => {
+    expect(loginReturnToFromReferer(`${ORIGIN}/authors/paul`, ORIGIN)).toBe("/authors/paul");
+  });
+
+  it("drops every auth route, not only login", () => {
+    expect(loginReturnToFromReferer(`${ORIGIN}/auth/callback?code=x`, ORIGIN)).toBeNull();
+    expect(loginReturnToFromReferer(`${ORIGIN}/auth/logout`, ORIGIN)).toBeNull();
+  });
+
+  it("never hands back a protocol-relative path", () => {
+    expect(
+      loginReturnToFromReferer(`${ORIGIN}//evil.example/x`, ORIGIN),
+    ).not.toMatch(/^\/\//);
+  });
+
   it("returns null for a missing referer", () => {
     expect(loginReturnToFromReferer(null, ORIGIN)).toBe(null);
   });
@@ -75,9 +99,18 @@ describe("loginRedirectAdditions", () => {
     });
   });
 
-  it("ignores a prompt cookie value that isn't allow-listed", () => {
-    expect(additions({ promptCookie: "evil" })).toEqual({});
+  it("carries the prompt from the cookie (select_account, to pick another account)", () => {
+    expect(additions({ promptCookie: "select_account" })).toEqual({
+      prompt: "select_account",
+    });
   });
+
+  it.each(["evil", "none", "LOGIN", "login consent", ""])(
+    "ignores the prompt cookie value %j",
+    (promptCookie) => {
+      expect(additions({ promptCookie })).toEqual({});
+    },
+  );
 
   it("adds both a returnTo and the prompt", () => {
     expect(

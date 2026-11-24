@@ -1,5 +1,196 @@
 # Changelog
 
+## 2026-11-23 - version 9.4.0
+
+- A new home page, v7, built from my November mockup. A split hero puts the headline beside the same facts written as a TypeScript object in an editor panel. Under it a marquee lists the stack as package@version, with versions read from package.json. Four apps sit on an offset grid, their screenshots in grayscale until you point at one. A sticky about panel runs beside a timeline taken from my résumé, three figures are imported rather than typed, and the page closes on contact. v6 moves to the /discover archive.
+- The rest of the site picks up the same language through the shared pieces instead of page by page. PageHeader sits full width at the top and lifts into a centered floating pill once the page scrolls. It stays inside the same 56px box, so sub-bars pinned under it don't move. A breadcrumb that starts at `/` now shows the paul—explore wordmark as its home link, and the crumbs are set in mono. The backdrop behind every PageShell page is now a drifting line grid that fades out toward the edges. The old aurora blobs are gone and a faint, still tint keeps each feature's accent. h2 and h3 move onto the display face, and PageIntro's eyebrow becomes a mono label in the accent colour.
+- The mockup's second accent was cyan. The palette sweep keeps stock Tailwind ramps out of live code, and the design system's cyan is stock cyan, so the cool accent is a deeper verdigris step instead.
+- The grid only drifts, the marquee only slides and the proof headline only cycles its last word when the OS allows motion. A guard test checks the grid's drift is gated.
+- The hero editor's work.ts tab is real now. It's a keyboard-operable tab that lists six projects the grid doesn't show, each one a link with a comment saying what it is, and the window eases to the new file's height instead of jumping. Long lines soft-wrap with a hanging indent instead of scrolling the panel sideways.
+- The work grid's stagger comes from the screenshots' own heights instead of a fixed 72px offset, which had the Operator tile running into the caption above it at every width. Both columns now get the same gutter, and the tile arrows are gone.
+- The homepage type and spacing are pulled in. Every section heading is one size, so the contact line no longer outsizes the hero. The timeline years and figures shrink to match, the rules between sections are gone, sections sit about half as far apart, and the footer drops its link to past editions.
+- The header's Work, About and Contact links glide to their section on the homepage when motion is allowed, and jump straight there when it isn't. The timeline shows every résumé point, not just the first, and the Refmint role says what the job was: the wallet interface for a web3 user-acquisition and analytics tool.
+- On small windows the floating header keeps a gap at the edges instead of running full width between 640px and 768px, and the menu button is rounded so it sits inside the pill instead of clipping its curve. The pill also floats 8px below the top of the window. Its margin had been collapsing through the header, which left it flush with the edge, so it drops with a relative offset now and the header box stays 56px tall.
+- The old backdrop covered the whole page with a gradient, and axe can't measure contrast through a gradient, so it marked most text below the fold "incomplete" and the a11y scan passed without checking it. The new grid is fixed to the viewport, the scan can see that text again, and it found real failures. The fixes: deprecated thought cards no longer fade to 70% (the label still says deprecated), a disabled flag dims its slider rather than its "% on" readout, and the /learn numbers use the muted token instead of half-opacity text. On the glass cards the operator freshness labels, the store cards' alert count and the tickets "Shipped in" link take one step darker in light mode, the loss report's unit note drops its 80% opacity, and the homepage's tile chips use a darker ink.
+
+## 2026-11-22 - version 9.3.5
+
+- The codebase-audit write-up has a dated update on the third stack: the shared bracket that called itself private during an outage, the two lower PRs a full test run caught me breaking after I'd only run each PR's own folders, the four write-up timelines that stopped partway down, why the hub's updates card stays typed by hand, and the audit items I left alone because they were wrong. It also says where I fell short: I meant to give every PR a full test run before writing its body, and three of them still went up with folder runs. The risk route's separate five-second timeout is written up as a decision rather than a fix; the route still calls `fetch` directly, and only the constant got a name. Its what's-next list drops the ZeroProof body item, which shipped, and the risk timeout, which stays as it is on purpose, and names the calendar GET question instead.
+
+## 2026-11-22 - version 9.3.4
+
+- A saved theme that isn't light, dark or system now falls back to system. The provider cast whatever was in localStorage to a theme, and the pre-paint script wrote it straight onto `data-theme`, so a stray value left the page in no theme at all. The storage key and the pre-paint script both live in one module now, and a test runs that script against a saved "blue" to check it lands on light or dark.
+- The memoization and hash-map demos flash with `useTransientValue` instead of a bare `setTimeout`. Clicking twice inside the flash used to let the first click's timer end the second flash early, and leaving the page left the timer running. The hook gains a `clear` for the demos' reset buttons. The 3D world's "token found" toast moves onto it too.
+- A `?w=` link on /world is checked against the weather dressing table instead of a list of six conditions typed out beside it.
+- Card Lab's nightly cards work again. ESPN started answering every scoreboard date range with `400 Failed to get events endpoint.`, so the scan back through twelve-day windows read nothing and the NBA view quietly fell back to season cards. It now reads a calendar month at a time, which ESPN still serves, with `limit=1000` because a month of NBA games runs past the default cap of 100.
+- When ESPN can't be reached, Card Lab says so instead of "No games with box scores on this slate yet". The NFL week reader and the nightly reader both treated an outage as a quiet night. The NBA landing view still falls back to season cards during an outage, since those come from the league read and usually still load; a night or the Nightly tab asked for by name shows the error.
+- Server plumbing, no visible change: the NFL and nightly readers share one ESPN JSON fetch, and the weekly NFL URL is built by the same helper as the league URL.
+
+## 2026-11-22 - version 9.3.3
+
+- The Updates card on the hub showed three entries from version 5, so it advertised a site two majors old. It now shows the three newest public updates. The list is still typed out by hand, because reading the changelog file from a client module would ship all 75 KB of it with the hub, so a test fails when a new entry lands and the card falls behind.
+- Four write-ups had a timeline at the top that missed updates further down: TCG listed one of its four, vitals three of six, the work portfolio two of four, deployment two of three. They list them all now, newest first, and a test checks every page with a timeline in both directions.
+- The budget card picks up its colour token like the other hub cards. The token was defined in tokens.css but nothing mapped the card to it; a test now checks every feature with a token is mapped, and every mapping points at a token that exists.
+
+## 2026-11-22 - version 9.3.2
+
+- A shared bracket link no longer says "This bracket isn't publicly available yet" when the backend is down. The public picks route treated any failure as a missing bracket, so an outage looked like a private one; now only a 404 means missing, anything else answers 502 with "Couldn't load these picks right now", and the view shows that instead. A 404 also isn't retried any more, so a private bracket says so straight away instead of after about seven seconds of retries that could never succeed. An outage still gets its three.
+- The admin ESPN leagues list shows the server's reason when loading fails, the same way the add and remove buttons already did.
+- Server plumbing, no visible change: the "token if signed in" lookup that three public routes, the vitals proxy and the vitals page each copied now lives once in `getOptionalToken`, the operator client reads the API URL from `apiUrl` instead of a module that pulls in auth0, the risk demo's 5 second timeout has a name, and the ZeroProof track route loses a catch that `fetchUpstream` made unreachable.
+
+## 2026-11-22 - version 9.3.1
+
+- Five ZeroProof writes (placing a bet, opening a wallet, creating, joining, and adding an ESPN league to a league) now check their request body before it leaves the site. They used to forward whatever JSON arrived, or `{}` when it wasn't JSON, so a malformed slip cost a round trip to the API and a stray field went along for the ride. Each now parses against a copy of the backend's own schema and answers 400 straight away; the rules that need several fields at once, like a target above the starting bankroll, still come from the backend with its message intact. A refused body says which field was wrong in words, like "Max members must be a number", rather than "Invalid request body", since the forms put that sentence on screen. The forms also stop the two that were easy to send: Max members is required and at least 2, and a stake that rounds to nothing, like $0.001, says "Enter at least $0.01" beside it instead of going to the server.
+
+## 2026-11-22 - version 9.3.0
+
+- The About band gets an experience card: a Work and Education switch over a dated timeline, after the reference site's tabbed card. Every entry is lifted from the résumé in public/resume, so the landing can't claim more than the PDF does. It uses the design system's Timeline, an ordered list with a `<time>` per entry, with the date moved above the role so it reads like a résumé. With the photo stack and the typed heading, this finishes the About band, so the version moves to 9.3.0 and the public updates feed gets an entry for it.
+
+## 2026-11-22 - version 9.2.54
+
+- The About band's heading types itself out the first time it scrolls into view, with an accent bar under it that grows as it goes. Only the visible layer types; screen readers get the whole sentence from the first render, an invisible copy holds the line's space so nothing below it jumps, and anyone who prefers reduced motion sees it whole. The page arrives with the whole sentence showing, so it's there without JavaScript and on a jump to `/#about`; it only clears and starts typing once the browser reports where the heading sits. The heading drops the accent full stop it used to end on; the growing bar underneath takes its place.
+
+## 2026-11-22 - version 9.2.53
+
+- The landing has an About band after the projects. It says who builds this and what I care about, with a photo stack beside it: three of the site's own screens (the operator dashboard, the design system and the 3D world), tilted on top of each other. They fan out on hover or when a card takes focus, and each one opens its app. The fan is a transition, so it's off for anyone who prefers reduced motion. The sections after it renumber to 04 and 05.
+- The v5 redesign write-up has a dated update on the band: why the photos are screens, the front card that was painted behind the others, the fan that pushed past a phone screen, and the CSS parts no test covers yet.
+
+## 2026-11-22 - version 9.2.52
+
+- The site describes itself the way the landing does. The web app manifest, the root layout's fallback description and the share image still led with NBA stats and a Pokémon TCG browser, long after the landing became about lead front-end work. They now all read one `SITE_DESCRIPTION`, the same line the home page uses, and a test fails if any of them goes back to its own copy.
+
+## 2026-11-22 - version 9.2.51
+
+- The landing names what the site is built on. Under the figures in "Under the surface" there's now a phone-framed rail of the runtime and testing tools behind it, from Next.js and TanStack Query through Vitest, Playwright and Stryker. It looks like a ticker but only moves when the visitor scrolls, swipes or presses its buttons, because a strip that moves on its own needs a pause control and the design system's ticker only stops on hover. The vitals link above it also gets its dark-mode colour back; the package was colouring the inner link itself, which axe had been unable to see until the rail moved the layout. Every label is backed by a test that the package it names is actually installed, so the list can't outlive a dependency.
+
+## 2026-11-22 - version 9.2.50
+
+- Research source settings and reviewed interview topics now follow you across open tabs. Turning a journal off in one tab used to leave every other tab searching it until a reload, and research settings didn't notice cleared site data either, because they were read once and cached for the life of the page. Both hooks now sit on one small localStorage store that re-reads when the stored value changes and listens for other tabs writing it.
+- With storage blocked (third-party cookie blocking, a sandboxed iframe), the browser throws on any touch of `localStorage`. The old research hook read it inside a try and fell back to the defaults, and the first cut of the shared store dropped that guard, so /research would have crashed instead. The store reads through one guarded helper now, and a write still applies for the rest of the visit.
+
+## 2026-11-22 - version 9.2.49
+
+- The landing page's test figure counts again. It's regenerated by a script that was wired up as a `prebuild` hook, and pnpm doesn't run those, so every deploy shipped the last number someone committed: 3,499, against more than 6,400 tests in the repo. The count now runs as the first step of `build`, and a test fails if it ever moves back into a hook.
+- The codebase-audit write-up has a dated update on the second redesign stack: the test count that was meant to be impossible to go stale, the thirty error boundaries I fixed and then deleted twenty-eight of, operator writes that timed out being replayed against the seed, the NBA pages guessing the response shape, the proxy's seven hand-set security headers, and two tests that passed whatever the code did.
+
+## 2026-11-22 - version 9.2.48
+
+- The projects on the landing page are big showcase rows now, instead of a sideways strip of cards that hijacked the scroll wheel. The page scrolls normally, every project gets a large screenshot, and each row has its own "Open" and "Write-up" links rather than one whole-card link. The rows cycle through left, right and full-width layouts so the page doesn't read as the same split over and over, and the full-width rows load a screenshot big enough for their width rather than stretching the side-by-side size. On browsers that support scroll-driven animation the rows rise in as they enter, unless reduced motion is on.
+
+## 2026-11-22 - version 9.2.47
+
+- The Volunteer Check-in card on the hub, and its llms.txt line, open the public /check-in page. They linked to the organizer's site list, which needs a login, so a guest who clicked was sent straight to sign-in for a page they never asked to use. A test now checks that every hub card opens somewhere a guest can see, with the calendar as the one gated on purpose.
+- The check-in write-up sits under Features on /thoughts instead of the More catch-all. A test now fails when any write-up lands in More.
+
+## 2026-11-22 - version 9.2.46
+
+- Court Vision and Player Stats load teams and rosters through one `useNbaRoster` module instead of two hand-copied queries. Both read the body with `json.data?.data ?? json.data ?? []` because portfolio_api wraps the two lists differently, and that guess also turned any other body into an empty team picker with no error. The module parses each route's real shape and fails loudly when it doesn't match, with a test for each list that fails if the old guess comes back.
+- On Player Stats, a failed teams or roster load shows the route's own reason rather than a fixed "Failed to load teams". Court Vision still shows its fixed "Failed to load teams" and "Failed to load players".
+
+## 2026-11-22 - version 9.2.45
+
+- A failed operator write says why it failed, once. Dismiss, restock, reorder and re-sync threw a fixed string, so the server's reason never reached the screen, including the new "the change may have been saved, so reload" sentence on a timeout. They throw the route's own message now. The tabs also showed a second, local toast next to the app-wide one, which is gone.
+- Restock All, Acknowledge All and a single dismissal no longer leave a failed write's promise rejected with nobody listening, which surfaced as an unhandled rejection on top of the toast. They never announced a success that didn't happen; the unhandled rejection was the bug. Callers that have nothing to add pass `failureAlreadyToasted`, which says out loud that the app-wide handler already covered it.
+- Acknowledge All reports a failure once. It runs one dismissal per alert, so a hung API raised the same app-wide toast once per alert. Its dismissals skip the app-wide toast now, and it shows the first failure itself.
+- A restock refreshes the activity feed it just wrote to, and finishing a restock session refreshes restock history. Both had stayed stale until something else refetched them.
+
+## 2026-11-22 - version 9.2.44
+
+- Operator writes and flag writes give up after eight seconds. They had no deadline, so a hung portfolio_api held the route open until the platform killed it. The flags audit read had none either.
+- A write that runs out of time answers 504, "the change may have been saved, so reload before trying again", and is never replayed against the demo seed. Both write paths fall back to the seed when the API never answered, and an abort would have looked exactly like that: a write that might have landed upstream would have reported a seed success. The timeout is its own error now, the same way an unreadable answer already was.
+- Only a connection that was never made falls back to the seed. Node rejects with the same `TypeError: fetch failed` for a refused connection and for a server that read the whole write and then hung up, so the cause decides now: a refusal or a failed lookup (`ECONNREFUSED`, `ENOTFOUND`, `EAI_AGAIN`) still answers from the seed, and anything else gets the same 504 as a timeout.
+- The 504 sentence reaches the screen. Toggling a flag, scheduling or ending a promotion and saving a restock slot all threw a fixed string, so the route's reason was dropped on the way. They show it now. A promotion that timed out closes its form and reloads the list instead of leaving the button there to press again, since creating one isn't idempotent and a second press could make two. A restock slot that didn't save says so on the slot list too; that message only ever showed on the review screen.
+- One `UPSTREAM_TIMEOUT_MS` in `upstream.ts` replaces the literal eight seconds the flags read had copied from it. Operator reads keep their own five seconds, which sits on a page's render path.
+
+## 2026-11-22 - version 9.2.43
+
+- A copy button says when the copy didn't happen. The review-progress Copy on /interviewee showed "Copied to clipboard." before the write settled, even when the browser refused it, and the bracket's Share and Copy Link buttons dropped a refused write without saying anything. They all go through `copyText()` now, which reports whether the text actually reached the clipboard. On failure they say "Copy failed", or ask for a manual copy. The bracket's buttons also read the result out through a polite status region, since a button's label changing isn't announced, and a refused copy puts the link in a read-only field next to the button so it can be copied by hand.
+- "Copied!", the event-delegation demo's row flashes and the calendar's removal warning share one `useTransientValue` hook. Each had started its own timer and never cleared it, so a second click inside the window got cut short by the first click's timer, and closing the view left the timer running.
+
+## 2026-11-22 - version 9.2.42
+
+- A command palette entry is a link or an action, never both and never neither. The command type allowed `href`, `actionId` and `external` together, and any combination of them could be missing too. A command with no `href` and an unrecognised action did nothing when chosen, without any error. The type is a union now, so that command can't be written, and the select handler has a branch for each kind instead of falling through. Inside the action branch it switches on the action itself, so a second action added without its own case fails the type check instead of toggling the theme.
+
+## 2026-11-22 - version 9.2.41
+
+- Reduced motion is read from one hook, `usePrefersReducedMotion`. 25 components still used framer-motion's `useReducedMotion`, which checks the preference on the first client render while the server can't see it. Anything those components rendered differently for reduced motion could disagree with the server HTML while hydrating, on the archived landings, the command palette, the slot machine, World and the pack opener. The app-root context was a second copy of the same store, and it made 33 files import the app shell to get one boolean. It's gone. A guard test fails if either one comes back. On the v2 landing a reduced-motion visitor still gets no hero bounce and no entrance motion: that hero mounts fresh on the client, so the hook already sees the real preference on its first render.
+
+## 2026-11-22 - version 9.2.40
+
+- A baseball or hockey league on the ZeroProof board is labelled "Fantasy Baseball" or "Fantasy Hockey". The board kept its own two-sport name list, so anything past football and basketball showed as plain "Fantasy" even though both add forms offered all four sports.
+- The ESPN sports live in one list, and the admin page and the league page share one add-league form. The two forms were line-for-line copies apart from the endpoint. The ZeroProof control styles, pasted into four files, are one module too.
+
+## 2026-11-22 - version 9.2.39
+
+- The NFL matchups and trade pages default to the season ESPN is actually running. They used the calendar year, but ESPN names a football season by the year it kicks off, so from New Year's (mid fantasy playoffs) until September they asked for a season with no games in it. `currentNflSeason()` rolls over on September 1, next to the NBA one that already rolls over in October. Both pages have a test that sets the clock to January and checks the season they ask for, so going back to the calendar year fails.
+
+## 2026-11-22 - version 9.2.38
+
+- The codebase-audit write-up has a dated update on the first redesign stack: why failures now carry the server's reason, why the rate-limit tests were checking a function the proxy never called, why "Try again" didn't, and how two copies of one proxy had drifted apart before either broke: the test that failed first shows a 204 that would have come back as a 502.
+
+## 2026-11-22 - version 9.2.37
+
+- The budget and practice proxies share one forwarder now. They were hand copies, and the practice one had drifted: it dropped the query string, and it had no 204 branch (a Response can't carry a body at that status, so building one throws). Neither had bitten yet, since the practice API always answers with JSON and the page never sends a query, but the first 204 would have come back as a 502.
+- Neither proxy capped the body it forwarded. Both refuse an oversized body with a 413 now, checked from the declared length before reading and from the real length after. Budget uses the 64 KB limit the other write routes use. Practice takes up to 100 KB, matching the backend, because importing every problem reviewed in both modes is about 69 KB and a 64 KB cap would have blocked the heaviest users on every load.
+
+## 2026-11-22 - version 9.2.36
+
+- "Try again" on a failed page fetches the page again. The 30 route error boundaries handed the shared error screen Next's `reset`, which clears the error and re-renders the same payload, so a page that failed because an API was down stayed failed until a full reload. They pass `retry` now, stable since Next 16.3, which refreshes the route first. A test checks every `error.tsx` for it.
+- A failure on a page outside the feature routes, such as a write-up, `/` or `/settings`, showed the framework's bare error screen, because there was no root `error.tsx`. There is now, plus a `global-error.tsx` for a failure in the root layout itself. That last one renders in the light theme, since the theme script lives in the layout it replaces.
+
+## 2026-11-22 - version 9.2.35
+
+- Every per-IP rate limit is enforced by the proxy from the one rule table. The proxy ran its own copy of the matching loop, so the rule tests checked `matchRateLimit`, a function the proxy never called, and the one-minute window lived in proxy.ts apart from the rules. It calls `matchRateLimit` now, and a new test floods the proxy itself. `/api/research/ask` keeps its own limit of 10 a minute on purpose, because it counts per signed-in account rather than per address.
+- ZeroProof telemetry had a second limiter inside its route, which ran after the proxy had already counted the batch against the general API cap. Its 60-a-minute cap is a rule in the table now, so a flood is refused before the body is read and the 429 carries the same `Retry-After` header as the rest.
+
+## 2026-11-22 - version 9.2.34
+
+- robots.txt reads its login-gated paths from the list the proxy enforces. The hand-kept copy named `/settings` and `/calendar` and missed the five added since, `/to-do`, `/interviewee`, `/zeroproof/admin`, `/check-in/sites` and `/check-in/display`, so crawlers spent their budget on login redirects. `/check-in` itself stays crawlable, since a volunteer arriving from a poster should find it.
+
+## 2026-11-22 - version 9.2.33
+
+- A failed request in the browser now shows the reason the server gave, through one helper, `responseError`, instead of twelve copies of `res.json().catch(() => null) as { error?: string }`. The calendar helpers used to throw a fixed "Failed to create event" even when the server said why, such as "You can only view this calendar", and they pass that sentence on now. The caller's own wording still shows when the body has no reason, or isn't JSON at all.
+- The shared route helpers answer with labels meant for the logs, like "Upstream timed out", "Invalid request body" and "Not authenticated". Passing every `{ error }` through would have put those on screen at all nineteen calendar call sites, so `responseError` treats them as no reason and shows the caller's wording. The test builds those responses from the real helpers, so renaming a label fails it.
+- Budget and practice had their own copies of the same request function. They use `requestJson` now, which sends JSON and throws the server's reason. Gallery walls keeps its `unwrap`, since it also sends uploads as form data, but reads a failure through `responseError`.
+- The two league-removal checks read `!res.ok && res.status !== 204`, and the second half could never be false when the first was true. They're plain `!res.ok` now.
+- A test scans the browser code for a hand-rolled `.json().catch(`, so the next fetch goes through the helper too. Check-in keeps its own parsing because its backend answers with `message`, not `error`.
+
+## 2026-11-22 - version 9.2.32
+
+- These two entries were numbered 9.3.7 and 9.3.6 when they merged, which started a 9.3 line with no 9.3.0 release and no announcement behind it. Both are patch fixes and nothing past 9.2.28 has been released, so they're 9.2.31 and 9.2.32, in order. The PR screenshot folders keep the old numbers, since their links are pinned to the commits that hold them.
+- The prediction panel's Start / Sit table had every game a day late, so a Monday-to-Sunday week read Tuesday to Monday. The schedule route took each game's date from ESPN's UTC timestamp, and an evening tip-off in the US is already past midnight UTC. It now dates each game by the day it was asked for, which is the US day ESPN files it under.
+
+## 2026-11-22 - version 9.2.31
+
+- The matchup prediction panel's weekly NBA schedule loads again. ESPN started answering every scoreboard date range with `400 Failed to get events endpoint.`, and the schedule route asked for the whole Monday-to-Sunday week as one range. It now asks for each day of the week and merges them in day order. A day that fails still fails the week, since a week missing a day would undercount games.
+- The schedule route turns away a span that isn't a real week: an end before the start, more than seven days, or a day that doesn't exist like February 30. Each day is its own ESPN request now, so without the cap a hand-written URL could fan out into hundreds of them.
+
+## 2026-11-21 - version 9.2.30
+
+- The twenty bugs the test audit held as expected failures are fixed, and each test is an ordinary passing test again. A malformed id on the operator and NBA routes answers 400 instead of a 404, 503 or unhandled 500, a budget delete the backend answers with 204 gets through, a mid-hour alert is counted in its own hour, a blank planner param falls back to the default, and the events date filters read the day in the viewer's zone instead of UTC.
+- `useCalendarEvents` keeps the seeded events when a write lands before the first fetch, `useCountUp` shows the target when the duration is zero, and `useStreamingText` closes the stream it replaces and the one it is unmounted with. The SSE parser carries an unfinished line and its event across chunks, which also fixes multi-line data split over two chunks.
+- The login return path can no longer start with `//`, pull request links refuse a `.` or `..` repo, a type named like an object method gets the default colour, and the ZeroProof tracker sends a full batch that piled up behind the one in flight as soon as it lands.
+- The card collection page says it could not load your collection when the request fails, rather than asking a signed-in user to sign in.
+- The shared test helpers are repeatable: the operator factories and the test clock are pinned in setup, the mock handlers wait a constant tick instead of a random 100 to 300ms, `resetOperatorWriteState` restores dismissed alerts, restocked items and rearranged planograms, and the mock `/api/me` returns `isFlagAdmin`. The production demo seed still uses the real dice and clock.
+- The `UpdatesContent` tests failed once under shuffle seed 1234 on a loaded machine. That was a 5 second timeout on a list that renders every update, reproduced with heavy CPU load, and the file now has a timeout that survives it.
+- The test run printed 94 `act()` warnings, 25 unmatched mock requests and 120 blocks of error and warning output, which the changelog had called clean. All three are fixed at the source and the run prints none. The shared `axe` helper runs inside `act()`, fake-timer jumps go through `advanceTimersWithinAct`, `IS_REACT_ACT_ENVIRONMENT` is set once in setup, the tests get the same placeholder Auth0 config the CI build uses, and the default test timeout is 15 seconds so a page-sized render survives a loaded machine.
+- The setup now records every `console.error` and `console.warn` and fails the test that caused it, as it does for an unmatched request. A test that logs on purpose asserts the exact line, so a missing log fails too. The operator fallback tests allow only the "fell back to seed data" line.
+- The shared charts test helper gives Recharts a real size, so the operator charts are drawn in the tests and the accessibility scans look at them.
+- The two background blobs on a fantasy card can land on the same shape number, about one card in six. They shared a React key and a gradient id, so React warned and the second colour never showed. The key is the position now and the gradient id is unique per card.
+- Tests that passed for the wrong reason now check what they say: the leagues route test reused one response body for two requests, four card-pack tests ran the empty-pool path by accident, two inventory tests answered the store request with a payload that fails the schema, one card-lab fixture gave every card the same id, and a loss-report test reused an existing store id.
+- The per-push smoke and accessibility job runs on two workers instead of one. Playwright's slow-file warning had named `a11y-routes.spec.ts` at 9.0 minutes of a 10.2 minute run. The same 141 tests now take 6.2 minutes, with no retries. The flag is on that one CI command, so the authenticated and operator write specs keep their single worker.
+- Dated updates on the `/thoughts/tests-that-cant-fail` write-up covering the three fixes that were not what the note said, the helper and timeout work that was first left alone, and the console noise.
+
+## 2026-11-21 - version 9.2.29
+
+- A test that asserts nothing, a skipped or `.only` test, an expected failure that doesn't say which bug it waits on, and a BFF route no test imports now all fail the build. Vitest runs tests in a random order on CI and prints the seed, so a red run replays with `VITEST_SEED=<n>`. Lint fails on any warning.
+- Every test file was run alone with its tests shuffled, and every test was judged on whether it would fail if the code broke. About one in seven was weak, tautological, leaky, misnamed or redundant and was strengthened or replaced. The suite went from 4,561 tests to more than 7,400, including tests for the BFF routes and logic files nothing had touched.
+- Three files only passed in the order they were written and no longer depend on it: `ResearchContent` leaked a module-level cache between tests, `MindReaderContent` never cleared its mocks, and `DesignSystemShowcaseContent` carried a filter in the page URL from one test to the next.
+- Twenty bugs the audit found are held as expected failures with a note on each, not fixed here. The accessibility scan's route list moved to a helper with a guard against the real public routes, and `/toolkit` and the interview-prep plan page are now scanned.
+- The e2e log names every test with its time, each Playwright step keeps its own HTML report, and the empty quarantine step no longer ends in a red "No tests found". The six lint warnings in production code are cleared.
+- The interview-prep toolkit page's code blocks and check lists can be scrolled from the keyboard. The first run of the wider accessibility scan found it: they were scroll boxes nobody could focus. The checks are now one scroll box with one tab stop.
+- New write-up at `/thoughts/tests-that-cant-fail`, and a dated update on the Green Checks write-up linking to it.
+
 ## 2026-11-20 - version 9.2.28
 
 - The codebase-audit write-up has a dated update on the API half: calendar sync that had been off since July, database tests CI never ran, a bet check that two requests could both pass, a Google connect anyone could finish for someone else, a cast that hid a missing field, and the card update that knex refused to bind.

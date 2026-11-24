@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   PERFORMANCE_RANGES,
+  daysForRange,
   fleetProductPerformance,
 } from "@/lib/operator-product-performance";
 import { buildInventoryItem, buildSale } from "@/test/factories/operator";
@@ -33,6 +34,15 @@ describe("performance ranges", () => {
   it("offers stable day-window ranges", () => {
     expect(PERFORMANCE_RANGES.map((r) => r.days)).toEqual([7, 30, 90]);
   });
+
+  it("resolves a range id to its day window", () => {
+    expect(daysForRange("7d")).toBe(7);
+    expect(daysForRange("90d")).toBe(90);
+  });
+
+  it("falls back to 30 days for an id it does not know", () => {
+    expect(daysForRange("forever")).toBe(30);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -64,6 +74,52 @@ describe("fleetProductPerformance", () => {
     expect(row.revenue).toBe(10);
   });
 
+  it("includes a sale made exactly at the start of the window and drops one a moment earlier", () => {
+    const sales = [
+      saleDaysAgo("Cola", "beverages", 1, 2, 7),
+      buildSale({
+        productName: "Water",
+        category: "beverages",
+        quantity: 1,
+        total: 1,
+        timestamp: new Date(NOW.getTime() - 7 * DAY - 1).toISOString(),
+      }),
+    ];
+    const rows = fleetProductPerformance([], sales, 7, NOW);
+    expect(rows.map((r) => r.productName)).toEqual(["Cola"]);
+  });
+
+  it("rounds the daily rate to one decimal", () => {
+    const sales = [saleDaysAgo("Cola", "beverages", 1, 2, 1)];
+    const [row] = fleetProductPerformance([], sales, 3, NOW);
+    expect(row.avgPerDay).toBe(0.3);
+  });
+
+  it("treats a zero-day window as one day rather than dividing by zero", () => {
+    const sales = [saleDaysAgo("Cola", "beverages", 4, 8, 0.5)];
+    const [row] = fleetProductPerformance([], sales, 0, NOW);
+    expect(row.unitsSold).toBe(4);
+    expect(row.avgPerDay).toBe(4);
+  });
+
+  it("keeps the sales of a product that is also on the shelf", () => {
+    const items = [
+      buildInventoryItem({ productName: "Cola", category: "beverages" }),
+    ];
+    const sales = [saleDaysAgo("Cola", "beverages", 2, 4, 1)];
+    const [row] = fleetProductPerformance(items, sales, 7, NOW);
+    expect(row).toMatchObject({ unitsSold: 2, revenue: 4, hasSales: true });
+  });
+
+  it("treats a stocked product whose only sales are outside the window as a dead SKU", () => {
+    const items = [
+      buildInventoryItem({ productName: "Cola", category: "beverages" }),
+    ];
+    const sales = [saleDaysAgo("Cola", "beverages", 2, 4, 30)];
+    const [row] = fleetProductPerformance(items, sales, 7, NOW);
+    expect(row).toMatchObject({ unitsSold: 0, revenue: 0, hasSales: false });
+  });
+
   it("includes a stocked product with no sales as a dead SKU", () => {
     const items = [
       buildInventoryItem({ productName: "Kombucha", category: "beverages" }),
@@ -77,6 +133,7 @@ describe("fleetProductPerformance", () => {
     expect(dead?.unitsSold).toBe(0);
     expect(dead?.revenue).toBe(0);
     expect(dead?.hasSales).toBe(false);
+    expect(dead?.category).toBe("beverages");
   });
 
   it("indexes each product against its category's average revenue", () => {
@@ -101,6 +158,16 @@ describe("fleetProductPerformance", () => {
     ];
     const rows = fleetProductPerformance([], sales, 7, NOW);
     expect(rows.map((r) => r.productName)).toEqual(["Cola", "Chips", "Gum"]);
+  });
+
+  it("lists products with equal revenue alphabetically", () => {
+    const sales = [
+      saleDaysAgo("Water", "beverages", 1, 5, 1),
+      saleDaysAgo("Cola", "beverages", 1, 5, 1),
+      saleDaysAgo("Juice", "beverages", 1, 5, 1),
+    ];
+    const rows = fleetProductPerformance([], sales, 7, NOW);
+    expect(rows.map((r) => r.productName)).toEqual(["Cola", "Juice", "Water"]);
   });
 
   it("returns nothing to rank when there is neither stock nor sales", () => {

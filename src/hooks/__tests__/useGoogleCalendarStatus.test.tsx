@@ -47,10 +47,19 @@ describe("useGoogleCalendarStatus", () => {
     expect(result.current).toMatchObject({ connected: false, statusUnavailable: true });
   });
 
+  it("says the status is unknown on a failed response even when the body claims connected", async () => {
+    const { result } = statusAnswers(() =>
+      HttpResponse.json({ connected: true }, { status: 503 }),
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current).toMatchObject({ connected: false, statusUnavailable: true });
+  });
+
   it("says the status is unknown when the answer is unreadable", async () => {
     const { result } = statusAnswers(() => HttpResponse.json({ connected: "yes" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.statusUnavailable).toBe(true);
+    expect(result.current).toMatchObject({ connected: false, statusUnavailable: true });
   });
 });

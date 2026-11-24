@@ -6,6 +6,8 @@ import {
   recentTerm,
   parseEsearch,
   parsePublications,
+  phraseWords,
+  isMeshDescriptor,
 } from "./pubmed";
 
 describe("curated data", () => {
@@ -65,6 +67,11 @@ describe("classifyEvidence", () => {
   it("reserves active for the genuinely crowded half", () => {
     expect(classifyEvidence({ total: 143, recent: 75 })).toBe("active");
     expect(classifyEvidence({ total: 786, recent: 502 })).toBe("active");
+  });
+
+  it("calls a topic with papers but none lately sparse, never none", () => {
+    // Zero is reserved for no literature at all; a field gone quiet still has some.
+    expect(classifyEvidence({ total: 40, recent: 0 })).toBe("sparse");
   });
 
   it("does not let a large all-time count hide a quiet recent five years", () => {
@@ -169,6 +176,24 @@ describe("PubMed payload parsing", () => {
     ]);
   });
 
+  it("strips markup and collapses whitespace in a title, and finds the DOI wherever it sits", () => {
+    const [publication] = parsePublications({
+      result: {
+        uids: ["9"],
+        "9": {
+          uid: "9",
+          title: "  Outcomes of <i>EVAR</i>\n  in   women ",
+          articleids: [
+            { idtype: "pubmed", value: "9" },
+            { idtype: "doi", value: "10.1000/x" },
+          ],
+        },
+      },
+    });
+    expect(publication.title).toBe("Outcomes of EVAR in women");
+    expect(publication.doi).toBe("10.1000/x");
+  });
+
   it("tolerates missing optional esummary fields", () => {
     const publications = parsePublications({
       result: {
@@ -234,6 +259,54 @@ describe("buildSearchTerm for a custom phrase topic", () => {
     });
     expect(term).toContain("popliteal[tiab] AND aneurysm[tiab]");
     expect(term).toContain(DEMOGRAPHICS[0].clause);
+  });
+});
+
+describe("buildSearchTerm for a custom journal", () => {
+  it("scopes to the journal title abbreviation it was given", () => {
+    expect(buildSearchTerm({ journalName: "J Vasc Surg" })).toBe('("J Vasc Surg"[ta])');
+  });
+
+  it("does not add the vascular scope, since the journal already narrows the search", () => {
+    expect(buildSearchTerm({ journalName: "Ann Vasc Surg" })).not.toContain("vascular");
+  });
+
+  it("refuses anything that isn't a journal abbreviation, so no raw query reaches PubMed", () => {
+    expect(buildSearchTerm({ journalName: 'J Vasc Surg"[ta] OR "x' })).toBeNull();
+    expect(buildSearchTerm({ journalName: "J Vasc Surg[ta]" })).toBeNull();
+    expect(buildSearchTerm({ journalName: "" })).toBeNull();
+  });
+
+  it("returns null for a curated journal id it does not know", () => {
+    expect(buildSearchTerm({ journalId: "not-a-journal" })).toBeNull();
+  });
+});
+
+describe("what counts as a MeSH descriptor or a phrase word", () => {
+  it.each(['x"[mh]', 'Sarcopenia"', "Sarco[penia]", "A", "Sarcopenia; DROP", "x".repeat(83)])(
+    "rejects %s, which has no business in a query fragment",
+    (term) => {
+      expect(isMeshDescriptor(term)).toBe(false);
+      expect(buildSearchTerm({ meshTerm: term })).toBeNull();
+    },
+  );
+
+  it("accepts a descriptor with commas, parentheses and hyphens", () => {
+    expect(isMeshDescriptor("Aneurysm, Dissecting")).toBe(true);
+    expect(isMeshDescriptor("Peripheral Arterial Disease (PAD)")).toBe(true);
+    expect(isMeshDescriptor("Stent-Graft")).toBe(true);
+  });
+
+  it("splits a phrase into its words, tolerating extra spacing", () => {
+    expect(phraseWords("  carotid   stenting ")).toEqual(["carotid", "stenting"]);
+    expect(phraseWords("one two three four five six seven eight")).toHaveLength(8);
+  });
+
+  it("rejects a phrase with a one-letter word, a quote or a field tag", () => {
+    expect(phraseWords("a stent")).toBeNull();
+    expect(phraseWords('stent "graft"')).toBeNull();
+    expect(phraseWords("stent[mh]")).toBeNull();
+    expect(phraseWords("   ")).toBeNull();
   });
 });
 

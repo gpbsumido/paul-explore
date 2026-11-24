@@ -1,4 +1,4 @@
-import { proxyUpstream } from "@/lib/upstream";
+import { proxyUpstream, rejectInvalidSegments } from "@/lib/upstream";
 import { API_URL } from "@/lib/apiUrl";
 import { type NextRequest } from "next/server";
 import { safeSegment } from "@/lib/safeSegment";
@@ -6,7 +6,7 @@ import { safeSegment } from "@/lib/safeSegment";
 // Player rosters don't change mid-session — CDN can hold this for 5 minutes
 const CACHE_CONTROL = "public, s-maxage=300";
 
-export async function GET(
+export const GET = rejectInvalidSegments(async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> },
 ) {
@@ -15,4 +15,4 @@ export async function GET(
     errorLabel: "Failed to fetch players",
     cacheControl: CACHE_CONTROL,
   });
-}
+});

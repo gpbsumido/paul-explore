@@ -11,6 +11,11 @@ describe("resolveColliders", () => {
     expect(resolveColliders(pos, RADIUS, [box])).toEqual(pos);
   });
 
+  it("leaves a circle that only just clears a face where it is", () => {
+    const pos = { x: 2.6, z: 0 };
+    expect(resolveColliders(pos, RADIUS, [box])).toEqual(pos);
+  });
+
   it("pushes an overlapping circle back out of a face", () => {
     // Approaching the east face (x = 2) with the circle center just inside reach.
     const resolved = resolveColliders({ x: 2.2, z: 0 }, RADIUS, [box]);

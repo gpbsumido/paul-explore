@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, act } from "@testing-library/react";
+import { render, screen, cleanup, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-const { push, setPreference, pathname } = vi.hoisted(() => ({
+const { push, setPreference, pathname, activeTheme } = vi.hoisted(() => ({
   push: vi.fn(),
   setPreference: vi.fn(),
   pathname: { current: "/thoughts" },
+  activeTheme: { current: "light" },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -14,7 +15,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/components/ThemeProvider", () => ({
-  useTheme: () => ({ theme: "light", preference: "system", setPreference }),
+  useTheme: () => ({ theme: activeTheme.current, preference: "system", setPreference }),
 }));
 
 import CommandPaletteRoot from "../CommandPaletteRoot";
@@ -24,6 +25,7 @@ beforeEach(() => {
   push.mockClear();
   setPreference.mockClear();
   pathname.current = "/thoughts";
+  activeTheme.current = "light";
 });
 
 afterEach(cleanup);
@@ -51,6 +53,25 @@ describe("CommandPaletteRoot", () => {
     expect(
       screen.queryByRole("button", { name: /command palette/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it.each(["/discover", "/world"])(
+    "hides the floating trigger on %s, which has its own search",
+    (path) => {
+      pathname.current = path;
+      render(<CommandPaletteRoot />);
+      expect(
+        screen.queryByRole("button", { name: /command palette/i }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it("opens from the keyboard shortcut, trigger or not", () => {
+    pathname.current = "/";
+    render(<CommandPaletteRoot />);
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
   });
 
   it("still opens on the landing when asked via the open event", () => {
@@ -81,6 +102,16 @@ describe("CommandPaletteRoot", () => {
     // Current theme is light, so it should switch to dark.
     expect(setPreference).toHaveBeenCalledWith("dark");
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("switches back to light when the theme is already dark", async () => {
+    activeTheme.current = "dark";
+    const user = userEvent.setup();
+    render(<CommandPaletteRoot />);
+    await openPalette(user);
+    await user.type(screen.getByRole("combobox"), "toggle theme");
+    await user.keyboard("{Enter}");
+    expect(setPreference).toHaveBeenCalledWith("light");
   });
 
   it("opens external links in a new tab instead of routing", async () => {

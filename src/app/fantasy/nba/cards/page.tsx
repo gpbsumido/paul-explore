@@ -110,17 +110,15 @@ export default async function CardLabPage({
 
   const slate = await loadNightlySlate({ sport, season, date });
 
-  // Off-season fallback: NBA's default view has no slate to show between June and
-  // October, so unless a night was explicitly asked for, fall back to the season
-  // view rather than a bare empty page. WNBA is in season when NBA isn't.
-  const offSeasonDefault =
-    sport === "nba" &&
-    !params.mode &&
-    !date &&
-    !slate.error &&
-    slate.cards.length === 0;
+  // NBA's default view falls back to the season view whenever it has no night to
+  // show: between June and October, or when ESPN's scoreboard can't be read. The
+  // season cards come from the league read instead, so they usually still load.
+  // A night or the Nightly tab asked for by name still gets its own empty state
+  // or error. WNBA is in season when NBA isn't.
+  const defaultViewWithNoNight =
+    sport === "nba" && !params.mode && !date && slate.cards.length === 0;
 
-  if (offSeasonDefault) {
+  if (defaultViewWithNoNight) {
     const { cards, error } = await loadNbaSeasonCards(season);
     return (
       <CardLabContent

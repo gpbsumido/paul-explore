@@ -5,7 +5,8 @@ import Link from "next/link";
 import nextDynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Fraunces } from "next/font/google";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import GraphBackground from "@/app/v3/graph/GraphBackground";
 import { openCommandPalette } from "@/lib/command-palette/open-event";
 import { useShortcutKey } from "@/hooks/useShortcutKey";
@@ -600,7 +601,7 @@ export default function SlotMachine({
   action: ReactNode;
 }) {
   const router = useRouter();
-  const reduced = useReducedMotion() ?? false;
+  const reduced = usePrefersReducedMotion();
   const categories = useMemo(() => buildSlots(), []);
 
   // Every reachable category → option → write-up leaf, flattened, so a spin can

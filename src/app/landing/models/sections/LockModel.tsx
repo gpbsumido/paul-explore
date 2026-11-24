@@ -1,20 +1,14 @@
 "use client";
 
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo } from "react";
 import { useGLTF, Float } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import type { Group } from "three";
 import HotspotDot from "../HotspotDot";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 useGLTF.preload("/models/lock.glb?v=2");
-
-const getPrefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const getIsMobile = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(max-width: 767px)").matches;
 
 /**
  * Padlock GLB with a pendulum idle animation (±26° Y-axis oscillation via
@@ -28,21 +22,8 @@ export default function LockModel() {
   const cloned = useMemo(() => scene.clone(), [scene]);
   const pendulumRef = useRef<Group>(null);
 
-  const [prefersReduced, setPrefersReduced] = useState(getPrefersReduced);
-  const [isMobile, setIsMobile] = useState(getIsMobile);
-
-  useEffect(() => {
-    const mqMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const mqMobile = window.matchMedia("(max-width: 767px)");
-    const onMotion = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
-    const onMobile = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mqMotion.addEventListener("change", onMotion);
-    mqMobile.addEventListener("change", onMobile);
-    return () => {
-      mqMotion.removeEventListener("change", onMotion);
-      mqMobile.removeEventListener("change", onMobile);
-    };
-  }, []);
+  const prefersReduced = usePrefersReducedMotion();
+  const isMobile = useIsMobile();
 
   const disableAnimation = prefersReduced || isMobile;
 

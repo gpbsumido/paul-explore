@@ -32,6 +32,24 @@ describe("Pokémon TCG guided tour", () => {
     expect(document.getElementById("tcg-type-filters")).not.toBeNull();
   });
 
+  it("opens by itself on a first visit, and stays shut once it has been seen", () => {
+    const first = renderBrowse();
+    expect(screen.getByRole("dialog", { name: /tour/i })).toBeInTheDocument();
+    first.unmount();
+
+    window.localStorage.setItem("tcg-tour-seen", "true");
+    renderBrowse();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("remembers that it has been seen once it is closed", () => {
+    renderBrowse();
+    const tour = screen.getByRole("dialog", { name: /tour/i });
+    fireEvent.click(within(tour).getByRole("button", { name: /skip|close|done|got it/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(window.localStorage.getItem("tcg-tour-seen")).not.toBeNull();
+  });
+
   it("opens the tour and walks into it", () => {
     window.localStorage.setItem("tcg-tour-seen", "true");
     renderBrowse();

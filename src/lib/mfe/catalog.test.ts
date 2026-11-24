@@ -51,6 +51,11 @@ describe("workPortfolioCounts", () => {
     expect(await workPortfolioCounts(REMOTE)).toBeNull();
   });
 
+  it("won't trust a good-looking catalog served with an error status", async () => {
+    vi.stubGlobal("fetch", respond(503, catalog));
+    expect(await workPortfolioCounts(REMOTE)).toBeNull();
+  });
+
   it("refuses a catalog that doesn't match the contract", async () => {
     vi.stubGlobal("fetch", respond(200, { projects: "nope" }));
     expect(await workPortfolioCounts(REMOTE)).toBeNull();

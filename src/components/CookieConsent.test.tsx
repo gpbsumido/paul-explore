@@ -57,13 +57,20 @@ describe("CookieConsent", () => {
 
     expect(document.cookie).toContain(`${CONSENT_COOKIE}=declined`);
     expect(screen.queryByRole("region", { name: /cookie/i })).not.toBeInTheDocument();
+    // Declining mints nothing, so there is no new request worth a refresh.
+    expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("does not render once a choice is already stored", () => {
-    document.cookie = `${CONSENT_COOKIE}=declined; path=/`;
+  it.each(["accepted", "declined"])(
+    "does not render once %s is already stored",
+    (choice) => {
+      document.cookie = `${CONSENT_COOKIE}=${choice}; path=/`;
 
-    render(<CookieConsent />);
+      render(<CookieConsent />);
 
-    expect(screen.queryByRole("region", { name: /cookie/i })).not.toBeInTheDocument();
-  });
+      expect(
+        screen.queryByRole("region", { name: /cookie/i }),
+      ).not.toBeInTheDocument();
+    },
+  );
 });

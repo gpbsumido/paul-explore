@@ -49,6 +49,10 @@ describe("winRatePct", () => {
     expect(winRatePct({ wins: 6, losses: 4 })).toBe(60);
   });
 
+  it("rounds to the nearest whole percent", () => {
+    expect(winRatePct({ wins: 2, losses: 1 })).toBe(67);
+  });
+
   it("is null with no graded bets, so the UI shows a dash not NaN", () => {
     expect(winRatePct({ wins: 0, losses: 0 })).toBeNull();
   });
@@ -66,6 +70,15 @@ describe("recentForm", () => {
       { id: "new", status: "won" },
       { id: "mid", status: "lost" },
     ]);
+  });
+
+  it("counts pushes and voids as settled, and skips an open bet that somehow has a settle time", () => {
+    const bets = [
+      bet({ id: "push", status: "push", settledAt: "2026-01-02T00:00:00.000Z" }),
+      bet({ id: "void", status: "void", settledAt: "2026-01-03T00:00:00.000Z" }),
+      bet({ id: "open", status: "open", settledAt: "2026-01-04T00:00:00.000Z" }),
+    ];
+    expect(recentForm(bets, 5).map((entry) => entry.id)).toEqual(["void", "push"]);
   });
 });
 

@@ -2,16 +2,10 @@ import { describe, it, expect } from "vitest";
 import { matchRateLimit } from "@/lib/rateLimitRules";
 
 /**
- * Tests for the rate-limit rule table in proxy.ts.
- *
- * We extract the matching logic by re-declaring the rule shapes here rather
- * than importing the full proxy module, which pulls in next/server and Auth0
- * and requires a Next.js runtime. The rule predicates are the only thing worth
- * testing in isolation — the rest of proxy.ts is pure routing glue.
+ * Tests for the rate-limit rule table the proxy consults. The table lives in
+ * rateLimitRules.ts rather than proxy.ts so it can be imported here without
+ * pulling in next/server and Auth0; the rest of proxy.ts is routing glue.
  */
-
-// Exercises the REAL rule table imported from proxy's source, not a copy, so a
-// change to the rules can't silently pass a stale mirror here.
 const matchRule = matchRateLimit;
 
 describe("proxy rate-limit rule matching", () => {
@@ -22,6 +16,10 @@ describe("proxy rate-limit rule matching", () => {
 
     it("does not match GET /api/vitals (falls to api fallback)", () => {
       expect(matchRule("/api/vitals", "GET")?.bucket).toBe("api");
+    });
+
+    it("does not match a POST to a nested path under /api/vitals", () => {
+      expect(matchRule("/api/vitals/extra", "POST")?.bucket).toBe("api");
     });
 
     it("applies a limit of 20", () => {
@@ -51,6 +49,10 @@ describe("proxy rate-limit rule matching", () => {
     it("applies a limit of 60", () => {
       expect(matchRule("/api/graphql", "POST")?.limit).toBe(60);
     });
+
+    it("does not match GET /api/graphql (falls to api fallback)", () => {
+      expect(matchRule("/api/graphql", "GET")?.bucket).toBe("api");
+    });
   });
 
   describe("operator-write bucket", () => {
@@ -64,6 +66,14 @@ describe("proxy rate-limit rule matching", () => {
       expect(
         matchRule("/api/operator/alerts/a1/dismiss", "PATCH")?.bucket,
       ).toBe("operator-write");
+    });
+
+    it.each(["POST", "PUT", "PATCH", "DELETE"])("caps a %s on any operator route", (method) => {
+      expect(matchRule("/api/operator/stores/abc", method)?.bucket).toBe("operator-write");
+    });
+
+    it("doesn't treat a route that only starts with the same letters as an operator write", () => {
+      expect(matchRule("/api/operators", "POST")?.bucket).toBe("api");
     });
 
     it("lets operator reads fall through to the api backstop", () => {
@@ -97,19 +107,10 @@ describe("proxy rate-limit rule matching", () => {
     it("returns null for a page route", () => {
       expect(matchRule("/calendar", "GET")).toBeNull();
     });
-  });
 
-  describe("first-match-wins ordering", () => {
-    it("vitals rule fires before the api fallback for POST /api/vitals", () => {
-      const rule = matchRule("/api/vitals", "POST");
-      expect(rule?.bucket).toBe("vitals");
-      expect(rule?.bucket).not.toBe("api");
-    });
-
-    it("graphql rule fires before the api fallback for POST /api/graphql", () => {
-      const rule = matchRule("/api/graphql", "POST");
-      expect(rule?.bucket).toBe("graphql");
-      expect(rule?.bucket).not.toBe("api");
+    it("returns null for a path that only looks like the api prefix", () => {
+      expect(matchRule("/api", "GET")).toBeNull();
+      expect(matchRule("/apiary", "GET")).toBeNull();
     });
   });
 });

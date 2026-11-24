@@ -28,10 +28,12 @@ export function loginReturnToFromReferer(
   }
 
   if (url.origin !== appOrigin) return null;
-  if (url.pathname.startsWith("/auth/")) return null;
-  if (url.pathname === "/") return null;
+  // "//host/x" reads as another site to a browser, so keep one leading slash.
+  const pathname = url.pathname.replace(/^\/+/, "/");
+  if (pathname.startsWith("/auth/")) return null;
+  if (pathname === "/") return null;
 
-  return `${url.pathname}${url.search}`;
+  return `${pathname}${url.search}`;
 }
 
 /**
@@ -41,6 +43,15 @@ export function loginReturnToFromReferer(
  * who is signing in rather than reusing its still-live SSO session.
  */
 export const LOGIN_PROMPT_COOKIE = "auth_login_prompt";
+
+/** How the prompt cookie is set wherever it's armed: ten minutes, server-only. */
+export const LOGIN_PROMPT_COOKIE_OPTIONS = {
+  path: "/",
+  maxAge: 600,
+  httpOnly: true,
+  sameSite: "lax",
+  secure: true,
+} as const;
 
 /**
  * The prompt to force after a local session times out.

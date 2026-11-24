@@ -60,6 +60,17 @@ describe("arrangeWall", () => {
     expect(leftMargin).toBeCloseTo(rightMargin, 5);
   });
 
+  it("keeps frames in one row when they fill the wall exactly, and wraps one unit over", () => {
+    const frames = [frame("a", 20, 10), frame("b", 20, 10)];
+    // 20 + 2 gap + 20 = 42.
+    const exact = arrangeWall({ wallWidth: 42, wallHeight: 50, gap: 2, frames });
+    expect(new Set(exact.placements.map((p) => p.y)).size).toBe(1);
+    expect(exact.overflows).toBe(false);
+
+    const over = arrangeWall({ wallWidth: 41, wallHeight: 50, gap: 2, frames });
+    expect(new Set(over.placements.map((p) => p.y)).size).toBe(2);
+  });
+
   it("wraps to a new row when the next frame exceeds the wall width", () => {
     const result = arrangeWall({
       wallWidth: 50,
@@ -97,6 +108,17 @@ describe("arrangeWall", () => {
     expect(result.contentHeight).toBe(35);
     const [a, b] = result.placements;
     expect(b.y - (a.y + a.height)).toBe(5);
+  });
+
+  it("does not flag overflow when everything fits the wall exactly", () => {
+    const result = arrangeWall({
+      wallWidth: 50,
+      wallHeight: 35,
+      gap: 5,
+      frames: [frame("a", 40, 10), frame("b", 40, 20)],
+    });
+    expect(result.contentHeight).toBe(35);
+    expect(result.overflows).toBe(false);
   });
 
   it("flags overflow when the stacked rows are taller than the wall", () => {

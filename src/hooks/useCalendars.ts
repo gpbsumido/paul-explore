@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Calendar, CalendarMember } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
+import { responseError } from "@/lib/responseError";
 import {
   calendarsResponseSchema,
   calendarWriteResponseSchema,
@@ -14,7 +15,7 @@ import {
 
 async function fetchCalendars(): Promise<Calendar[]> {
   const res = await fetch("/api/calendar/calendars");
-  if (!res.ok) throw new Error("Failed to fetch calendars");
+  if (!res.ok) throw await responseError(res, "Failed to fetch calendars");
   const json = calendarsResponseSchema.parse(await res.json());
   return json.calendars;
 }
@@ -27,7 +28,7 @@ async function apiCreateCalendar(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fields),
   });
-  if (!res.ok) throw new Error("Failed to create calendar");
+  if (!res.ok) throw await responseError(res, "Failed to create calendar");
   const json = calendarWriteResponseSchema.parse(await res.json());
   return json.calendar;
 }
@@ -41,21 +42,21 @@ async function apiUpdateCalendar(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(fields),
   });
-  if (!res.ok) throw new Error("Failed to update calendar");
+  if (!res.ok) throw await responseError(res, "Failed to update calendar");
   const json = calendarWriteResponseSchema.parse(await res.json());
   return json.calendar;
 }
 
 async function apiDeleteCalendar(id: string): Promise<void> {
   const res = await fetch(`/api/calendar/calendars/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete calendar");
+  if (!res.ok) throw await responseError(res, "Failed to delete calendar");
 }
 
 // ---- Sharing API helpers ---------------------------------------------------
 
 async function apiFetchMembers(calendarId: string): Promise<CalendarMember[]> {
   const res = await fetch(`/api/calendar/calendars/${calendarId}/members`);
-  if (!res.ok) throw new Error("Failed to fetch members");
+  if (!res.ok) throw await responseError(res, "Failed to fetch members");
   const json = membersResponseSchema.parse(await res.json());
   return json.members;
 }
@@ -70,10 +71,7 @@ async function apiInviteMember(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, role }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error ?? "Failed to invite member");
-  }
+  if (!res.ok) throw await responseError(res, "Failed to invite member");
   const json = memberResponseSchema.parse(await res.json());
   return json.member;
 }
@@ -91,7 +89,7 @@ async function apiUpdateMemberRole(
       body: JSON.stringify({ role }),
     },
   );
-  if (!res.ok) throw new Error("Failed to update member role");
+  if (!res.ok) throw await responseError(res, "Failed to update member role");
   const json = memberResponseSchema.parse(await res.json());
   return json.member;
 }
@@ -104,13 +102,13 @@ async function apiRemoveMember(
     `/api/calendar/calendars/${calendarId}/members/${encodeURIComponent(memberSub)}`,
     { method: "DELETE" },
   );
-  if (!res.ok) throw new Error("Failed to remove member");
+  if (!res.ok) throw await responseError(res, "Failed to remove member");
   return res.json();
 }
 
 async function apiLeaveCalendar(calendarId: string): Promise<{ googleAclRemoved: boolean }> {
   const res = await fetch(`/api/calendar/calendars/${calendarId}/members/me`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to leave calendar");
+  if (!res.ok) throw await responseError(res, "Failed to leave calendar");
   return res.json();
 }
 

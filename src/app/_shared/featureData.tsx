@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { reveal } from "@/app/landing/Section";
 import { spring, cardFlipIn, instantTransition } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
 import { ACCENT_BAND } from "@/lib/accentBand";
 
 // The data moved to a plain module so it can be imported without dragging
-// framer-motion (and "use client") along. Re-exported here so the ~20 existing
-// importers keep working; new code should import from ./featureData.data.
+// framer-motion (and "use client") along. Re-exported here for the hubs that
+// also want the cards (FeatureHub, FeatureHubV2, the v2 ProjectsSection) and
+// for older tests; anything that only needs the data should import
+// ./featureData.data.
 export {
   FEATURES,
   THOUGHTS,
@@ -19,6 +22,7 @@ export {
 } from "./featureData.data";
 // Only what the preview components below actually render.
 import { PLAYOFF_ROWS, TCG_CARDS, POCKET_EXPANSIONS } from "./featureData.data";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 // ---------------------------------------------------------------------------
 // Feature & thought data
@@ -569,7 +573,7 @@ function WpTickerRow({
 }
 
 export function WorkPortfolioPreview() {
-  const reduced = useReducedMotion();
+  const reduced = usePrefersReducedMotion();
   return (
     <div className="flex h-full flex-col justify-center gap-2">
       <WpTickerRow items={WP_TOP} direction="left" reduced={!!reduced} />
@@ -755,6 +759,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   "fantasy-nfl": "--color-feature-nfl",
   pokemon: "--color-feature-tcg",
   calendar: "--color-feature-calendar",
+  budget: "--color-feature-budget",
   vitals: "--color-feature-vitals",
   particles: "--color-feature-particles",
   ketsup: "--color-feature-ketsup",
@@ -771,22 +776,24 @@ export const FEATURE_TOKEN: Record<string, string> = {
 };
 
 // Mini changelog feed for the hub card: a category dot, a title, and a version
-// badge, echoing the real /updates entries.
-const UPDATES_PREVIEW = [
+// badge, the three newest /updates entries. Typed out rather than imported, since
+// the entries file would ship the whole changelog with the hub;
+// updatesPreview.test.ts fails when a new entry lands and this falls behind.
+export const UPDATES_PREVIEW = [
   {
-    title: "Sets load from our catalog",
-    tone: "var(--color-update-fix)",
-    version: "5.19",
+    title: "A new home page, and the rest of the site to match",
+    tone: "var(--color-update-feature)",
+    version: "9.4",
   },
   {
-    title: "Volunteer check-in",
+    title: "The landing says who built it",
     tone: "var(--color-update-feature)",
-    version: "5.18",
+    version: "9.3",
   },
   {
-    title: "Jump anywhere with ⌘K",
+    title: "The Mind Reader: a party game for two",
     tone: "var(--color-update-feature)",
-    version: "5.12",
+    version: "9.2",
   },
 ];
 
@@ -965,7 +972,7 @@ export function FeatureCard({
           ) : (
             <div />
           )}
-          {feature.href.startsWith("http") ? (
+          {isExternalHref(feature.href) ? (
             <a
               href={feature.href}
               target="_blank"

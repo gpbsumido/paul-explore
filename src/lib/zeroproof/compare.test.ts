@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { LeaderboardEntry } from "./schemas";
 import { compareStats, leadSummary, rankByMetric } from "./compare";
+import { formatSignedPct } from "./format";
 
 const mine = {
   wins: 6,
@@ -41,6 +42,31 @@ describe("compareStats", () => {
     expect(by("sharp").leader).toBe("theirs"); // null loses to 80
   });
 
+  it("calls an equal metric a tie, and a missing score on their side a win for mine", () => {
+    const even = compareStats({ ...mine, sharpScore: 0 }, { ...theirs, wins: 6, losses: 4, roiPct: 20, sharpScore: null });
+    const row = (key: string) => even.find((m) => m.key === key)!;
+    expect(row("winRate").leader).toBe("tie");
+    expect(row("roi").leader).toBe("tie");
+    expect(row("sharp").leader).toBe("mine");
+  });
+
+  it("has no leader on a metric neither side has a value for", () => {
+    const ungraded = compareStats(
+      { ...mine, wins: 0, losses: 0, sharpScore: null },
+      { ...theirs, wins: 0, losses: 0, sharpScore: null },
+    );
+    expect(ungraded.find((m) => m.key === "winRate")?.leader).toBeNull();
+    expect(ungraded.find((m) => m.key === "sharp")?.leader).toBeNull();
+  });
+
+  it("puts each side's own numbers in its own column", () => {
+    expect(by("winRate").mine).toBe("60%");
+    expect(by("winRate").theirs).toBe("50%");
+    expect(by("roi").mine).toBe(formatSignedPct(20));
+    expect(by("roi").theirs).toBe(formatSignedPct(5));
+    expect(by("bets").mine).toBe("10");
+  });
+
   it("leaves record and bet count as informational, with no leader", () => {
     expect(by("record").leader).toBeNull();
     expect(by("bets").leader).toBeNull();
@@ -65,6 +91,11 @@ describe("rankByMetric", () => {
     const entries = [entry({ roiPct: 30 }), entry({ roiPct: 12 }), entry({ roiPct: 2 })];
     // roiPct 20 beats 12 and 2, loses to 30 → rank 2 of 4 (three of them plus me).
     expect(rankByMetric(entries, mine, "roiPct")).toEqual({ rank: 2, total: 4 });
+  });
+
+  it("does not count someone I only tie as ahead of me", () => {
+    const entries = [entry({ roiPct: 20 }), entry({ roiPct: 20 })];
+    expect(rankByMetric(entries, mine, "roiPct")).toEqual({ rank: 1, total: 3 });
   });
 
   it("sinks a null sharp score below anyone with a real one", () => {

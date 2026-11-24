@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import LandingContentV6 from "./v6/LandingContentV6";
+import { SITE_URL, OG_IMAGE, SITE_DESCRIPTION } from "@/lib/site";
+import LandingContentV7 from "./v7/LandingContentV7";
 
 // Static, regenerated hourly. This page reads no session and renders no
 // session-derived markup -- the header's log in/log out control resolves its
-// own state client-side (see LandingActions). That is the durable fix for the
+// own state client-side (see HeaderMenu). That is the durable fix for the
 // Messenger auth bug: the old fix opted the whole route out of static
 // rendering, which stopped the edge cache from serving a signed-in hub to
 // guests by never caching at all, and paid a serverless render (and its TTFB)
@@ -13,24 +13,22 @@ import LandingContentV6 from "./v6/LandingContentV6";
 export const revalidate = 3600;
 
 const TITLE = "Paul Sumido, Lead Frontend Developer";
-const DESCRIPTION =
-  "Lead front-end developer. Every claim on this site has a working app behind it, a write-up on the architecture that shaped it, and real Core Web Vitals you can check it against.";
 
 export const metadata: Metadata = {
   title: TITLE,
-  description: DESCRIPTION,
+  description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE_URL,
     title: TITLE,
-    description: DESCRIPTION,
+    description: SITE_DESCRIPTION,
     images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
-    description: DESCRIPTION,
+    description: SITE_DESCRIPTION,
     images: [OG_IMAGE.url],
   },
 };
@@ -40,5 +38,5 @@ export const metadata: Metadata = {
  * the ?version= switch between them, lives at /discover.
  */
 export default function Home() {
-  return <LandingContentV6 />;
+  return <LandingContentV7 />;
 }

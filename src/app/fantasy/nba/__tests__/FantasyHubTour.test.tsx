@@ -46,6 +46,27 @@ describe("Fantasy hub guided tour", () => {
     fireEvent.click(
       within(tour()).getByRole("button", { name: /^next$/i }),
     );
-    expect(within(tour()).getByText(/fantasy nba hub/i)).toBeInTheDocument();
+    // The consent step's own body also says "Fantasy NBA hub", so match the
+    // second step's exact title and check the first one has gone.
+    expect(within(tour()).getByText("The Fantasy NBA hub")).toBeInTheDocument();
+    expect(within(tour()).queryByText("Take a quick tour?")).not.toBeInTheDocument();
+  });
+
+  it("opens by itself on a first visit and remembers it was seen", () => {
+    renderHub();
+    expect(screen.getByRole("dialog", { name: /tour/i })).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+    expect(window.localStorage.getItem("fantasy-tour-seen")).toBe("true");
+  });
+
+  it("points every tour step at an element that is on the page", () => {
+    window.localStorage.setItem("fantasy-tour-seen", "true");
+    renderHub();
+    fireEvent.click(screen.getByRole("button", { name: /take the tour/i }));
+    const tour = () => screen.getByRole("dialog", { name: /tour/i });
+    for (const title of ["The Fantasy NBA hub", "Jump anywhere", "Pick a tool"]) {
+      fireEvent.click(within(tour()).getByRole("button", { name: /^next$/i }));
+      expect(within(tour()).getByText(title)).toBeInTheDocument();
+    }
   });
 });

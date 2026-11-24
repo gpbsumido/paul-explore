@@ -45,6 +45,35 @@ describe("DeferredPreview", () => {
     expect(disconnect).toHaveBeenCalled();
   });
 
+  it("keeps the skeleton while the card is reported as off screen", () => {
+    let fire: ((entries: { isIntersecting: boolean }[]) => void) | null = null;
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
+          fire = cb;
+        }
+        observe = vi.fn();
+        disconnect = vi.fn();
+        unobserve = vi.fn();
+      },
+    );
+
+    render(
+      <DeferredPreview>
+        <p>Heavy preview</p>
+      </DeferredPreview>,
+    );
+
+    // The observer also reports when a card leaves the margin; that must not
+    // mount the heavy child.
+    act(() => fire?.([{ isIntersecting: false }]));
+    expect(screen.queryByText("Heavy preview")).not.toBeInTheDocument();
+
+    act(() => fire?.([{ isIntersecting: true }]));
+    expect(screen.getByText("Heavy preview")).toBeInTheDocument();
+  });
+
   it("mounts immediately when the browser has no IntersectionObserver", () => {
     vi.stubGlobal("IntersectionObserver", undefined);
     render(

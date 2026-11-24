@@ -12,12 +12,23 @@ const css = readFileSync(
   "utf8",
 );
 
+/** The selector of the one rule that sets corner-shape: squircle. */
+function squircleSelector(): string {
+  const rule = css.match(/([^{}]+)\{[^{}]*corner-shape:\s*squircle[^{}]*\}/);
+  if (!rule) throw new Error("no rule sets corner-shape: squircle");
+  return rule[1].replace(/\s+/g, "");
+}
+
 describe("squircle corners", () => {
   it("gives rounded utilities the squircle corner shape", () => {
-    expect(css).toMatch(/corner-shape:\s*squircle/);
+    expect(squircleSelector()).toContain('[class*="rounded"]');
   });
 
   it("excludes fully-round elements so circles and pills stay round", () => {
-    expect(css).toMatch(/:not\(\[class\*="rounded-full"\]\)/);
+    expect(squircleSelector()).toContain(':not([class*="rounded-full"])');
+  });
+
+  it("excludes square corners, which have no radius to shape", () => {
+    expect(squircleSelector()).toContain(':not([class*="rounded-none"])');
   });
 });

@@ -7,9 +7,11 @@ import { SEED_TICKETS } from "./tickets.data";
 
 describe("update entries data", () => {
   it("every entry parses against the schema", () => {
-    for (const entry of UPDATE_ENTRIES) {
-      expect(() => updateEntrySchema.parse(entry)).not.toThrow();
-    }
+    const failures = UPDATE_ENTRIES.flatMap((entry) => {
+      const result = updateEntrySchema.safeParse(entry);
+      return result.success ? [] : [`${entry.id}: ${result.error.message}`];
+    });
+    expect(failures).toEqual([]);
   });
 
   it("has unique ids", () => {
@@ -27,26 +29,29 @@ describe("the public feed keeps pace with releases", () => {
     readFileSync(join(process.cwd(), "package.json"), "utf-8"),
   ).version;
 
-  it("gives the current minor or major release a public update entry", () => {
-    const patch = version.split(".")[2];
+  it("gives the minor or major release this version builds on a public update entry", () => {
     // Patch releases are small fixes and stay out of the curated feed on
     // purpose. A minor or major bump (X.Y.0) ships a feature or a real change,
-    // so it has to be told to a reader here — this is the guard that a version
-    // bump can't land without one.
-    if (patch !== "0") return;
+    // so it has to be told to a reader here. Checking X.Y.0 rather than the
+    // current version means a patch still asserts something: the release its
+    // line started from was announced.
+    const [major, minor] = version.split(".");
+    const release = `${major}.${minor}.0`;
     const shipped = new Set(UPDATE_ENTRIES.map((e) => e.version));
     expect(
-      shipped.has(version),
-      `${version} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts`,
+      shipped.has(release),
+      `${release} is a minor/major release but has no UPDATE_ENTRIES entry — add one to entries.data.ts`,
     ).toBe(true);
   });
 });
 
 describe("seed tickets data", () => {
   it("every ticket parses against the schema", () => {
-    for (const ticket of SEED_TICKETS) {
-      expect(() => ticketSchema.parse(ticket)).not.toThrow();
-    }
+    const failures = SEED_TICKETS.flatMap((ticket) => {
+      const result = ticketSchema.safeParse(ticket);
+      return result.success ? [] : [`${ticket.id}: ${result.error.message}`];
+    });
+    expect(failures).toEqual([]);
   });
 
   it("has unique ids", () => {

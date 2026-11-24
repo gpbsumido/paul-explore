@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { buildSlots, shortestDelta, wrapIndex } from "./slotData";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
 import { DEPRECATED_GROUP } from "@/app/_shared/thoughtCategories";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 describe("buildSlots", () => {
   const categories = buildSlots();
@@ -34,34 +35,34 @@ describe("buildSlots", () => {
     expect(operator!.thoughts[0].href).toBe("/thoughts/operator-dashboard");
   });
 
-  it("gives a feature without a write-up an empty reel 3", () => {
-    // Asserted against whichever features genuinely lack a thoughtsHref rather
-    // than a named one. This used to point at work-portfolio, which then got a
-    // write-up and broke a test that was really about the rule, not the
-    // feature. If every feature has one, the rule still holds vacuously.
-    const withoutWriteUp = FEATURES.filter((f) => !f.thoughtsHref);
-    withoutWriteUp.forEach((feature) => {
-      const option = apps.options.find((o) => o.id === `feat:${feature.id}`);
-      expect(option).toBeDefined();
-      expect(option!.thoughts).toEqual([]);
+  it("gives a feature without a write-up an empty reel 3", async () => {
+    // The loop above checks nothing once every real feature has a write-up,
+    // which is where the site is now. This builds the case it is about.
+    vi.resetModules();
+    vi.doMock("@/app/_shared/featureData.data", async (importOriginal) => {
+      const actual =
+        await importOriginal<typeof import("@/app/_shared/featureData.data")>();
+      const withoutWriteUp = {
+        ...actual.FEATURES[0],
+        id: "no-write-up-fixture",
+        thoughtsHref: undefined,
+      };
+      return { ...actual, FEATURES: [...actual.FEATURES, withoutWriteUp] };
     });
-  });
+    const { buildSlots: buildWithFixture } = await import("./slotData");
+    const option = buildWithFixture()[0].options.find(
+      (o) => o.id === "feat:no-write-up-fixture",
+    );
+    vi.doUnmock("@/app/_shared/featureData.data");
+    expect(option?.thoughts).toEqual([]);
 
-  it("drops the bridge when a feature's write-up is deprecated", () => {
-    // discover points at the now-deprecated v5-redesign write-up, so the bridge
-    // rule fires here. A stale feature that is also a reel option shows no
-    // bridge; discover itself is the slot page, so it is not a reel option at
-    // all and there is nothing to assert for it.
-    const deprecatedHrefs = new Set(
-      THOUGHTS.filter((t) => t.deprecated).map((t) => t.href),
-    );
-    const stale = FEATURES.filter(
-      (f) => f.thoughtsHref && deprecatedHrefs.has(f.thoughtsHref),
-    );
-    for (const feature of stale) {
-      const option = apps.options.find((o) => o.id === `feat:${feature.id}`);
-      if (option) expect(option.thoughts).toEqual([]);
-    }
+    // And the real ones, for whichever features genuinely lack a write-up. This
+    // used to point at work-portfolio, which then got one and broke a test that
+    // was about the rule, not the feature.
+    FEATURES.filter((f) => !f.thoughtsHref).forEach((feature) => {
+      const real = apps.options.find((o) => o.id === `feat:${feature.id}`);
+      expect(real?.thoughts).toEqual([]);
+    });
   });
 
   it("has a Résumé category with a single option linking to /resume", () => {
@@ -123,10 +124,104 @@ describe("buildSlots", () => {
         continue;
       }
       expect(option.href.length, option.id).toBeGreaterThan(0);
-      expect(Boolean(option.external), option.id).toBe(
-        option.href.startsWith("http"),
-      );
+      expect(Boolean(option.external), option.id).toBe(isExternalHref(option.href));
     }
+  });
+});
+
+describe("buildSlots with a known catalogue", () => {
+  // The real catalogue is free to change, so the bridge rule is pinned against
+  // a small fixed one instead of whatever features happen to exist today.
+  afterEach(() => {
+    vi.doUnmock("@/app/_shared/featureData.data");
+    vi.resetModules();
+  });
+
+  const buildWithCatalogue = async () => {
+    vi.resetModules();
+    vi.doMock("@/app/_shared/featureData.data", () => ({
+      FEATURES: [
+        {
+          id: "live",
+          title: "Live",
+          description: "d",
+          href: "/live",
+          color: "#111111",
+          thoughtsHref: "/thoughts/live",
+        },
+        {
+          id: "stale",
+          title: "Stale",
+          description: "d",
+          href: "https://example.com/stale",
+          color: "#222222",
+          thoughtsHref: "/thoughts/old",
+        },
+        {
+          id: "bare",
+          title: "Bare",
+          description: "d",
+          href: "/bare",
+          color: "#333333",
+        },
+      ],
+      THOUGHTS: [
+        { title: "Live note", href: "/thoughts/live", preview: "p", color: "#111111" },
+        {
+          title: "Design note",
+          href: "/thoughts/design-detox",
+          preview: "p",
+          color: "#444444",
+        },
+        {
+          title: "Old note",
+          href: "/thoughts/old",
+          preview: "p",
+          color: "#222222",
+          deprecated: true,
+        },
+      ],
+    }));
+    const { buildSlots: buildFromCatalogue } = await import("./slotData");
+    return buildFromCatalogue();
+  };
+
+  it("bridges a feature to its active write-up only", async () => {
+    const [apps] = await buildWithCatalogue();
+    const byId = Object.fromEntries(apps.options.map((o) => [o.id, o]));
+    expect(byId["feat:live"].thoughts.map((t) => t.href)).toEqual([
+      "/thoughts/live",
+    ]);
+    expect(byId["feat:stale"].thoughts).toEqual([]);
+    expect(byId["feat:bare"].thoughts).toEqual([]);
+  });
+
+  it("flags only an external feature as external", async () => {
+    const [apps] = await buildWithCatalogue();
+    const byId = Object.fromEntries(apps.options.map((o) => [o.id, o]));
+    expect(byId["feat:stale"].external).toBe(true);
+    expect(byId["feat:live"].external).toBe(false);
+  });
+
+  it("carries the deprecated flag onto reel-3 notes, and only on those", async () => {
+    const categories = await buildWithCatalogue();
+    const notes = categories
+      .flatMap((c) => c.options)
+      .flatMap((o) => o.thoughts);
+    const old = notes.find((n) => n.href === "/thoughts/old");
+    const live = notes.find((n) => n.href === "/thoughts/live");
+    expect(old?.deprecated).toBe(true);
+    expect(live).toBeDefined();
+    expect(live).not.toHaveProperty("deprecated");
+  });
+
+  it("gives each write-up-only placeholder its own slugged id", async () => {
+    const categories = await buildWithCatalogue();
+    const ids = categories
+      .filter((c) => c.id.startsWith("cat:"))
+      .map((c) => c.options[0].id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) expect(id).toMatch(/^writeup-only:[a-z0-9-]+$/);
   });
 });
 
@@ -149,6 +244,12 @@ describe("shortestDelta", () => {
     expect(shortestDelta(0, 2, 3)).toBe(-1);
     expect(shortestDelta(2, 0, 3)).toBe(1);
     expect(shortestDelta(0, 3, 4)).toBe(-1);
+  });
+
+  it("takes the forward way on an exact tie", () => {
+    // Halfway round a 4-reel is two steps either way; forward wins the tie.
+    expect(shortestDelta(0, 2, 4)).toBe(2);
+    expect(shortestDelta(1, 3, 4)).toBe(2);
   });
 
   it("steps forward when that is shortest, and stays put for same index", () => {

@@ -9,7 +9,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("ResearchExplorerContent", () => {
   it("renders the write-up heading", () => {
     render(<ResearchExplorerContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Measuring the Literature to Find a Research Topic" })).toBeInTheDocument();
   });
 
   it("is registered as a Features write-up, not an uncategorized leftover", () => {

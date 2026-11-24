@@ -3,7 +3,7 @@
 import { TextLoop } from "@paul-portfolio/react";
 
 /**
- * The "03 / Under the surface" heading. The last word cycles through the things
+ * The "04 / Under the surface" heading. The last word cycles through the things
  * the surface polish is hiding, so the claim keeps restating itself.
  */
 export default function DetailsHeading() {

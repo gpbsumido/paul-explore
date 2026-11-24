@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { m, useReducedMotion } from "framer-motion";
+import { m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import PageIntro from "@/components/PageIntro";
@@ -123,7 +124,7 @@ function TraitCard({
  * and "Collapse all"/"Expand all" toggles the whole set at once.
  */
 export default function CraftContent() {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const [openIds, setOpenIds] = useState<Set<string>>(
     () => new Set(CRAFT_TRAITS.map((t) => t.id)),
   );

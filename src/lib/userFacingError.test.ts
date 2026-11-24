@@ -40,6 +40,17 @@ describe("userFacingErrorMessage", () => {
     expect(log).toHaveBeenCalledWith(expect.anything(), original);
   });
 
+  it.each([
+    ["a rejected fetch", new TypeError("Failed to fetch")],
+    ["HTML where JSON was expected", new SyntaxError("Unexpected token '<'")],
+  ])("logs %s so the detail isn't lost", (_label, original) => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    userFacingErrorMessage(original, FALLBACK);
+
+    expect(log).toHaveBeenCalledWith(expect.anything(), original);
+  });
+
   it("reads a rejected fetch as a connection problem", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -65,7 +76,12 @@ describe("userFacingErrorMessage", () => {
     expect(userFacingErrorMessage(new Error(""), FALLBACK)).toBe(FALLBACK);
   });
 
-  it.each([["a string", "boom"], ["null", null], ["undefined", undefined], ["an object", { a: 1 }]])(
+  it.each([
+    ["a string", "boom"],
+    ["null", null],
+    ["undefined", undefined], ["an object", { a: 1 }],
+    ["a plain object that only looks like an error", { message: "not an Error" }],
+  ])(
     "uses the fallback when %s was thrown",
     (_label, thrown) => {
       expect(userFacingErrorMessage(thrown, FALLBACK)).toBe(FALLBACK);

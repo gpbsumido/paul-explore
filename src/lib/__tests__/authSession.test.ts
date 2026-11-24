@@ -1,5 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { isSessionTimeout, isLogoutPath } from "@/lib/authSession";
+import {
+  isSessionTimeout,
+  isLogoutPath,
+  sessionConfig,
+  SESSION_ABSOLUTE_SECONDS,
+  SESSION_IDLE_SECONDS,
+} from "@/lib/authSession";
+
+describe("sessionConfig", () => {
+  it("signs you out after six idle hours, however recently you signed in", () => {
+    expect(sessionConfig.inactivityDuration).toBe(6 * 60 * 60);
+  });
+
+  it("slides the idle window forward on activity, capped at a week", () => {
+    expect(sessionConfig.rolling).toBe(true);
+    expect(sessionConfig.absoluteDuration).toBe(7 * 24 * 60 * 60);
+    expect(SESSION_IDLE_SECONDS).toBeLessThan(SESSION_ABSOLUTE_SECONDS);
+  });
+});
 
 describe("isLogoutPath", () => {
   it("recognises the SDK's logout route", () => {
@@ -21,17 +39,14 @@ describe("isLogoutPath", () => {
   });
 });
 
+// Only asked once the session is known to be gone, so the marker is the whole answer.
 describe("isSessionTimeout", () => {
   it("is a timeout when the session is gone but the marker lingers", () => {
-    expect(isSessionTimeout(false, "1")).toBe(true);
+    expect(isSessionTimeout("1")).toBe(true);
   });
 
   it("is not a timeout for someone who was never signed in", () => {
-    expect(isSessionTimeout(false, undefined)).toBe(false);
-  });
-
-  it("is not a timeout while the session is still alive", () => {
-    expect(isSessionTimeout(true, "1")).toBe(false);
+    expect(isSessionTimeout(undefined)).toBe(false);
   });
 
   it("is not a timeout once a deliberate logout has cleared the marker", () => {
@@ -39,6 +54,6 @@ describe("isSessionTimeout", () => {
     // timeout look identical afterwards unless the marker goes with the
     // session, and the user gets told their session expired when they chose
     // to leave.
-    expect(isSessionTimeout(false, "")).toBe(false);
+    expect(isSessionTimeout("")).toBe(false);
   });
 });

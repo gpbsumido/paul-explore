@@ -8,7 +8,8 @@ import {
   type KeyboardEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import {
   rankCommands,
   groupRankedCommands,
@@ -75,7 +76,7 @@ export default function CommandPalette({
 }: CommandPaletteProps) {
   const [state, dispatch] = useReducer(paletteReducer, initialPaletteState);
   const inputRef = useRef<HTMLInputElement>(null);
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
 
   const grouped = useMemo(
     () => groupRankedCommands(rankCommands(commands, state.query)),
@@ -282,7 +283,7 @@ export default function CommandPalette({
                               </span>
                             )}
                           </span>
-                          {ranked.command.external && (
+                          {ranked.command.kind === "link" && ranked.command.external && (
                             <span className="shrink-0 text-[11px] text-muted">
                               ↗
                             </span>

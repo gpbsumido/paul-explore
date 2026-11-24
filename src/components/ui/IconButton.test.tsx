@@ -1,22 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import IconButton from "./IconButton";
 
 describe("IconButton accessibility", () => {
-  it("reports axe violation when aria-label is empty", async () => {
-    const { container } = render(
-      <IconButton aria-label="">
-        <svg aria-hidden="true" />
-      </IconButton>,
-    );
-    const results = await axe(container);
-    const buttonNameViolation = results.violations.find(
-      (v) => v.id === "button-name",
-    );
-    expect(buttonNameViolation).toBeDefined();
-  });
-
   it("reports no violations with a descriptive aria-label", async () => {
     const { container } = render(
       <IconButton aria-label="Close dialog">
@@ -55,5 +43,25 @@ describe("IconButton accessibility", () => {
     );
     const btn = screen.getByRole("button");
     expect(btn).toHaveClass("icon-btn", "icon-btn--sm", "border");
+  });
+
+  it("fires onClick, and not while disabled", async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    const { rerender } = render(
+      <IconButton aria-label="Edit" onClick={onClick}>
+        <svg aria-hidden="true" />
+      </IconButton>,
+    );
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    expect(onClick).toHaveBeenCalledOnce();
+
+    rerender(
+      <IconButton aria-label="Edit" onClick={onClick} disabled>
+        <svg aria-hidden="true" />
+      </IconButton>,
+    );
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });

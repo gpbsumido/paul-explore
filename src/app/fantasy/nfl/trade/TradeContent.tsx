@@ -19,8 +19,9 @@ import {
 import { ESPN_NFL_POSITION, NFL_PRO_TEAM_ABBREV } from "@/types/espn-nfl";
 import FantasyNflNav from "../FantasyNflNav";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
+import { currentNflSeason } from "@/lib/nflSeason";
 
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = currentNflSeason();
 
 /** Positions in lineup order, so a roster reads QB, RB, WR, TE, K, D/ST. */
 const POSITION_ORDER = [1, 2, 3, 4, 5, 16];

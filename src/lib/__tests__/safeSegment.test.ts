@@ -21,6 +21,14 @@ describe("safeSegment", () => {
     ["a\\b", "backslash separator"],
     ["", "empty segment"],
     ["   ", "whitespace only"],
+    [".", "bare dot"],
+    ["%2e%2e", "encoded dot-dot"],
+    ["%2e", "encoded dot"],
+    ["a%2Fb", "encoded separator"],
+    ["a%5Cb", "encoded backslash"],
+    ["a\0b", "raw null byte"],
+    ["a%00b", "encoded null byte"],
+    ["%E0%A4%A", "broken percent-encoding"],
   ])("rejects %s (%s)", (input) => {
     expect(() => safeSegment(input)).toThrow(InvalidSegmentError);
   });
@@ -33,6 +41,10 @@ describe("safeSegment", () => {
     expect(safeSegment("a b")).toBe("a%20b");
     expect(safeSegment("a?b")).toBe("a%3Fb");
     expect(safeSegment("a#b")).toBe("a%23b");
+  });
+
+  it("encodes an already-encoded id once, not twice", () => {
+    expect(safeSegment("a%20b")).toBe("a%20b");
   });
 
   it("does not double-encode an already-safe value", () => {

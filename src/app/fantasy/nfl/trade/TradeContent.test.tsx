@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import { TradeAnalyzer } from "./TradeContent";
 import type { TradePlayer, TradePool } from "@/lib/nfl/trade";
 
@@ -89,6 +91,38 @@ describe("TradeAnalyzer", () => {
     );
   });
 
+  it("labels a schedule as hard, neutral or easy by how tough its rank is", async () => {
+    const user = userEvent.setup();
+    render(<TradeAnalyzer pool={pool} />);
+
+    await user.selectOptions(screen.getByLabelText("Team A"), "2");
+    expect(screen.getByRole("checkbox", { name: /Jahmyr Gibbs/ }).closest("li")).toHaveTextContent(/SOS 12 · hard/i);
+
+    await user.selectOptions(screen.getByLabelText("Team A"), "3");
+    expect(screen.getByRole("checkbox", { name: /Saquon Barkley/ }).closest("li")).toHaveTextContent(/SOS 16 · neutral/i);
+  });
+
+  it("calls an even swap too close to call instead of naming a winner", async () => {
+    const user = userEvent.setup();
+    const even: TradePool = {
+      ...pool,
+      players: [
+        player({ playerId: 1, name: "Derrick Henry", fantasyTeamId: 1, thisWeek: 15, perGame: 15 }),
+        player({ playerId: 2, name: "Jahmyr Gibbs", fantasyTeamId: 2, thisWeek: 15, perGame: 15 }),
+      ],
+    };
+    render(<TradeAnalyzer pool={even} />);
+
+    await user.selectOptions(screen.getByLabelText("Team A"), "1");
+    await user.selectOptions(screen.getByLabelText("Team B"), "2");
+    await user.click(screen.getByRole("checkbox", { name: /Derrick Henry/ }));
+    await user.click(screen.getByRole("checkbox", { name: /Jahmyr Gibbs/ }));
+
+    const verdict = screen.getByRole("status");
+    expect(verdict).toHaveTextContent(/too close to call/i);
+    expect(verdict).not.toHaveTextContent(/wins this trade/i);
+  });
+
   it("won't put the same team on both sides", async () => {
     const user = userEvent.setup();
     render(<TradeAnalyzer pool={pool} />);
@@ -162,3 +196,40 @@ describe("TradeAnalyzer", () => {
   });
 });
 
+describe("TradeContent default season", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // The season is read when the module loads, so the clock has to be set before
+  // a fresh import. In January the calendar year is already 2027 but the league
+  // still being traded in is the one that kicked off in 2026.
+  it("loads the season that kicked off last year during the January playoffs", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2027, 0, 4));
+    vi.resetModules();
+    const requestedSeasons: string[] = [];
+    server.use(
+      http.get("/api/nfl/trade/:season", ({ params }) => {
+        requestedSeasons.push(String(params.season));
+        return HttpResponse.json({ ...pool, players: [] });
+      }),
+    );
+    // Imported after the reset too, so the page and its providers share one
+    // copy of each context.
+    const { default: TradeContent } = await import("./TradeContent");
+    const { ThemeProvider } = await import("@/components/ThemeProvider");
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ThemeProvider>
+          <TradeContent />
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+
+    await screen.findByText("No rostered players for this season yet");
+    expect(requestedSeasons).toEqual(["2026"]);
+  });
+});

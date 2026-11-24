@@ -21,6 +21,8 @@ export function pullRequestUrl(
 ): string | null {
   if (!repo || !number) return null;
   if (!REPO.test(repo)) return null;
+  // "." and ".." pass the character check but are path steps, not repo names.
+  if (repo === "." || repo === "..") return null;
   if (!Number.isInteger(number) || number <= 0) return null;
   return `https://github.com/${OWNER}/${repo}/pull/${number}`;
 }

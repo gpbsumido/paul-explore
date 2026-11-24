@@ -62,4 +62,57 @@ describe("GET /api/zeroproof/events", () => {
     expect(calledUrl()).toContain("pastDays=14");
     expect(calledUrl()).toContain("aheadDays=30");
   });
+
+  it("only treats include=past as a request for finished fixtures", async () => {
+    const { GET } = await import("./route");
+    await GET(new Request("http://localhost/api/zeroproof/events?include=future"));
+    expect(calledUrl()).not.toContain("include");
+  });
+
+  it("ignores pastDays unless the past was asked for", async () => {
+    const { GET } = await import("./route");
+    await GET(new Request("http://localhost/api/zeroproof/events?pastDays=14"));
+    expect(calledUrl()).not.toContain("pastDays");
+  });
+
+  it("serves the slate to a signed-out visitor, with no token on the request", async () => {
+    vi.mocked(auth0.getAccessToken).mockRejectedValue(new Error("no session"));
+    const { GET } = await import("./route");
+    const res = await GET(new Request("http://localhost/api/zeroproof/events"));
+    expect(res.status).toBe(200);
+    expect(vi.mocked(fetchUpstream).mock.calls[0][1]?.headers).toBeUndefined();
+  });
+
+  it("sends a signed-in visitor's token along", async () => {
+    const { GET } = await import("./route");
+    await GET(new Request("http://localhost/api/zeroproof/events"));
+    expect(vi.mocked(fetchUpstream).mock.calls[0][1]?.headers).toEqual({
+      Authorization: "Bearer tok",
+    });
+  });
+
+  it("returns only the events list, defaulting to empty", async () => {
+    vi.mocked(fetchUpstream).mockResolvedValue(upstream({ events: [{ id: "e1" }], extra: 1 }));
+    const { GET } = await import("./route");
+    expect(await (await GET(new Request("http://localhost/api/zeroproof/events"))).json()).toEqual({
+      events: [{ id: "e1" }],
+    });
+
+    vi.mocked(fetchUpstream).mockResolvedValue(upstream({}));
+    expect(await (await GET(new Request("http://localhost/api/zeroproof/events"))).json()).toEqual({
+      events: [],
+    });
+  });
+
+  it("passes a backend failure through with the events label", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(fetchUpstream).mockResolvedValue({
+      ok: true,
+      response: new Response("nope", { status: 503 }),
+    });
+    const { GET } = await import("./route");
+    const res = await GET(new Request("http://localhost/api/zeroproof/events"));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "Failed to fetch events" });
+  });
 });

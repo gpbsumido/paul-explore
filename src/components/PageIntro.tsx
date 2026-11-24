@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 
 type Props = {
-  /** Small uppercase label above the title, matching the landing's eyebrow. */
+  /** Mono accent label above the title, matching the landing's labels. */
   eyebrow?: string;
   /** The page title. Rendered as the page's single h1 in the display face. */
   title: string;
@@ -26,11 +26,11 @@ export default function PageIntro({ eyebrow, title, lede, className }: Props) {
   return (
     <header className={`mb-10${className ? ` ${className}` : ""}`}>
       {eyebrow ? (
-        <p className="mb-2.5 text-[0.7rem] font-semibold uppercase tracking-[0.13em] text-muted">
+        <p className="mb-3 font-mono text-[13px] font-medium text-primary-600 dark:text-primary-400">
           {eyebrow}
         </p>
       ) : null}
-      <h1 className="text-[clamp(2.6rem,6vw,4.25rem)] font-bold leading-[0.98] tracking-[-0.03em] text-foreground">
+      <h1 className="text-[clamp(2.6rem,6vw,4.25rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-foreground">
         {title}
       </h1>
       {lede ? (

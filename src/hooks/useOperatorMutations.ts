@@ -8,6 +8,7 @@ import type {
   PlanogramSlot,
 } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { responseError } from "@/lib/responseError";
 import {
   alertSchema,
   inventoryItemSchema,
@@ -36,16 +37,23 @@ export interface UseDismissAlertReturn {
  * Optimistically flips `acknowledged` to true in the alerts cache for the
  * given store so the UI removes the alert row immediately. If the server
  * rejects the dismiss, the snapshot is restored and the alert reappears.
+ *
+ * `reportsItsOwnFailures` keeps a failure out of the app-wide toast, for a
+ * caller that runs many dismissals at once and would otherwise get one toast
+ * per alert for a single outage. That caller has to report the failure itself.
  */
-export function useDismissAlert(): UseDismissAlertReturn {
+export function useDismissAlert({
+  reportsItsOwnFailures = false,
+}: { reportsItsOwnFailures?: boolean } = {}): UseDismissAlertReturn {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
+    meta: { silent: reportsItsOwnFailures },
     mutationFn: async ({ alertId }: DismissAlertInput): Promise<Alert> => {
       const res = await fetch(`/api/operator/alerts/${alertId}/dismiss`, {
         method: "PATCH",
       });
-      if (!res.ok) throw new Error("Failed to dismiss alert");
+      if (!res.ok) throw await responseError(res, "Failed to dismiss alert");
       const json = await res.json();
       return alertSchema.parse(json.alert);
     },
@@ -123,7 +131,7 @@ export function useRestockStore(): UseRestockStoreReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ itemIds }),
       });
-      if (!res.ok) throw new Error("Failed to restock items");
+      if (!res.ok) throw await responseError(res, "Failed to restock items");
       const json = await res.json();
       return z.object({
         items: z.array(inventoryItemSchema),
@@ -158,6 +166,10 @@ export function useRestockStore(): UseRestockStoreReturn {
     onSettled: (_data, _err, { storeId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.operator.inventory(storeId),
+      });
+      // The restock logged an event, so the feed is stale too.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.operator.activity(storeId),
       });
     },
   });
@@ -201,7 +213,7 @@ export function useReorderPlanogram(): UseReorderPlanogramReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ boxes }),
       });
-      if (!res.ok) throw new Error("Failed to rearrange planogram");
+      if (!res.ok) throw await responseError(res, "Failed to rearrange planogram");
       const json = await res.json();
       return z.array(planogramSlotSchema).parse(json.slots);
     },
@@ -262,7 +274,7 @@ export function useResyncSlot(): UseResyncSlotReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resyncItemId: itemId }),
       });
-      if (!res.ok) throw new Error("Failed to re-sync sensor");
+      if (!res.ok) throw await responseError(res, "Failed to re-sync sensor");
       const json = await res.json();
       return z.array(planogramSlotSchema).parse(json.slots);
     },

@@ -162,6 +162,24 @@ describe("spotlightFor", () => {
     expect(seen.size).toBeGreaterThanOrEqual(30);
   });
 
+  it("hops around the catalog instead of walking it in order", () => {
+    const start = Date.UTC(2026, 8, 1);
+    const indexOnDay = (day: number) =>
+      COMPONENTS.findIndex(
+        (c) => c.id === spotlightFor(new Date(start + day * 86_400_000)).id,
+      );
+    for (let day = 0; day < 10; day++) {
+      const gap = Math.abs(indexOnDay(day + 1) - indexOnDay(day));
+      expect(gap).toBeGreaterThan(1);
+    }
+  });
+
+  it("changes pick when the UTC day rolls over", () => {
+    const lastMoment = spotlightFor(new Date("2026-09-12T23:59:59Z"));
+    const firstMoment = spotlightFor(new Date("2026-09-13T00:00:01Z"));
+    expect(firstMoment.id).not.toBe(lastMoment.id);
+  });
+
   it("always returns a documented component", () => {
     const pick = spotlightFor(new Date("1999-12-31T23:59:59Z"));
     expect(COMPONENTS.some((c) => c.id === pick.id)).toBe(true);
@@ -180,6 +198,9 @@ describe("token scales", () => {
   });
 
   it("exposes radius and shadow tokens", () => {
+    // `every` is true of an empty list, so say there is something to check.
+    expect(RADIUS_TOKENS.length).toBeGreaterThan(0);
+    expect(SHADOW_TOKENS.length).toBeGreaterThan(0);
     expect(RADIUS_TOKENS.every((t) => t.var.startsWith("--radius-"))).toBe(
       true,
     );

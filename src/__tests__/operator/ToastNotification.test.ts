@@ -36,9 +36,15 @@ describe("createToastStore", () => {
     expect(toasts[0].id).not.toBe(toasts[1].id);
   });
 
-  it("supports an optional variant (success, error, info)", () => {
+  it("keeps the variant it was given (success, error, info)", () => {
     store.addToast({ message: "Done", variant: "success" });
-    expect(store.getToasts()[0].variant).toBe("success");
+    store.addToast({ message: "Failed", variant: "error" });
+    store.addToast({ message: "FYI", variant: "info" });
+    expect(store.getToasts().map((toast) => toast.variant)).toEqual([
+      "success",
+      "error",
+      "info",
+    ]);
   });
 
   it("defaults variant to 'success' when not provided", () => {
@@ -102,13 +108,29 @@ describe("createToastStore", () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it("cancels the auto-dismiss timer when a toast is removed by hand", () => {
+    store.addToast({ message: "Dismissed early" });
+    store.removeToast(store.getToasts()[0].id);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it("clears all pending timers on destroy", () => {
     store.addToast({ message: "One" });
     store.addToast({ message: "Two" });
+    expect(vi.getTimerCount()).toBe(2);
+
     store.destroy();
 
-    // after destroy, timers should not modify state
-    vi.advanceTimersByTime(5000);
-    // store is destroyed, just verify no errors thrown
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("stops notifying subscribers after destroy", () => {
+    const listener = vi.fn();
+    store.subscribe(listener);
+    store.destroy();
+
+    store.addToast({ message: "After destroy" });
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });

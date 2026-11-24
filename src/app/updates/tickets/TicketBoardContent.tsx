@@ -74,7 +74,7 @@ function TicketCard({
       {ticket.status === "shipped" && ticket.resolvedByEntryId ? (
         <Link
           href={`/updates#entry-${ticket.resolvedByEntryId}`}
-          className="mt-2 inline-block text-[13px] font-medium text-primary-600 hover:underline dark:text-primary-400"
+          className="mt-2 inline-block text-[13px] font-medium text-primary-700 hover:underline dark:text-primary-400"
         >
           Shipped in “{ENTRY_TITLE.get(ticket.resolvedByEntryId) ?? "an update"}” →
         </Link>

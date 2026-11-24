@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import { AgentTimeline } from "./AgentTimeline";
 import type { AgentStep } from "@/lib/agent/types";
@@ -58,7 +59,7 @@ describe("AgentTimeline", () => {
     render(<AgentTimeline steps={[toolCallStep]} />);
 
     expect(screen.getByText("search_db")).toBeInTheDocument();
-    expect(screen.getByTestId("status-done")).toBeInTheDocument();
+    expect(screen.getByLabelText("Completed")).toBeInTheDocument();
   });
 
   it("renders an approval_request step using ApprovalGate", () => {
@@ -79,6 +80,27 @@ describe("AgentTimeline", () => {
     ).toBeInTheDocument();
   });
 
+  it("wires Approve and Deny to the handlers it was given, each to its own", async () => {
+    const onApprove = vi.fn();
+    const onDeny = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <AgentTimeline
+        steps={[approvalStep]}
+        onApprove={onApprove}
+        onDeny={onDeny}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /deny/i }));
+    expect(onDeny).toHaveBeenCalledOnce();
+    expect(onApprove).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /approve/i }));
+    expect(onApprove).toHaveBeenCalledOnce();
+    expect(onDeny).toHaveBeenCalledOnce();
+  });
+
   it("renders an error step as an error banner with the message", () => {
     render(<AgentTimeline steps={[errorStep]} />);
 
@@ -92,6 +114,9 @@ describe("AgentTimeline", () => {
 
     const allSteps = document.querySelectorAll("[data-step]");
     expect(allSteps).toHaveLength(3);
+    expect(allSteps[0]).toHaveTextContent("Let me analyze...");
+    expect(allSteps[1]).toHaveTextContent("The answer is 42.");
+    expect(allSteps[2]).toHaveTextContent("Connection reset");
   });
 
   it("has no axe violations with a mix of step types", async () => {

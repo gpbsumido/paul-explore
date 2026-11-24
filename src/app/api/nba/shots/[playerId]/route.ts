@@ -1,11 +1,11 @@
-import { proxyUpstream } from "@/lib/upstream";
+import { proxyUpstream, rejectInvalidSegments } from "@/lib/upstream";
 import { API_URL } from "@/lib/apiUrl";
 import { safeSegment } from "@/lib/safeSegment";
 
 // Shot data is seasonal and doesn't change often — 24hr CDN cache
 const CACHE_CONTROL = "public, s-maxage=86400";
 
-export async function GET(
+export const GET = rejectInvalidSegments(async function GET(
   _request: Request,
   { params }: { params: Promise<{ playerId: string }> },
 ) {
@@ -14,4 +14,4 @@ export async function GET(
     errorLabel: "Failed to fetch shot data",
     cacheControl: CACHE_CONTROL,
   });
-}
+});

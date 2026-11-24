@@ -57,6 +57,11 @@ async function drainUntilPause(
   return { events, reader };
 }
 
+/** The JSON payloads of every event with this name, in order. */
+function payloadsOf(events: readonly SSEEvent[], name: string): unknown[] {
+  return events.filter((e) => e.event === name).map((e) => JSON.parse(e.data));
+}
+
 describe("createMockStream", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -74,6 +79,11 @@ describe("createMockStream", () => {
     expect(types).toContain("thinking");
     expect(types).toContain("text_delta");
     expect(types[types.length - 1]).toBe("done");
+
+    const answer = payloadsOf(events, "text_delta")
+      .map((p) => (p as { content: string }).content)
+      .join("");
+    expect(answer).toBe("Based on my analysis, the answer is **42**.");
   });
 
   it("tool_calls scenario produces thinking, text, tool events, more text, done", async () => {
@@ -91,6 +101,13 @@ describe("createMockStream", () => {
     const toolStartIdx = types.indexOf("tool_use_start");
     const toolResultIdx = types.indexOf("tool_result");
     expect(toolStartIdx).toBeLessThan(toolResultIdx);
+
+    // the result has to answer the call that was started, or the UI can't pair them
+    const [started] = payloadsOf(events, "tool_use_start") as { id: string; name: string }[];
+    const [finished] = payloadsOf(events, "tool_result") as { id: string; is_error: boolean }[];
+    expect(started.name).toBe("search_db");
+    expect(finished.id).toBe(started.id);
+    expect(finished.is_error).toBe(false);
   });
 
   it("thinking scenario produces extended thinking then text then done", async () => {
@@ -119,6 +136,13 @@ describe("createMockStream", () => {
     expect(beforeTypes).toContain("approval_request");
     // no done event yet — stream is paused
     expect(beforeTypes).not.toContain("done");
+    expect(payloadsOf(beforeEvents, "approval_request")).toEqual([
+      {
+        id: "approval_1",
+        action: "delete_file",
+        description: "Delete config.json from the project root",
+      },
+    ]);
 
     // resume the stream
     resume();
@@ -157,6 +181,10 @@ describe("createMockStream", () => {
     const errorIdx = types.indexOf("error");
     expect(firstText).toBeLessThan(errorIdx);
 
+    expect(payloadsOf(events, "error")).toEqual([
+      { message: "Stream interrupted: connection reset", recoverable: true },
+    ]);
+
     // more text after error (recovery)
     const textAfterError = types.slice(errorIdx + 1).includes("text_delta");
     expect(textAfterError).toBe(true);
@@ -166,30 +194,46 @@ describe("createMockStream", () => {
     const { stream } = createMockStream("simple");
     const reader = stream.getReader();
     const parser = createSSEParser();
-    const events: SSEEvent[] = [];
 
-    // read a couple of events
+    // the first frame is the "Let me " thinking token
     await vi.advanceTimersByTimeAsync(100);
-    const { value } = await reader.read();
-    if (value) events.push(...parser.feed(value));
+    const first = await reader.read();
+    const events = parser.feed(first.value ?? "");
+    expect(events.map((e) => e.event)).toEqual(["thinking"]);
 
-    // cancel
     await reader.cancel();
 
-    // advance more — should not throw or produce events
+    // the rest of the script would have fired by now
     await vi.advanceTimersByTimeAsync(5000);
-    expect(events.length).toBeGreaterThan(0);
-    expect(events.length).toBeLessThan(20);
+    expect(await reader.read()).toEqual({ done: true, value: undefined });
   });
 
-  it("SCENARIOS array has 5 entries with id, label, and description", () => {
-    expect(SCENARIOS).toHaveLength(5);
-    for (const s of SCENARIOS) {
-      expect(typeof s.id).toBe("string");
-      expect(typeof s.label).toBe("string");
-      expect(typeof s.description).toBe("string");
-      expect(s.label.length).toBeGreaterThan(0);
-      expect(s.description.length).toBeGreaterThan(0);
+  it("SCENARIOS lists each scenario once", () => {
+    const ids = SCENARIOS.map((scenario) => scenario.id);
+    expect(ids).toEqual([
+      "simple",
+      "tool_calls",
+      "thinking",
+      "approval",
+      "error_recovery",
+    ]);
+    for (const scenario of SCENARIOS) {
+      expect(scenario.label.length).toBeGreaterThan(0);
+      expect(scenario.description.length).toBeGreaterThan(0);
     }
   });
+
+  it.each(SCENARIOS.map((scenario) => scenario.id))(
+    "the %s scenario starts with a frame and finishes with done",
+    async (id) => {
+      const { stream, resume } = createMockStream(id);
+      // approval waits for a human, so let it through as soon as it pauses
+      const resumeTimer = setInterval(resume, 100);
+      const events = await drainStream(stream, 10000);
+      clearInterval(resumeTimer);
+
+      expect(events.length).toBeGreaterThan(1);
+      expect(events[events.length - 1].event).toBe("done");
+    },
+  );
 });

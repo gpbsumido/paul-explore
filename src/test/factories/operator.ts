@@ -16,17 +16,61 @@ import type {
 
 let counter = 0;
 
+// The random source and the clock behind every factory. They default to the
+// real ones, which is what the demo seed in operator-data.ts wants. The test
+// setup pins both, so a record built in one run is the record built in the next
+// and "an hour ago" does not drift while the suite runs.
+let random: () => number = () => Math.random();
+let currentTime: () => Date = () => new Date();
+
+/** A fixed mid-hour, mid-week instant, away from any hour, day or DST edge. */
+export const PINNED_FACTORY_NOW = new Date("2026-06-17T16:00:00.000Z");
+
+/** A small repeatable pseudo-random sequence (mulberry32). */
+export function seededRandom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Makes the factories repeatable: the same random function gives the same
+ * records, dated against `now` instead of the real clock. Call it again to
+ * start the sequence over. A test that needs particular shelves passes its own
+ * function, such as `() => 0` for every slot empty.
+ */
+export function pinFactories({
+  random: randomSource,
+  now,
+}: {
+  random: () => number;
+  now: Date;
+}): void {
+  counter = 0;
+  random = randomSource;
+  currentTime = () => new Date(now);
+}
+
+/** The factories' notion of now, for handlers that stamp their own writes. */
+export function factoryNow(): Date {
+  return currentTime();
+}
+
 function nextId(prefix: string): string {
   counter += 1;
   return `${prefix}-${String(counter).padStart(3, "0")}`;
 }
 
 function randomFrom<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
+  return items[Math.floor(random() * items.length)];
 }
 
 function recentTimestamp(hoursAgo: number = 1): string {
-  const d = new Date();
+  const d = currentTime();
   d.setHours(d.getHours() - hoursAgo);
   return d.toISOString();
 }
@@ -78,10 +122,10 @@ export function buildStore(overrides: Partial<Store> = {}): Store {
     location: STORE_LOCATIONS[idx],
     province: STORE_PROVINCES[idx],
     status: "online",
-    temperature: Number((2 + Math.random() * 4).toFixed(1)),
-    lastPing: recentTimestamp(Math.random() / 60),
-    uptime: Number((95 + Math.random() * 5).toFixed(1)),
-    revenue24h: Number((50 + Math.random() * 200).toFixed(2)),
+    temperature: Number((2 + random() * 4).toFixed(1)),
+    lastPing: recentTimestamp(random() / 60),
+    uptime: Number((95 + random() * 5).toFixed(1)),
+    revenue24h: Number((50 + random() * 200).toFixed(2)),
     ...overrides,
   };
 }
@@ -131,10 +175,10 @@ export function buildInventoryItem(
     storeId: "store-001",
     productName: product.name,
     category: product.category,
-    currentStock: Math.floor(Math.random() * capacity),
+    currentStock: Math.floor(random() * capacity),
     capacity,
     price: product.price,
-    lastRestocked: recentTimestamp(12 + Math.random() * 48),
+    lastRestocked: recentTimestamp(12 + random() * 48),
     ...overrides,
   };
 }
@@ -207,7 +251,7 @@ export function buildAlert(overrides: Partial<Alert> = {}): Alert {
     severity: randomFrom(SEVERITIES),
     category,
     message: randomFrom(messages),
-    timestamp: recentTimestamp(Math.random() * 24),
+    timestamp: recentTimestamp(random() * 24),
     acknowledged: false,
     ...overrides,
   };
@@ -274,7 +318,7 @@ export function buildActivityEvent(
     storeId: "store-001",
     type,
     description: randomFrom(descriptions),
-    timestamp: recentTimestamp(Math.random() * 72),
+    timestamp: recentTimestamp(random() * 72),
     actor: randomFrom(ACTORS),
     ...overrides,
   };
@@ -293,7 +337,7 @@ export function buildActivityList(
 
 export function buildSale(overrides: Partial<Sale> = {}): Sale {
   const product = randomFrom(PRODUCTS);
-  const quantity = overrides.quantity ?? 1 + Math.floor(Math.random() * 3);
+  const quantity = overrides.quantity ?? 1 + Math.floor(random() * 3);
   const unitPrice = overrides.unitPrice ?? product.price;
   return {
     id: nextId("sale"),
@@ -303,7 +347,7 @@ export function buildSale(overrides: Partial<Sale> = {}): Sale {
     unitPrice,
     quantity,
     total: Number((unitPrice * quantity).toFixed(2)),
-    timestamp: recentTimestamp(Math.random() * 24 * 7),
+    timestamp: recentTimestamp(random() * 24 * 7),
     ...overrides,
   };
 }
@@ -314,7 +358,7 @@ export function buildSalesList(
   spanDays: number = 7,
 ): readonly Sale[] {
   return Array.from({ length: count }, (_, i) => {
-    const hoursAgo = spanDays * 24 * ((i + Math.random()) / count);
+    const hoursAgo = spanDays * 24 * ((i + random()) / count);
     return buildSale({ storeId, timestamp: recentTimestamp(hoursAgo) });
   });
 }

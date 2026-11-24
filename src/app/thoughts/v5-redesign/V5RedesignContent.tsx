@@ -37,6 +37,21 @@ export default function V5RedesignContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-11-22-about",
+            date: "November 22, 2026",
+            title: "The landing finally said who built it, with its own screens for photos",
+          },
+          {
+            id: "update-2026-11-22-stack",
+            date: "November 22, 2026",
+            title: "The landing named its tools, and kept still while doing it",
+          },
+          {
+            id: "update-2026-11-22-showcase",
+            date: "November 22, 2026",
+            title: "The project shelf stopped hijacking the scroll wheel",
+          },
+          {
             id: "update-2026-09-20-mobile-heroes",
             date: "September 20, 2026",
             title: "Mobile got its own heroes, and shipping them early broke the install",
@@ -523,17 +538,252 @@ npm error   Found: @paul-portfolio/css@0.13.11-mobile.0`}
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-22-showcase"
+        date="November 22, 2026"
+        title="The project shelf stopped hijacking the scroll wheel"
+      >
+        <p>
+          Two months after the sideways shelf went in, I spent an evening on
+          other people&rsquo;s portfolios, and Patryk Barnas&rsquo;s was the one
+          I kept going back to. Nothing on it moves sideways. Each project gets
+          a big screenshot, a title, a sentence and two underlined links, and
+          the page just scrolls. Mine made a visitor learn a gesture before
+          they could see my work.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The shelf was clever, and that was the problem.
+        </h3>
+        <p className="text-muted">
+          Scrolling down to go sideways is fun the first time. After that, a
+          trackpad user who wants the contact section has to scroll through
+          450vh of cards first, 30vh for each of the fifteen projects. Each
+          card was one big link with the write-up tucked inside the tilt
+          surface, so the project and its write-up competed for one click. I
+          deleted the scroll maths, the pinned viewport and the tilt, and the
+          rows are a plain list now.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- style={{ ["--scroll-height" as string]: \`\${projects.length * 30}vh\` }}
+- track.style.transform = \`translate3d(\${-progress * distance}px, 0, 0)\`;
++ const layout = LAYOUTS[index % LAYOUTS.length];
++ <li key={pick.id} className={styles.showcaseRow} data-layout={layout}>`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I planned alternating rows, and then my own rule said no.
+        </h3>
+        <p className="text-muted">
+          The plan was the reference layout as it stands: image left, then
+          image right, all the way down. Fifteen projects of that is a zigzag,
+          and the design checklist I hold myself to caps image-and-text splits
+          at two in a row before the rhythm has to break. So the rows cycle
+          left, right, then a full-width row with the text spread underneath.
+          It drifts from the plan, and the page is better for it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`const LAYOUTS = ["left", "right", "wide"] as const;`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The screenshot is not a third link.
+        </h3>
+        <p className="text-muted">
+          The image still opens the project for anyone with a mouse, but it is
+          out of the tab order and hidden from screen readers. Each row has
+          exactly two stops, Open and Write-up, and each is labelled with the
+          project&rsquo;s name. The rise-in is a scroll-driven CSS animation,
+          gated on support and on reduced motion being off, so nothing runs in
+          JavaScript per scroll frame any more.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .showcaseRow { animation:showcaseRise linear both; animation-timeline:view(); animation-range:entry 0% entry 55%; }
+  }
+}`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-11-22-stack"
+        date="November 22, 2026"
+        title="The landing named its tools, and kept still while doing it"
+      >
+        <p>
+          The other thing I lifted from Patryk Barnas&rsquo;s site the same
+          evening was a band that just says what he works with. My landing
+          argued about tests and vitals and never once said what any of it was
+          built on, so a recruiter skimming for &ldquo;React&rdquo; had to go
+          hunting.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I had the ticker ready, and it would have failed the page.
+        </h3>
+        <p className="text-muted">
+          His band scrolls sideways on its own, and my design system already
+          ships a Ticker that does exactly that. Reading its source to wire it
+          up, I found the pause is hover only. Anything that moves by itself
+          for more than five seconds needs a way to stop it, and a keyboard
+          visitor has no hover. The hero already has a Pause motion button for
+          this reason, and a second moving strip without one would undo it.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The pill row passed, and still looked like a form field.
+        </h3>
+        <p className="text-muted">
+          My first cut was a plain wrapped row of pills. It was accessible and
+          dull, and the thing I&rsquo;d liked about his band was the frame: dark
+          chips sliding across a phone screen. So the chips went back into a
+          phone, on a scroll-snapped rail that only moves when the visitor
+          swipes, scrolls, arrows through it after tabbing in, or presses the
+          two buttons under it. It reads as a ticker and behaves like a list.
+          I cut it to the runtime and the test stack too. Recharts and MSW are
+          real, but a rail of fourteen names says more than one of nineteen.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`onMouseEnter: () => setPaused(true),
+onMouseLeave: () => setPaused(false),
+onTouchStart: freezeForTouch,`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The strip failed a contrast check on a link it never touched.
+        </h3>
+        <p className="text-muted">
+          CI went red on the dark landing, on the vitals link above the strip,
+          on every retry. My first guess was the new rise animation catching
+          axe mid-fade. It wasn&rsquo;t. Running axe against a production build
+          with the strip deleted from the page turned the failure into an
+          &ldquo;incomplete&rdquo;: before the strip, something overlapped that
+          link, so axe couldn&rsquo;t read its background and never judged it.
+          The strip moved the layout, the overlap went away, and axe finally
+          looked. The link had been failing in dark mode all along, because
+          LinkPreview puts my className on its wrapper and colours the inner
+          anchor itself, so <code>dark:text-primary-300</code> never reached
+          the text. One <code>[&amp;&gt;a]:text-inherit</code> fixed it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`with strip     violations [ 'color-contrast' ]  (#157c6b on #131110, 3.7)
+strip removed  violations []  incomplete [ "Element's background color could
+               not be determined because it is overlapped by another element" ]`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          A typed list can lie, so a test reads package.json.
+        </h3>
+        <p className="text-muted">
+          The strip sits under three figures that are all imported rather than
+          typed, and a hand-written list of tools is exactly the sort of thing
+          that keeps saying Recharts a year after Recharts is gone. Every label
+          carries the package that backs it, and a test fails if that package
+          isn&rsquo;t installed.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`it.each(STACK)("$label is a package this repo depends on ($pkg)", ({ pkg }) => {
+  expect(installedPackages()).toContain(pkg);
+});`}
+        </pre>
+      </Update>
+
+      <Update
+        id="update-2026-11-22-about"
+        date="November 22, 2026"
+        title="The landing finally said who built it, with its own screens for photos"
+      >
+        <p>
+          The landing made a case for the work all the way down and never said
+          who was behind it. A hiring manager got projects, figures and a tool
+          list, and had to open the r&eacute;sum&eacute; to find out I&rsquo;m a
+          front-end lead in Toronto. So there&rsquo;s an About band after the
+          projects now: a headline, two short paragraphs drawn from the
+          r&eacute;sum&eacute;, and a stack of three cards beside them.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The photos are screens, because a portrait wouldn&rsquo;t prove anything.
+        </h3>
+        <p className="text-muted">
+          The stacked-photo idea came from the same evening of looking at other
+          portfolios, where the stack is holiday pictures. Mine would have been
+          decoration. The cards are the Operator Dashboard, the Design System
+          and Explore Toronto instead, each in light and dark, and each one is a
+          link that opens the app it shows. A test pins that every card opens
+          a real hub feature, labelled with its name.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`export const PHOTO_STACK_IDS = ["operator", "design-system", "world"];
+
+<Link href={feature.href} aria-label={\`Open \${feature.title}\`}>`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The card meant to be in front was painted behind.
+        </h3>
+        <p className="text-muted">
+          All three cards share one grid cell, and grid items that overlap
+          paint in source order. So the untilted middle card, the one that
+          reads as the front of the pile, sat under the right-hand card, and
+          the overlap belonged to the wrong link. Hover already lifted a card
+          above the rest, but at rest nothing put the middle one on top. The
+          fix gives the middle card a floor and the hovered or focused card the
+          step above it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- .photoStack li:has(a:hover), .photoStack li:has(a:focus-visible) { z-index:1; }
++ .photoStack li:nth-child(2) { z-index:1; }
++ .photoStack li:has(a:hover), .photoStack li:has(a:focus-visible) { z-index:2; }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The fan pushed the side cards off a phone screen.
+        </h3>
+        <p className="text-muted">
+          On hover or focus the side cards swing out six rem each way. At 375
+          wide a card is 70vw, about 262px, so the right one&rsquo;s edge lands
+          near 414px, well past the screen. The list clips its own overflow
+          now, with a rem of clip margin, and I checked it at 320, 375, 768 and
+          1440 for horizontal scroll.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`.photoStack { display:grid; justify-items:center; overflow-x:clip; overflow-clip-margin:1rem; /* … */ }
+.photoStack:hover li:nth-child(3), .photoStack:focus-within li:nth-child(3) { --tilt:11deg; --shift:6rem; }`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The keyboard and reduced-motion parts are CSS, and no test watches them.
+        </h3>
+        <p className="text-muted">
+          The stack fans on <code className={code}>:focus-within</code> as
+          well as hover, so tabbing to a card spreads the pile the same way a
+          mouse does, and the transition only exists for visitors who
+          haven&rsquo;t asked for reduced motion. Both are rules in a
+          stylesheet that jsdom doesn&rsquo;t lay out. I moved the transition
+          out of its media query and the landing&rsquo;s tests stayed green,
+          so what covers these today is me looking at the page, not a test.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`@media (prefers-reduced-motion: no-preference) { .photoStack li { transition:translate .45s cubic-bezier(.2,.8,.2,1), rotate .45s cubic-bezier(.2,.8,.2,1); } }`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Three touch-first mobile heroes: a scrubbed Reel, a rotary Orbit and a draggable Lens. They replace the tunnel scenes on a phone, each with a tap and keyboard path, and they are documented on /design-system.",
           "A portfolio playground built with the published design-system heroes and motion components. V5 remains at /discover?version=v5, and the new root still renders statically.",
           "Two anti-slop rules enforced by a test rather than by my own eye, after finding that the one I audited by eye was the one that slipped through.",
           "All eight motion primitives rendering in production, which is what they were built for and what a component library is worth nothing without.",
-          "A project shelf that scrolls sideways as you scroll down, past eight works with real light and dark screenshots, and a field-notes bloom over a drifting wall of app tiles.",
+          "Project showcase rows that scroll like the rest of the page, each with a large light and dark screenshot and its own Open and Write-up links, cycling left, right and full-width. A field-notes bloom sits over a drifting wall of app tiles.",
+          "A phone-framed rail of the tools the site is built on, under the figures. It moves only when the visitor moves it, and every label is checked against package.json.",
+          "An About band after the projects, with a fanned stack of three of the site's own screens. Each card opens the app it shows.",
         ]}
         couldImprove={[
           "The proof strip counts tests, apps and write-ups. Those are all measures of volume, and none of them is a measure of quality. The vitals link is the only figure on the page I do not control.",
           "There is no way to tell whether this page actually converts better than the slot machine did, because nothing measures where visitors go from the root.",
+          "The photo stack's keyboard fan and its reduced-motion gate are CSS that no test checks. A Playwright run that tabs into the stack and emulates reduced motion would cover both.",
         ]}
         upcoming={[
           "Real field data on the new landing, since the whole hero is built around an LCP rule and the only honest check on that is the number /vitals collects from real loads.",

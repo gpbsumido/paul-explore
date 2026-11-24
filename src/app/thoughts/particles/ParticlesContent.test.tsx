@@ -7,7 +7,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("ParticlesContent", () => {
   it("renders the write-up heading", () => {
     render(<ParticlesContent />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "A Particle Field That Stays Cheap" })).toBeInTheDocument();
   });
 
   it("closes with what shipped and what is next", () => {

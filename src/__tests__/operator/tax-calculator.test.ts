@@ -82,6 +82,26 @@ describe("getProvinceTax", () => {
 // ---------------------------------------------------------------------------
 
 describe("computeTax", () => {
+  // The rate table pinned by what an operator would actually owe on $100, so a
+  // wrong rate for any one province shows up as a wrong total.
+  it.each([
+    ["AB", 5],
+    ["BC", 12],
+    ["MB", 12],
+    ["NB", 15],
+    ["NL", 15],
+    ["NS", 14],
+    ["NT", 5],
+    ["NU", 5],
+    ["ON", 13],
+    ["PE", 15],
+    ["QC", 14.98],
+    ["SK", 11],
+    ["YT", 5],
+  ] as const)("charges %s a total tax of %s on a 100 subtotal", (code, expectedTax) => {
+    expect(computeTax(100, code).taxTotal).toBe(expectedTax);
+  });
+
   it("applies HST for HST provinces", () => {
     const result = computeTax(100, "ON");
     expect(result.hst).toBe(13);
@@ -165,6 +185,18 @@ describe("buildTaxHistory", () => {
     expect(history[0].subtotal).toBe(150);
     expect(history[0].hst).toBe(19.5);
     expect(history[0].total).toBe(169.5);
+  });
+
+  it("splits sales at the UTC month boundary", () => {
+    const sales = [
+      buildSale({ total: 10, timestamp: "2026-06-30T23:59:59Z" }),
+      buildSale({ total: 20, timestamp: "2026-07-01T00:00:00Z" }),
+    ];
+    const history = buildTaxHistory(sales, "AB", now);
+    expect(history.map((row) => [row.period, row.subtotal])).toEqual([
+      ["2026-07", 20],
+      ["2026-06", 10],
+    ]);
   });
 
   it("returns an empty history when there are no sales", () => {

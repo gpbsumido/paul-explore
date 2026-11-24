@@ -35,7 +35,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? "github" : "html",
+  // The github reporter alone prints one dot per test, so a 9 minute run
+  // showed 137 dots and nothing to attribute the time to. list names every
+  // test with its duration, github keeps the annotations, and html is what a
+  // red run uploads. Locally the default stays an html report.
+  reporter: process.env.CI
+    ? [["list"], ["github"], ["html", { open: "never" }]]
+    : "html",
   globalSetup: "./e2e/global-setup.ts",
   globalTeardown: "./e2e/global-teardown.ts",
   use: {

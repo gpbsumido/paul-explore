@@ -17,6 +17,24 @@ describe("isSessionProtectedPath", () => {
     expect(isSessionProtectedPath("/calendar/events/123")).toBe(true);
   });
 
+  it.each([
+    "/to-do",
+    "/interviewee",
+    "/zeroproof/admin",
+    "/zeroproof/admin/leagues",
+    "/check-in/sites",
+    "/check-in/display",
+  ])("keeps %s behind a login", (path) => {
+    expect(isSessionProtectedPath(path)).toBe(true);
+  });
+
+  it("leaves the public front doors of gated areas open", () => {
+    // A volunteer arriving from a poster link should see what the page is for,
+    // not a redirect they can't place.
+    expect(isSessionProtectedPath("/check-in")).toBe(false);
+    expect(isSessionProtectedPath("/zeroproof")).toBe(false);
+  });
+
   it("does NOT gate /vitals — Web Vitals is public", () => {
     expect(isSessionProtectedPath("/vitals")).toBe(false);
     expect(isSessionProtectedPath("/vitals?v=major:1")).toBe(false);

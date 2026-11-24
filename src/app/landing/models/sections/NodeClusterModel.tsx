@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { Group } from "three";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ---------------------------------------------------------------------------
 // GraphQL logo: regular hexagon (6 outer nodes + ring) + inner triangle
@@ -87,10 +88,6 @@ function NodeSphere({ position }: { position: [number, number, number] }) {
   );
 }
 
-const getPrefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 /**
  * Procedural GraphQL logo model.
  * 6 sphere nodes at hexagon vertices, connected by a hexagon ring and an
@@ -99,14 +96,7 @@ const getPrefersReduced = () =>
  */
 export default function NodeClusterModel() {
   const groupRef = useRef<Group>(null);
-  const [prefersReduced, setPrefersReduced] = useState(getPrefersReduced);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const prefersReduced = usePrefersReducedMotion();
 
   useFrame((_, delta) => {
     if (prefersReduced || !groupRef.current) return;

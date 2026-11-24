@@ -151,7 +151,16 @@ jobs:
         # days with every PR green. One grep and one `playwright test` call, so
         # they reuse this job's build instead of paying for another one:
         # measured, that is about a minute on a job that runs in two.
-        run: pnpm exec playwright test --project=public --grep "@smoke|@a11y" --grep-invert @flaky
+        #
+        # Two workers, not the config's one. The scans are one page load and
+        # one axe pass each, 128 of them, and one worker ran them back to back:
+        # Playwright's slow-file warning named a11y-routes.spec.ts at 9.0m of a
+        # 10.2m run. Everything in this grep only reads, so tests do not share
+        # state, and a public repo's runner has four cores for the server and
+        # two browsers. The flag is here and not in playwright.config.ts because
+        # the config's single worker also covers the authenticated and operator
+        # write specs, which I have not checked for order dependence.
+        run: pnpm exec playwright test --project=public --grep "@smoke|@a11y" --grep-invert @flaky --workers=2
 
       # Rides this job's build rather than paying for its own. A budget check
       # needs a production build, and `quality` deliberately doesn't do one, so
@@ -249,6 +258,9 @@ jobs:
           # the Auth0 login — public tests don't need authentication.
           E2E_TEST_EMAIL: ""
           E2E_TEST_PASSWORD: ""
+          # The HTML reporter empties its folder at the start of a run, so each
+          # step writes to its own and the upload keeps all three.
+          PLAYWRIGHT_HTML_REPORT: playwright-report/public
         # @flaky is quarantined (own non-blocking step below). @operator-write is
         # excluded because this job runs against the deployed API and those specs
         # drive a write flow -- production is the wrong target for that, and the
@@ -257,13 +269,19 @@ jobs:
 
       - name: Run authenticated e2e tests
         if: env.E2E_TEST_EMAIL != ''
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report/authenticated
         run: pnpm exec playwright test --project=authenticated --grep-invert @flaky
 
       - name: Run quarantined @flaky tests (non-blocking)
         # Quarantined tests still get exercised nightly, but a failure here never
         # fails the build — flakes are fixed on their own clock, not by blocking merges.
         continue-on-error: true
-        run: pnpm exec playwright test --grep @flaky
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report/flaky
+        # Nothing is quarantined right now, and without this the empty
+        # selection ends the step in a red "No tests found" on a green job.
+        run: pnpm exec playwright test --grep @flaky --pass-with-no-tests
 
       - name: Upload Playwright report & auth debug screenshots
         if: always()

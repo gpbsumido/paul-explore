@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { JOURNALS, type Journal } from "@/lib/research/data";
 import { SOURCES, type SourceId } from "@/lib/research/sources";
+import { createLocalStorageStore } from "@/lib/localStorageStore";
 
 const STORAGE_KEY = "research-source-prefs";
 
@@ -35,22 +36,10 @@ const EMPTY: SourcePrefs = {
   customTopics: [],
 };
 
-/**
- * A tiny external store over localStorage.
- *
- * The snapshot has to be referentially stable between reads or
- * useSyncExternalStore re-renders forever, so the parsed value is cached and
- * only replaced when something actually writes. The server snapshot is the
- * empty default, which is what the first client paint matches too.
- */
-let cache: SourcePrefs | null = null;
-const listeners = new Set<() => void>();
-
-function readStorage(): SourcePrefs {
-  if (typeof window === "undefined") return EMPTY;
+/** The stored prefs over the defaults, or just the defaults if they can't be read. */
+function parsePrefs(raw: string | null): SourcePrefs {
+  if (!raw) return EMPTY;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return EMPTY;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return EMPTY;
     return { ...EMPTY, ...(parsed as Partial<SourcePrefs>) };
@@ -59,27 +48,7 @@ function readStorage(): SourcePrefs {
   }
 }
 
-function getSnapshot(): SourcePrefs {
-  cache ??= readStorage();
-  return cache;
-}
-
-const getServerSnapshot = (): SourcePrefs => EMPTY;
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function write(next: SourcePrefs): void {
-  cache = next;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // A full or blocked storage shouldn't break browsing.
-  }
-  listeners.forEach((l) => l());
-}
+const store = createLocalStorageStore({ key: STORAGE_KEY, parse: parsePrefs, empty: EMPTY });
 
 /**
  * Which databases and journals to search, kept in localStorage.
@@ -89,9 +58,9 @@ function write(next: SourcePrefs): void {
  * server and client first paint agree.
  */
 export function useSourcePrefs() {
-  const prefs = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const prefs = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
 
-  const update = useCallback((next: SourcePrefs) => write(next), []);
+  const update = useCallback((next: SourcePrefs) => store.write(next), []);
 
   const toggleSource = useCallback(
     (id: SourceId) =>

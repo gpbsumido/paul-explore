@@ -6,7 +6,8 @@ import { m, AnimatePresence, useInView } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useTransientValue } from "@/hooks/useTransientValue";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -475,7 +476,7 @@ function HashingDiagram() {
 function SetDemo() {
   const [actionIdx, setActionIdx] = useState(-1);
   const [currentSet, setCurrentSet] = useState<number[]>([]);
-  const [flashKey, setFlashKey] = useState<number | null>(null);
+  const [flashKey, flashFoundKey, clearFlashKey] = useTransientValue<number>(600);
   const [message, setMessage] = useState<string | null>(null);
 
   const runAction = useCallback(
@@ -489,29 +490,28 @@ function SetDemo() {
         setCurrentSet((prev) =>
           prev.includes(action.value) ? prev : [...prev, action.value],
         );
-        setFlashKey(null);
+        clearFlashKey();
         setMessage(`add(${action.value})`);
       } else if (action.op === "has") {
         const exists = currentSet.includes(action.value);
-        setFlashKey(exists ? action.value : null);
+        if (exists) flashFoundKey(action.value);
+        else clearFlashKey();
         setMessage(`has(${action.value}) → ${exists}`);
       } else if (action.op === "delete") {
         setCurrentSet((prev) => prev.filter((v) => v !== action.value));
-        setFlashKey(null);
+        clearFlashKey();
         setMessage(`delete(${action.value})`);
       }
-
-      setTimeout(() => setFlashKey(null), 600);
     },
-    [currentSet],
+    [currentSet, flashFoundKey, clearFlashKey],
   );
 
   const resetSet = useCallback(() => {
     setActionIdx(-1);
     setCurrentSet([]);
-    setFlashKey(null);
+    clearFlashKey();
     setMessage(null);
-  }, []);
+  }, [clearFlashKey]);
 
   const nextAction =
     actionIdx < SET_ACTIONS.length - 1 ? SET_ACTIONS[actionIdx + 1] : null;
@@ -613,7 +613,7 @@ function Section({
 // ---------------------------------------------------------------------------
 
 export default function HashMapsContent() {
-  const prefersReduced = useHubReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const t = prefersReduced ? instantTransition : spring.smooth;
 
   return (

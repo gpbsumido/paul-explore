@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
-import { useHubReducedMotion } from "@/app/providers";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { spring } from "@/lib/animations";
 import {
   useWeatherContext,
@@ -152,7 +152,7 @@ export default function HeaderMenu({
   const weather = useWeatherContext();
   const [effectOpen, setEffectOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const reduced = useHubReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const queryClient = useQueryClient();
   const pathname = usePathname();
 

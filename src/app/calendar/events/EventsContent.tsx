@@ -10,6 +10,12 @@ import EventRow from "./EventRow";
 import EventListSkeleton from "./EventListSkeleton";
 import { userFacingErrorMessage } from "@/lib/userFacingError";
 
+/** Midnight at the start of a YYYY-MM-DD in the viewer's zone, not in UTC. */
+function localDay(isoDate: string): Date {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export default function EventsContent() {
   const [titleQuery, setTitleQuery] = useState("");
   const [cardName, setCardName] = useState("");
@@ -36,10 +42,10 @@ export default function EventsContent() {
     }),
     queryFn: async ({ signal }): Promise<CalendarEvent[]> => {
       const params = new URLSearchParams();
-      if (startDate) params.set("start", new Date(startDate).toISOString());
+      if (startDate) params.set("start", localDay(startDate).toISOString());
       if (endDate) {
         // end of the selected day
-        const d = new Date(endDate);
+        const d = localDay(endDate);
         d.setHours(23, 59, 59, 999);
         params.set("end", d.toISOString());
       }

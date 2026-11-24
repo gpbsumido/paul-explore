@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { m, useInView, useReducedMotion, type Transition } from "framer-motion";
+import { m, useInView, type Transition } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import Section from "./Section";
 import {
   cardFlipIn,
@@ -12,6 +13,7 @@ import {
   headingWipe,
   fadeUp,
 } from "@/lib/animations";
+import { isExternalHref } from "@/lib/isExternalHref";
 
 const HOVER_ANIMATION = { y: -4, transition: { ...spring.snappy } };
 
@@ -182,11 +184,11 @@ function FeatureCard({
   );
 
   if (href) {
-    const needsFullNav = href.startsWith("http") || href.startsWith("/auth/");
+    const needsFullNav = isExternalHref(href) || href.startsWith("/auth/");
     return needsFullNav ? (
       <a
         href={href}
-        {...(href.startsWith("http")
+        {...(isExternalHref(href)
           ? { target: "_blank", rel: "noopener noreferrer" }
           : {})}
         className="block h-full"
@@ -210,7 +212,7 @@ function FeatureCard({
 export default function FeaturesSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-15% 0px" });
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = usePrefersReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (

@@ -14,6 +14,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "updates",
       "research-explorer",
       "evar-sizing",
+      "volunteer-check-in",
       "learn",
       "particles",
       "world",
@@ -39,6 +40,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   {
     name: "Design & UI",
     slugs: [
+      "site-redesign",
       "design-detox",
       "design-system",
       "design-system-charts",
@@ -95,6 +97,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "e2e",
       "ci-e2e",
       "green-checks",
+      "tests-that-cant-fail",
       "test-tiers",
     ],
   },

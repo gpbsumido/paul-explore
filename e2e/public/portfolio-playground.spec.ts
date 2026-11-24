@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+// v6 was the homepage until v7 replaced it in 9.4.0. It lives on in the
+// archive, and these still pin its scenes, filters and layout there.
+const V6_ARCHIVE = "/discover?version=v6";
+
 test.beforeEach(async ({ context, baseURL }) => {
   await context.addCookies([{ name: "cookie_consent", value: "declined", url: baseURL! }]);
 });
 
-test("@smoke homepage scenes, pause and project filters work", async ({ page }) => {
-  await page.goto("/");
+test("@smoke v6 archive scenes, pause and project filters work", async ({ page }) => {
+  await page.goto(V6_ARCHIVE);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Paul Sumido");
   await page.getByRole("radio", { name: "Perspective", exact: true }).focus();
   await page.keyboard.press("Space");
@@ -28,9 +32,9 @@ test("@smoke homepage scenes, pause and project filters work", async ({ page }) 
 });
 
 for (const theme of ["light", "dark"] as const) {
-  test(`@a11y ${theme} homepage has no axe violations`, async ({ page }) => {
+  test(`@a11y ${theme} v6 archive has no axe violations`, async ({ page }) => {
     await page.addInitScript((value) => localStorage.setItem("theme-preference", value), theme);
-    await page.goto("/");
+    await page.goto(V6_ARCHIVE);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await page.getByRole("button", { name: "Pause motion", exact: true }).click();
     const results = await new AxeBuilder({ page }).analyze();
@@ -39,9 +43,9 @@ for (const theme of ["light", "dark"] as const) {
 }
 
 for (const width of [320, 375, 768, 1440]) {
-  test(`homepage fits a ${width}px viewport`, async ({ page }) => {
+  test(`v6 archive fits a ${width}px viewport`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
+    await page.goto(V6_ARCHIVE);
     await expect(page.getByRole("link", { name: /Explore the work/ })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     await page.getByRole("radio", { name: "Systems", exact: true }).click();
@@ -51,7 +55,7 @@ for (const width of [320, 375, 768, 1440]) {
 
 test("reduced motion keeps the scene still and the controls usable", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto(V6_ARCHIVE);
   await expect(page.locator(".portrait-hero__image").first()).toHaveCSS("animation-play-state", "paused");
   await page.mouse.move(300, 300);
   await expect(page.locator(".portrait-hero__gallery")).toHaveCSS("transform", "none");
@@ -63,17 +67,17 @@ test("reduced motion keeps the scene still and the controls usable", async ({ pa
 
 test("failed decorative images leave the hero usable", async ({ page }) => {
   await page.route("**/landing/featured/*.jpg", route => route.abort());
-  await page.goto("/");
+  await page.goto(V6_ARCHIVE);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: /Explore the work/ })).toHaveAttribute("href", "#work");
   await page.getByRole("radio", { name: "Perspective", exact: true }).click();
   await expect(page.getByRole("link", { name: /Resume/ }).first()).toBeVisible();
 });
 
-test("homepage hydrates without recovering from a render mismatch", async ({ page }) => {
+test("v6 archive hydrates without recovering from a render mismatch", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/");
+  await page.goto(V6_ARCHIVE);
   await page.getByRole("radio", { name: "Perspective", exact: true }).click();
   await expect(page.locator(".portrait-hero--tunnel")).toBeVisible();
   expect(errors).toEqual([]);

@@ -101,7 +101,7 @@ export default function LossReport() {
           <p className="mt-1 text-2xl font-bold tabular-nums text-error-700 dark:text-error-400">
             {formatCAD(totals.unexplainedValue)}
           </p>
-          <p className="text-xs text-error-700/80 dark:text-error-400/80">
+          <p className="text-xs text-error-700 dark:text-error-400/80">
             {totals.unexplainedUnits} units, no reason logged
           </p>
         </div>

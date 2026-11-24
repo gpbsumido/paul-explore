@@ -6,6 +6,8 @@
 import * as api from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
+import { InvalidSegmentError } from "@/lib/safeSegment";
+import { fetchMayHaveLanded } from "@/lib/upstream";
 import {
   OperatorServiceTokenError,
   OperatorUnavailableError,
@@ -103,6 +105,8 @@ async function readWithFallback<T>(
   try {
     return await read();
   } catch (err) {
+    // A malformed id is the caller's mistake, not an outage the seed can cover.
+    if (err instanceof InvalidSegmentError) throw err;
     noteFallback(label, err);
     return fallback();
   }
@@ -344,6 +348,11 @@ export async function loadFinance(): Promise<FinanceResponse> {
  * both go back to the route rather than being replayed against in-memory data
  * that would report a success nothing persisted.
  *
+ * A write that ran out of time may have applied too, so it goes back to the
+ * route the same way. So does a fetch that failed for any reason other than a
+ * connection that was never made: a server can read the whole request and
+ * then drop the socket, and that looks like `fetch failed` as well.
+ *
  * A 401 or 403 is called out on its own: it means OPERATOR_SERVICE_TOKEN is
  * missing here or different from portfolio_api's, a misconfiguration rather
  * than a rejected write, so it gets a diagnosis instead of a bare status.
@@ -356,6 +365,7 @@ async function writeWithFallback<T>(
   try {
     return await write();
   } catch (err) {
+    if (err instanceof InvalidSegmentError) throw err;
     if (err instanceof api.OperatorApiError) {
       if (err.status === 401 || err.status === 403) {
         console.error(
@@ -367,6 +377,10 @@ async function writeWithFallback<T>(
       throw err;
     }
     if (err instanceof api.OperatorContractError) throw err;
+    if (err instanceof api.OperatorWriteTimeoutError) throw err;
+    if (fetchMayHaveLanded(err)) {
+      throw new api.OperatorWriteTimeoutError(label, "lost the connection before an answer came back");
+    }
     noteFallback(label, err);
     return fallback();
   }

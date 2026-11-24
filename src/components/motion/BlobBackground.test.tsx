@@ -1,12 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import { axe } from "@/test/a11y";
 import BlobBackground from "./BlobBackground";
 
 const mocks = vi.hoisted(() => ({ reduced: false }));
-vi.mock("@/app/providers", () => ({
-  useHubReducedMotion: () => mocks.reduced,
+vi.mock("@/hooks/usePrefersReducedMotion", () => ({
+  usePrefersReducedMotion: () => mocks.reduced,
 }));
+
+beforeEach(() => {
+  mocks.reduced = false;
+});
 
 describe("BlobBackground", () => {
   it("drifts its layers ambiently, each on its own clock", () => {
@@ -24,7 +28,56 @@ describe("BlobBackground", () => {
     mocks.reduced = true;
     const { container } = render(<BlobBackground seeds={[1, 2]} />);
     expect(container.querySelector(".blob-drift")).not.toBeInTheDocument();
-    mocks.reduced = false;
+  });
+
+  it("gives each layer two more points than the one below it", () => {
+    const { container } = render(<BlobBackground seeds={[1, 2, 3]} />);
+    const curves = [...container.querySelectorAll("path")].map(
+      (path) => path.getAttribute("d")?.match(/C/g)?.length,
+    );
+    expect(curves).toEqual([8, 10, 12]);
+  });
+
+  it("cycles its colours across the layers", () => {
+    const { container } = render(
+      <BlobBackground seeds={[1, 2, 3]} colors={["red", "blue"]} />,
+    );
+    const firstStops = [...container.querySelectorAll("radialGradient")].map(
+      (gradient) => gradient.querySelector("stop")?.getAttribute("stop-color"),
+    );
+    expect(firstStops).toEqual(["red", "blue", "red"]);
+  });
+
+  // A card's two seeds come from a hash and land on the same number about one
+  // card in six. React then saw two children with one key and warned, and both
+  // layers pointed at one gradient, so the second colour never showed.
+  it("keeps two layers apart when their seeds are the same number", () => {
+    const { container } = render(
+      <BlobBackground seeds={[3, 3]} colors={["red", "blue"]} />,
+    );
+    const fills = [...container.querySelectorAll("path")].map((path) =>
+      path.getAttribute("fill"),
+    );
+    const gradientIds = [...container.querySelectorAll("radialGradient")].map(
+      (gradient) => gradient.id,
+    );
+
+    expect(new Set(gradientIds).size).toBe(2);
+    expect(fills).toEqual(gradientIds.map((id) => `url(#${id})`));
+  });
+
+  it("gives two backgrounds on one page gradients of their own", () => {
+    const { container } = render(
+      <>
+        <BlobBackground seeds={[3]} colors={["red"]} />
+        <BlobBackground seeds={[3]} colors={["blue"]} />
+      </>,
+    );
+    const gradientIds = [...container.querySelectorAll("radialGradient")].map(
+      (gradient) => gradient.id,
+    );
+
+    expect(new Set(gradientIds).size).toBe(2);
   });
 
   it("renders one path per seed", () => {

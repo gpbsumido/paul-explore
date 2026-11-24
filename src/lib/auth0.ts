@@ -4,7 +4,7 @@ import {
   isPermissionDenied,
   permissionDeniedReturnTo,
 } from "@/lib/authCallback";
-import { LOGIN_PROMPT_COOKIE } from "@/lib/loginReturnTo";
+import { LOGIN_PROMPT_COOKIE, LOGIN_PROMPT_COOKIE_OPTIONS } from "@/lib/loginReturnTo";
 import { sessionConfig } from "@/lib/authSession";
 
 export const auth0 = new Auth0Client({
@@ -30,13 +30,7 @@ export const auth0 = new Auth0Client({
         // One-shot flag: the proxy reads this on the next /auth/login and forces
         // prompt=login, so Auth0 asks who's logging in again rather than reusing
         // the still-live session and re-showing the permission screen.
-        res.cookies.set(LOGIN_PROMPT_COOKIE, "login", {
-          path: "/",
-          maxAge: 600,
-          httpOnly: true,
-          sameSite: "lax",
-          secure: true,
-        });
+        res.cookies.set(LOGIN_PROMPT_COOKIE, "login", LOGIN_PROMPT_COOKIE_OPTIONS);
         return res;
       }
       console.error("[auth0] callback error:", error);

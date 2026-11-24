@@ -27,6 +27,12 @@ describe("isDueForReview", () => {
     expect(isDueForReview(now, now)).toBe(false);
   });
 
+  it("makes a review due after three days by default, and not before", () => {
+    const now = 10 * DAY;
+    expect(isDueForReview(now - 2 * DAY - DAY / 2, now)).toBe(false);
+    expect(isDueForReview(now - 3 * DAY, now)).toBe(true);
+  });
+
   it("respects a custom threshold", () => {
     const now = 5 * DAY;
     expect(isDueForReview(4 * DAY, now, 1)).toBe(true);
@@ -44,6 +50,15 @@ describe("serialize / parse review state", () => {
     expect(parseReviewState("not json")).toBeNull();
     expect(parseReviewState("[]")).toBeNull();
     expect(parseReviewState(JSON.stringify({ nope: true }))).toBeNull();
+  });
+
+  it("rejects an export whose reviewed field isn't a map", () => {
+    expect(parseReviewState(JSON.stringify({ reviewed: null }))).toBeNull();
+    expect(parseReviewState(JSON.stringify({ reviewed: 5 }))).toBeNull();
+  });
+
+  it("drops a value that parses to Infinity", () => {
+    expect(parseReviewState('{"reviewed":{"a":1e999,"b":3}}')).toEqual({ b: 3 });
   });
 
   it("drops entries whose value isn't a finite number", () => {

@@ -50,12 +50,43 @@ describe("generatePlanogramGrid", () => {
     expect(slot.capacity).toBe(12);
   });
 
-  it("generates a deterministic sensorMatch from the item id", () => {
-    const item = buildInventoryItem({ id: "item-stable" });
-    const gridA = generatePlanogramGrid([item], 4);
-    const gridB = generatePlanogramGrid([item], 4);
+  it("generates the same sensorMatch for the same item ids every time", () => {
+    const items = Array.from({ length: 20 }, (_, i) =>
+      buildInventoryItem({ id: `item-${i}` }),
+    );
+    const firstFlags = generatePlanogramGrid(items, 4).flat().map((s) => s.sensorMatch);
+    const secondFlags = generatePlanogramGrid(items, 4).flat().map((s) => s.sensorMatch);
 
-    expect(gridA[0][0].sensorMatch).toBe(gridB[0][0].sensorMatch);
+    // Twenty flags, not one: a coin flip would repeat a single flag half the time.
+    expect(secondFlags).toEqual(firstFlags);
+  });
+
+  it("derives sensorMatch from the item id alone, wherever the item sits", () => {
+    const items = Array.from({ length: 6 }, (_, i) => buildInventoryItem({ id: `item-${i}` }));
+    const flagsById = (list: typeof items) =>
+      Object.fromEntries(
+        generatePlanogramGrid(list, 4)
+          .flat()
+          .map((slot, i) => [list[i].id, slot.sensorMatch]),
+      );
+
+    expect(flagsById([...items].reverse())).toEqual(flagsById(items));
+  });
+
+  it("keeps items in order and labels each slot by shelf letter and position", () => {
+    const items = Array.from({ length: 5 }, (_, i) =>
+      buildInventoryItem({ id: `item-${i}`, productName: `Product ${i}` }),
+    );
+    const grid = generatePlanogramGrid(items, 3);
+
+    expect(grid.map((shelf) => shelf.map((s) => s.productName))).toEqual([
+      ["Product 0", "Product 1", "Product 2"],
+      ["Product 3", "Product 4"],
+    ]);
+    expect(grid.map((shelf) => shelf.map((s) => s.slotLabel))).toEqual([
+      ["A1", "A2", "A3"],
+      ["B1", "B2"],
+    ]);
   });
 
   it("produces some mismatches in a large enough set", () => {

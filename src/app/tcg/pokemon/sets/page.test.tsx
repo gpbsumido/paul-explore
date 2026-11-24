@@ -49,10 +49,20 @@ describe("sets page", () => {
     expect(screen.getByText("1 sets")).toBeInTheDocument();
   });
 
+  it("links each set to its own page", async () => {
+    await renderPage();
+    expect(screen.getByRole("link", { name: /Genetic Apex/ })).toHaveAttribute(
+      "href",
+      "/tcg/pokemon/sets/A1",
+    );
+  });
+
   it("says the read failed rather than showing an empty list", async () => {
     fetchCatalog.mockResolvedValue(null);
     await renderPage();
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn.?t load/i);
+    // An outage must not also claim the catalog was never built.
+    expect(screen.queryByText(/hasn.?t been built yet/i)).not.toBeInTheDocument();
   });
 
   it("says the catalog has not been built rather than that it failed", async () => {
