@@ -231,6 +231,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "One mockup, the whole site",
+    href: "/thoughts/site-redesign",
+    preview:
+      "Taking a one-page mockup across seventy routes by changing four shared pieces: a header that floats into a pill without a second nav, a drifting grid that loops because it's one cell too big, the cyan the palette sweep rejected, and numbers the build computes instead of typed ones",
+    color: "#3f8f8a",
+  },
+  {
     title: "My first Svelte, inside a Next app",
     href: "/thoughts/mind-reader",
     preview:

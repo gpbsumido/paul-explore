@@ -92,4 +92,25 @@ describe("accessibility media queries", () => {
     expect(blocks).toMatch(/\.hotspot-ring\s*\{[^}]*animation:\s*none/);
     expect(blocks).toMatch(/\.animate-scroll-hint\s*\{[^}]*animation:\s*none/);
   });
+
+  it("only drifts the backdrop grid when motion is allowed", () => {
+    // The grid sits behind nearly every page, so an ungated loop here would be
+    // the most widespread motion on the site.
+    const gated = mediaBlocks(source, /prefers-reduced-motion:\s*no-preference/).join("\n");
+    expect(gated).toMatch(/\.grid-backdrop::before\s*\{[^}]*animation:\s*grid-drift/);
+
+    const ungated = withoutMediaBlocks(source, /prefers-reduced-motion:\s*no-preference/);
+    expect(ungated).not.toMatch(/animation:\s*grid-drift/);
+  });
+
+  it("only glides the homepage's in-page links when motion is allowed", () => {
+    // The header's Work, About and Contact links jump within the page. A smooth
+    // scroll there is motion the OS setting has to be able to turn off.
+    const landing = readFileSync(join(process.cwd(), "src", "app", "v7", "v7.module.css"), "utf-8");
+    const gated = mediaBlocks(landing, /prefers-reduced-motion:\s*no-preference/).join("\n");
+    expect(gated).toMatch(/scroll-behavior:\s*smooth/);
+
+    const ungated = withoutMediaBlocks(landing, /prefers-reduced-motion:\s*no-preference/);
+    expect(ungated).not.toMatch(/scroll-behavior:\s*smooth/);
+  });
 });

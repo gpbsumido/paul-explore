@@ -71,6 +71,9 @@ const PROSE = [
   // The audit write-up pastes the six feature hexes that had drifted from
   // their tokens, before and after, as the evidence for that bug.
   "src/app/thoughts/codebase-audit/CodebaseAuditContent.tsx",
+  // The redesign write-up pastes the sweep's own failure, cyan tokens and all,
+  // as the evidence for why the mockup's cyan didn't ship.
+  "src/app/thoughts/site-redesign/SiteRedesignContent.tsx",
 ];
 
 const EXCLUDED = [...ARCHIVE, ...IDENTITY, ...SCENE_ART, ...PROSE];

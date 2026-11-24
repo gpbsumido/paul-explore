@@ -342,48 +342,87 @@
   }
 }
 
-/* AmbientBackground's two aurora blobs. Compositor-driven transform drift (this
-   used to be framer-motion's JS animate, which sampled every frame on the main
-   thread and showed up as interaction latency on every page that renders it).
-   translate3d promotes each blurred blob to its own layer, so the 64px blur is
-   rasterised once and the layer is just moved. Values match the old JS drift. */
-@keyframes ambient-drift-a {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
+/* AmbientBackground's drifting grid. A fine 56px grid with a 224px one over
+   it, oversized by one cell on every side so translating it by exactly one
+   cell loops with no seam. The ::after vignette fades it into the page colour
+   toward the edges. The drift is a compositor transform and only runs when
+   motion is allowed; reduced motion gets the same grid, still. */
+.grid-backdrop {
+  --grid-line: color-mix(in srgb, var(--color-foreground) 7%, transparent);
+}
+.grid-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: -112px;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:
+    56px 56px,
+    56px 56px,
+    224px 224px,
+    224px 224px;
+}
+.grid-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 75% 65% at 50% 38%,
+    transparent 30%,
+    var(--color-background) 92%
+  );
+}
+@keyframes grid-drift {
+  to {
+    transform: translate3d(56px, 56px, 0);
   }
-  50% {
-    transform: translate3d(80px, 60px, 0);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .grid-backdrop::before {
+    animation: grid-drift 9s linear infinite;
   }
 }
 
-@keyframes ambient-drift-b {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(-70px, -50px, 0);
-  }
+/* Code-brace hover from the v7 landing: a pair of braces closes in around a
+   nav link on hover or keyboard focus. Put .brace on a span inside the link. */
+.brace {
+  position: relative;
+  display: inline-block;
 }
-
-.ambient-blob {
-  will-change: transform;
+.brace::before,
+.brace::after {
+  position: absolute;
+  top: 0;
+  font-family: var(--font-mono);
+  color: var(--color-primary-600);
+  opacity: 0;
+  transition:
+    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-.ambient-blob-a {
-  animation: ambient-drift-a 26s ease-in-out infinite;
+[data-theme="dark"] .brace::before,
+[data-theme="dark"] .brace::after {
+  color: var(--color-primary-400);
 }
-
-.ambient-blob-b {
-  animation: ambient-drift-b 32s ease-in-out infinite;
+.brace::before {
+  content: "{";
+  left: -0.85em;
+  transform: translateX(6px);
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .ambient-blob-a,
-  .ambient-blob-b {
-    animation: none;
-  }
+.brace::after {
+  content: "}";
+  right: -0.85em;
+  transform: translateX(-6px);
+}
+a:hover > .brace::before,
+a:hover > .brace::after,
+a:focus-visible > .brace::before,
+a:focus-visible > .brace::after {
+  opacity: 1;
+  transform: none;
 }
 
 /* TextReveal — the same bargain .reveal-up makes, one word at a time. The text
@@ -723,8 +762,12 @@
   /* The display face, applied once here rather than as a utility on every page.
      PageHeader is a breadcrumb bar with no h1 in it, so the page titles this is
      meant for live in each page's own content -- a base rule reaches all of
-     them without touching forty files. Body, UI and code stay Geist. */
-  h1 {
+     them without touching forty files. Body, UI and code stay Geist. h2 and h3
+     joined in v7: the landing sets every heading in Bricolage, and interior
+     pages with Geist section headings read as a different site. */
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-display);
     /* Tracking is size-specific: letters read too far apart as display type
        grows, so tighten more the larger it gets. Body/UI stays near 0. */

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Home from "./page";
-import LandingContentV6 from "./v6/LandingContentV6";
+import LandingContentV7 from "./v7/LandingContentV7";
 
 /**
  * The root page is static for everyone.
@@ -20,7 +20,7 @@ describe("the root page", () => {
   it("renders the guest landing", () => {
     const element = Home();
 
-    expect(element.type).toBe(LandingContentV6);
+    expect(element.type).toBe(LandingContentV7);
   });
 
   it("never reads the session and never opts out of static rendering", () => {

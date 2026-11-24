@@ -9,7 +9,7 @@ import { archiveLabel, isArchived, type ArchivedVersion } from "./archive";
 // Version registry
 // ---------------------------------------------------------------------------
 // Each version maps to a Landing (guest) and Hub (authenticated) component.
-// Every one of them is history now: v6 owns /, and all five carry the
+// Every one of them is history now: v7 owns /, and all six carry the
 // archive banner. Keep v4 as the default slot-machine discovery experience.
 // Use next/dynamic throughout to keep five generations of deps out of the
 // default bundle.
@@ -21,6 +21,13 @@ const DEFAULT_VERSION = "v4";
 const ArchivedV5 = nextDynamic(async () => {
   const { default: Landing } = await import("../v5/LandingContentV5");
   return function V5Archive() {
+    return <Landing />;
+  };
+});
+
+const ArchivedV6 = nextDynamic(async () => {
+  const { default: Landing } = await import("../v6/LandingContentV6");
+  return function V6Archive() {
     return <Landing />;
   };
 });
@@ -45,6 +52,10 @@ const VERSIONS = {
   v5: {
     Landing: ArchivedV5,
     Hub: ArchivedV5,
+  },
+  v6: {
+    Landing: ArchivedV6,
+    Hub: ArchivedV6,
   },
 } satisfies Record<
   string,

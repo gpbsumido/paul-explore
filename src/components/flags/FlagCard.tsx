@@ -174,7 +174,7 @@ export default function FlagCard({
 
       {/* Rollout control */}
       {isBoolean ? (
-        <div className={config.enabled ? "" : "opacity-50"}>
+        <div>
           <div className="mb-1 flex items-center justify-between">
             <label htmlFor={sliderId} className="text-[12px] text-muted">
               Rollout — share of users who get it
@@ -183,18 +183,22 @@ export default function FlagCard({
               {exposure}% on
             </span>
           </div>
-          <RolloutSlider
-            id={sliderId}
-            value={exposure}
-            disabled={pending || !canEdit || !config.enabled}
-            label={`Rollout percentage for ${flag.name} in ${environment}`}
-            onCommit={(percent) =>
-              onRollout([
-                { variation: "on", weight: percent },
-                { variation: "off", weight: 100 - percent },
-              ])
-            }
-          />
+          {/* Only the slider dims when the flag is off. Dimming the readout
+              too took "50% on" under 4.5:1, and the toggle already says off. */}
+          <div className={config.enabled ? "" : "opacity-50"}>
+            <RolloutSlider
+              id={sliderId}
+              value={exposure}
+              disabled={pending || !canEdit || !config.enabled}
+              label={`Rollout percentage for ${flag.name} in ${environment}`}
+              onCommit={(percent) =>
+                onRollout([
+                  { variation: "on", weight: percent },
+                  { variation: "off", weight: 100 - percent },
+                ])
+              }
+            />
+          </div>
         </div>
       ) : (
         <div className="space-y-1.5">

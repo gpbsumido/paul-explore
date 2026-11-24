@@ -11,6 +11,22 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-site-redesign-v7",
+    date: "2026-11-23",
+    version: "9.4.0",
+    category: "feature",
+    tags: ["landing", "design"],
+    title: "A new home page, and the rest of the site to match",
+    summary:
+      "The home page is rebuilt around a split hero with a code panel, a short list of four apps, a timeline and the numbers behind the site. Every other page now shares its header and background, so the whole domain reads as one site.",
+    body: [
+      "Scroll any page and the header lifts into a floating pill at the top of the window. Behind the content there's a faint grid that drifts slowly and fades out toward the edges. Headings across the site use the same display typeface as the home page.",
+      "On the home page the app screenshots sit in black and white until you point at one. On a touch screen they stay in colour, since there's no hover to reveal them. The previous home page is still at /discover with the older ones.",
+      "Everything that moves keeps still for anyone who prefers reduced motion.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-landing-about",
     date: "2026-11-22",
     version: "9.3.0",
