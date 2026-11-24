@@ -1,9 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { agentReducer, initialAgentState } from "./agent-state";
+import { getNextSnapshot } from "xstate";
+import { agentMachine, toRunState } from "./agent-machine";
 import type { AgentRunState, AgentRunAction, AgentStep } from "./types";
 
+const initialAgentState: AgentRunState = { status: "idle" };
+
+/** Rebuilds a machine snapshot from a plain run state, sends one event, reads the result back. */
 function reduce(state: AgentRunState, action: AgentRunAction): AgentRunState {
-  return agentReducer(Object.freeze(state) as AgentRunState, action);
+  Object.freeze(state);
+  const snapshot = agentMachine.resolveState({
+    value: state.status,
+    context: {
+      steps: state.status === "idle" ? [] : state.steps,
+      pendingAction:
+        state.status === "awaiting_approval" ? state.pendingAction : undefined,
+      error: state.status === "error" ? state.error : undefined,
+    },
+  });
+  return toRunState(getNextSnapshot(agentMachine, snapshot, action));
 }
 
 const running = (
@@ -13,7 +27,7 @@ const running = (
   steps,
 });
 
-describe("agentReducer", () => {
+describe("agentMachine", () => {
   it("initial state is idle", () => {
     expect(initialAgentState).toEqual({ status: "idle" });
   });
@@ -28,7 +42,7 @@ describe("agentReducer", () => {
   it("START on non-idle state returns state unchanged", () => {
     const state = running([]);
     const result = reduce(state, { type: "START" });
-    expect(result).toBe(state);
+    expect(result).toEqual(state);
   });
 
   it("START while waiting on an approval does not wipe the pending request", () => {
@@ -45,7 +59,7 @@ describe("agentReducer", () => {
       pendingAction,
     };
 
-    expect(reduce(state, { type: "START" })).toBe(state);
+    expect(reduce(state, { type: "START" })).toEqual(state);
   });
 
   it("START after a finished run begins a fresh run with no old steps", () => {
@@ -103,7 +117,7 @@ describe("agentReducer", () => {
       type: "APPEND_TEXT",
       content: "nope",
     });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- APPEND_THINKING ---
@@ -138,7 +152,7 @@ describe("agentReducer", () => {
       type: "APPEND_THINKING",
       text: "nope",
     });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- ADD_TOOL_CALL ---
@@ -172,7 +186,7 @@ describe("agentReducer", () => {
       name: "search_db",
       input: {},
     });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- COMPLETE_TOOL_CALL ---
@@ -275,7 +289,7 @@ describe("agentReducer", () => {
       id: "call_99",
       result: "nope",
     });
-    expect(result).toBe(state);
+    expect(result).toEqual(state);
   });
 
   // --- REQUEST_APPROVAL ---
@@ -312,7 +326,7 @@ describe("agentReducer", () => {
       action: "x",
       description: "y",
     });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- RESOLVE_APPROVAL ---
@@ -404,7 +418,7 @@ describe("agentReducer", () => {
       type: "RESOLVE_APPROVAL",
       approved: true,
     });
-    expect(result).toBe(state);
+    expect(result).toEqual(state);
   });
 
   // --- COMPLETE ---
@@ -437,7 +451,7 @@ describe("agentReducer", () => {
 
   it("COMPLETE on idle returns state unchanged", () => {
     const result = reduce(initialAgentState, { type: "COMPLETE" });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- ERROR ---
@@ -463,7 +477,7 @@ describe("agentReducer", () => {
       type: "ERROR",
       error: "nope",
     });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- CANCEL ---
@@ -482,7 +496,7 @@ describe("agentReducer", () => {
 
   it("CANCEL on idle returns state unchanged", () => {
     const result = reduce(initialAgentState, { type: "CANCEL" });
-    expect(result).toBe(initialAgentState);
+    expect(result).toEqual(initialAgentState);
   });
 
   // --- RESET ---
@@ -516,14 +530,14 @@ describe("agentReducer", () => {
       steps: [{ kind: "text", content: "partial", isStreaming: false }],
     };
 
-    expect(reduce(cancelled, action)).toBe(cancelled);
+    expect(reduce(cancelled, action)).toEqual(cancelled);
   });
 
   // --- Immutability ---
 
   it("produces new objects on every transition (frozen input does not throw)", () => {
     const frozen = Object.freeze({ status: "idle" as const });
-    const result = agentReducer(frozen, { type: "START" });
+    const result = reduce(frozen, { type: "START" });
     expect(result).not.toBe(frozen);
     expect(result.status).toBe("running");
   });
