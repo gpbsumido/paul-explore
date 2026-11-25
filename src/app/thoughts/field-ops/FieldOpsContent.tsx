@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -330,15 +330,66 @@ export default function FieldOpsContent() {
         </p>
       </Section>
 
+      <Update
+        id="update-2026-11-25-camera-tile"
+        date="November 25, 2026"
+        title="The camera tile said it was receiving, whatever was true"
+      >
+        <p>
+          The first version of the camera tile was a dark box with one line of
+          text. I called it a placeholder and moved on. Looking at it on a
+          screenshot, I saw it broke the rule the rest of the page is built on.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I built a stale state for the map and forgot the video
+        </h3>
+        <p className="text-muted">
+          A track could go STALE in the list and wireframe on the map while the
+          tile beside them still said it was receiving video from it. Three
+          surfaces, two of them telling the truth. A placeholder was the excuse,
+          and it looked harmless because nothing in the tile could change. That
+          is exactly why it was wrong: a screen that cannot show a bad state
+          will show a good one.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`before: Receiving video from Charlie 3     (always, even 20s after the last report)
+after:  NO SIGNAL, last frame 14s ago      (frozen, dimmed, same threshold as the map)`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          One stale check, three consumers
+        </h3>
+        <p className="text-muted">
+          The fix was not a new rule. The tile takes the same{" "}
+          <code className={code}>isStale</code> answer the map and the list
+          already use, so the three cannot disagree. It also overlays the
+          selected track&apos;s heading, speed, altitude and the age of the frame,
+          which is what makes it read as a camera on a track rather than a grey
+          rectangle.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          What I still did not do
+        </h3>
+        <p className="text-muted">
+          It is still not video. There is no buffering state, no frame-rate
+          drop, and no stalled-then-recovered case. Those are different failures
+          from a track going quiet, and I would want a real stream to know what
+          they look like before drawing them.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Snapshot and SSE endpoints in portfolio_api over a pure, deterministic simulation, proxied same-origin.",
           "Stale tracks kept at their last position and labelled in words, with the offline banner saying how old the picture is.",
           "Critical alerts that only clear on an explicit acknowledge, reachable by keyboard.",
           "A low bandwidth mode that slows the stream and pauses video.",
+          "A camera tile that follows the same stale rule as the map and list, instead of claiming to receive.",
         ]}
         couldImprove={[
-          "The video tile is a placeholder. A real one needs a stream and its own stalled and buffering states.",
+          "The camera tile is still a drawn frame, not video. A real one needs a stream and its own stalled, buffering and recovered states, which are different from a track going quiet.",
           "Acknowledgement is local. A real console would POST it, show who did it, and reconcile when two people act at once.",
           "Offline is judged by silence. A heartbeat event would separate a quiet field from a dead link.",
           "Nothing survives a reload on a dead link. The last picture should be cached.",
