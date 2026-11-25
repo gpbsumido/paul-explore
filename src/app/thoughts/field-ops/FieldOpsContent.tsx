@@ -220,6 +220,92 @@ export default function FieldOpsContent() {
         </p>
       </Section>
 
+      <Section title="The hard parts">
+        <p className="text-muted">
+          <span className="font-semibold text-foreground">What time it is.</span>{" "}
+          Staleness compares a track&apos;s report time with now, and the
+          browser&apos;s clock and the server&apos;s clock disagree. I carry the
+          server&apos;s time forward with the local clock between updates, so the
+          comparison stays on the server&apos;s timeline. It is a patch, not a
+          proof: if the device clock jumps, the carried time jumps with it.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">EventSource says very little.</span>{" "}
+          Its error event does not say why, or whether it will retry. So the hook
+          does not try to read the cause. It tracks the one thing it can
+          measure, how long since anything arrived, and derives the status from
+          that.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">A stream through a proxy.</span>{" "}
+          Compression middleware and framework proxies like to buffer a response
+          until it is big enough, which turns a live feed into a burst every
+          half minute. Marking both hops <code className={code}>no-transform</code>{" "}
+          is what stops it. I only trust that because I ran the real router
+          behind compression and read it through the proxy with curl.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">Testing something that never finishes.</span>{" "}
+          A page with an open stream never reaches network idle, so the usual
+          wait-for-idle in a browser script just times out. I wait for the page
+          to load and then for the thing I actually care about.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">React and a clock.</span>{" "}
+          Reading the time in render is flagged as impure, and setting state in
+          an effect is blocked by a lint rule here. The clock starts from a lazy
+          initial value and ticks from an interval callback, which is the shape
+          both rules accept and is the right shape anyway.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">Picking numbers with nothing to ground them.</span>{" "}
+          Ten seconds to call a track stale, fifteen to call the link offline,
+          fifty-five to close the stream. They are reasonable and they are
+          guesses. In a real system they come from the radios and the mission,
+          not from me.
+        </p>
+      </Section>
+
+      <Section title="What I do not know">
+        <p className="text-muted">
+          I would rather say these plainly than have someone find them.
+        </p>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">
+          <li>
+            I have not built on TAK or worked with Cursor on Target messages. I
+            know what they are for. I have not handled one.
+          </li>
+          <li>
+            I do not know how real operators triage alerts, so the queue is my
+            guess at a sensible default. The people who use these screens would
+            know where it is wrong.
+          </li>
+          <li>
+            I tested the keyboard and screen reader behaviour through role
+            queries and an axe scan. I have not sat with VoiceOver or a real
+            assistive device on a tablet in the field.
+          </li>
+          <li>
+            I have not measured anything on a genuinely bad link. The low
+            bandwidth mode follows from reasoning about payload size, not from
+            testing on a throttled or lossy connection.
+          </li>
+          <li>
+            Six tracks says nothing about five hundred. I have an opinion about
+            list virtualising and instanced meshes, and no frame times.
+          </li>
+          <li>
+            I do not know how a real device behaves when it is offline for an
+            hour. Mine shows the last picture and stops, and it does not
+            survive a reload.
+          </li>
+          <li>
+            I do not know how conflicting acknowledgements should work when two
+            operators act at once. Mine is local state.
+          </li>
+        </ul>
+      </Section>
+
       <Section title="If I am asked about this in an interview">
         <p className="text-muted">
           <span className="font-semibold text-foreground">High stakes:</span>{" "}
