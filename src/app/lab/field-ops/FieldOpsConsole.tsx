@@ -70,7 +70,12 @@ export default function FieldOpsConsole() {
               selectedTrackId={selectedTrackId}
             />
           </div>
-          <VideoFeed callsign={selectedTrack?.callsign ?? null} isPaused={feed.isLowBandwidth} />
+          <VideoFeed
+            track={selectedTrack}
+            nowMs={feed.nowMs}
+            isStale={selectedTrack ? staleTrackIds.has(selectedTrack.id) : false}
+            isPaused={feed.isLowBandwidth}
+          />
         </div>
 
         <div className="space-y-4">

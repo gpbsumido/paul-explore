@@ -18,7 +18,7 @@ const track: FieldOpsTrack = {
 describe("VideoFeed", () => {
   it("overlays the selected track's live telemetry on the frame", () => {
     render(<VideoFeed track={track} nowMs={101_000} isStale={false} isPaused={false} />);
-    expect(screen.getByText(/Delta 4/)).toBeInTheDocument();
+    expect(screen.getByText(/Delta 4 · AIRCRAFT/)).toBeInTheDocument();
     expect(screen.getByText(/087/)).toBeInTheDocument();
     expect(screen.getByText(/36 m\/s/)).toBeInTheDocument();
     expect(screen.getByText(/300 m/)).toBeInTheDocument();
