@@ -85,6 +85,47 @@ export default function FieldOpsContent() {
         </p>
       </Section>
 
+      <Section title="How the pieces fit, and how I got there">
+        <p className="text-muted">
+          The shape is a chain with one job per link. portfolio_api owns the
+          feed: a pure function of the clock behind{" "}
+          <code className={code}>/api/field-ops/snapshot</code> and an SSE{" "}
+          <code className={code}>/stream</code>. The Next app proxies both
+          same-origin, which is the pattern every other route here already
+          uses, so the backend address never reaches the browser. A hook
+          (<code className={code}>useFieldOpsFeed</code>) owns the connection and
+          tells the truth about it. A pure reducer (<code className={code}>feedState</code>)
+          owns what the screen believes. The console, the map and the video tile
+          only render that belief.
+        </p>
+        <p className="mt-3 text-muted">
+          The order I thought in was the order of failure, not the order of
+          data. First what the screen must never get wrong (stale looks fresh, an
+          alert slips by), then where that logic can live so a test can reach it
+          without a browser (the reducer and the simulation, both pure), then the
+          thin impure edges around them (the stream and the WebGL canvas). That
+          is why the two files with the most behaviour have no framework in
+          them.
+        </p>
+        <p className="mt-3 text-muted">
+          One wrong turn is worth keeping. My first plan put the endpoints in
+          the Next app as route handlers, because that was the smallest thing
+          with no second deploy. I moved them to portfolio_api because the point
+          of the exercise is a client talking to a backend across a real
+          boundary, and a feed that lives inside the page&apos;s own server skips
+          exactly the failures I wanted to handle: a proxy that buffers, a
+          backend that is down, a stream that gets cut. The cost is a deploy
+          order (backend first) and a proxy hop, and I would pay it again.
+        </p>
+        <p className="mt-3 text-muted">
+          I also tested it the way it runs, not just through unit tests: the
+          real router behind compression, behind the Next proxy, read with curl
+          and then in a browser. That caught nothing this time, but it is the
+          check that would have caught a buffered stream, and the unit tests
+          cannot.
+        </p>
+      </Section>
+
       <Section title="The decisions">
         <Decision
           title="Stale data stays on screen, labelled"
