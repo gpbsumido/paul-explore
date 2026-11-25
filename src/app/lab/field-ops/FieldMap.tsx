@@ -5,7 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { ACCENT_BAND } from "@/lib/accentBand";
-import type { FieldOpsTrack } from "@/lib/field-ops/sim";
+import type { FieldOpsTrack } from "@/lib/field-ops/types";
 
 const METERS_PER_SCENE_UNIT = 100;
 const SMOOTHING_PER_SECOND = 6;

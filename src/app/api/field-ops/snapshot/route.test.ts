@@ -14,13 +14,13 @@ afterEach(() => {
 describe("GET /api/field-ops/snapshot", () => {
   it("passes portfolio_api's snapshot through, never cached", async () => {
     const fetchSpy = vi.fn(
-      async () => new Response(JSON.stringify({ tracks: [], alerts: [] }), { status: 200 }),
+      async (_requestedUrl: string | URL) => new Response(JSON.stringify({ tracks: [], alerts: [] }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchSpy);
 
     const response = await GET();
 
-    expect(fetchSpy.mock.calls[0][0]).toBe(`${API_URL}/api/field-ops/snapshot`);
+    expect(String(fetchSpy.mock.calls[0][0])).toBe(`${API_URL}/api/field-ops/snapshot`);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ tracks: [], alerts: [] });
     expect(response.headers.get("Cache-Control")).toBe("no-store");

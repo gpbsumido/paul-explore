@@ -1,4 +1,4 @@
-import type { FieldOpsAlert, FieldOpsTrack } from "./sim";
+import type { FieldOpsAlert, FieldOpsTrack } from "./types";
 
 /** A track nobody has heard from in this long is shown as stale, not hidden. */
 export const STALE_AFTER_MS = 10_000;

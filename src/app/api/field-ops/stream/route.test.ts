@@ -19,7 +19,7 @@ function streamRequest(query = "") {
 describe("GET /api/field-ops/stream", () => {
   it("pipes portfolio_api's event stream through unbuffered, keeping the rate", async () => {
     const fetchSpy = vi.fn(
-      async () =>
+      async (_requestedUrl: string | URL) =>
         new Response("retry: 2000\nevent: update\ndata: {}\n\n", {
           headers: { "Content-Type": "text/event-stream" },
         }),
@@ -28,7 +28,7 @@ describe("GET /api/field-ops/stream", () => {
 
     const response = await GET(streamRequest("?rate=low"));
 
-    expect(fetchSpy.mock.calls[0][0]).toBe(`${API_URL}/api/field-ops/stream?rate=low`);
+    expect(String(fetchSpy.mock.calls[0][0])).toBe(`${API_URL}/api/field-ops/stream?rate=low`);
     expect(response.headers.get("Content-Type")).toBe("text/event-stream");
     expect(response.headers.get("Cache-Control")).toContain("no-transform");
     expect(await response.text()).toContain("event: update");

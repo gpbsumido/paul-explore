@@ -6,7 +6,7 @@ import {
   isTrackStale,
   alertsNeedingAttentionFirst,
 } from "./feedState";
-import type { FieldOpsAlert, FieldOpsTrack } from "./sim";
+import type { FieldOpsAlert, FieldOpsTrack } from "./types";
 
 function aTrack(overrides: Partial<FieldOpsTrack> = {}): FieldOpsTrack {
   return {

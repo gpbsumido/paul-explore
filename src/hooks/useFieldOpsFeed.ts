@@ -7,7 +7,7 @@ import {
   emptyFeedState,
   type FeedState,
 } from "@/lib/field-ops/feedState";
-import type { FieldOpsSnapshot } from "@/lib/field-ops/sim";
+import type { FieldOpsSnapshot } from "@/lib/field-ops/types";
 
 export type FieldOpsConnection = "live" | "reconnecting" | "offline";
 
