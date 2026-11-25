@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-25 - version 9.5.0
+
+- A simulated field console at /lab/field-ops: six fake tracks on a 3D map, a camera tile for the selected one, and an alert queue where a critical alert stays on top until someone acknowledges it. It's built for a screen where a missed update costs something. A track that stops reporting is marked STALE in words and keeps its last position, the status line says how old the picture is when the link drops, and a low bandwidth switch slows updates to every 5s and pauses video. The track list carries everything the map does, so it works from the keyboard.
+- The data comes from real endpoints in portfolio_api 6.5.0 (`GET /api/field-ops/snapshot` and an SSE `GET /api/field-ops/stream`), which this app proxies same-origin. Deploy portfolio_api first.
+
 ## 2026-11-24 - version 9.4.1
 
 - The agent-run demo on /learn/ai-agent-patterns now runs on an XState machine instead of a hand-written reducer. The old reducer opened nearly every case by checking the status and returning early, which is a transition table written as code. In the machine each state lists the events it accepts and drops the rest. `useAgentRun` keeps the same return value and the page is untouched. The 35 reducer cases run against the machine, and the identity checks became equality checks because a machine returns a new snapshot. Adds `xstate` and `@xstate/react`. The ai-agent-patterns write-up has a dated update on it.
