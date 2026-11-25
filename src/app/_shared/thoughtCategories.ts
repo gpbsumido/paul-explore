@@ -17,6 +17,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "volunteer-check-in",
       "learn",
       "particles",
+      "field-ops",
       "world",
       "gallery-wall",
       "feature-flags",

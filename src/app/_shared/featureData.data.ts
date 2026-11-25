@@ -174,6 +174,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/particles",
   },
   {
+    id: "field-ops",
+    title: "Field Ops",
+    description:
+      "A simulated field console: live tracks on a 3D map, a video tile, and an alert queue that needs an explicit acknowledge, backed by real streaming endpoints and honest about stale data and a dropped link.",
+    href: "/lab/field-ops",
+    color: "#b46c2d",
+    thoughtsHref: "/thoughts/field-ops",
+  },
+  {
     id: "ketsup",
     title: "Ketsup",
     description:
@@ -292,6 +301,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Thirteen demos that each rebuilt the same stepper, one useStepPlayer hook, and the overrun the characterisation tests caught",
     color: "#3daebf",
+  },
+  {
+    title: "Field Ops",
+    href: "/thoughts/field-ops",
+    preview:
+      "A fake field console on a real stream: what it shows when data goes stale or the link drops, and why an alert only clears when someone acknowledges it",
+    color: "#b46c2d",
   },
   {
     title: "Particle Lab",
