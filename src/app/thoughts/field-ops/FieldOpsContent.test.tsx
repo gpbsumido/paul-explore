@@ -17,4 +17,12 @@ describe("FieldOpsContent", () => {
     expect(screen.getByRole("heading", { name: /what I'd do now/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /next on this/i })).toBeInTheDocument();
   });
+
+  it("records the camera tile rework as a dated update, with the wrong turn kept in", () => {
+    render(<FieldOpsContent />);
+    expect(
+      screen.getByRole("heading", { name: /camera tile said it was receiving/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/NO SIGNAL, last frame/)).toBeInTheDocument();
+  });
 });
