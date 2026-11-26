@@ -7,6 +7,7 @@ import {
   emptyFeedState,
   type FeedState,
 } from "@/lib/field-ops/feedState";
+import { API_URL } from "@/lib/apiUrl";
 import type { FieldOpsSnapshot } from "@/lib/field-ops/types";
 
 export type FieldOpsConnection = "live" | "reconnecting" | "offline";
@@ -24,6 +25,9 @@ export type FieldOpsFeed = {
 
 const CLOCK_TICK_MS = 1_000;
 const OFFLINE_AFTER_SILENT_SECONDS = 15;
+const FIRST_RETRY_DELAY_MS = 1_000;
+const LONGEST_RETRY_DELAY_MS = 10_000;
+const SOCKET_URL = `${API_URL.replace(/^http/, "ws")}/api/field-ops/socket`;
 
 type FeedAction =
   | { type: "update"; snapshot: FieldOpsSnapshot; receivedAtMs: number }
@@ -58,10 +62,12 @@ function reduceFeed(model: FeedModel, action: FeedAction): FeedModel {
 }
 
 /**
- * Subscribes to /api/field-ops/stream and keeps the picture. EventSource
- * reconnects by itself, so the hook only has to tell the truth about it: live,
- * reconnecting, or offline once nothing has arrived for a while. Switching low
- * bandwidth on reopens the stream at the slower rate.
+ * Subscribes to portfolio_api's field ops socket and keeps the picture. When
+ * the socket drops it reconnects with a growing delay and asks for everything
+ * since the last sequence it saw, so the server replays what was missed. The
+ * hook only has to tell the truth about it: live, reconnecting, or offline once
+ * nothing has arrived for a while. Switching low bandwidth on reopens the
+ * socket at the slower rate.
  */
 export function useFieldOpsFeed(): FieldOpsFeed {
   const [isLowBandwidth, setLowBandwidth] = useState(false);
@@ -79,14 +85,42 @@ export function useFieldOpsFeed(): FieldOpsFeed {
   }, []);
 
   useEffect(() => {
-    const source = new EventSource(`/api/field-ops/stream${isLowBandwidth ? "?rate=low" : ""}`);
-    source.onopen = () => dispatch({ type: "stream-opened" });
-    source.onerror = () => dispatch({ type: "stream-errored" });
-    source.addEventListener("update", (event) => {
-      const snapshot: FieldOpsSnapshot = JSON.parse((event as MessageEvent<string>).data);
-      dispatch({ type: "update", snapshot, receivedAtMs: Date.now() });
-    });
-    return () => source.close();
+    let lastSequence = 0;
+    let failedAttempts = 0;
+    let isClosedByUs = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let socket: WebSocket;
+
+    const connect = () => {
+      const query = new URLSearchParams();
+      if (isLowBandwidth) query.set("rate", "low");
+      if (lastSequence > 0) query.set("since", String(lastSequence));
+      const queryString = query.toString();
+      socket = new WebSocket(queryString ? `${SOCKET_URL}?${queryString}` : SOCKET_URL);
+      socket.onopen = () => {
+        failedAttempts = 0;
+        dispatch({ type: "stream-opened" });
+      };
+      socket.onmessage = (event) => {
+        const frame: { sequence: number; snapshot: FieldOpsSnapshot } = JSON.parse(event.data);
+        lastSequence = frame.sequence;
+        dispatch({ type: "update", snapshot: frame.snapshot, receivedAtMs: Date.now() });
+      };
+      socket.onclose = () => {
+        if (isClosedByUs) return;
+        dispatch({ type: "stream-errored" });
+        const delayMs = Math.min(FIRST_RETRY_DELAY_MS * 2 ** failedAttempts, LONGEST_RETRY_DELAY_MS);
+        failedAttempts += 1;
+        retryTimer = setTimeout(connect, delayMs);
+      };
+    };
+
+    connect();
+    return () => {
+      isClosedByUs = true;
+      clearTimeout(retryTimer);
+      socket.close();
+    };
   }, [isLowBandwidth]);
 
   const acknowledge = useCallback(
