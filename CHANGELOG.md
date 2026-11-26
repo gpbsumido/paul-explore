@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-26 - version 9.5.2
+
+- The field ops console fits the window on wide screens. Each new alert used to make the page taller, so after a few minutes the newest ones were below the fold and reading them scrolled the map out of view. The alert queue now scrolls in its own column, can be focused to scroll from the keyboard, and keeps its heading pinned. The map stretches to fill the height that's left, and the camera tile drops from a full 16:9 frame to 224px. With 30 alerts sent in, a 900px window went from a 2761px page to 900px. A Playwright test fakes the socket and fails if the page is taller than the window, since jsdom can't measure layout. Below 1024px wide it stays one scrolling column, with the queue capped at 384px.
+- The field ops write-up has a dated update on it, including the first fix that still left the page 162px too tall.
+
 ## 2026-11-25 - version 9.5.1
 
 - The field ops console gets its feed over a WebSocket from portfolio_api 6.6.0 instead of server-sent events. It reconnects after a drop with a growing delay (1s up to 10s) and asks for everything since the last sequence it saw, and the server replays the missed seconds, at most 60. SSE reconnected on its own but could not say what it missed, so alerts raised during a drop were lost.
