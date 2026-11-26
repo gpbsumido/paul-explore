@@ -33,4 +33,12 @@ describe("FieldOpsContent", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/since=100/)).toBeInTheDocument();
   });
+
+  it("records the console fitting the window as a dated update, with the page heights pasted", () => {
+    render(<FieldOpsContent />);
+    expect(
+      screen.getByRole("heading", { name: /alert queue pushed the map off the screen/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/pageHeight: 2761/)).toBeInTheDocument();
+  });
 });
