@@ -78,66 +78,77 @@ export default function FieldOpsConsole() {
           />
         </div>
 
-        <div className="space-y-4">
-          <section aria-labelledby="alerts-heading">
-            <h2 id="alerts-heading" className="mb-2 text-lg font-bold">Alerts</h2>
-            <ul className="space-y-2">
-              {alerts.map((alert) => {
-                const isAcknowledged = feed.state.acknowledgedAlertIds.includes(alert.id);
-                return (
-                  <li
-                    key={alert.id}
-                    role={alert.severity === "critical" && !isAcknowledged ? "alert" : undefined}
-                    className={`rounded-lg border-l-4 p-3 text-sm ${SEVERITY_CLASS[alert.severity]} ${isAcknowledged ? "opacity-60" : ""}`}
-                  >
-                    <p className="font-semibold">
-                      {SEVERITY_LABEL[alert.severity]}: {alert.message}
-                    </p>
-                    <p>{callsignOf(alert.trackId)}</p>
-                    {isAcknowledged ? (
-                      <p>Acknowledged</p>
-                    ) : (
+        {/* On wide screens the side column takes the map column's height, so a
+            long alert queue scrolls in place instead of stretching the page. */}
+        <div className="lg:relative">
+          <div className="flex flex-col gap-4 lg:absolute lg:inset-0">
+            <div
+              role="region"
+              aria-labelledby="alerts-heading"
+              tabIndex={0}
+              className="max-h-96 min-h-0 flex-1 overflow-y-auto rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 lg:max-h-none"
+            >
+              <h2 id="alerts-heading" className="sticky top-0 z-10 mb-2 bg-background text-lg font-bold">
+                Alerts
+              </h2>
+              <ul className="space-y-2">
+                {alerts.map((alert) => {
+                  const isAcknowledged = feed.state.acknowledgedAlertIds.includes(alert.id);
+                  return (
+                    <li
+                      key={alert.id}
+                      role={alert.severity === "critical" && !isAcknowledged ? "alert" : undefined}
+                      className={`rounded-lg border-l-4 p-3 text-sm ${SEVERITY_CLASS[alert.severity]} ${isAcknowledged ? "opacity-60" : ""}`}
+                    >
+                      <p className="font-semibold">
+                        {SEVERITY_LABEL[alert.severity]}: {alert.message}
+                      </p>
+                      <p>{callsignOf(alert.trackId)}</p>
+                      {isAcknowledged ? (
+                        <p>Acknowledged</p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => feed.acknowledge(alert.id)}
+                          aria-label={`Acknowledge: ${alert.message}, ${callsignOf(alert.trackId)}`}
+                          className="paul-touch-target mt-2 rounded-md border border-current px-3 py-1 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+                        >
+                          Acknowledge
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <section aria-labelledby="tracks-heading" className="shrink-0">
+              <h2 id="tracks-heading" className="mb-2 text-lg font-bold">Tracks</h2>
+              <ul className="space-y-2">
+                {tracks.map((track) => {
+                  const isStale = staleTrackIds.has(track.id);
+                  return (
+                    <li key={track.id}>
                       <button
                         type="button"
-                        onClick={() => feed.acknowledge(alert.id)}
-                        aria-label={`Acknowledge: ${alert.message}, ${callsignOf(alert.trackId)}`}
-                        className="paul-touch-target mt-2 rounded-md border border-current px-3 py-1 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+                        aria-pressed={track.id === selectedTrackId}
+                        onClick={() => setSelectedTrackId(track.id)}
+                        className="paul-touch-target w-full rounded-lg border border-border bg-surface p-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-2 aria-pressed:border-primary-600"
                       >
-                        Acknowledge
+                        <span className="font-semibold">{track.callsign}</span> ({track.kind}),{" "}
+                        {Math.round(track.speedMetersPerSecond)} m/s
+                        {isStale && (
+                          <span className="ml-2 font-semibold text-warning-700 dark:text-warning-200">
+                            STALE {Math.round((feed.nowMs - track.lastReportedAtMs) / 1000)}s
+                          </span>
+                        )}
                       </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-
-          <section aria-labelledby="tracks-heading">
-            <h2 id="tracks-heading" className="mb-2 text-lg font-bold">Tracks</h2>
-            <ul className="space-y-2">
-              {tracks.map((track) => {
-                const isStale = staleTrackIds.has(track.id);
-                return (
-                  <li key={track.id}>
-                    <button
-                      type="button"
-                      aria-pressed={track.id === selectedTrackId}
-                      onClick={() => setSelectedTrackId(track.id)}
-                      className="paul-touch-target w-full rounded-lg border border-border bg-surface p-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-2 aria-pressed:border-primary-600"
-                    >
-                      <span className="font-semibold">{track.callsign}</span> ({track.kind}),{" "}
-                      {Math.round(track.speedMetersPerSecond)} m/s
-                      {isStale && (
-                        <span className="ml-2 font-semibold text-warning-700 dark:text-warning-200">
-                          STALE {Math.round((feed.nowMs - track.lastReportedAtMs) / 1000)}s
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          </div>
         </div>
       </div>
     </main>
