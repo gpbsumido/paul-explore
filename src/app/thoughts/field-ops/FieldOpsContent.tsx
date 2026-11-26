@@ -444,6 +444,61 @@ after:  NO SIGNAL, last frame 14s ago      (frozen, dimmed, same threshold as th
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-26-fit-window"
+        date="November 26, 2026"
+        title="The alert queue pushed the map off the screen"
+      >
+        <p>
+          Every new alert made the page taller. After a few minutes the newest
+          ones sat below the fold, and scrolling down to read them took the map
+          off the screen. On a console the whole picture has to stay in view,
+          so that was a bug, not something to tidy later.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The side column grew with whatever was in it
+        </h3>
+        <p className="text-muted">
+          The alerts and tracks shared a grid row with the map and camera, and a
+          grid row is as tall as its tallest cell. So the alert list set the
+          height of the page. I took the side column out of the row&apos;s
+          sizing, so it now takes the map column&apos;s height, and the alert
+          queue scrolls inside it. The queue can be focused, so it scrolls from
+          the keyboard too, and its heading stays pinned while it scrolls.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I thought that was the fix. The page still scrolled.
+        </h3>
+        <p className="text-muted">
+          With the queue fixed, the page was still 162px taller than a 900px
+          window, with no alerts at all. The camera tile was a full 16:9 frame,
+          about 400px tall for a picture that is still a stand-in. On wide
+          screens the console now takes the window&apos;s height, the map
+          stretches to fill what is left, and the camera gets a fixed 224px.
+          Even then it was 1px over, because the header is 56px plus a 1px rule
+          under it. The heights, measured with 30 alerts sent in:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`before  viewport: 900  pageHeight: 2761  alertQueue: 2228 of 2228 shown
+after   viewport: 900  pageHeight: 900   alertQueue: 367 of 2228 shown`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          jsdom could not have caught this
+        </h3>
+        <p className="text-muted">
+          My component tests had no layout to measure, which is how the bug got
+          through. The new check is a Playwright test that fakes the socket with
+          page.routeWebSocket, sends 30 alerts, and fails if the page is taller
+          than the window. Under 1024px wide the console is still one column
+          that scrolls, with the alert queue capped at 384px. I have not tested
+          a window shorter than 704px, where the console stops shrinking and
+          the page scrolls again.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Snapshot and SSE endpoints in portfolio_api over a pure, deterministic simulation, proxied same-origin.",
@@ -452,12 +507,14 @@ after:  NO SIGNAL, last frame 14s ago      (frozen, dimmed, same threshold as th
           "Critical alerts that only clear on an explicit acknowledge, reachable by keyboard.",
           "A low bandwidth mode that slows the stream and pauses video.",
           "A camera tile that follows the same stale rule as the map and list, instead of claiming to receive.",
+          "A console that fits the window on wide screens, with the alert queue scrolling in its own column.",
         ]}
         couldImprove={[
           "The camera tile is still a drawn frame, not video. A real one needs a stream and its own stalled, buffering and recovered states, which are different from a track going quiet.",
           "Acknowledgement is local. A real console would POST it, show who did it, and reconcile when two people act at once.",
           "Offline is judged by silence. A heartbeat event would separate a quiet field from a dead link.",
           "Nothing survives a reload on a dead link. The last picture should be cached.",
+          "The alert queue does not say how many alerts are scrolled out of view. A count in its heading would tell an operator there is more to read.",
           "Replay is capped at 60 seconds. A longer gap shows the current picture with no word that a stretch is missing.",
         ]}
         upcoming={[
