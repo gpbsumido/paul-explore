@@ -67,6 +67,9 @@ describe("world exhibits", () => {
       // tool that needs a big image and some patience. A booth in the city
       // would be a signpost off the site to a CT viewer.
       "evar",
+      // A console that wants a wide screen and a keyboard. A booth would walk
+      // someone to a map they cannot read on the phone HUD the world uses.
+      "field-ops",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));

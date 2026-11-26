@@ -94,6 +94,15 @@ describe("buildCsp", () => {
     expect(connect).toContain("https://api.paulsumido.com");
   });
 
+  it("allows the socket form of the API origin for the field ops feed", () => {
+    expect(directive(buildCsp(undefined, { apiUrl: "http://localhost:3001" }), "connect-src")).toContain(
+      "ws://localhost:3001",
+    );
+    expect(directive(buildCsp(undefined, { apiUrl: "https://api.paulsumido.com" }), "connect-src")).toContain(
+      "wss://api.paulsumido.com",
+    );
+  });
+
   it("does not smuggle in a hardcoded API host", () => {
     const connect = directive(buildCsp(undefined, { apiUrl: "http://localhost:3001" }), "connect-src");
     expect(connect).not.toContain("api.paulsumido.com");
