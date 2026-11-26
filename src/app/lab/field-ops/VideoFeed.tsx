@@ -32,7 +32,7 @@ export default function VideoFeed({ track, nowMs, isStale, isPaused }: VideoFeed
       </figcaption>
 
       <div
-        className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-neutral-900 font-mono text-sm text-neutral-200"
+        className="relative flex aspect-video items-center lg:aspect-auto lg:h-56 justify-center overflow-hidden rounded-lg bg-neutral-900 font-mono text-sm text-neutral-200"
         style={{ backgroundImage: SCANLINES }}
       >
         {!track ? (

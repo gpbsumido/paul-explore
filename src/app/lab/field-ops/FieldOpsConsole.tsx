@@ -35,7 +35,9 @@ export default function FieldOpsConsole() {
   const callsignOf = (trackId: string) => feed.state.tracksById[trackId]?.callsign ?? trackId;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    // On wide screens the console fills the window under the 56px header and
+    // its 1px rule, so the alert queue scrolls instead of the page.
+    <main className="mx-auto max-w-6xl px-4 py-6 lg:flex lg:h-[calc(100dvh-3.5rem-1px)] lg:min-h-[44rem] lg:flex-col">
       <h1 className="text-2xl font-bold">Field Ops</h1>
       <p className="mt-1 text-sm text-muted">
         Simulated tracks, video and alerts. Nothing here is real.
@@ -57,12 +59,12 @@ export default function FieldOpsConsole() {
         </label>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-4">
+      <div className="mt-4 grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[2fr_1fr]">
+        <div className="flex flex-col gap-4 lg:min-h-0">
           <div
             role="img"
             aria-label={`3D map of ${tracks.length} tracks. The track list has the same information as text.`}
-            className="h-96 overflow-hidden rounded-2xl border border-border bg-surface"
+            className="h-96 overflow-hidden rounded-2xl lg:h-auto lg:min-h-0 lg:flex-1 border border-border bg-surface"
           >
             <FieldMap
               tracks={tracks}
