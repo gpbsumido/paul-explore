@@ -69,6 +69,14 @@ describe("FieldOpsConsole", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/42/);
   });
 
+  it("keeps the alert queue scrollable from the keyboard once it outgrows its column", () => {
+    feedMock.current = aFeed();
+    render(<FieldOpsConsole />);
+    const alertQueue = screen.getByRole("region", { name: "Alerts" });
+    expect(alertQueue).toHaveAttribute("tabindex", "0");
+    expect(alertQueue).toHaveClass("overflow-y-auto");
+  });
+
   it("marks a stale track in words, not only colour", () => {
     feedMock.current = aFeed({ nowMs: 60_000 });
     render(<FieldOpsConsole />);
