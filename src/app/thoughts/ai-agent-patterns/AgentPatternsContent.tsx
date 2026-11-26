@@ -1,5 +1,5 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -666,13 +666,101 @@ function createTestStream() {
 }`}
         </pre>
       </section>
+
+      <Update
+        id="update-2026-11-24-xstate-machine"
+        date="November 24, 2026"
+        title="The reducer was a state machine already, so I let XState be one"
+      >
+        <p>
+          Everything above says &ldquo;state machine&rdquo; and then builds it
+          out of a reducer. I wanted to see how much of that reducer was really
+          the library&apos;s job, so the run lifecycle now lives in an XState
+          machine and the page above it did not change.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Every case in the reducer opened with the same guard.
+        </h3>
+        <p className="text-muted">
+          Nine of the ten cases started by checking the current status and
+          handing the state back untouched if it was wrong. That check is a
+          transition table written as code. In the machine a state only lists
+          the events it accepts, so a late chunk after a cancel is dropped
+          without a line saying so.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`running: {
+  on: {
+    APPEND_TEXT: { actions: "appendText" },
+    REQUEST_APPROVAL: { target: "awaiting_approval", actions: "requestApproval" },
+    COMPLETE: { target: "completed", actions: "stopStreamingText" },
+    ERROR: { target: "error", actions: "recordError" },
+    CANCEL: "cancelled",
+  },
+},`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I kept the old spec as the proof, and one assertion had to change.
+        </h3>
+        <p className="text-muted">
+          The 35 reducer cases run against the machine through{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            getNextSnapshot
+          </code>
+          . The reducer returned the same object for an ignored event, so those
+          tests used{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            toBe
+          </code>
+          . A machine hands back a fresh snapshot, so identity can&apos;t hold
+          and they became{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            toEqual
+          </code>
+          . What the tests care about, that nothing changed, still holds.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`- expect(reduce(cancelled, action)).toBe(cancelled);
++ expect(reduce(cancelled, action)).toEqual(cancelled);`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The hook swap looked finished before lint saw it.
+        </h3>
+        <p className="text-muted">
+          I replaced{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            dispatch
+          </code>{" "}
+          with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            send
+          </code>{" "}
+          and left the empty dependency arrays alone, because dispatch is stable
+          and I assumed send was too. The tests and the typecheck were green
+          either way. The lint rule disagreed, and I added{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            send
+          </code>{" "}
+          to each list rather than argue with it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`129:6  warning  React Hook useCallback has a missing dependency: 'send'.
+Either include it or remove the dependency array  react-hooks/exhaustive-deps`}
+        </pre>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Server-sent events rather than WebSockets, because the traffic is one-directional and a full duplex channel would be machinery with nothing to carry.",
           "fetch with a ReadableStream instead of EventSource, which is what makes POST bodies and headers possible.",
           "State machines over booleans, so impossible combinations cannot be represented rather than merely avoided.",
+          "The run lifecycle is an XState machine rather than a hand-guarded reducer, with the same hook API and the same spec.",
         ]}
         couldImprove={[
+          "The stream read loop still lives in the hook. Moving it into an invoked XState actor would put the whole run in one place, at the price of a much bigger diff than this change was worth.",
           "Reconnection is naive. A dropped stream restarts rather than resuming from the last event id, which the SSE protocol already supports.",
           "There is no backpressure story — a fast producer and a slow consumer have not been tested against each other.",
           "The patterns are demonstrated but not extracted, so using one elsewhere means reading this page and reimplementing.",

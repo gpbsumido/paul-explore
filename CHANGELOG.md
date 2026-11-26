@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-11-26 - version 9.5.2
+
+- The field ops console fits the window on wide screens. Each new alert used to make the page taller, so after a few minutes the newest ones were below the fold and reading them scrolled the map out of view. The alert queue now scrolls in its own column, can be focused to scroll from the keyboard, and keeps its heading pinned. The map stretches to fill the height that's left, and the camera tile drops from a full 16:9 frame to 224px. With 30 alerts sent in, a 900px window went from a 2761px page to 900px. A Playwright test fakes the socket and fails if the page is taller than the window, since jsdom can't measure layout. Below 1024px wide it stays one scrolling column, with the queue capped at 384px.
+- The field ops write-up has a dated update on it, including the first fix that still left the page 162px too tall.
+
+## 2026-11-25 - version 9.5.1
+
+- The field ops console gets its feed over a WebSocket from portfolio_api 6.6.0 instead of server-sent events. It reconnects after a drop with a growing delay (1s up to 10s) and asks for everything since the last sequence it saw, and the server replays the missed seconds, at most 60. SSE reconnected on its own but could not say what it missed, so alerts raised during a drop were lost.
+- A Next route can't upgrade a connection, so the browser connects straight to the API and the CSP allows the ws form of the API origin. The `/api/field-ops/stream` proxy is deleted.
+
+## 2026-11-25 - version 9.5.0
+
+- A simulated field console at /lab/field-ops: six fake tracks on a 3D map, a camera tile for the selected one, and an alert queue where a critical alert stays on top until someone acknowledges it. It's built for a screen where a missed update costs something. A track that stops reporting is marked STALE in words and keeps its last position, the status line says how old the picture is when the link drops, and a low bandwidth switch slows updates to every 5s and pauses video. The track list carries everything the map does, so it works from the keyboard.
+- The data comes from real endpoints in portfolio_api 6.5.0 (`GET /api/field-ops/snapshot` and an SSE `GET /api/field-ops/stream`), which this app proxies same-origin. Deploy portfolio_api first.
+
+## 2026-11-24 - version 9.4.1
+
+- The agent-run demo on /learn/ai-agent-patterns now runs on an XState machine instead of a hand-written reducer. The old reducer opened nearly every case by checking the status and returning early, which is a transition table written as code. In the machine each state lists the events it accepts and drops the rest. `useAgentRun` keeps the same return value and the page is untouched. The 35 reducer cases run against the machine, and the identity checks became equality checks because a machine returns a new snapshot. Adds `xstate` and `@xstate/react`. The ai-agent-patterns write-up has a dated update on it.
+
 ## 2026-11-23 - version 9.4.0
 
 - A new home page, v7, built from my November mockup. A split hero puts the headline beside the same facts written as a TypeScript object in an editor panel. Under it a marquee lists the stack as package@version, with versions read from package.json. Four apps sit on an offset grid, their screenshots in grayscale until you point at one. A sticky about panel runs beside a timeline taken from my résumé, three figures are imported rather than typed, and the page closes on contact. v6 moves to the /discover archive.

@@ -22,6 +22,7 @@ export const A11Y_ROUTES = [
   "/tcg/pocket",
   "/tcg/pokemon/sets",
   "/lab/particles",
+  "/lab/field-ops",
   "/lab/motion",
   "/graphql",
   "/operator",

@@ -86,7 +86,7 @@ export function buildCsp(
   const connect = [
     ...CONNECT_ORIGINS,
     ...(origin ? [origin] : []),
-    ...(api ? [api] : []),
+    ...(api ? [api, api.replace(/^http/, "ws")] : []),
   ];
 
   // React's development build calls eval() to rebuild callstacks that crossed

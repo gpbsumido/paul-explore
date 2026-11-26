@@ -11,6 +11,21 @@ import type { UpdateEntry } from "./types";
  */
 export const UPDATE_ENTRIES: UpdateEntry[] = [
   {
+    id: "e-field-ops",
+    date: "2026-11-25",
+    version: "9.5.0",
+    category: "experiment",
+    tags: ["lab", "3d", "realtime"],
+    title: "A field console on a live fake feed",
+    summary:
+      "Field Ops shows six simulated tracks moving on a 3D map, with a camera tile and an alert queue. Everything is made up, but it arrives over a real stream.",
+    body: [
+      "A critical alert stays at the top until you acknowledge it. If a track stops reporting it's marked stale and keeps its last position, and if the connection drops the page says how old the picture is.",
+      "There's a low bandwidth switch that slows updates and pauses the video, and the list beside the map has everything the map shows, so it works without a mouse.",
+    ],
+    resolvedTicketIds: [],
+  },
+  {
     id: "e-site-redesign-v7",
     date: "2026-11-23",
     version: "9.4.0",

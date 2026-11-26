@@ -781,6 +781,11 @@ export const FEATURE_TOKEN: Record<string, string> = {
 // updatesPreview.test.ts fails when a new entry lands and this falls behind.
 export const UPDATES_PREVIEW = [
   {
+    title: "A field console on a live fake feed",
+    tone: "var(--color-update-experiment)",
+    version: "9.5",
+  },
+  {
     title: "A new home page, and the rest of the site to match",
     tone: "var(--color-update-feature)",
     version: "9.4",
@@ -789,11 +794,6 @@ export const UPDATES_PREVIEW = [
     title: "The landing says who built it",
     tone: "var(--color-update-feature)",
     version: "9.3",
-  },
-  {
-    title: "The Mind Reader: a party game for two",
-    tone: "var(--color-update-feature)",
-    version: "9.2",
   },
 ];
 
