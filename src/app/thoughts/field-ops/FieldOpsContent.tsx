@@ -380,9 +380,74 @@ after:  NO SIGNAL, last frame 14s ago      (frozen, dimmed, same threshold as th
         </p>
       </Update>
 
+      <Update
+        id="update-2026-11-25-websocket"
+        date="November 25, 2026"
+        title="Reconnecting was never the missing part, replay was"
+      >
+        <p>
+          I moved the feed from server-sent events to a WebSocket. I had written
+          down that EventSource &quot;reconnects by itself&quot; as the reason to
+          stay on SSE, and that was true and beside the point for a screen where
+          a missed update costs something.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The browser reconnected and told nobody what it missed
+        </h3>
+        <p className="text-muted">
+          EventSource only asks for what it missed if the server numbered the
+          events, and mine did not. After a drop the stream came back on the
+          current second, and anything raised in the gap was simply never seen. A
+          Reconnecting banner that clears is not the same as a picture that is
+          complete, and I had built the first and called it the second.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The simulation made replay free
+        </h3>
+        <p className="text-muted">
+          Every frame is a whole second of the clock, and the sequence number is
+          that second. Because the simulation is a pure function of time, the
+          server does not store anything to replay: it computes the missed
+          seconds again, capped at 60. The hook keeps the last sequence it saw
+          and reconnects after 1s, 2s, 4s, up to 10s, asking for everything
+          after it.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`wss://<api>/api/field-ops/socket?since=100
+{"sequence":101,"snapshot":{...}}   <- the second I missed
+{"sequence":102,"snapshot":{...}}   <- live again`}
+        </pre>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          It cost me the proxy
+        </h3>
+        <p className="text-muted">
+          A Next route handler cannot upgrade a connection, so the socket goes
+          from the browser straight to portfolio_api. The origin has to be on
+          the allowlist at the handshake, the CSP has to allow the ws form of the
+          API address, and the stream proxy I wrote last week is deleted. I
+          could have kept SSE and added event ids instead, which is less code.
+          I chose the socket because I wanted to build the reconnect path
+          properly, and I would not claim it was the smaller option.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          What I checked, and what I did not
+        </h3>
+        <p className="text-muted">
+          The server tests run a real socket and check order, the cap and the
+          403. The hook tests use a stub WebSocket with fake timers. I have not
+          watched it reconnect in a browser against a deployed API, or through
+          the production proxy.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Snapshot and SSE endpoints in portfolio_api over a pure, deterministic simulation, proxied same-origin.",
+          "A WebSocket feed that reconnects with backoff and has the server replay the seconds it missed.",
           "Stale tracks kept at their last position and labelled in words, with the offline banner saying how old the picture is.",
           "Critical alerts that only clear on an explicit acknowledge, reachable by keyboard.",
           "A low bandwidth mode that slows the stream and pauses video.",
@@ -393,6 +458,7 @@ after:  NO SIGNAL, last frame 14s ago      (frozen, dimmed, same threshold as th
           "Acknowledgement is local. A real console would POST it, show who did it, and reconcile when two people act at once.",
           "Offline is judged by silence. A heartbeat event would separate a quiet field from a dead link.",
           "Nothing survives a reload on a dead link. The last picture should be cached.",
+          "Replay is capped at 60 seconds. A longer gap shows the current picture with no word that a stretch is missing.",
         ]}
         upcoming={[
           "A heartbeat frame on the stream, so offline means the link and not just a quiet minute.",

@@ -25,4 +25,12 @@ describe("FieldOpsContent", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/NO SIGNAL, last frame/)).toBeInTheDocument();
   });
+
+  it("records the move to a WebSocket as a dated update that says why SSE was not enough", () => {
+    render(<FieldOpsContent />);
+    expect(
+      screen.getByRole("heading", { name: /reconnecting was never the missing part/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/since=100/)).toBeInTheDocument();
+  });
 });

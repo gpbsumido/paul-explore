@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-25 - version 9.5.1
+
+- The field ops console gets its feed over a WebSocket from portfolio_api 6.6.0 instead of server-sent events. It reconnects after a drop with a growing delay (1s up to 10s) and asks for everything since the last sequence it saw, and the server replays the missed seconds, at most 60. SSE reconnected on its own but could not say what it missed, so alerts raised during a drop were lost.
+- A Next route can't upgrade a connection, so the browser connects straight to the API and the CSP allows the ws form of the API origin. The `/api/field-ops/stream` proxy is deleted.
+
 ## 2026-11-25 - version 9.5.0
 
 - A simulated field console at /lab/field-ops: six fake tracks on a 3D map, a camera tile for the selected one, and an alert queue where a critical alert stays on top until someone acknowledges it. It's built for a screen where a missed update costs something. A track that stops reporting is marked STALE in words and keeps its last position, the status line says how old the picture is when the link drops, and a low bandwidth switch slows updates to every 5s and pauses video. The track list carries everything the map does, so it works from the keyboard.
